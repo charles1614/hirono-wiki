@@ -1,8 +1,8 @@
 ---
-created: 2026-04-20
-updated: 2026-04-20
+created: 2026-04-20T00:00:00.000Z
+updated: '2026-04-19'
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # LLM-Assisted Coding Workflows
