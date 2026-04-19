@@ -1,0 +1,39 @@
+---
+created: 2026-04-19
+updated: 2026-04-19
+type: meta
+---
+
+# Index — lay of the land
+
+One-page overview. Detailed catalogs live in the sharded indexes below.
+
+## Catalogs
+
+- **[[index-sources]]** — all source pages, by year
+- **[[index-entities]]** — all entities, split active vs seen
+- **[[index-topics]]** — all synthesis pages
+
+## Live log
+
+- **[[log-2026]]** — this year's ingest / query / refactor entries
+
+## Schema
+
+- **[[schema]]** — conventions for how pages are written here
+
+## Current state
+
+_Updated automatically by `tools/reindex.ts` after each ingest._
+
+- Sources: 0
+- Entities (active): 0
+- Entities (seen): 0
+- Topics: 0
+- Total pages: 0
+
+## How to navigate
+
+- **Looking for a specific thing?** Search by slug: `rg '\[\[Megatron\]\]' .` or use the Lark graph view for visual traversal.
+- **Want to see what's new?** Read the top of [[log-2026]].
+- **Want to write a query against the wiki?** Ask Claude; it reads indexes + relevant docs and can file the answer back as a [[Topics/]] page.
