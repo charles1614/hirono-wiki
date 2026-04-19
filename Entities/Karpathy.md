@@ -1,9 +1,9 @@
 ---
-created: 2026-04-19
-updated: 2026-04-19
+created: 2026-04-19T00:00:00.000Z
+updated: '2026-04-19'
 type: entity
-refs: 1
-tier: seen
+refs: 5
+tier: active
 ---
 
 # Karpathy

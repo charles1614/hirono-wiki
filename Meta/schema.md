@@ -192,9 +192,11 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 
 ## Entity tiering rules
 
-- **Tier "seen"** (`Entities/_seen/<Name>.md`): 1–2 source references. Thin stub.
-- **Tier "active"** (`Entities/<Name>.md`): ≥3 source references. Full entity page with Synthesis + Observations.
-- **Promotion**: when the 3rd reference is added, `tools/promote_entity.ts` moves the file up and rewrites `tier: active` in its frontmatter. Wikilinks are slug-based so no rewriting elsewhere is needed.
+- **Tier "seen"** (`Entities/_seen/<Name>.md`): 1–2 incoming references (across the whole repo — sources, entities, topics, meta). Thin stub.
+- **Tier "active"** (`Entities/<Name>.md`): ≥3 incoming references. Full entity page with Synthesis + Observations.
+- **`refs` counts incoming wikilinks** from other pages (self-refs excluded). This matches Lark's graph-view semantics: tier reflects established-ness in the graph, not raw source citations.
+- **Promotion** is automatic: `tools/reindex.ts` runs after every ingest (or on demand), recomputes `refs`, and when a `_seen` entity crosses the threshold, moves the file from `Entities/_seen/` to `Entities/` and rewrites `tier: active`. Wikilinks are slug-based, so no rewriting elsewhere is needed.
+- **Demotion is not automatic** — once active, an entity stays active even if refs drop. (A `refactor |` log entry would document manual demotion.)
 
 ## Do / don't
 
