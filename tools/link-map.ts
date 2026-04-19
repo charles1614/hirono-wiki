@@ -22,7 +22,9 @@ export interface DocEntry {
   repo_path: string;        // POSIX, relative to repo root
   bucket: Bucket;
   type: DocType;
-  doc_id: string;           // Lark wiki node token (what lark-hirono uses as --doc)
+  doc_id: string;           // Lark wiki node_token (what lark-hirono uses as --doc)
+  obj_token?: string;       // Docx obj_token — distinct from doc_id; needed for mention_doc.
+                            //   Populated lazily by tools/fix-mentions.ts on first use.
   url: string;
   content_sha: string;      // sha256 of last-uploaded *preprocessed* content ("" on fresh stub)
   uploaded_at: string;      // ISO timestamp
