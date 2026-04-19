@@ -162,7 +162,7 @@ interface BlockContent {
   [k: string]: unknown;
 }
 
-interface DocxBlock {
+export interface DocxBlock {
   block_id: string;
   block_type: number;
   [k: string]: BlockContent | unknown;
@@ -190,13 +190,13 @@ function elementsOf(block: DocxBlock): Element[] | null {
 // URL → target lookup
 // ---------------------------------------------------------------------------
 
-interface Target {
+export interface Target {
   slug: string;
   obj_token: string;
   title: string;
 }
 
-function buildUrlIndex(map: LinkMap): Map<string, Target> {
+export function buildUrlIndex(map: LinkMap): Map<string, Target> {
   const idx = new Map<string, Target>();
   for (const [slug, e] of Object.entries(map.docs)) {
     if (!e.obj_token) continue;
@@ -216,9 +216,10 @@ function buildUrlIndex(map: LinkMap): Map<string, Target> {
 // backfill obj_tokens
 // ---------------------------------------------------------------------------
 
-function backfillObjTokens(map: LinkMap, dryRun: boolean): number {
+function backfillObjTokens(map: LinkMap, dryRun: boolean, label = "fix-mentions"): number {
   const need = Object.entries(map.docs).filter(([_, e]) => !e.obj_token);
-  console.log(`[fix-mentions] backfill: ${need.length} docs missing obj_token`);
+  if (need.length === 0) return 0;
+  console.log(`[${label}] backfill: ${need.length} docs missing obj_token`);
   let filled = 0;
   for (const [slug, e] of need) {
     if (dryRun) {
@@ -242,14 +243,19 @@ function backfillObjTokens(map: LinkMap, dryRun: boolean): number {
 // per-doc conversion
 // ---------------------------------------------------------------------------
 
-interface DocPlan {
+export interface DocPlan {
   docId: string;
   slug: string;
   updates: Array<{ blockId: string; newElements: Element[]; changedCount: number }>;
 }
 
-function planDoc(docId: string, slug: string, urlIndex: Map<string, Target>): DocPlan {
-  const blocks = getBlocks(docId);
+/** Pure: given already-fetched blocks, compute the PATCH plan. Testable. */
+export function planDocFromBlocks(
+  blocks: DocxBlock[],
+  docId: string,
+  slug: string,
+  urlIndex: Map<string, Target>,
+): DocPlan {
   const updates: DocPlan["updates"] = [];
   for (const block of blocks) {
     const elements = elementsOf(block);
@@ -277,7 +283,15 @@ function planDoc(docId: string, slug: string, urlIndex: Map<string, Target>): Do
   return { docId, slug, updates };
 }
 
-function applyDocPlan(plan: DocPlan, dryRun: boolean): { ok: number; fail: number } {
+function planDoc(docId: string, slug: string, urlIndex: Map<string, Target>): DocPlan {
+  return planDocFromBlocks(getBlocks(docId), docId, slug, urlIndex);
+}
+
+function applyDocPlan(
+  plan: DocPlan,
+  dryRun: boolean,
+  _label = "fix-mentions",
+): { ok: number; fail: number } {
   let ok = 0;
   let fail = 0;
   for (const u of plan.updates) {
@@ -297,25 +311,39 @@ function applyDocPlan(plan: DocPlan, dryRun: boolean): { ok: number; fail: numbe
 }
 
 // ---------------------------------------------------------------------------
-// main
+// public entry point (called by sync.ts up, and by main below)
 // ---------------------------------------------------------------------------
 
-function main(): void {
-  const args = process.argv.slice(2);
-  const dryRun = args.includes("--dry-run");
-  const onlyIdx = args.indexOf("--only");
-  const only =
-    onlyIdx >= 0 && args[onlyIdx + 1]
-      ? new Set(args[onlyIdx + 1].split(","))
-      : null;
+export interface RunFixMentionsOptions {
+  dryRun?: boolean;
+  /** If present, restrict processing to these slugs. null/undefined = all docs. */
+  only?: Set<string> | null;
+  /** Label printed in log lines. Default "fix-mentions". */
+  logLabel?: string;
+}
+
+export interface RunFixMentionsResult {
+  backfilled: number;
+  docsTouched: number;
+  blocks: number;
+  ok: number;
+  fail: number;
+}
+
+export function runFixMentions(opts: RunFixMentionsOptions = {}): RunFixMentionsResult {
+  const dryRun = opts.dryRun ?? false;
+  const only = opts.only ?? null;
+  const label = opts.logLabel ?? "fix-mentions";
 
   const map = loadMap(MAP_PATH);
 
-  const filled = backfillObjTokens(map, dryRun);
-  if (filled > 0) console.log(`[fix-mentions] backfilled ${filled} obj_tokens`);
+  const filled = backfillObjTokens(map, dryRun, label);
+  if (filled > 0) console.log(`[${label}] backfilled ${filled} obj_tokens`);
 
   const urlIndex = buildUrlIndex(map);
-  console.log(`[fix-mentions] URL index: ${urlIndex.size} entries (across ${Object.keys(map.docs).length} docs)`);
+  console.log(
+    `[${label}] URL index: ${urlIndex.size} entries (across ${Object.keys(map.docs).length} docs)`,
+  );
 
   const entries = Object.entries(map.docs).filter(([slug, e]) => {
     if (only && !only.has(slug)) return false;
@@ -330,8 +358,8 @@ function main(): void {
     const plan = planDoc(e.doc_id, slug, urlIndex);
     if (plan.updates.length === 0) continue;
     docsTouched++;
-    console.log(`[fix-mentions] ${slug}: ${plan.updates.length} block(s) to update`);
-    const { ok, fail } = applyDocPlan(plan, dryRun);
+    console.log(`[${label}] ${slug}: ${plan.updates.length} block(s) to update`);
+    const { ok, fail } = applyDocPlan(plan, dryRun, label);
     totalOk += ok;
     totalFail += fail;
     totalBlocks += plan.updates.length;
@@ -339,8 +367,31 @@ function main(): void {
 
   const verb = dryRun ? "would touch" : "touched";
   console.log(
-    `[fix-mentions] ${verb} ${totalBlocks} blocks across ${docsTouched} docs (ok=${totalOk}, fail=${totalFail})`,
+    `[${label}] ${verb} ${totalBlocks} blocks across ${docsTouched} docs (ok=${totalOk}, fail=${totalFail})`,
   );
+
+  return {
+    backfilled: filled,
+    docsTouched,
+    blocks: totalBlocks,
+    ok: totalOk,
+    fail: totalFail,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// main (CLI)
+// ---------------------------------------------------------------------------
+
+function main(): void {
+  const args = process.argv.slice(2);
+  const dryRun = args.includes("--dry-run");
+  const onlyIdx = args.indexOf("--only");
+  const only =
+    onlyIdx >= 0 && args[onlyIdx + 1]
+      ? new Set(args[onlyIdx + 1].split(","))
+      : null;
+  runFixMentions({ dryRun, only });
 }
 
 const isEntryPoint =

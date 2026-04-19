@@ -23,6 +23,13 @@ export interface PreprocessOptions {
   linkMap?: LinkMap;
   /** What to do when a [[Slug]] has no linkMap entry. */
   missingLinkMode?: "placeholder" | "plain" | "fail";
+  /**
+   * Strip the first leading H1 heading before emitting.
+   * Default: true. Reason: Lark wiki nodes already render the node title
+   * above the content; keeping the same H1 in the body shows a duplicated
+   * title in the doc TOC.
+   */
+  stripFirstH1?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -34,8 +41,11 @@ export function preprocess(
   opts: PreprocessOptions = {},
 ): string {
   const parsed = matter(raw);
-  const body = parsed.content.replace(/^\n+/, "");
+  let body = parsed.content.replace(/^\n+/, "");
   const missingMode = opts.missingLinkMode ?? "placeholder";
+  const stripH1 = opts.stripFirstH1 ?? true;
+
+  if (stripH1) body = stripLeadingH1(body);
 
   const callout = renderMetaCallout(parsed.data);
   const withLinks = rewriteWikilinks(body, opts.linkMap ?? {}, missingMode);
@@ -43,6 +53,22 @@ export function preprocess(
 
   const parts = [callout, withFootnotes.trimEnd()].filter(Boolean);
   return parts.join("\n\n") + "\n";
+}
+
+/**
+ * Remove the first leading H1 (with its trailing blank line(s)) from the body.
+ * Only the *leading* H1 is stripped — a later H1 is left alone. Content inside
+ * a fenced code block is never considered (leading H1 must come before any fence).
+ */
+function stripLeadingH1(body: string): string {
+  const lines = body.split("\n");
+  let i = 0;
+  while (i < lines.length && lines[i].trim() === "") i++;
+  if (i >= lines.length) return body;
+  if (!/^#\s+/.test(lines[i])) return body;
+  i++;
+  while (i < lines.length && lines[i].trim() === "") i++;
+  return lines.slice(i).join("\n");
 }
 
 // ---------------------------------------------------------------------------

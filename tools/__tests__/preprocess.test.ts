@@ -196,3 +196,62 @@ test("empty frontmatter → no Meta callout", () => {
   assert.ok(!out.startsWith(">"));
   assert.ok(out.includes("Body only"));
 });
+
+test("stripFirstH1 (default on) removes leading H1 from body", () => {
+  const input = `---
+type: source
+---
+
+# My Title
+
+First paragraph.
+`;
+  const out = preprocess(input);
+  assert.ok(!out.includes("# My Title"), "H1 removed");
+  assert.ok(out.includes("First paragraph."), "body preserved");
+});
+
+test("stripFirstH1 leaves later H1s alone", () => {
+  const input = `# First
+
+Intro.
+
+# Second
+
+More.
+`;
+  const out = preprocess(input);
+  assert.ok(!out.includes("# First"));
+  assert.ok(out.includes("# Second"));
+});
+
+test("stripFirstH1 leaves H2/H3 alone", () => {
+  const input = `## Subheading
+
+Body.
+`;
+  const out = preprocess(input);
+  assert.ok(out.includes("## Subheading"), "H2 is untouched");
+});
+
+test("stripFirstH1 can be disabled", () => {
+  const input = `# Keep Me
+
+Body.
+`;
+  const out = preprocess(input, { stripFirstH1: false });
+  assert.ok(out.includes("# Keep Me"));
+});
+
+test("stripFirstH1 handles leading blank lines", () => {
+  const input = `
+
+
+# Late H1
+
+Body.
+`;
+  const out = preprocess(input);
+  assert.ok(!out.includes("# Late H1"));
+  assert.ok(out.includes("Body."));
+});

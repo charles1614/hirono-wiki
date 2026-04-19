@@ -34,6 +34,7 @@ import {
   walkWikiDocs,
 } from "./link-map.ts";
 import { preprocess, type LinkMap as PpLinkMap } from "./preprocess.ts";
+import { runFixMentions } from "./fix-mentions.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -271,6 +272,7 @@ function cmdUp(): void {
   console.log(`[up] Pass 2 (content sync):`);
   let updated = 0;
   let unchanged = 0;
+  const updatedSlugs = new Set<string>();
   for (const [slug, repoPath] of fsBySlug) {
     const raw = readFileSync(join(REPO_ROOT, repoPath), "utf8");
     const content = preprocess(raw, { linkMap: ppLinkMap, missingLinkMode: "placeholder" });
@@ -292,11 +294,23 @@ function cmdUp(): void {
       if (entry.repo_path !== repoPath) entry.repo_path = repoPath;
       saveMap(MAP_PATH, map);
       updated++;
+      updatedSlugs.add(slug);
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
   }
   console.log(`[up] Pass 2 complete: ${updated} updated, ${unchanged} unchanged`);
+
+  // Pass 3: upgrade markdown-link text_runs to native mention_doc blocks.
+  // Content updates via lark-hirono optimize regenerate blocks from the .md,
+  // which means previously-upgraded mention_docs regress back to text_run+link.
+  // Scope the fix to just the docs we updated in pass 2 (no-op otherwise).
+  if (updatedSlugs.size > 0) {
+    console.log(`[up] Pass 3 (mention upgrade) on ${updatedSlugs.size} updated doc(s):`);
+    runFixMentions({ only: updatedSlugs, logLabel: "up/fix-mentions" });
+  } else {
+    console.log(`[up] Pass 3 skipped (nothing to upgrade)`);
+  }
 }
 
 function cmdStatus(): void {
