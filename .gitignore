@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code per-project settings (permissions, etc.)
+.claude/
+
+# Node / TypeScript
+node_modules/
+*.log
+npm-debug.log*
+.npm
+*.tsbuildinfo
+dist/
+
+# Local state — never commit; maps to remote-specific state
+.wiki-lark-map.json
+.wiki-sources-index.json
+.wiki-batch-state.json
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# lark-hirono intermediates
+.lark-hirono-cache/
