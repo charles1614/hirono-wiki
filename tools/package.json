@@ -1,0 +1,20 @@
+{
+  "name": "@hirono/wiki-tools",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Tools for the personal wiki: preprocess, sync, ingest, reconcile. Adapter layer on top of lark-hirono.",
+  "scripts": {
+    "preprocess": "tsx preprocess.ts",
+    "test": "node --import tsx --test __tests__/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
