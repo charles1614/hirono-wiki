@@ -46,14 +46,30 @@ test("countRefs excludes self-refs", () => {
   assert.equal(refs.get("A"), 1, "only B → A counts; A → A excluded");
 });
 
-test("countSourceCites only counts Sources as citing pages", () => {
+test("countSourceCites: counts Topic↔Source connections in either direction", () => {
+  // Topic [[T1]] is mentioned inbound by Source s1, and outbound from T1 to Source s2.
+  // Both directions should count → source_count(T1) = 2.
   const docs = [
-    { slug: "p1", bucket: "Sources" as const,  wikilinks: new Set(["A"]), repo_path: "Sources/p1.md",  frontmatter: {}, body: "" },
-    { slug: "p2", bucket: "Entities" as const, wikilinks: new Set(["A"]), repo_path: "Entities/p2.md", frontmatter: {}, body: "" },
-    { slug: "p3", bucket: "Topics" as const,   wikilinks: new Set(["A"]), repo_path: "Topics/p3.md",   frontmatter: {}, body: "" },
+    { slug: "T1", bucket: "Topics" as const,   wikilinks: new Set(["s2"]),   repo_path: "Topics/T1.md",   frontmatter: {}, body: "" },
+    { slug: "T2", bucket: "Topics" as const,   wikilinks: new Set([]),       repo_path: "Topics/T2.md",   frontmatter: {}, body: "" },
+    { slug: "s1", bucket: "Sources" as const,  wikilinks: new Set(["T1"]),   repo_path: "Sources/s1.md",  frontmatter: {}, body: "" },
+    { slug: "s2", bucket: "Sources" as const,  wikilinks: new Set([]),       repo_path: "Sources/s2.md",  frontmatter: {}, body: "" },
+    { slug: "s3", bucket: "Sources" as const,  wikilinks: new Set(["T1"]),   repo_path: "Sources/s3.md",  frontmatter: {}, body: "" },
+    // Entity citations should NOT count toward Topic source_count
+    { slug: "E1", bucket: "Entities" as const, wikilinks: new Set(["T1"]),   repo_path: "Entities/E1.md", frontmatter: {}, body: "" },
   ];
   const sc = countSourceCites(docs);
-  assert.equal(sc.get("A"), 1, "only p1 (Sources) counts; p2 / p3 excluded");
+  assert.equal(sc.get("T1"), 3, "T1 connects to s1 + s3 (inbound) and s2 (outbound) → 3 sources; E1 excluded");
+  assert.equal(sc.get("T2") ?? 0, 0, "T2 has no connections");
+});
+
+test("countSourceCites: deduplicates if both directions exist for same Source", () => {
+  const docs = [
+    { slug: "T", bucket: "Topics" as const,  wikilinks: new Set(["s1"]), repo_path: "Topics/T.md",  frontmatter: {}, body: "" },
+    { slug: "s1", bucket: "Sources" as const, wikilinks: new Set(["T"]), repo_path: "Sources/s1.md", frontmatter: {}, body: "" },
+  ];
+  const sc = countSourceCites(docs);
+  assert.equal(sc.get("T"), 1, "T↔s1 bidirectional counts as 1, not 2");
 });
 
 test("end-to-end reindex: promotion + index regen", () => {

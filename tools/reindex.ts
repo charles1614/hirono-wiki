@@ -92,16 +92,45 @@ export function countRefs(docs: DocMeta[]): Map<string, number> {
   return refs;
 }
 
-/** source_count[slug] = number of Sources/ pages that wikilink slug. */
+/**
+ * source_count[topic_slug] = number of distinct Sources/ pages that this
+ * topic page is connected to via wikilinks — counted **either direction**:
+ *   - Sources/X cites [[Topic]] in its body
+ *   - Topic cites [[Sources/X]] in its body (e.g., "Sources drawn on" section)
+ *
+ * Either direction signals "this topic synthesizes from / is anchored by
+ * source X." Counting only one direction misses query-loop topics (they cite
+ * sources outbound but no source has been re-edited to cite them back).
+ */
 export function countSourceCites(docs: DocMeta[]): Map<string, number> {
-  const count = new Map<string, number>();
+  // First, build a slug → bucket lookup so we can identify Sources/ slugs.
+  const bucketOfSlug = new Map<string, Bucket>();
+  for (const d of docs) bucketOfSlug.set(d.slug, d.bucket);
+
+  // For each (topicSlug, sourceSlug) pair connected in either direction, record once.
+  const connections = new Map<string, Set<string>>();  // topicSlug → set of sourceSlugs
+  const note = (topicSlug: string, sourceSlug: string) => {
+    if (!connections.has(topicSlug)) connections.set(topicSlug, new Set());
+    connections.get(topicSlug)!.add(sourceSlug);
+  };
+
   for (const doc of docs) {
-    if (doc.bucket !== "Sources") continue;
     for (const target of doc.wikilinks) {
       if (target === doc.slug) continue;
-      count.set(target, (count.get(target) ?? 0) + 1);
+      const targetBucket = bucketOfSlug.get(target);
+      // direction 1: a Source links to a Topic
+      if (doc.bucket === "Sources" && targetBucket === "Topics") {
+        note(target, doc.slug);
+      }
+      // direction 2: a Topic links to a Source
+      if (doc.bucket === "Topics" && targetBucket === "Sources") {
+        note(doc.slug, target);
+      }
     }
   }
+
+  const count = new Map<string, number>();
+  for (const [topic, srcs] of connections) count.set(topic, srcs.size);
   return count;
 }
 
