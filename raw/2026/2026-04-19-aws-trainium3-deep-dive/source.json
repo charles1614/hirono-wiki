@@ -1,0 +1,476 @@
+{
+  "fetched_at": "2026-04-20T13:52:57.140Z",
+  "origin": "url:https://newsletter.semianalysis.com/p/aws-trainium3-deep-dive-a-potential",
+  "origin_url": "https://newsletter.semianalysis.com/p/aws-trainium3-deep-dive-a-potential",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "49f9d869ed61b88af02a745a74b3c3b5d7f98129f0110f315b1d09fa06c4140e",
+  "content_length": 120712,
+  "quality_flags": [],
+  "images": [
+    {
+      "local": "images/img_001.webp",
+      "remote": "",
+      "bytes": 8339
+    },
+    {
+      "local": "images/img_002.png",
+      "remote": "",
+      "bytes": 7502
+    },
+    {
+      "local": "images/img_003.png",
+      "remote": "",
+      "bytes": 42833
+    },
+    {
+      "local": "images/img_004.png",
+      "remote": "",
+      "bytes": 270615
+    },
+    {
+      "local": "images/img_005.png",
+      "remote": "",
+      "bytes": 666437
+    },
+    {
+      "local": "images/img_006.png",
+      "remote": "",
+      "bytes": 96286
+    },
+    {
+      "local": "images/img_007.png",
+      "remote": "",
+      "bytes": 55959
+    },
+    {
+      "local": "images/img_008.png",
+      "remote": "",
+      "bytes": 171233
+    },
+    {
+      "local": "images/img_009.png",
+      "remote": "",
+      "bytes": 92834
+    },
+    {
+      "local": "images/img_010.png",
+      "remote": "",
+      "bytes": 104380
+    },
+    {
+      "local": "images/img_011.png",
+      "remote": "",
+      "bytes": 220863
+    },
+    {
+      "local": "images/img_012.png",
+      "remote": "",
+      "bytes": 302509
+    },
+    {
+      "local": "images/img_013.png",
+      "remote": "",
+      "bytes": 219614
+    },
+    {
+      "local": "images/img_014.png",
+      "remote": "",
+      "bytes": 70324
+    },
+    {
+      "local": "images/img_015.png",
+      "remote": "",
+      "bytes": 161625
+    },
+    {
+      "local": "images/img_016.png",
+      "remote": "",
+      "bytes": 323875
+    },
+    {
+      "local": "images/img_017.png",
+      "remote": "",
+      "bytes": 48095
+    },
+    {
+      "local": "images/img_018.png",
+      "remote": "",
+      "bytes": 117152
+    },
+    {
+      "local": "images/img_019.png",
+      "remote": "",
+      "bytes": 35695
+    },
+    {
+      "local": "images/img_020.png",
+      "remote": "",
+      "bytes": 92837
+    },
+    {
+      "local": "images/img_021.png",
+      "remote": "",
+      "bytes": 562458
+    },
+    {
+      "local": "images/img_022.png",
+      "remote": "",
+      "bytes": 335594
+    },
+    {
+      "local": "images/img_023.png",
+      "remote": "",
+      "bytes": 136085
+    },
+    {
+      "local": "images/img_024.png",
+      "remote": "",
+      "bytes": 15214
+    },
+    {
+      "local": "images/img_025.png",
+      "remote": "",
+      "bytes": 159892
+    },
+    {
+      "local": "images/img_026.png",
+      "remote": "",
+      "bytes": 374554
+    },
+    {
+      "local": "images/img_027.png",
+      "remote": "",
+      "bytes": 318432
+    },
+    {
+      "local": "images/img_028.png",
+      "remote": "",
+      "bytes": 223192
+    },
+    {
+      "local": "images/img_029.png",
+      "remote": "",
+      "bytes": 57776
+    },
+    {
+      "local": "images/img_030.png",
+      "remote": "",
+      "bytes": 114685
+    },
+    {
+      "local": "images/img_031.png",
+      "remote": "",
+      "bytes": 149054
+    },
+    {
+      "local": "images/img_032.png",
+      "remote": "",
+      "bytes": 115152
+    },
+    {
+      "local": "images/img_033.png",
+      "remote": "",
+      "bytes": 338579
+    },
+    {
+      "local": "images/img_034.png",
+      "remote": "",
+      "bytes": 256035
+    },
+    {
+      "local": "images/img_035.png",
+      "remote": "",
+      "bytes": 58472
+    },
+    {
+      "local": "images/img_036.png",
+      "remote": "",
+      "bytes": 45188
+    },
+    {
+      "local": "images/img_037.png",
+      "remote": "",
+      "bytes": 45213
+    },
+    {
+      "local": "images/img_038.png",
+      "remote": "",
+      "bytes": 45615
+    },
+    {
+      "local": "images/img_039.png",
+      "remote": "",
+      "bytes": 791603
+    },
+    {
+      "local": "images/img_040.png",
+      "remote": "",
+      "bytes": 202273
+    },
+    {
+      "local": "images/img_041.png",
+      "remote": "",
+      "bytes": 58611
+    },
+    {
+      "local": "images/img_042.png",
+      "remote": "",
+      "bytes": 251833
+    },
+    {
+      "local": "images/img_043.png",
+      "remote": "",
+      "bytes": 66379
+    },
+    {
+      "local": "images/img_044.png",
+      "remote": "",
+      "bytes": 186388
+    },
+    {
+      "local": "images/img_045.png",
+      "remote": "",
+      "bytes": 56100
+    },
+    {
+      "local": "images/img_046.png",
+      "remote": "",
+      "bytes": 230835
+    },
+    {
+      "local": "images/img_047.png",
+      "remote": "",
+      "bytes": 65384
+    },
+    {
+      "local": "images/img_048.png",
+      "remote": "",
+      "bytes": 208625
+    },
+    {
+      "local": "images/img_049.png",
+      "remote": "",
+      "bytes": 283083
+    },
+    {
+      "local": "images/img_050.png",
+      "remote": "",
+      "bytes": 70709
+    },
+    {
+      "local": "images/img_051.png",
+      "remote": "",
+      "bytes": 76952
+    },
+    {
+      "local": "images/img_052.png",
+      "remote": "",
+      "bytes": 74576
+    },
+    {
+      "local": "images/img_053.png",
+      "remote": "",
+      "bytes": 86538
+    },
+    {
+      "local": "images/img_054.png",
+      "remote": "",
+      "bytes": 84639
+    },
+    {
+      "local": "images/img_055.png",
+      "remote": "",
+      "bytes": 73146
+    },
+    {
+      "local": "images/img_056.png",
+      "remote": "",
+      "bytes": 162508
+    },
+    {
+      "local": "images/img_057.png",
+      "remote": "",
+      "bytes": 248430
+    },
+    {
+      "local": "images/img_058.png",
+      "remote": "",
+      "bytes": 153931
+    },
+    {
+      "local": "images/img_059.png",
+      "remote": "",
+      "bytes": 128049
+    },
+    {
+      "local": "images/img_060.png",
+      "remote": "",
+      "bytes": 225611
+    },
+    {
+      "local": "images/img_061.png",
+      "remote": "",
+      "bytes": 386232
+    },
+    {
+      "local": "images/img_062.png",
+      "remote": "",
+      "bytes": 144438
+    },
+    {
+      "local": "images/img_063.png",
+      "remote": "",
+      "bytes": 146396
+    },
+    {
+      "local": "images/img_064.png",
+      "remote": "",
+      "bytes": 280573
+    },
+    {
+      "local": "images/img_065.jpeg",
+      "remote": "",
+      "bytes": 119470
+    },
+    {
+      "local": "images/img_066.png",
+      "remote": "",
+      "bytes": 52027
+    },
+    {
+      "local": "images/img_067.png",
+      "remote": "",
+      "bytes": 97853
+    },
+    {
+      "local": "images/img_068.webp",
+      "remote": "",
+      "bytes": 53942
+    },
+    {
+      "local": "images/img_069.png",
+      "remote": "",
+      "bytes": 161487
+    },
+    {
+      "local": "images/img_070.png",
+      "remote": "",
+      "bytes": 176831
+    },
+    {
+      "local": "images/img_071.png",
+      "remote": "",
+      "bytes": 249821
+    },
+    {
+      "local": "images/img_072.png",
+      "remote": "",
+      "bytes": 163458
+    },
+    {
+      "local": "images/img_073.jpeg",
+      "remote": "",
+      "bytes": 113942
+    },
+    {
+      "local": "images/img_074.png",
+      "remote": "",
+      "bytes": 314012
+    },
+    {
+      "local": "images/img_075.png",
+      "remote": "",
+      "bytes": 110568
+    },
+    {
+      "local": "images/img_076.png",
+      "remote": "",
+      "bytes": 100291
+    },
+    {
+      "local": "images/img_077.png",
+      "remote": "",
+      "bytes": 131018
+    },
+    {
+      "local": "images/img_078.png",
+      "remote": "",
+      "bytes": 117173
+    },
+    {
+      "local": "images/img_079.png",
+      "remote": "",
+      "bytes": 177872
+    },
+    {
+      "local": "images/img_080.png",
+      "remote": "",
+      "bytes": 112239
+    },
+    {
+      "local": "images/img_081.png",
+      "remote": "",
+      "bytes": 113411
+    },
+    {
+      "local": "images/img_082.png",
+      "remote": "",
+      "bytes": 297766
+    },
+    {
+      "local": "images/img_083.png",
+      "remote": "",
+      "bytes": 183398
+    },
+    {
+      "local": "images/img_084.png",
+      "remote": "",
+      "bytes": 214033
+    },
+    {
+      "local": "images/img_085.png",
+      "remote": "",
+      "bytes": 445313
+    },
+    {
+      "local": "images/img_086.png",
+      "remote": "",
+      "bytes": 153621
+    },
+    {
+      "local": "images/img_087.png",
+      "remote": "",
+      "bytes": 334656
+    },
+    {
+      "local": "images/img_088.png",
+      "remote": "",
+      "bytes": 248558
+    },
+    {
+      "local": "images/img_089.png",
+      "remote": "",
+      "bytes": 387549
+    },
+    {
+      "local": "images/img_090.png",
+      "remote": "",
+      "bytes": 197449
+    },
+    {
+      "local": "images/img_091.png",
+      "remote": "",
+      "bytes": 112616
+    },
+    {
+      "local": "images/img_092.jpeg",
+      "remote": "",
+      "bytes": 187904
+    }
+  ],
+  "notes": [
+    "92 images downloaded by adapter"
+  ],
+  "quality_status": "good"
+}

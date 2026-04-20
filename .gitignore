@@ -18,6 +18,7 @@ dist/
 .wiki-lark-map.json
 .wiki-sources-index.json
 .wiki-batch-state.json
+.wiki-fetch-issues.md
 
 # Editor
 .vscode/

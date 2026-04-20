@@ -28,7 +28,7 @@
  * Exit 0 if clean, 1 if any issues found.
  */
 
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
@@ -48,7 +48,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan";
 
 export interface Issue {
   kind: CheckKind;
@@ -194,6 +194,67 @@ export function checkTierMismatch(docs: DocMeta[]): Issue[] {
   return issues;
 }
 
+/**
+ * raw-orphan: every Sources/YYYY/<slug>.md should have a paired
+ * raw/YYYY/<slug>/content.md; every raw/YYYY/<slug>/ should be referenced by
+ * some Sources/<slug>.md. Missing either side is an error.
+ *
+ * This exists so scaling v1 doesn't silently accumulate Source summaries whose
+ * raw backing disappeared (lost archive), or orphan raw dirs whose summary was
+ * deleted (stale archive).
+ */
+export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
+  const issues: Issue[] = [];
+  const sources = docs.filter((d) => d.bucket === "Sources");
+
+  // Expected raw/<year>/<slug> dirs per Source page
+  const expectedRawSlugs = new Set<string>();
+  for (const s of sources) {
+    const rawDir = join(repoRoot, "raw", yearForSourcePath(s.repo_path), s.slug);
+    expectedRawSlugs.add(s.slug);
+    const content = join(rawDir, "content.md");
+    if (!existsSync(content)) {
+      issues.push({
+        kind: "raw-orphan",
+        severity: "error",
+        path: s.repo_path,
+        detail: `Sources/.../${s.slug}.md has no raw archive at raw/.../${s.slug}/content.md`,
+        hint: "run tools/fetch-raw.ts to populate raw/, or remove the Source summary",
+      });
+    }
+  }
+
+  // Reverse direction: any raw/YYYY/<slug>/ without a matching Source summary?
+  const rawRoot = join(repoRoot, "raw");
+  if (existsSync(rawRoot)) {
+    for (const year of readdirSync(rawRoot)) {
+      const yearDir = join(rawRoot, year);
+      if (!statSync(yearDir).isDirectory()) continue;
+      for (const slug of readdirSync(yearDir)) {
+        const slugDir = join(yearDir, slug);
+        if (!statSync(slugDir).isDirectory()) continue;
+        if (!expectedRawSlugs.has(slug)) {
+          issues.push({
+            kind: "raw-orphan",
+            severity: "warn",
+            path: `raw/${year}/${slug}/`,
+            detail: `raw dir exists but no Sources/.../${slug}.md references it`,
+            hint: "ingest this source (write a Sources summary) or delete raw/.../" + slug + "/",
+          });
+        }
+      }
+    }
+  }
+
+  return issues;
+}
+
+function yearForSourcePath(repoPath: string): string {
+  // "Sources/2026/2026-04-19-foo.md" → "2026"
+  const m = repoPath.match(/^Sources\/(\d{4})\//);
+  return m ? m[1] : new Date().getFullYear().toString();
+}
+
 export function checkFrontmatter(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
   const required: Record<Bucket, string[]> = {
@@ -237,7 +298,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -254,6 +315,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("dead-wikilinks")) issues.push(...checkDeadWikilinks(docs, { includeMeta }));
   if (checks.includes("tier-mismatch"))  issues.push(...checkTierMismatch(docs));
   if (checks.includes("frontmatter"))    issues.push(...checkFrontmatter(docs));
+  if (checks.includes("raw-orphan"))     issues.push(...checkRawOrphan(docs, repoRoot));
   return issues;
 }
 

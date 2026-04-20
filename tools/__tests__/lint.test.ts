@@ -175,9 +175,52 @@ test("all checks: a clean fixture produces 0 issues", () => {
     bucketStubs(root);
     writeSource(root, "s1", "citing [[Real]]");
     writeEntity(root, "Real", "body");
-    // `Real` has 1 incoming ref; below threshold, but it's in _seen so no tier mismatch
+    // also create raw/2026/s1/content.md so raw-orphan passes
+    mkdirSync(join(root, "raw/2026/s1"), { recursive: true });
+    writeFileSync(join(root, "raw/2026/s1/content.md"), "raw body");
     const issues = runLint(root);
-    // orphan check flags Real? Real has 1 ref (from s1), so it's NOT orphan. Clean.
     assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+// ---------------------------------------------------------------------------
+// raw-orphan
+// ---------------------------------------------------------------------------
+
+test("raw-orphan: Source without raw/.../content.md → error", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeSource(root, "2026-04-20-alpha", "body");
+    // no raw/ created
+    const issues = runLint(root, { checks: ["raw-orphan"] });
+    const missing = issues.filter((i) => i.severity === "error");
+    assert.equal(missing.length, 1);
+    assert.match(missing[0].detail, /no raw archive/);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("raw-orphan: raw dir without matching Source → warn", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    mkdirSync(join(root, "raw/2026/ghost-source"), { recursive: true });
+    writeFileSync(join(root, "raw/2026/ghost-source/content.md"), "body");
+    const issues = runLint(root, { checks: ["raw-orphan"] });
+    const warns = issues.filter((i) => i.severity === "warn");
+    assert.equal(warns.length, 1);
+    assert.match(warns[0].path, /ghost-source/);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("raw-orphan: Source paired with raw → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeSource(root, "2026-04-20-paired", "body");
+    mkdirSync(join(root, "raw/2026/2026-04-20-paired"), { recursive: true });
+    writeFileSync(join(root, "raw/2026/2026-04-20-paired/content.md"), "raw body");
+    const issues = runLint(root, { checks: ["raw-orphan"] });
+    assert.equal(issues.length, 0);
   } finally { rmSync(root, { recursive: true }); }
 });

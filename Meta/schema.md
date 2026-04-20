@@ -1,6 +1,6 @@
 ---
 created: 2026-04-19
-updated: 2026-04-19
+updated: 2026-04-20
 type: meta
 ---
 
@@ -219,6 +219,206 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 - **Arbitrary URL**: the URL itself.
 
 URL normalization for dedup (see `tools/build-sources-index.ts`): lowercase host, strip tracking params (`utm_*`, `ref`, `fbclid`), strip trailing slash.
+
+## Raw-source archive layer
+
+Per [[Karpathy]]'s invariant ("raw sources are immutable — the source of truth"), every `Sources/<slug>.md` summary has a paired local archive at `raw/<YYYY>/<slug>/` containing the full content we summarized from. This is what lets us re-ingest when conventions evolve and survives URL rot / provider disappearance.
+
+### Structure (one dir per source)
+
+```
+raw/
+└── 2026/
+    └── 2026-04-19-aws-trainium3-deep-dive/
+        ├── content.md              # fetched article text in markdown
+        ├── source.json             # fetch metadata (origin, ts, fetcher, quality flags, image manifest)
+        ├── images/                 # wechat/zhihu put assets here; xhs puts them flat
+        │   ├── img_001.png
+        │   └── ...
+        └── <noteid>_N.jpg          # xhs puts flat here
+```
+
+**Slug contract**: raw dir name = Source summary filename (minus `.md`). `tools/lint.ts`'s `raw-orphan` check enforces the pairing.
+
+**Append-only**: re-fetching a source writes `content-rev2.md` (then `-rev3`, etc.); original `content.md` never overwritten. Source summaries stay pointed at the latest revision implicitly — inspect `raw/<slug>/` to see all revisions.
+
+### Fetch-raw workflow
+
+`tools/fetch-raw.ts` is the single entry point. Three CLIs:
+
+- `fetch-raw.ts fetch-url <url> --slug <slug>` — fetches any URL via opencli, dispatched:
+  - `*.xiaohongshu.com` + `xhslink.com` → `opencli xiaohongshu note` + `opencli xiaohongshu download`
+  - `zhuanlan.zhihu.com/p/*` → `opencli zhihu download`
+  - `*.zhihu.com/question/*` → `opencli zhihu question`
+  - `mp.weixin.qq.com/*` → `opencli weixin download`
+  - Everything else → `opencli web read` (generic)
+- `fetch-raw.ts fetch-lark <node-token> --slug <slug>` — for Lark Space 1 nodes.
+- `fetch-raw.ts store <slug> --origin <origin> --origin-url <url>` — stores pre-fetched content from stdin / `--input`; used by Claude when piping MCP output (Raindrop MCP is Claude-side).
+
+**Prerequisite** (one-time per workstation):
+1. Install opencli Chrome extension (`opencli doctor` to verify `[OK] Extension: connected`)
+2. Log into xiaohongshu.com, zhihu.com, mp.weixin.qq.com in that Chrome — adapters use cookie auth
+3. For xhs specifically: URLs must include `xsec_token` query param (from the shared-link copy, not a manually-typed URL)
+
+### Error escalation protocol (applies to v1 + every incremental ingest, forever)
+
+fetch-raw classifies failures into three severity levels. Codified here so future sessions follow the same protocol.
+
+**L1 — Auto-retry (transient, no user action):**
+
+- `network-timeout`, `server-error` (5xx), `rate-limited-transient` (429 w/ Retry-After)
+
+Exponential backoff 2s → 5s → 15s, up to 3 attempts. If still failing, escalate to L3.
+
+**L2 — Queue-and-continue (known-unfixable, logged for weekly review):**
+
+Codes: `dead-link` (404/410), `app-only-url` (xhs resolving to app), `raindrop-broken`, `empty-body`, `paywalled-partial`.
+
+Action: write a stub `content.md` with whatever metadata we captured, append to `.wiki-fetch-issues.md`, mark the `ingest_batch` entry as `done` with `quality_flags`, continue. Source summary notes `content_complete: false` so lint/query treat with skepticism.
+
+**L3 — Halt and ask user (fixable but needs action):**
+
+Codes: `extension-offline`, `login-expired`, `captcha-required`, `ip-blocked` (429 without Retry-After), `parse-failure`, `opencli-timeout`, `opencli-error`.
+
+Action: **nothing written to `raw/<slug>/`**. `ingest_batch` entry goes to `errored` with a structured `{ code, domain, remediation }` message. Batch exits non-zero. User handles (re-login / reconnect extension / wait out rate-limit / re-fetch a signed URL from the source app), then `ingest_batch.ts reset <id>` and rerun.
+
+### `.wiki-fetch-issues.md` (gitignored, append-only)
+
+Each L2 occurrence appends one line:
+
+```
+2026-04-20T12:34:56Z  app-only-url         raindrop:1664763106  http://xhslink.com/o/9AJZn5rYEHv
+2026-04-20T12:35:10Z  short-body           raindrop:...         https://...
+```
+
+Review weekly: some entries accepted as-is (xhs app-only), some fixable retroactively (log into a paywalled newsletter, re-fetch). A future `tools/fetch-retry.ts` (deferred) would replay L2-flagged slugs.
+
+### Content-complete flag on Source summaries
+
+When an L2 flag fires, the Source summary's frontmatter should include:
+
+```yaml
+content_complete: false
+quality_flags: [app-only-url]
+```
+
+Signals to query-loop and lint passes that this source's summary is based on partial raw data. Claude's ingest step is expected to surface this in the summary body (e.g., "Only the bookmark title was fetchable; full content is behind the Xiaohongshu app.").
+
+### Quality tracking + idempotent sync
+
+Every `raw/<slug>/source.json` carries a **`quality_status`** field — a coarse
+three-level summary derived from `quality_flags`:
+
+| status | meaning | typical cause |
+|---|---|---|
+| `good` | content fetched + no flags fired | normal happy path |
+| `flagged` | raw saved, but at least one quality issue | login-wall, short-body, loading-skeleton, image-download-failed, xhs-download-silent-fail, images-declared-but-none-downloaded |
+| `failed` | no usable content on disk at all | L3 abort; adapter never wrote content.md |
+
+`quality_status` is what `fetch-raw.ts status` + `sync` dispatch on. Raw
+`quality_flags` stay as the fine-grained signal for debugging / filtering.
+
+#### Scan-able status view
+
+```
+tsx fetch-raw.ts status
+```
+
+Walks `raw/` + reads `Meta/fetch-decisions.md`, re-classifies each slug (cheap
+— just reads content.md), and groups output:
+
+- **needs attention** — flagged or failed AND not listed in `fetch-decisions.md`. Each entry prints slug + flags + origin URL + one-line remediation hint.
+- **accepted-as-is** — listed in `Meta/fetch-decisions.md`. Harmless; just audit.
+- **good** — clean. Elided when list gets long (>20); set `FETCH_RAW_STATUS_QUIET=1` to hide entirely.
+
+Exit code: 1 if anything in `needs attention`, 0 otherwise. Hook into CI / batch close like lint.
+
+#### Idempotent re-fetch: `sync`
+
+```
+tsx fetch-raw.ts sync [--limit N] [--retry-flagged] [--only <slug,...>] [--dry-run] [--verbose]
+```
+
+Walks `raw/` + `.wiki-batch-state.json` pending entries. For each candidate slug, decides:
+
+| condition | action |
+|---|---|
+| slug in `fetch-decisions.md` | skip (accepted-as-is) |
+| `quality_status = good` and no `--only` | skip |
+| `quality_status = good` and in `--only` | fetch (forced) |
+| `quality_status = flagged` and `--retry-flagged` not set | skip |
+| `quality_status = flagged` and `--retry-flagged` set | fetch |
+| `quality_status = failed` | fetch |
+| new batch entry (pending, has slug, no raw/ dir yet) | fetch |
+| new batch entry without slug | skip-no-origin (user must provide) |
+| `--limit N` reached | skip-over-limit |
+
+L3 errors during a fetch halt the whole sync (matches batch semantics).
+
+Key invariants:
+- Safe to re-run. First run drains all work; subsequent runs do zero work unless new candidates arrived or flagged slugs were requested.
+- Always writes a fresh `source.json` (updated `quality_flags` + `quality_status` + `fetched_at`) on successful fetch.
+- Preserves append-only: re-fetches land as `content-rev2.md`, `-rev3`, etc.
+
+#### Force-refetch a single slug
+
+```
+tsx fetch-raw.ts refetch <slug>
+```
+
+Reads `source.json` to get the origin, re-runs the fetcher. Useful after a
+user-side fix (re-login, fresh xsec_token, paywall subscription acquired).
+
+### `Meta/fetch-decisions.md` — accepted exceptions (gitted)
+
+Sibling to `.wiki-fetch-issues.md` (the L2 append log). `fetch-decisions.md`
+is **human-authored, gitted**, and captures decisions of the form "this flag
+is not fixable — stop retrying it". Listed slugs are always skipped by
+`sync` (even `--retry-flagged`) and grouped under "accepted-as-is" by
+`status`.
+
+Format: markdown with H2 date sections, bullet-per-decision:
+
+```markdown
+## 2026-04-21 · xhs app-only posts accepted as-is
+
+- 2026-03-30-xhs-cuda-black-magic — xhs app-only URL; content gone; title-only
+- 2026-02-15-xhs-other-post — paywall / private account
+
+## 2026-04-25 · paywalled newsletters
+
+- 2026-04-22-stratechery-weekly — paywalled; only free excerpt captured
+```
+
+Parser matches `- <slug> — <reason>` (em-dash, en-dash, or `--` accepted).
+Anything else — H2 titles, narrative, HTML-commented examples — is ignored.
+
+### v1 workflow including quality sync
+
+```bash
+# 1. Queue candidates for the batch
+npx tsx ingest_batch.ts plan candidates-batch-1.json
+
+# 2. Pre-fetch raw content for everything pending (idempotent — skips good)
+npx tsx fetch-raw.ts sync --limit 20
+
+# 3. Check quality; fix any L3 issues the report names
+npx tsx fetch-raw.ts status
+
+# 4. Retry anything that came back flagged after fixing issues
+npx tsx fetch-raw.ts sync --retry-flagged
+
+# 5. Accept genuinely can't-fix cases by editing Meta/fetch-decisions.md
+#    (then re-run status to confirm they moved to "accepted-as-is")
+
+# 6. Run the LLM ingest loop — each item reads raw/<slug>/content.md
+npx tsx ingest_batch.ts next
+# ...LLM writes Sources/... → ingest_batch.ts mark-done...
+
+# 7. Close the batch
+npx tsx reindex.ts && npx tsx sync.ts up && npx tsx lint.ts
+git commit -m "ingest: batch-1 (N sources)"
+```
 
 ## Image handling
 
