@@ -1,52 +1,54 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { preprocess } from "../preprocess.ts";
+import { preprocess, splitFrontmatter } from "../preprocess.ts";
 
-test("frontmatter → Meta callout", () => {
-  const input = `---
-created: 2026-04-19
+test("splitFrontmatter: returns empty frontmatter when file has none", () => {
+  const { frontmatter, body } = splitFrontmatter("# Title\n\nBody\n");
+  assert.equal(frontmatter, "");
+  assert.equal(body, "# Title\n\nBody\n");
+});
+
+test("splitFrontmatter: captures YAML block byte-exactly", () => {
+  const raw = `---
 type: source
-raw_source: https://example.com
+created: 2026-04-20
+---
+
+# Title
+
+Body.
+`;
+  const { frontmatter, body } = splitFrontmatter(raw);
+  assert.equal(frontmatter, "---\ntype: source\ncreated: 2026-04-20\n---\n");
+  assert.equal(body, "\n# Title\n\nBody.\n");
+});
+
+test("splitFrontmatter: only recognized when file STARTS with ---", () => {
+  const raw = "Some text\n---\ntype: not-frontmatter\n---\nmore.";
+  const { frontmatter, body } = splitFrontmatter(raw);
+  assert.equal(frontmatter, "");
+  assert.equal(body, raw);
+});
+
+test("preprocess: preserves frontmatter byte-exactly", () => {
+  const raw = `---
+type: source
+created: 2026-04-20
 tags: [a, b]
 ---
 
-Body text.
+body with [[KnownSlug]]
 `;
-  const out = preprocess(input);
-  assert.ok(out.startsWith("> **Meta**"), "starts with Meta callout header");
-  assert.match(out, /> - \*\*Type\*\*: source/);
-  assert.match(out, /> - \*\*Created\*\*: 2026-04-19/);
-  assert.match(out, /> - \*\*Raw source\*\*: https:\/\/example\.com/);
-  assert.match(out, /> - \*\*Tags\*\*: a, b/);
-  assert.ok(out.includes("Body text."), "body preserved");
+  const linkMap = { KnownSlug: { doc_token: "t", url: "https://example.com/k" } };
+  const out = preprocess(raw, { linkMap });
+  // Frontmatter should be byte-identical
+  assert.ok(out.startsWith("---\ntype: source\ncreated: 2026-04-20\ntags: [a, b]\n---\n"));
+  // Body should have wikilink rewritten
+  assert.ok(out.includes("[KnownSlug](https://example.com/k)"));
 });
 
-test("frontmatter key order follows FRONTMATTER_ORDER", () => {
-  const input = `---
-tags: [x]
-type: source
-raw_source: https://example.com
-created: 2026-04-19
----
-body`;
-  const out = preprocess(input);
-  const typeIdx = out.indexOf("**Type**");
-  const createdIdx = out.indexOf("**Created**");
-  const rawSrcIdx = out.indexOf("**Raw source**");
-  const tagsIdx = out.indexOf("**Tags**");
-  assert.ok(
-    typeIdx < createdIdx && createdIdx < rawSrcIdx && rawSrcIdx < tagsIdx,
-    `expected ordered callout; got indices type=${typeIdx} created=${createdIdx} raw=${rawSrcIdx} tags=${tagsIdx}`,
-  );
-});
-
-test("[[Slug]] resolved via linkMap", () => {
-  const input = `---
-type: source
----
-
-See [[Megatron]] and [[NVIDIA|Nvidia Corp]].
-`;
+test("preprocess: [[Slug]] resolved via linkMap", () => {
+  const input = `See [[Megatron]] and [[NVIDIA|Nvidia Corp]].`;
   const linkMap = {
     Megatron: { doc_token: "tokA", url: "https://my.feishu.cn/wiki/A" },
     NVIDIA: { doc_token: "tokB", url: "https://my.feishu.cn/wiki/B" },
@@ -57,201 +59,94 @@ See [[Megatron]] and [[NVIDIA|Nvidia Corp]].
   assert.ok(!out.includes("[[Megatron]]"));
 });
 
-test("[[Slug]] unresolved → placeholder URL", () => {
-  const input = `---
-type: source
----
-
-See [[Ghost Entity]].
-`;
-  const out = preprocess(input, { missingLinkMode: "placeholder" });
+test("preprocess: [[Slug]] unresolved → placeholder URL (default)", () => {
+  const out = preprocess("See [[Ghost Entity]].");
   assert.match(out, /\[Ghost Entity\]\(wiki-unresolved:Ghost%20Entity\)/);
 });
 
-test("[[Slug]] unresolved with mode=plain → text only", () => {
-  const input = `---
-type: source
----
-
-See [[Ghost]].`;
-  const out = preprocess(input, { missingLinkMode: "plain" });
+test("preprocess: [[Slug]] unresolved with mode=plain → text only", () => {
+  const out = preprocess("See [[Ghost]].", { missingLinkMode: "plain" });
   assert.ok(out.includes("See Ghost."));
   assert.ok(!out.includes("wiki-unresolved"));
 });
 
-test("[[Slug]] unresolved with mode=fail throws", () => {
-  const input = `---
-type: source
----
-[[X]]`;
+test("preprocess: [[Slug]] unresolved with mode=fail throws", () => {
   assert.throws(
-    () => preprocess(input, { missingLinkMode: "fail" }),
+    () => preprocess("[[X]]", { missingLinkMode: "fail" }),
     /Unresolved wikilink: \[\[X\]\]/,
   );
 });
 
-test("wikilinks inside fenced code are left untouched", () => {
-  const input = `---
-type: source
----
+test("preprocess: wikilinks inside fenced code are left untouched", () => {
+  const input = `Before.
 
 \`\`\`
 [[DoNotTouch]]
 \`\`\`
-`;
-  const out = preprocess(input);
-  assert.ok(out.includes("[[DoNotTouch]]"), "fence content preserved literally");
-});
 
-test("footnotes → superscript + section, numbered by first ref", () => {
-  const input = `---
-type: source
----
-
-Claim one[^a]. Claim two[^b]. Claim one again[^a].
-
-[^a]: First definition.
-[^b]: Second definition.
-`;
-  const out = preprocess(input);
-  assert.ok(out.includes("Claim one⁽¹⁾"));
-  assert.ok(out.includes("Claim two⁽²⁾"));
-  assert.ok(out.includes("Claim one again⁽¹⁾"));
-  assert.match(out, /## Footnotes/);
-  assert.match(out, /1\. First definition\./);
-  assert.match(out, /2\. Second definition\./);
-});
-
-test("no footnotes → no Footnotes section added", () => {
-  const input = `---
-type: source
----
-
-Plain body, no footnotes.
-`;
-  const out = preprocess(input);
-  assert.ok(!out.includes("## Footnotes"));
-});
-
-test("footnote defined but not referenced → still appears in section", () => {
-  const input = `---
-type: source
----
-Body.
-
-[^orphan]: Defined but unused.
-`;
-  const out = preprocess(input);
-  assert.match(out, /## Footnotes/);
-  assert.match(out, /1\. Defined but unused\./);
-});
-
-test("all three passes compose", () => {
-  const input = `---
-created: 2026-04-19
-type: source
-raw_source: https://x.test
----
-
-See [[A]][^1] and [[Unknown]][^2].
-
-[^1]: Def A.
-[^2]: Def B.
-
-\`\`\`
-[[NotRewritten]]
-\`\`\`
-`;
-  const linkMap = {
-    A: { doc_token: "tok1", url: "https://my.feishu.cn/wiki/A" },
-  };
+After [[Resolve]].`;
+  const linkMap = { Resolve: { doc_token: "t", url: "https://example.com/r" } };
   const out = preprocess(input, { linkMap });
-  assert.ok(out.startsWith("> **Meta**"));
-  assert.ok(out.includes("[A](https://my.feishu.cn/wiki/A)⁽¹⁾"));
-  assert.ok(out.includes("[Unknown](wiki-unresolved:Unknown)⁽²⁾"));
-  assert.match(out, /## Footnotes/);
-  assert.match(out, /1\. Def A\./);
-  assert.match(out, /2\. Def B\./);
-  assert.ok(out.includes("[[NotRewritten]]"), "fence content preserved literally");
+  assert.ok(out.includes("[[DoNotTouch]]"), "fence content preserved literally");
+  assert.ok(out.includes("[Resolve](https://example.com/r)"), "post-fence wikilink rewritten");
 });
 
-test("two-digit footnote numbers get composed superscripts", () => {
-  const refs = Array.from({ length: 11 }, (_, i) => `ref[^k${i}].`).join(" ");
-  const defs = Array.from({ length: 11 }, (_, i) => `[^k${i}]: def${i}.`).join("\n");
-  const input = `---
+test("preprocess: does not touch text inside frontmatter block", () => {
+  // Frontmatter YAML shouldn't normally contain wikilinks, but if a tag or
+  // description happens to look like one, it should stay as authored — the
+  // frontmatter is passed through byte-exactly, not reparsed.
+  const raw = `---
 type: source
----
-${refs}
-
-${defs}
-`;
-  const out = preprocess(input);
-  assert.ok(out.includes("⁽¹⁰⁾"), "10 renders as two unicode supers");
-  assert.ok(out.includes("⁽¹¹⁾"), "11 renders as two unicode supers");
-});
-
-test("empty frontmatter → no Meta callout", () => {
-  const input = `Body only, no frontmatter.`;
-  const out = preprocess(input);
-  assert.ok(!out.startsWith(">"));
-  assert.ok(out.includes("Body only"));
-});
-
-test("stripFirstH1 (default on) removes leading H1 from body", () => {
-  const input = `---
-type: source
+note: "mentions [[Foo]] in text"
 ---
 
-# My Title
+# Body
 
-First paragraph.
+Actual link: [[Foo]]
 `;
-  const out = preprocess(input);
-  assert.ok(!out.includes("# My Title"), "H1 removed");
-  assert.ok(out.includes("First paragraph."), "body preserved");
+  const linkMap = { Foo: { doc_token: "t", url: "https://example.com/f" } };
+  const out = preprocess(raw, { linkMap });
+  // The frontmatter copy of [[Foo]] survives verbatim
+  assert.ok(out.includes(`note: "mentions [[Foo]] in text"`));
+  // The body one gets rewritten
+  assert.ok(out.includes("[Foo](https://example.com/f)"));
 });
 
-test("stripFirstH1 leaves later H1s alone", () => {
-  const input = `# First
-
-Intro.
-
-# Second
-
-More.
-`;
-  const out = preprocess(input);
-  assert.ok(!out.includes("# First"));
-  assert.ok(out.includes("# Second"));
+test("preprocess: no frontmatter, just body", () => {
+  const out = preprocess("Body with [[X]].", { missingLinkMode: "plain" });
+  assert.equal(out, "Body with X.");
 });
 
-test("stripFirstH1 leaves H2/H3 alone", () => {
-  const input = `## Subheading
+test("preprocess: strips leading H1 by default", () => {
+  const raw = `---
+type: source
+---
+
+# Trainium3
 
 Body.
 `;
-  const out = preprocess(input);
-  assert.ok(out.includes("## Subheading"), "H2 is untouched");
+  const out = preprocess(raw);
+  // frontmatter preserved; leading H1 removed
+  assert.ok(out.startsWith("---\ntype: source\n---\n"));
+  assert.ok(!out.includes("# Trainium3"), "leading H1 stripped");
+  assert.ok(out.includes("Body."));
 });
 
-test("stripFirstH1 can be disabled", () => {
-  const input = `# Keep Me
-
-Body.
-`;
-  const out = preprocess(input, { stripFirstH1: false });
+test("preprocess: stripFirstH1: false preserves H1", () => {
+  const raw = `# Keep Me\n\nBody.\n`;
+  const out = preprocess(raw, { stripFirstH1: false });
   assert.ok(out.includes("# Keep Me"));
 });
 
-test("stripFirstH1 handles leading blank lines", () => {
-  const input = `
+test("preprocess: only the FIRST H1 gets stripped", () => {
+  const raw = `# First\n\nIntro.\n\n# Second\n\nMore.\n`;
+  const out = preprocess(raw);
+  assert.ok(!out.includes("# First"));
+  assert.ok(out.includes("# Second"), "later H1s survive");
+});
 
-
-# Late H1
-
-Body.
-`;
-  const out = preprocess(input);
-  assert.ok(!out.includes("# Late H1"));
-  assert.ok(out.includes("Body."));
+test("preprocess: H2 / H3 never stripped", () => {
+  const out = preprocess(`## Subhead\n\nBody.\n`);
+  assert.ok(out.includes("## Subhead"));
 });

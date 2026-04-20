@@ -4,12 +4,18 @@
  *
  * Commands:
  *   init-parents   Create the four top-level parent nodes (Meta/Sources/Entities/Topics) in Space 2.
- *   up             Full two-pass sync:
+ *   up             Full sync:
  *                    Pass 1 creates stub Lark docs for any local slug not yet in the map.
- *                    Pass 2 preprocesses each file, SHA-compares, and updates if changed.
+ *                    Pre-pass 2: backfill obj_tokens + emit mention-map.json to tmp.
+ *                    Pass 2 preprocesses each file, SHA-compares, and updates if changed —
+ *                      `lark-hirono optimize` is invoked with --frontmatter-as-callout +
+ *                      --mention-map, so frontmatter becomes a Meta callout and markdown
+ *                      links matching the mention-map become native mention_doc blocks
+ *                      (populating Feishu's backlinks panel + graph view). Footnotes are
+ *                      handled automatically by lark-hirono >= 0.1.29.
  *   status         Print map vs filesystem state.
  *
- * Depends on: `lark-hirono` (global CLI), a valid lark-cli auth cache.
+ * Depends on: `lark-hirono` >= 0.1.29 (global CLI), a valid lark-cli auth cache.
  *
  * Side-effect contract: every state change to `.wiki-lark-map.json` is flushed to disk
  * immediately after the corresponding Lark API call, so interrupt-resume is safe.
@@ -34,7 +40,7 @@ import {
   walkWikiDocs,
 } from "./link-map.ts";
 import { preprocess, type LinkMap as PpLinkMap } from "./preprocess.ts";
-import { runFixMentions } from "./fix-mentions.ts";
+import { buildMentionMap } from "./build-mention-map.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -55,6 +61,8 @@ interface UploadOpts {
   wikiSpace: string;
   wikiNode?: string;
   stripTitle?: boolean;
+  mentionMapPath?: string;
+  frontmatterAsCallout?: boolean;
 }
 
 export function runLarkHironoUpload(opts: UploadOpts): UploadResult {
@@ -63,7 +71,9 @@ export function runLarkHironoUpload(opts: UploadOpts): UploadResult {
   args.push("--wiki-space", opts.wikiSpace);
   if (opts.wikiNode) args.push("--wiki-node", opts.wikiNode);
   if (opts.stripTitle) args.push("--strip-title");
-  args.push("--no-highlight");  // deterministic output for v0
+  if (opts.frontmatterAsCallout) args.push("--frontmatter-as-callout");
+  if (opts.mentionMapPath) args.push("--mention-map", opts.mentionMapPath);
+  args.push("--no-highlight");  // deterministic output for our pipeline
 
   const res = spawnSync("lark-hirono", args, { encoding: "utf8" });
   if (res.status !== 0) {
@@ -81,10 +91,15 @@ export function runLarkHironoUpload(opts: UploadOpts): UploadResult {
 interface OptimizeOpts {
   docId: string;
   inputPath: string;
+  mentionMapPath?: string;
+  frontmatterAsCallout?: boolean;
 }
 
 export function runLarkHironoOptimize(opts: OptimizeOpts): void {
-  const args = ["optimize", "--doc", opts.docId, "--input", opts.inputPath, "--no-highlight"];
+  const args = ["optimize", "--doc", opts.docId, "--input", opts.inputPath];
+  if (opts.frontmatterAsCallout) args.push("--frontmatter-as-callout");
+  if (opts.mentionMapPath) args.push("--mention-map", opts.mentionMapPath);
+  args.push("--no-highlight");
   const res = spawnSync("lark-hirono", args, { encoding: "utf8" });
   if (res.status !== 0) {
     throw new Error(
@@ -159,6 +174,62 @@ function extractDocId(url: string): string {
   return m[1];
 }
 
+/**
+ * Look up a wiki node's obj_token by its node_token. Needed because
+ * lark-hirono's upload returns only the node_token, but `--mention-map`
+ * requires obj_tokens to construct mention_doc elements. Entries created
+ * via runLarkCliCreateNode already have obj_token; this covers legacy
+ * entries that predate that change.
+ */
+function getObjToken(nodeToken: string): string {
+  const res = spawnSync(
+    "lark-cli",
+    [
+      "wiki", "spaces", "get_node",
+      "--params", JSON.stringify({ token: nodeToken }),
+      "--format", "json",
+    ],
+    { encoding: "utf8", timeout: 30_000 },
+  );
+  if (res.status !== 0) {
+    throw new Error(`get_node failed for ${nodeToken}: ${res.stderr.slice(0, 200)}`);
+  }
+  const parsed = JSON.parse(res.stdout) as { code?: number; data?: { node?: { obj_token?: string } } };
+  if (parsed.code !== 0 || !parsed.data?.node?.obj_token) {
+    throw new Error(`get_node bad response for ${nodeToken}: ${res.stdout.slice(0, 200)}`);
+  }
+  return parsed.data.node.obj_token;
+}
+
+/**
+ * Ensure every doc in the map has an obj_token. Mutates + persists the map
+ * as it resolves missing tokens. No-op if all entries are already populated.
+ */
+function ensureObjTokens(map: LinkMap): number {
+  const missing = Object.entries(map.docs).filter(([_, e]) => !e.obj_token);
+  if (missing.length === 0) return 0;
+  console.log(`[up] backfill obj_token on ${missing.length} legacy entries...`);
+  let filled = 0;
+  for (const [slug, e] of missing) {
+    try {
+      e.obj_token = getObjToken(e.doc_id);
+      saveMap(MAP_PATH, map);
+      filled++;
+      console.log(`  ✓ ${slug} → ${e.obj_token}`);
+    } catch (err) {
+      console.error(`  ✗ ${slug}: ${(err as Error).message.slice(0, 120)}`);
+    }
+  }
+  return filled;
+}
+
+/** Write the current mention-map to a tmp file and return the path. Caller owns cleanup. */
+function writeMentionMapFile(map: LinkMap, dir: string): string {
+  const path = join(dir, "mentions.json");
+  writeFileSync(path, JSON.stringify(buildMentionMap(map), null, 2) + "\n", "utf8");
+  return path;
+}
+
 // ---------------------------------------------------------------------------
 // commands
 // ---------------------------------------------------------------------------
@@ -225,7 +296,9 @@ function cmdUp(): void {
     fsBySlug.set(slug, p);
   }
 
-  // Pass 1: stub-create any slug not already in map.docs.
+  // Pass 1: stub-create any slug not already in map.docs. Using
+  // lark-cli wiki nodes create (not lark-hirono upload) so we capture
+  // obj_token at creation time — needed for the mention-map in pass 2.
   console.log(`[up] Pass 1 (ensure stubs): ${fsBySlug.size} files total`);
   let created = 0;
   for (const [slug, repoPath] of fsBySlug) {
@@ -233,34 +306,34 @@ function cmdUp(): void {
     const bucket = bucketOf(repoPath)!;
     const parent = map.parents[bucket]!;
     console.log(`[up]  create stub: ${repoPath}`);
-    const tmpDir = mkdtempSync(join(tmpdir(), "wiki-stub-"));
-    try {
-      const tmpPath = join(tmpDir, `${slug}.md`);
-      writeFileSync(tmpPath, stubDocMd(slug));
-      const { doc_id, url } = runLarkHironoUpload({
-        inputPath: tmpPath,
-        title: slug,
-        wikiSpace: map.space_id,
-        wikiNode: parent.doc_id,
-        stripTitle: true,
-      });
-      const entry: DocEntry = {
-        repo_path: repoPath,
-        bucket,
-        type: typeForBucket(bucket),
-        doc_id,
-        url,
-        content_sha: "",
-        uploaded_at: new Date().toISOString(),
-      };
-      map.docs[slug] = entry;
-      saveMap(MAP_PATH, map);
-      created++;
-    } finally {
-      rmSync(tmpDir, { recursive: true, force: true });
-    }
+    const { node_token, obj_token, url } = runLarkCliCreateNode({
+      spaceId: map.space_id,
+      title: slug,
+      parentNodeToken: parent.doc_id,
+    });
+    const entry: DocEntry = {
+      repo_path: repoPath,
+      bucket,
+      type: typeForBucket(bucket),
+      doc_id: node_token,
+      obj_token,
+      url,
+      content_sha: "",  // empty → pass 2 will always populate
+      uploaded_at: new Date().toISOString(),
+    };
+    map.docs[slug] = entry;
+    saveMap(MAP_PATH, map);
+    created++;
   }
   console.log(`[up] Pass 1 complete: ${created} new stubs, ${fsBySlug.size - created} already in map`);
+
+  // Pre-pass 2: backfill any legacy entries missing obj_token (pre-retirement
+  // entries created via lark-hirono upload didn't capture it). Then emit the
+  // mention-map JSON so lark-hirono's --mention-map can resolve our wiki-URL
+  // markdown links to native mention_doc elements at upload time.
+  ensureObjTokens(map);
+  const syncTmpDir = mkdtempSync(join(tmpdir(), "wiki-sync-"));
+  const mentionMapPath = writeMentionMapFile(map, syncTmpDir);
 
   // Build the preprocess-side link map from the full doc map.
   const ppLinkMap: PpLinkMap = {};
@@ -268,48 +341,46 @@ function cmdUp(): void {
     ppLinkMap[slug] = { doc_token: e.doc_id, url: e.url };
   }
 
-  // Pass 2: preprocess each file, SHA-compare, update if changed.
-  console.log(`[up] Pass 2 (content sync):`);
-  let updated = 0;
-  let unchanged = 0;
-  const updatedSlugs = new Set<string>();
-  for (const [slug, repoPath] of fsBySlug) {
-    const raw = readFileSync(join(REPO_ROOT, repoPath), "utf8");
-    const content = preprocess(raw, { linkMap: ppLinkMap, missingLinkMode: "placeholder" });
-    const sha = sha256(content);
-    const entry = map.docs[slug];
-    if (!entry) throw new Error(`internal: slug ${slug} missing from map after pass 1`);
-    if (entry.content_sha === sha) {
-      unchanged++;
-      continue;
+  try {
+    // Pass 2: preprocess each file, SHA-compare, update if changed.
+    // lark-hirono 0.1.29+ handles frontmatter, footnotes, and mention-doc
+    // block conversion, so this is the only upload pass we need.
+    console.log(`[up] Pass 2 (content sync):`);
+    let updated = 0;
+    let unchanged = 0;
+    for (const [slug, repoPath] of fsBySlug) {
+      const raw = readFileSync(join(REPO_ROOT, repoPath), "utf8");
+      const content = preprocess(raw, { linkMap: ppLinkMap, missingLinkMode: "placeholder" });
+      const sha = sha256(content);
+      const entry = map.docs[slug];
+      if (!entry) throw new Error(`internal: slug ${slug} missing from map after pass 1`);
+      if (entry.content_sha === sha) {
+        unchanged++;
+        continue;
+      }
+      console.log(`[up]  update: ${repoPath}`);
+      const tmpDir = mkdtempSync(join(tmpdir(), "wiki-up-"));
+      try {
+        const tmpPath = join(tmpDir, `${slug}.md`);
+        writeFileSync(tmpPath, content);
+        runLarkHironoOptimize({
+          docId: entry.doc_id,
+          inputPath: tmpPath,
+          frontmatterAsCallout: true,
+          mentionMapPath,
+        });
+        entry.content_sha = sha;
+        entry.uploaded_at = new Date().toISOString();
+        if (entry.repo_path !== repoPath) entry.repo_path = repoPath;
+        saveMap(MAP_PATH, map);
+        updated++;
+      } finally {
+        rmSync(tmpDir, { recursive: true, force: true });
+      }
     }
-    console.log(`[up]  update: ${repoPath}`);
-    const tmpDir = mkdtempSync(join(tmpdir(), "wiki-up-"));
-    try {
-      const tmpPath = join(tmpDir, `${slug}.md`);
-      writeFileSync(tmpPath, content);
-      runLarkHironoOptimize({ docId: entry.doc_id, inputPath: tmpPath });
-      entry.content_sha = sha;
-      entry.uploaded_at = new Date().toISOString();
-      if (entry.repo_path !== repoPath) entry.repo_path = repoPath;
-      saveMap(MAP_PATH, map);
-      updated++;
-      updatedSlugs.add(slug);
-    } finally {
-      rmSync(tmpDir, { recursive: true, force: true });
-    }
-  }
-  console.log(`[up] Pass 2 complete: ${updated} updated, ${unchanged} unchanged`);
-
-  // Pass 3: upgrade markdown-link text_runs to native mention_doc blocks.
-  // Content updates via lark-hirono optimize regenerate blocks from the .md,
-  // which means previously-upgraded mention_docs regress back to text_run+link.
-  // Scope the fix to just the docs we updated in pass 2 (no-op otherwise).
-  if (updatedSlugs.size > 0) {
-    console.log(`[up] Pass 3 (mention upgrade) on ${updatedSlugs.size} updated doc(s):`);
-    runFixMentions({ only: updatedSlugs, logLabel: "up/fix-mentions" });
-  } else {
-    console.log(`[up] Pass 3 skipped (nothing to upgrade)`);
+    console.log(`[up] Pass 2 complete: ${updated} updated, ${unchanged} unchanged`);
+  } finally {
+    rmSync(syncTmpDir, { recursive: true, force: true });
   }
 }
 
