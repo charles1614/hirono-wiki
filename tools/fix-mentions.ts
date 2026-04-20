@@ -363,6 +363,13 @@ export function runFixMentions(opts: RunFixMentionsOptions = {}): RunFixMentions
     totalOk += ok;
     totalFail += fail;
     totalBlocks += plan.updates.length;
+    // Bump uploaded_at so reconcile_light doesn't flag the post-PATCH Lark
+    // edit timestamp as out-of-band drift. Skip in dry-run; skip on full
+    // failure (some PATCHes may have landed but we're being conservative).
+    if (!dryRun && ok > 0) {
+      e.uploaded_at = new Date().toISOString();
+      saveMap(MAP_PATH, map);
+    }
   }
 
   const verb = dryRun ? "would touch" : "touched";
