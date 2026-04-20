@@ -37,7 +37,7 @@ highlights: true
 ## Open questions
 
 - This overview calls JAX "an active research project, not an official Google product" — given the [[Google]] [[TPU]] push described in [[2026-04-20-google-tpuv7-deep-dive]] (PyTorch XLA as Phase 2, TorchAX bridging PyTorch to JAX), is that framing still accurate in 2026? JAX feels more like production infrastructure than a research side project.
-- The XLA dependency connects two sources that seem unrelated at first: this one (JAX uses XLA) and the TPUv7 piece (PyTorch XLA RFC #9684 for TPU). The shared substrate is worth a [[Topics/]] page of its own eventually — see [[Kernel Authoring Languages]] for the adjacent cross-vendor view.
+- The XLA dependency connects two sources that seem unrelated at first: this one (JAX uses XLA) and the TPUv7 piece (PyTorch XLA RFC #9684 for TPU). The shared substrate is worth its own page eventually — see [[Kernel Authoring Languages]] for the adjacent cross-vendor view.
 - Functional purity + dynamic shapes is called out as a "sharp edge." How much does this cost researchers in practice, and how do the Flax/Haiku abstractions soften it?
 - What's the status of Flax vs Haiku vs Optax today? The overview lists them but doesn't compare; 2026 ecosystem may have consolidated.
 

@@ -1,8 +1,8 @@
 ---
 created: 2026-04-19T00:00:00.000Z
-updated: '2026-04-19'
+updated: '2026-04-20'
 type: entity
-refs: 3
+refs: 4
 tier: active
 ---
 
@@ -12,7 +12,7 @@ A local search engine for markdown collections. Hybrid BM25 + vector retrieval w
 
 ## Synthesis
 
-Thin (1 source). Recommended by [[Karpathy]] for wikis that outgrow index-based navigation (beyond ~100 sources / hundreds of pages). Not yet in use here; the three-sharded index pattern in [[Meta/index]] is Plan A.
+Thin (1 source). Recommended by [[Karpathy]] for wikis that outgrow index-based navigation (beyond ~100 sources / hundreds of pages). Not yet in use here; the three-sharded index pattern in [[index]] is Plan A.
 
 ## Observations
 

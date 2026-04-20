@@ -38,7 +38,7 @@ tags: [wiki, llm-tooling, knowledge-management, method]
 - Karpathy suggests index.md suffices up to "~100 sources, ~hundreds of pages" — where exactly does that ceiling bite? My own wiki plans for 579 Raindrop bookmarks + ~100 Space 1 nodes, which pushes past that threshold.
 - What's the right linting cadence? "Periodically" is under-specified. Per ingest? Weekly? On-demand?
 - How should the schema evolve without causing whole-wiki rewrites? Every schema edit is a potential mass-refactor of existing pages.
-- The document emphasizes Obsidian for the graph view + hotkeys + plugin ecosystem. What's lost going Lark-first (as I'm doing)? See cross-refs in [[Meta/schema]].
+- The document emphasizes Obsidian for the graph view + hotkeys + plugin ecosystem. What's lost going Lark-first (as I'm doing)? See cross-refs in [[schema]].
 - "File good answers back into the wiki" is the compounding move. How does the LLM decide what's worth filing vs not?
 
 ## Raw source

@@ -1,9 +1,9 @@
 ---
-created: 2026-04-20
-updated: 2026-04-20
+created: 2026-04-20T00:00:00.000Z
+updated: '2026-04-20'
 type: entity
-refs: 2
-tier: seen
+refs: 3
+tier: active
 ---
 
 # XLA

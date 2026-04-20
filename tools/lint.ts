@@ -1,0 +1,313 @@
+#!/usr/bin/env node
+/**
+ * lint: health-check the wiki's internal graph & structure.
+ *
+ * Mechanical checks only (no LLM calls). Contradiction detection, stale-claim
+ * detection, and "concepts mentioned in prose but not wikilinked" are LLM-
+ * driven passes and are out of scope for this tool.
+ *
+ * Check classes:
+ *   orphans           Entity / Topic pages with 0 incoming content-page refs.
+ *                     (Sources are expected to have 0 inbound — they're leaves.)
+ *   dead-wikilinks    [[X]] where slug X doesn't exist as a file.
+ *                     Excludes Meta/ by default (schema.md has docstring
+ *                     examples like [[Slug]] that would false-positive).
+ *                     Content inside fenced ``` blocks is never scanned.
+ *   tier-mismatch     Entity in _seen/ with refs >= 3 (should be promoted),
+ *                     or Entity in active tier with refs < 3 (curious; may
+ *                     be a manual carve-out).
+ *   frontmatter       Missing / malformed required frontmatter fields per
+ *                     the page's bucket (per Meta/schema.md conventions).
+ *
+ *   tsx lint.ts                         # run all checks
+ *   tsx lint.ts --check orphans,dead    # subset
+ *   tsx lint.ts --include-meta          # also check Meta/ (off by default)
+ *   tsx lint.ts --json                  # NDJSON output
+ *   tsx lint.ts --quiet                 # exit code only, suppress prose
+ *
+ * Exit 0 if clean, 1 if any issues found.
+ */
+
+import { readFileSync, existsSync, statSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import matter from "gray-matter";
+import {
+  type Bucket,
+  BUCKETS,
+  bucketOf,
+  slugOf,
+  walkWikiDocs,
+} from "./link-map.ts";
+
+const THIS_FILE = fileURLToPath(import.meta.url);
+const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
+const TIER_THRESHOLD = 3;
+
+// ---------------------------------------------------------------------------
+// types
+// ---------------------------------------------------------------------------
+
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter";
+
+export interface Issue {
+  kind: CheckKind;
+  severity: "error" | "warn";
+  path: string;                  // repo-relative
+  detail: string;
+  hint?: string;
+}
+
+interface DocMeta {
+  repo_path: string;
+  slug: string;
+  bucket: Bucket;
+  frontmatter: Record<string, unknown>;
+  body: string;
+  wikilinks: Set<string>;        // unique outgoing wikilink targets, fence-stripped
+}
+
+// ---------------------------------------------------------------------------
+// parse + wikilink extraction (same rules as reindex.ts)
+// ---------------------------------------------------------------------------
+
+function parseDoc(repoRoot: string, repoPath: string): DocMeta {
+  const raw = readFileSync(join(repoRoot, repoPath), "utf8");
+  const { data, content } = matter(raw);
+  return {
+    repo_path: repoPath,
+    slug: slugOf(repoPath),
+    bucket: bucketOf(repoPath)!,
+    frontmatter: data as Record<string, unknown>,
+    body: content,
+    wikilinks: extractWikilinks(content),
+  };
+}
+
+function extractWikilinks(body: string): Set<string> {
+  const out = new Set<string>();
+  let inFence = false;
+  for (const line of body.split("\n")) {
+    if (/^```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    for (const m of line.matchAll(/\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g)) {
+      out.add(m[1].trim());
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// checks (each is a pure function of docs → issues)
+// ---------------------------------------------------------------------------
+
+export function checkOrphans(docs: DocMeta[]): Issue[] {
+  // Count incoming refs excluding Meta/ (navigation) + self-refs.
+  const refs = new Map<string, number>();
+  for (const doc of docs) {
+    if (doc.bucket === "Meta") continue;
+    for (const target of doc.wikilinks) {
+      if (target === doc.slug) continue;
+      refs.set(target, (refs.get(target) ?? 0) + 1);
+    }
+  }
+  const issues: Issue[] = [];
+  for (const doc of docs) {
+    if (doc.bucket !== "Entities" && doc.bucket !== "Topics") continue;
+    const count = refs.get(doc.slug) ?? 0;
+    if (count === 0) {
+      issues.push({
+        kind: "orphans",
+        severity: "warn",
+        path: doc.repo_path,
+        detail: `orphan: 0 incoming refs from content pages`,
+        hint: "consider linking from a related source/entity, or deleting",
+      });
+    }
+  }
+  return issues;
+}
+
+export function checkDeadWikilinks(
+  docs: DocMeta[],
+  opts: { includeMeta: boolean },
+): Issue[] {
+  const knownSlugs = new Set(docs.map((d) => d.slug));
+  const issues: Issue[] = [];
+  for (const doc of docs) {
+    if (!opts.includeMeta && doc.bucket === "Meta") continue;
+    for (const target of doc.wikilinks) {
+      if (!knownSlugs.has(target)) {
+        const hint =
+          target.includes("/")
+            ? "path-style wikilink detected; use bare slug (e.g. [[schema]] not [[Meta/schema]])"
+            : "slug doesn't exist; create it as a stub or remove the reference";
+        issues.push({
+          kind: "dead-wikilinks",
+          severity: "error",
+          path: doc.repo_path,
+          detail: `[[${target}]] resolves to no file`,
+          hint,
+        });
+      }
+    }
+  }
+  return issues;
+}
+
+export function checkTierMismatch(docs: DocMeta[]): Issue[] {
+  const refs = new Map<string, number>();
+  for (const doc of docs) {
+    if (doc.bucket === "Meta") continue;
+    for (const target of doc.wikilinks) {
+      if (target === doc.slug) continue;
+      refs.set(target, (refs.get(target) ?? 0) + 1);
+    }
+  }
+  const issues: Issue[] = [];
+  for (const doc of docs) {
+    if (doc.bucket !== "Entities") continue;
+    const count = refs.get(doc.slug) ?? 0;
+    const inSeen = doc.repo_path.includes("/_seen/");
+    if (inSeen && count >= TIER_THRESHOLD) {
+      issues.push({
+        kind: "tier-mismatch",
+        severity: "error",
+        path: doc.repo_path,
+        detail: `entity in _seen/ has ${count} refs (>= ${TIER_THRESHOLD}) — should be promoted`,
+        hint: "run `npx tsx reindex.ts`",
+      });
+    }
+    if (!inSeen && count < TIER_THRESHOLD) {
+      issues.push({
+        kind: "tier-mismatch",
+        severity: "warn",
+        path: doc.repo_path,
+        detail: `entity in active tier has only ${count} refs (< ${TIER_THRESHOLD})`,
+        hint: "demotion is manual and discouraged; acceptable as a hand-promoted exception, otherwise investigate",
+      });
+    }
+  }
+  return issues;
+}
+
+export function checkFrontmatter(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+  const required: Record<Bucket, string[]> = {
+    Meta:     ["type", "created", "updated"],
+    Sources:  ["type", "created", "updated", "raw_source"],
+    Entities: ["type", "created", "updated", "refs", "tier"],
+    Topics:   ["type", "created", "updated", "source_count"],
+  };
+  const expectedType: Record<Bucket, string> = {
+    Meta: "meta",
+    Sources: "source",
+    Entities: "entity",
+    Topics: "topic",
+  };
+  for (const doc of docs) {
+    const fm = doc.frontmatter;
+    const req = required[doc.bucket];
+    for (const key of req) {
+      if (!(key in fm) || fm[key] === null || fm[key] === "") {
+        issues.push({
+          kind: "frontmatter",
+          severity: "error",
+          path: doc.repo_path,
+          detail: `missing required frontmatter field: ${key}`,
+        });
+      }
+    }
+    if (fm.type && fm.type !== expectedType[doc.bucket]) {
+      issues.push({
+        kind: "frontmatter",
+        severity: "error",
+        path: doc.repo_path,
+        detail: `frontmatter type="${fm.type}" doesn't match bucket (expected "${expectedType[doc.bucket]}")`,
+      });
+    }
+  }
+  return issues;
+}
+
+// ---------------------------------------------------------------------------
+// orchestration
+// ---------------------------------------------------------------------------
+
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter"];
+
+export interface LintOptions {
+  checks?: CheckKind[];
+  includeMeta?: boolean;
+}
+
+export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
+  const checks = opts.checks ?? ALL_CHECKS;
+  const includeMeta = opts.includeMeta ?? false;
+  const paths = walkWikiDocs(repoRoot);
+  const docs = paths.map((p) => parseDoc(repoRoot, p));
+  const issues: Issue[] = [];
+  if (checks.includes("orphans"))        issues.push(...checkOrphans(docs));
+  if (checks.includes("dead-wikilinks")) issues.push(...checkDeadWikilinks(docs, { includeMeta }));
+  if (checks.includes("tier-mismatch"))  issues.push(...checkTierMismatch(docs));
+  if (checks.includes("frontmatter"))    issues.push(...checkFrontmatter(docs));
+  return issues;
+}
+
+function main(): void {
+  const args = process.argv.slice(2);
+  const json = args.includes("--json");
+  const quiet = args.includes("--quiet");
+  const includeMeta = args.includes("--include-meta");
+  const checkIdx = args.indexOf("--check");
+  let checks = ALL_CHECKS;
+  if (checkIdx >= 0 && args[checkIdx + 1]) {
+    const requested = args[checkIdx + 1].split(",").map((s) => s.trim());
+    for (const r of requested) {
+      if (!ALL_CHECKS.includes(r as CheckKind)) {
+        console.error(`unknown check: ${r}. Known: ${ALL_CHECKS.join(",")}`);
+        process.exit(2);
+      }
+    }
+    checks = requested as CheckKind[];
+  }
+
+  const issues = runLint(REPO_ROOT, { checks, includeMeta });
+
+  if (json) {
+    for (const i of issues) process.stdout.write(JSON.stringify(i) + "\n");
+  } else if (!quiet) {
+    if (issues.length === 0) {
+      console.log(`[lint] ✓ ${checks.join(", ")} — no issues`);
+    } else {
+      // group by kind for readability
+      const byKind = new Map<CheckKind, Issue[]>();
+      for (const i of issues) {
+        if (!byKind.has(i.kind)) byKind.set(i.kind, []);
+        byKind.get(i.kind)!.push(i);
+      }
+      for (const kind of checks) {
+        const arr = byKind.get(kind);
+        if (!arr || arr.length === 0) continue;
+        console.log(`\n[lint] ${kind} (${arr.length} issue${arr.length === 1 ? "" : "s"}):`);
+        for (const i of arr) {
+          const sev = i.severity.toUpperCase().padEnd(5);
+          console.log(`  ${sev}  ${i.path}: ${i.detail}`);
+          if (i.hint) console.log(`         → ${i.hint}`);
+        }
+      }
+      const errs = issues.filter((i) => i.severity === "error").length;
+      const warns = issues.filter((i) => i.severity === "warn").length;
+      console.log(`\n[lint] ${errs} error(s), ${warns} warning(s)`);
+    }
+  }
+
+  process.exit(issues.some((i) => i.severity === "error") ? 1 : 0);
+}
+
+const isEntryPoint =
+  process.argv[1] !== undefined && THIS_FILE === resolve(process.argv[1]);
+if (isEntryPoint) main();

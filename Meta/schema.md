@@ -42,9 +42,11 @@ highlights: true                                    # raindrop highlighted subse
 **Entities** additionally track reference count (auto-maintained by `tools/reindex.ts`):
 
 ```yaml
-refs: 2                # number of source pages that link here
+refs: 2                # number of content pages (Sources+Entities+Topics) that wikilink here
 tier: seen | active    # seen = Entities/_seen/, active = Entities/
 ```
+
+Note: `refs` counts **all** content-page wikilinks (excluding Meta/ navigation files and self-refs). Matches the Lark graph-view notion of established-ness, not raw source citation count.
 
 **Topics** may declare `source_count`:
 
@@ -176,19 +178,21 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 
 ```markdown
 ## [2026-04-19] ingest | AWS Trainium3 Deep Dive
-- Source: [[Sources/2026-04-19-aws-trainium3]]
-- Entities: [[AWS]], [[Trainium]]
+- Source: [[2026-04-19-aws-trainium3-deep-dive]]
+- Entities: [[AWS]], [[Trainium3]]
 - Topics: [[Accelerator Economics]]
-- New pages: [[Entities/Trainium]] (_seen), [[Topics/Accelerator Economics]]
+- New pages: [[Trainium3]] (_seen), [[Accelerator Economics]]
 
 ## [2026-04-19] query | What do I know about Megatron?
-- Answer: [[Topics/Megatron review 2026-04-19]]
-- Sources cited: [[Sources/2026-01-15-megatron-paper]], [[Sources/...]]
+- Answer: [[Megatron review 2026-04-19]]
+- Sources cited: [[2026-01-15-megatron-paper]]
 
 ## [2026-04-19] refactor | Merge [[GPUs]] into [[Accelerators]]
 - Reason: single-word "GPUs" too narrow; broadened to hardware class.
 - Pages touched: 7 sources re-linked.
 ```
+
+**Wikilink syntax rule**: always use **bare slugs** — `[[Trainium3]]`, not `[[Entities/Trainium3]]`; `[[aws-trainium3-deep-dive]]`, not `[[Sources/aws-trainium3-deep-dive]]`. Paths are for the filesystem; wiki resolution is by unique slug. `tools/lint.ts` flags path-style wikilinks as errors.
 
 ## Entity tiering rules
 
@@ -214,4 +218,56 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 - **Lark Space 1**: `raw_source: lark://wiki/<space_id>/<node_token>` (custom scheme for unambiguous reference).
 - **Arbitrary URL**: the URL itself.
 
-URL normalization for dedup (see `tools/ingest.ts`): lowercase host, strip tracking params (`utm_*`, `ref`, `fbclid`), strip trailing slash, resolve xhslink.com and similar shorteners where feasible.
+URL normalization for dedup (see `tools/build-sources-index.ts`): lowercase host, strip tracking params (`utm_*`, `ref`, `fbclid`), strip trailing slash.
+
+## Image handling
+
+Per [[Karpathy]]'s original method, images should ideally be downloaded locally for URL-rot durability. For this wiki we take a minimal stance:
+
+- **Default**: preserve image URLs as-is in source page bodies. Lark renders remote images via URL, which works for now.
+- **Summaries are text-only**: the ingest LLM fetches text-level content; visual claims (diagrams, charts) require click-through to the original source. Where an image is central to a source's claim, note it explicitly — e.g. *"See diagram at URL for the two-stage pipeline architecture."*
+- **Optional local download** (`tools/ingest_batch.ts --download-images`, if built) saves images under `raw/assets/<date>-<slug>/`. Off by default; opt in when a specific source's visuals are worth the storage.
+- **Deferred to v1.5 if needed**: a post-hoc `tools/fetch-images.ts` that walks existing Source pages and backfills any still-remote images. Build when URL rot starts biting.
+
+This is a deliberate trade-off against the cost of storing ~2000 images at v1 scale. Revisit if the text-only summary quality becomes a real limitation.
+
+## Lint operation
+
+Per Karpathy's three-operation model (ingest · query · lint), **lint** is a periodic health-check of the wiki's internal graph and structure. We do the mechanical parts in code, the judgment parts in session.
+
+**Mechanical checks** (`tools/lint.ts`, no LLM calls):
+
+- `orphans` — entities/topics with 0 incoming content-page refs. WARN severity; may be intentional for query-loop synthesis pages.
+- `dead-wikilinks` — `[[X]]` where slug X doesn't exist as a file. ERROR severity. Scope-excludes Meta/ by default (schema.md's own docstring examples would false-positive); pass `--include-meta` to audit Meta too. Fenced code blocks are never scanned.
+- `tier-mismatch` — entity in `_seen/` with refs ≥ 3 (should be promoted), or entity in active tier with refs < 3 (investigate). Usually indicates reindex is overdue.
+- `frontmatter` — missing required fields or wrong `type:` value for the bucket.
+
+**Judgment-level checks** (LLM-invoked, session-local, not automated):
+
+- Contradictions between observations on the same entity page
+- Stale claims superseded by newer sources
+- Concepts mentioned in prose that deserve their own entity/topic page
+- Missing cross-references between topically-adjacent pages
+- Data gaps suggesting a source-search query
+
+**Cadence**:
+- After every ingest → auto-run `lint.ts` (cheap; ~50ms on 50 docs).
+- After every batch (v1 workflow) → `lint.ts` + a short LLM-invoked judgment pass.
+- Weekly / on-demand → deep LLM lint across all entity pages for contradictions.
+
+## v1 workflow: supervised batches
+
+v1 (full-corpus init) is **not** a single autonomous 700-source run. It's a sequence of supervised 20–50 source batches, one per session, with lint + review between.
+
+1. **Queue**: `tools/ingest_batch.ts plan <candidates.json>` adds non-duplicate candidates to `.wiki-batch-state.json`.
+2. **Work**: per pending item, the ingest LLM fetches content (Raindrop MCP / lark-hirono fetch / WebFetch) and writes source + entity/topic files. Calls `ingest_batch mark-done <id>` or `mark-errored <id> <msg>`.
+3. **Batch close**: run `reindex.ts` → `sync.ts up` → `lint.ts`. Address any lint issues before calling the batch done.
+4. **Commit per batch** (not per item) so `git log` shows batch boundaries cleanly.
+5. **Pause between batches**: read a few of the source pages, see if conventions feel right. If not, update `schema.md` and regenerate affected pages before next batch.
+
+Priority order for v1 candidates:
+- Remaining 40 highlighted Raindrop bookmarks (user-curated high-signal)
+- Space 1 "Hirono Raw" nodes the user picks (existing curated knowledge)
+- Unhighlighted Raindrop (~540; lowest signal; dedupe aggressively; many may be skipped after manual review)
+
+Estimated cost: ~700 sources at ~30s-3min of LLM time each, in batches of 30, over ~20 sessions.

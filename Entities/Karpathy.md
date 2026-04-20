@@ -1,8 +1,8 @@
 ---
 created: 2026-04-19T00:00:00.000Z
-updated: '2026-04-19'
+updated: '2026-04-20'
 type: entity
-refs: 9
+refs: 11
 tier: active
 ---
 
@@ -12,7 +12,7 @@ Andrej Karpathy. ML researcher (OpenAI, Tesla, Eureka Labs); prolific educator (
 
 ## Synthesis
 
-Thin (1 source). Referenced as the author of the LLM-wiki methodology; his phrasing ("Obsidian is the IDE; the LLM is the programmer; the wiki is the codebase") crystallizes the division of labor. The wiki architecture in [[Meta/schema]] is a direct response to his three-layer design, adapted to Lark + Raindrop instead of Obsidian + local clipper.
+Referenced as the author of the LLM-wiki methodology; his phrasing ("Obsidian is the IDE; the LLM is the programmer; the wiki is the codebase") crystallizes the division of labor. The wiki architecture in [[schema]] is a direct response to his three-layer design, adapted to Lark + [[Raindrop]] instead of [[Obsidian]] + local clipper. See also the cross-domain synthesis [[LLM-as-laborer pattern]] connecting this method with Anthropic teams' coding workflows.
 
 ## Observations
 
