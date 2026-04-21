@@ -539,7 +539,7 @@ function runOpencli(args: string[], opts: { timeoutMs?: number } = {}): string {
   return res.stdout;
 }
 
-function opencliDoctorOk(): boolean {
+export function opencliDoctorOk(): boolean {
   const out = spawnSync("opencli", ["doctor"], { encoding: "utf8", timeout: 10_000 });
   return out.stdout.includes("[OK] Extension:") && out.stdout.includes("[OK] Connectivity:");
 }
@@ -921,15 +921,28 @@ function fetchViaLarkHirono(nodeToken: string): { content: string; title?: strin
 // high-level fetch-url orchestration
 // ---------------------------------------------------------------------------
 
-interface FetchUrlOpts {
+export interface FetchUrlOpts {
   slug: string;
   url: string;
   viaBrowser: boolean;
   downloadImages: boolean;
   force: boolean;
+  /**
+   * Optional markdown transform hook. Runs BETWEEN adapter output and
+   * writeRawArchive. Used by hirono's post-processor pipeline to strip
+   * site-specific UI chrome, resolve relative image URLs (which may then
+   * be downloaded separately via the returned `extraImageUrls`), and
+   * similar cleanups.
+   */
+  transformMarkdown?: (md: string, originUrl: string) => {
+    md: string;
+    extraFlags?: string[];
+    extraNotes?: string[];
+    extraImageUrls?: string[];
+  };
 }
 
-function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
+export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
   if (!opencliDoctorOk()) {
     throw makeError(
       "extension-offline", "L3",
@@ -986,25 +999,56 @@ function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
   const adapterFlags = result.extraFlags ?? [];
   const adapterNotes = result.adapterNotes ?? [];
 
+  // Apply optional post-process hook (hirono's POST_PROCESSORS pipeline).
+  // The hook runs on the adapter's raw markdown output BEFORE we write to
+  // disk. It may rewrite relative image URLs to absolute ones; the
+  // resulting absolute URLs come back in extraImageUrls and get downloaded
+  // via processImages.
+  let finalMarkdown = result.markdown;
+  const postProcessFlags: string[] = [];
+  const postProcessNotes: string[] = [];
+  const extraAbsoluteImageUrls: string[] = [];
+  if (opts.transformMarkdown) {
+    const r = opts.transformMarkdown(result.markdown, opts.url);
+    finalMarkdown = r.md;
+    if (r.extraFlags) postProcessFlags.push(...r.extraFlags);
+    if (r.extraNotes) postProcessNotes.push(...r.extraNotes);
+    if (r.extraImageUrls) extraAbsoluteImageUrls.push(...r.extraImageUrls);
+  }
+
+  // Download any newly-absolute image URLs surfaced by the transform.
+  // These are typically site-relative refs like `/images/foo.png` that
+  // the post-processor resolved against origin. Merge the successful
+  // downloads into the images array we hand to writeRawArchive.
+  const additionalImages: ImageRecord[] = [];
+  if (extraAbsoluteImageUrls.length > 0) {
+    const r = processImages(finalMarkdown, slugDir, opts.downloadImages);
+    finalMarkdown = r.content;
+    additionalImages.push(...r.images);
+    if (r.notes.length > 0) postProcessNotes.push(...r.notes);
+  }
+
   // Write content.md (or content-revN.md if append-only kicks in) + source.json.
   // Images are already in slugDir from the adapter — skip our own image download.
   return writeRawArchive({
     slug: opts.slug,
     origin: `url:${opts.url}`,
     originUrl: opts.url,
-    rawMarkdown: result.markdown,
+    rawMarkdown: finalMarkdown,
     title: result.title,
     fetcher: "opencli",
     fetcherReason,
-    qualityFlags: adapterFlags,
+    qualityFlags: [...adapterFlags, ...postProcessFlags],
     extraNotes: [
       ...extraNotes,
       ...adapterNotes,
+      ...postProcessNotes,
       ...(images.length > 0 ? [`${images.length} images downloaded by adapter`] : []),
+      ...(additionalImages.length > 0 ? [`${additionalImages.length} images downloaded by post-processor`] : []),
     ],
-    downloadImages: false,  // adapter already did this; don't double-dip
+    downloadImages: false,  // already handled above
     force: opts.force,
-    preExistingImages: images,
+    preExistingImages: [...images, ...additionalImages],
   });
 }
 

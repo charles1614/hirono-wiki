@@ -19,6 +19,8 @@ dist/
 .wiki-sources-index.json
 .wiki-batch-state.json
 .wiki-fetch-issues.md
+.wiki-raindrop-cache.json
+batch-*-candidates.json
 
 # Editor
 .vscode/

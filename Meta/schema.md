@@ -1,6 +1,6 @@
 ---
 created: 2026-04-19
-updated: 2026-04-20
+updated: 2026-04-21
 type: meta
 ---
 
@@ -242,9 +242,84 @@ raw/
 
 **Append-only**: re-fetching a source writes `content-rev2.md` (then `-rev3`, etc.); original `content.md` never overwritten. Source summaries stay pointed at the latest revision implicitly — inspect `raw/<slug>/` to see all revisions.
 
-### Fetch-raw workflow
+### The hirono CLI
 
-`tools/fetch-raw.ts` is the single entry point. Three CLIs:
+As of 2026-04-21 the canonical entry point for raw-source operations is
+`tools/hirono.ts`. Previous scripts (`fetch-raw.ts`, `ingest_batch.ts`,
+`build-sources-index.ts`) still work but hirono is the long-term home;
+later phases will fold them under `hirono` subcommands.
+
+**Commands (Phase 1)**:
+
+- `hirono raindrop check [--input <path>] [--json]` — scan the cached
+  Raindrop corpus for (a) duplicate URLs, (b) hostname coverage gaps.
+  Reads `.wiki-raindrop-cache.json` (gitignored) by default. Exits
+  non-zero if duplicates exist or any uncovered hostname has ≥5
+  bookmarks — useful as a batch-close signal.
+
+- `hirono raindrop refresh-cache [--token <t>]` — pull all bookmarks
+  from the Raindrop public API into the cache. Token comes from
+  `--token`, `$RAINDROP_TOKEN`, or `~/.config/hirono/raindrop-token`
+  (get one at https://app.raindrop.io/settings/integrations).
+
+- `hirono raindrop export <id|url|slug> [--slug <s>] [--force] [--no-images]` —
+  fetch a single source into `raw/<year>/<slug>/`. Accepts (a) a
+  Raindrop bookmark ID (`123` or `raindrop:123`; looked up in cache),
+  (b) a raw URL with explicit `--slug`, or (c) an existing slug which
+  triggers a refetch. Improvement over `fetch-raw fetch-url` /
+  `refetch`: runs the **POST_PROCESSORS pipeline** between adapter
+  output and `writeRawArchive`, which strips UI chrome, resolves
+  relative image URLs, collapses exploded SVG text, and strips HTML
+  color tags. **Append-only by default** — refetches write
+  `content-revN.md` rather than clobbering (helpful when a second
+  fetch is worse, e.g. SPA cold-cache). `--force` overwrites.
+
+- `hirono doctor [--fix]` — health check:
+  1. `opencli doctor` (extension + daemon).
+  2. `~/.opencli/clis/wiki-custom` symlink → `tools/opencli-adapters`
+     (the self-contained-project pattern; `--fix` creates it).
+  3. `node --check` on every adapter file under `tools/opencli-adapters/`.
+  4. Surface any `raw/<slug>/source.json` whose `quality_status != good`.
+
+**Post-processors** (see `tools/hirono/shared/post-process.ts`):
+
+| Processor | Domain filter | What it does |
+|---|---|---|
+| `resolve-relative-image-urls` | all | Convert `![](/path)` → `![](https://host/path)`; emit absolute URLs to the downloader |
+| `deepwiki-strip-file-nav` | `wiki.litenext.digital` | Strip the file-sibling navigator block |
+| `github-strip-ui-chrome` | `github.com` | Strip "Pull Request Toolbar", "Expand file tree", line-change annotations |
+| `anthropic-strip-svg-explosion` | `anthropic.com` | Collapse char-per-line SVG text into a placeholder |
+| `strip-color-tags` | all | Remove `<text color="...">` verbatim tags |
+
+Pipeline order: site-specific strips first, then generic relative-URL
+resolver, then cosmetic cleanups. Each processor is pure (markdown-in,
+markdown-out); composition is order-independent for
+non-overlapping site filters but deterministic per the list in
+`PROCESSORS`.
+
+**Project-local opencli adapters**:
+
+Custom opencli adapters live under `tools/opencli-adapters/<site>/<name>.js`
+(committed to the repo). `hirono doctor --fix` creates a symlink from
+`~/.opencli/clis/wiki-custom` to that directory so opencli discovers
+the adapters at invocation time. This makes the repo self-contained —
+`git clone` + `hirono doctor --fix` is enough setup on a new machine.
+
+Phase 1 ships the infrastructure but no custom adapters yet; the first
+adapter comes when a site's quality problems can't be fixed with
+post-processors alone.
+
+**Cache file**:
+
+`.wiki-raindrop-cache.json` (gitignored) is the Raindrop bookmark
+snapshot. Refreshed by `hirono raindrop refresh-cache`. Read by
+`hirono raindrop check` (for the full-corpus view) and
+`hirono raindrop export <id>` (for ID-based lookup).
+
+### Fetch-raw workflow (legacy entry points)
+
+`tools/fetch-raw.ts` still exposes three CLIs for backward compatibility
+(and hirono delegates into its helpers under the hood):
 
 - `fetch-raw.ts fetch-url <url> --slug <slug>` — fetches any URL via opencli, dispatched:
   - `*.xiaohongshu.com` + `xhslink.com` → `opencli xiaohongshu note` + `opencli xiaohongshu download`
