@@ -43,6 +43,8 @@ import {
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
+import { writeFileAtomic } from "./shared/atomic-write.ts";
+import { acquireBrowserLock, acquireSlugLock } from "./hirono/shared/browser-lock.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -294,10 +296,18 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
       break;
     }
   }
-  for (const kw of LOADING_SKELETON_KEYWORDS) {
-    if (trimmed.includes(kw)) {
-      flags.push("loading-skeleton");
-      break;
+  // Loading-skeleton detection is fraught: many pages have incidental
+  // "Loading..." text in lazy-loaded widgets (BibTeX boxes, embedded
+  // videos, newsletter signup forms) even when the main article body is
+  // fully present. Only flag if the body is ALSO short — a true skeleton
+  // state has ≤2000 chars of content. Over that threshold, "Loading..."
+  // is almost always a widget artifact that we should ignore.
+  if (trimmed.length < 2000) {
+    for (const kw of LOADING_SKELETON_KEYWORDS) {
+      if (trimmed.includes(kw)) {
+        flags.push("loading-skeleton");
+        break;
+      }
     }
   }
   if (
@@ -380,8 +390,17 @@ export function localNameFor(url: string, index: number): string {
   }
 }
 
-/** Download one image via curl. Returns bytes downloaded, or -1 on failure. */
+/**
+ * Download one image via curl. Returns bytes downloaded, or -1 on failure.
+ *
+ * Atomic-write semantics: curl writes to `<destPath>.part`, we verify the
+ * file is non-empty, then rename into place. A crash mid-download leaves
+ * the `.part` turd (cleaned up on retry or by the stale-cleanup pass) but
+ * never a half-written `destPath` that would pass an existsSync() check
+ * and get silently accepted as "downloaded".
+ */
 function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 1024): number {
+  const tmpPath = `${destPath}.part`;
   // curl with max-filesize, connect-timeout, and output to disk. Returns 0 on success.
   const res = spawnSync(
     "curl",
@@ -391,13 +410,28 @@ function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 102
       "--connect-timeout", "10",
       "--max-time", "30",
       "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-      "-o", destPath,
+      "-o", tmpPath,
       url,
     ],
     { encoding: "utf8", timeout: 40_000 },
   );
-  if (res.status !== 0) return -1;
-  try { return statSync(destPath).size; } catch { return -1; }
+  if (res.status !== 0) {
+    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    return -1;
+  }
+  let size = -1;
+  try { size = statSync(tmpPath).size; } catch { size = -1; }
+  if (size <= 0) {
+    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    return -1;
+  }
+  try {
+    renameSync(tmpPath, destPath);
+  } catch {
+    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    return -1;
+  }
+  return size;
 }
 
 /** Download images + rewrite references in the markdown to local paths. */
@@ -474,7 +508,7 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
     imgNotes = r.notes;
   }
 
-  writeFileSync(join(slugDir, contentFile), md, "utf8");
+  writeFileAtomic(join(slugDir, contentFile), md);
 
   // Derive declared-image count from the final markdown (after rewrites). If
   // the content references images but the images array is empty, that's
@@ -502,7 +536,7 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
     raindrop_meta: args.raindropMeta,
     lark_meta: args.larkMeta,
   };
-  writeFileSync(join(slugDir, "source.json"), JSON.stringify(src, null, 2) + "\n", "utf8");
+  writeFileAtomic(join(slugDir, "source.json"), JSON.stringify(src, null, 2) + "\n");
 
   if (suspicious) {
     logL2Issue(args.slug, qualityFlags.join(","), args.originUrl);
@@ -540,8 +574,37 @@ function runOpencli(args: string[], opts: { timeoutMs?: number } = {}): string {
 }
 
 export function opencliDoctorOk(): boolean {
-  const out = spawnSync("opencli", ["doctor"], { encoding: "utf8", timeout: 10_000 });
+  const out = spawnSync("opencli", ["doctor"], { encoding: "utf8", timeout: browserTimeoutMs("doctor") });
   return out.stdout.includes("[OK] Extension:") && out.stdout.includes("[OK] Connectivity:");
+}
+
+/**
+ * Browser timeout knobs. Defaults match the hard-coded values used
+ * throughout the browser extractors; each can be overridden via the
+ * corresponding env var for operators running on slower machines or
+ * behind a slow SPA. Kept small so values stay readable next to their
+ * call sites.
+ *
+ * Not a total-wall-clock budget for the whole adapter; per-call timeouts
+ * combined with the module-wide opencli lock (H1.2) are sufficient
+ * bounds — a hung browser blocks only the next acquirer, never the
+ * whole batch.
+ */
+export function browserTimeoutMs(
+  kind: "open" | "eval" | "close" | "doctor",
+): number {
+  const envMap: Record<typeof kind, { env: string; def: number }> = {
+    open:   { env: "HIRONO_BROWSER_OPEN_TIMEOUT_MS",   def: 30_000 },
+    eval:   { env: "HIRONO_BROWSER_EVAL_TIMEOUT_MS",   def: 15_000 },
+    close:  { env: "HIRONO_BROWSER_CLOSE_TIMEOUT_MS",  def: 5_000 },
+    doctor: { env: "HIRONO_BROWSER_DOCTOR_TIMEOUT_MS", def: 10_000 },
+  };
+  const spec = envMap[kind];
+  const raw = process.env[spec.env];
+  if (!raw) return spec.def;
+  const n = parseInt(raw, 10);
+  if (!Number.isFinite(n) || n <= 0) return spec.def;
+  return n;
 }
 
 /**
@@ -576,7 +639,23 @@ interface AdapterResult {
  * Returns the flattened markdown content + list of image-file basenames
  * (with `images/` prefix where applicable).
  */
-function harvestAdapterOutput(slugDir: string, afterMtime: number): { content: string; images: string[] } {
+/**
+ * Harvest result. `errors` collects any filesystem-level issues we hit
+ * during the walk (failed statSync, failed renameSync, etc.). The caller
+ * uses its emptiness as an "is this output complete?" signal — a non-
+ * empty list raises `adapter-output-partial` on quality_flags so the
+ * user knows some assets may have been lost even though the fetch
+ * "succeeded" overall.
+ */
+export interface HarvestResult {
+  content: string;
+  images: string[];
+  errors: string[];
+}
+
+export function harvestAdapterOutput(slugDir: string, afterMtime: number): HarvestResult {
+  const errors: string[] = [];
+
   // Find the subdirectory (there should be at most one, named after article title)
   const dirEntries = readdirSync(slugDir, { withFileTypes: true });
   const subdirs = dirEntries.filter((e) => e.isDirectory() && !e.name.startsWith("."));
@@ -592,7 +671,9 @@ function harvestAdapterOutput(slugDir: string, afterMtime: number): { content: s
       if (st.mtimeMs < afterMtime) continue;
       if (/\.md$/i.test(e.name)) mdSource = full;
       else if (/\.(png|jpe?g|webp|gif|svg|mp4|mov|avif)$/i.test(e.name)) flatImagesAtRoot.push(e.name);
-    } catch {}
+    } catch (err) {
+      errors.push(`stat failed on ${e.name}: ${err instanceof Error ? err.message : err}`);
+    }
   }
 
   if (mdSource && subdirs.length === 0) {
@@ -600,6 +681,7 @@ function harvestAdapterOutput(slugDir: string, afterMtime: number): { content: s
     return {
       content: readFileSync(mdSource, "utf8"),
       images: flatImagesAtRoot,
+      errors,
     };
   }
 
@@ -615,7 +697,9 @@ function harvestAdapterOutput(slugDir: string, afterMtime: number): { content: s
         target = full;
         bestMtime = st.mtimeMs;
       }
-    } catch {}
+    } catch (err) {
+      errors.push(`stat failed on subdir ${sub.name}: ${err instanceof Error ? err.message : err}`);
+    }
   }
   if (!target) {
     throw makeError(
@@ -645,7 +729,15 @@ function harvestAdapterOutput(slugDir: string, afterMtime: number): { content: s
       }
       // Ensure parent dir exists
       mkdirSync(dirname(dst), { recursive: true });
-      try { renameSync(src, dst); } catch {}
+      try {
+        renameSync(src, dst);
+      } catch (err) {
+        // Image-move failure — log and continue. Skipping the push means
+        // this image WON'T appear in the returned images list, which
+        // correctly surfaces the loss to downstream classifiers.
+        errors.push(`rename ${entry.name} → ${relNew} failed: ${err instanceof Error ? err.message : err}`);
+        continue;
+      }
       if (/\.(png|jpe?g|webp|gif|svg|mp4|mov|avif)$/i.test(entry.name)) {
         imagesMoved.push(relNew);
       }
@@ -663,11 +755,16 @@ function harvestAdapterOutput(slugDir: string, afterMtime: number): { content: s
 
   const content = readFileSync(finalMdSource, "utf8");
   // Clean up: remove the now-processed subdirectory (md file still inside — safe to rm)
-  try { rmSync(target, { recursive: true, force: true }); } catch {}
+  try {
+    rmSync(target, { recursive: true, force: true });
+  } catch (err) {
+    errors.push(`cleanup rmSync ${target} failed: ${err instanceof Error ? err.message : err}`);
+  }
 
   return {
     content,
     images: [...flatImagesAtRoot, ...imagesMoved],
+    errors,
   };
 }
 
@@ -698,17 +795,58 @@ function tryParseJsonLines(stdout: string): unknown {
  * actually produce files?" check so both the initial call and the retry use
  * the same logic.
  */
+/**
+ * Collect xhs-downloaded images. As of opencli 1.7.4+, `xiaohongshu download`
+ * saves images into a `<note-id>/` subdirectory, not flat at slugDir root.
+ * We flatten them back up to slugDir so our filename references in the
+ * assembled markdown stay simple.
+ *
+ * Returns basenames relative to slugDir (either plain filename if already
+ * flat, or empty string for files we moved up).
+ */
 function collectXhsAssets(slugDir: string, afterMtime: number): string[] {
   const files: string[] = [];
+  const imageExt = /\.(jpe?g|png|webp|mp4|mov|gif|avif)$/i;
+
+  // Pass 1: pick up any flat files at slugDir root (legacy/future behavior)
   for (const f of readdirSync(slugDir)) {
     try {
-      const st = statSync(join(slugDir, f));
-      if (
-        st.isFile() &&
-        st.mtimeMs >= afterMtime - 1000 &&
-        /\.(jpe?g|png|webp|mp4|mov|gif|avif)$/i.test(f)
-      ) {
+      const full = join(slugDir, f);
+      const st = statSync(full);
+      if (st.isFile() && st.mtimeMs >= afterMtime - 1000 && imageExt.test(f)) {
         files.push(f);
+      }
+    } catch {}
+  }
+
+  // Pass 2: check subdirectories created by opencli (e.g. `<note-id>/`).
+  // Move all image files up to slugDir root + remove the empty subdir.
+  for (const entry of readdirSync(slugDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+    const subdir = join(slugDir, entry.name);
+    let subdirHasRecentFiles = false;
+    try {
+      const subdirStat = statSync(subdir);
+      if (subdirStat.mtimeMs < afterMtime - 1000) continue;
+      for (const childName of readdirSync(subdir)) {
+        const childFull = join(subdir, childName);
+        try {
+          const childStat = statSync(childFull);
+          if (!childStat.isFile() || !imageExt.test(childName)) continue;
+          subdirHasRecentFiles = true;
+          // Move up to slugDir, disambiguating if a same-named file already exists
+          const destName = existsSync(join(slugDir, childName))
+            ? `${entry.name}_${childName}`
+            : childName;
+          try {
+            renameSync(childFull, join(slugDir, destName));
+            files.push(destName);
+          } catch {}
+        } catch {}
+      }
+      // Remove now-empty subdir (or try)
+      if (subdirHasRecentFiles) {
+        try { rmSync(subdir, { recursive: true, force: true }); } catch {}
       }
     } catch {}
   }
@@ -728,30 +866,492 @@ function sleepMs(ms: number): void {
   }
 }
 
-function fetchXhsViaAdapter(url: string, slugDir: string): AdapterResult {
+/**
+ * Resolve an xhs URL (xhslink shortlink or any xiaohongshu.com URL with
+ * possibly-stale xsec_token) to its current canonical URL with a fresh,
+ * session-valid xsec_token. Uses opencli's browser bridge, which inherits
+ * the user's logged-in xhs cookies.
+ *
+ * Two-step dance:
+ *   1. `opencli browser open <url>` — navigate; xhs redirects/refreshes
+ *      tokens server-side
+ *   2. `opencli browser eval 'window.location.href'` — read the final URL
+ *
+ * Returns the resolved URL (with fresh xsec_token) on success, null if
+ * the browser navigation or eval failed. On success the browser is left
+ * open — caller must close it or it'll be closed on next adapter invocation.
+ */
+function resolveXhsViaBrowser(url: string): string | null {
+  // NOTE: we deliberately do NOT close the browser in the success path — the
+  // caller (fetchXhsViaAdapter) runs further `opencli browser` commands after
+  // us in the same session. The caller is responsible for closing via a
+  // finally block. This function's OWN finally block only runs if WE throw;
+  // in that case the caller's finally will have already fired by the time it
+  // matters.
+  let browserOpened = false;
+  try {
+    // Navigate. This can 200, 404 from xhslink, etc. — we swallow and check eval.
+    spawnSync("opencli", ["browser", "open", url], { encoding: "utf8", timeout: browserTimeoutMs("open") });
+    browserOpened = true;
+    // Let xhs's JS run a beat; in practice ≤1s is plenty for redirects.
+    sleepMs(2000);
+    const res = spawnSync("opencli", ["browser", "eval", "window.location.href"], {
+      encoding: "utf8",
+      timeout: browserTimeoutMs("eval"),
+    });
+    if (res.status !== 0) return null;
+    // stdout contains the URL possibly followed by opencli version notice; first
+    // non-empty line starting with http is our answer.
+    for (const line of (res.stdout || "").split("\n")) {
+      const t = line.trim();
+      if (/^https?:\/\/(?:www\.)?xiaohongshu\.com\//.test(t)) {
+        return t;
+      }
+    }
+    return null;
+  } catch {
+    // Throw path: if WE opened the browser and our caller might not know,
+    // close defensively before returning null.
+    if (browserOpened) closeBrowser();
+    return null;
+  }
+}
+
+/**
+ * Close the opencli browser tab if open. Best-effort — failures are ignored.
+ */
+function closeBrowser(): void {
+  try { spawnSync("opencli", ["browser", "close"], { encoding: "utf8", timeout: browserTimeoutMs("close") }); } catch {}
+}
+
+/**
+ * Extract image URLs from the live xhs post DOM in display order. Opens the
+ * URL in opencli's browser (which has user cookies), filters `<img>` elements
+ * by minimum size (to skip avatars + UI icons), and dedupes by final URL
+ * segment (xhs's carousel often repeats each image as a thumbnail).
+ *
+ * Returns the absolute URL list in author-intended display order, or an
+ * empty array on any failure.
+ */
+/**
+ * Result of DOM-based image extraction. `urls` holds the ordered image URLs
+ * (possibly empty — a legitimate "no large images on this post"); `error`
+ * is set ONLY when the DOM query itself failed (browser open/eval threw,
+ * non-zero exit, unparseable output). This lets the caller distinguish
+ * "no images to reorder" from "extractor broken; flag quality".
+ */
+export interface XhsDomExtractResult {
+  urls: string[];
+  error?: string;
+}
+
+export function extractXhsImageUrlsInOrder(url: string): XhsDomExtractResult {
+  // Browser lifetime is fully owned by this function — open at the top,
+  // close in finally so any throw or early return still frees the tab.
+  let browserOpened = false;
+  try {
+    spawnSync("opencli", ["browser", "open", url], { encoding: "utf8", timeout: browserTimeoutMs("open") });
+    browserOpened = true;
+    sleepMs(3_000);
+    // Extract {src, left} per image — we need the horizontal viewport position
+    // because xhs's carousel is circular: the LAST image is duplicated to the
+    // LEFT of the cover (at a negative X offset) for wrap-around scrolling.
+    // DOM order alone puts that wrap-around copy FIRST, which is wrong.
+    // Sorting by `left` (ascending), filtering out negative-left wrap-arounds,
+    // and deduping by image ID gives the author's actual display order.
+    const js = "JSON.stringify(Array.from(document.querySelectorAll('img'))"
+      + ".filter(function(i){var w=i.naturalWidth||i.width;return w>=400 && i.src.indexOf('xhscdn')>0})"
+      + ".map(function(i){return {src:i.src, left:Math.round(i.getBoundingClientRect().left)}}))";
+    const res = spawnSync("opencli", ["browser", "eval", js], {
+      encoding: "utf8",
+      timeout: browserTimeoutMs("eval"),
+      maxBuffer: 4 * 1024 * 1024,
+    });
+    if (res.status !== 0) {
+      return { urls: [], error: `browser eval exited ${res.status}` };
+    }
+    const stdout = res.stdout || "";
+    const jsonStart = stdout.indexOf("[");
+    if (jsonStart < 0) {
+      return { urls: [], error: "no JSON array in eval output" };
+    }
+    let depth = 0;
+    let jsonEnd = -1;
+    for (let i = jsonStart; i < stdout.length; i++) {
+      if (stdout[i] === "[") depth++;
+      else if (stdout[i] === "]") { depth--; if (depth === 0) { jsonEnd = i; break; } }
+    }
+    if (jsonEnd < 0) {
+      return { urls: [], error: "unterminated JSON array in eval output" };
+    }
+    let items: Array<{ src: string; left: number }>;
+    try {
+      const parsed = JSON.parse(stdout.slice(jsonStart, jsonEnd + 1));
+      items = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return { urls: [], error: `JSON parse failed: ${e instanceof Error ? e.message : e}` };
+    }
+    // Step 1: drop wrap-around copies positioned off-screen to the left.
+    //   negative `left` means the carousel placed this image before the
+    //   actual first slot for circular-scroll preview.
+    const visible = items.filter((it) => typeof it.left === "number" && it.left >= 0);
+    // Step 2: sort by `left` ascending — this is the author's canonical order.
+    visible.sort((a, b) => a.left - b.left);
+    // Step 3: dedupe by xhs image ID. xhs uses several CDN paths —
+    // `/spectrum/`, `/notes_uhdr/`, etc. — and sometimes serves the same
+    // image over both `https://` and `http://` in the same page. Extract
+    // the image ID as the last path segment before `!` (which precedes
+    // the encoding-param tail like `!nd_dft_wlteh_webp_3`). This is a
+    // stable identifier across CDN-path / protocol / timestamp variations.
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const it of visible) {
+      if (typeof it.src !== "string") continue;
+      // Prefer the `<segment>!` pattern (present on all xhs CDN URLs).
+      // Fall back to full src if not found (shouldn't happen for xhscdn).
+      const m = it.src.match(/\/([^/!]+)!/);
+      const key = m ? m[1] : it.src;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(it.src);
+    }
+    // Successful extraction — 0 urls is a valid outcome (non-image post).
+    return { urls: out };
+  } catch (e) {
+    return {
+      urls: [],
+      error: `extractXhsImageUrlsInOrder threw: ${e instanceof Error ? e.message : e}`,
+    };
+  } finally {
+    if (browserOpened) closeBrowser();
+  }
+}
+
+/**
+ * Download a remote URL to `destPath` via curl. Returns true on success.
+ * Used by the xhs DOM-order reorder path — we can't rely on opencli to
+ * give us the image URLs, so we fetch them ourselves in display order.
+ *
+ * Atomic: curl writes to `<destPath>.part`, size is verified (>1000 bytes
+ * to filter out xhs's placeholder-error stubs), then renamed into place.
+ */
+function downloadImageToPath(url: string, destPath: string): boolean {
+  const tmpPath = `${destPath}.part`;
+  const res = spawnSync(
+    "curl",
+    [
+      "-fsSL",
+      "--max-filesize", "20971520",  // 20 MB cap
+      "--connect-timeout", "10",
+      "--max-time", "45",
+      "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+      "-H", "Referer: https://www.xiaohongshu.com/",
+      "-o", tmpPath,
+      url,
+    ],
+    { encoding: "utf8", timeout: 60_000 },
+  );
+  if (res.status !== 0) {
+    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    return false;
+  }
+  let ok = false;
+  try { ok = statSync(tmpPath).size > 1000; } catch { ok = false; }
+  if (!ok) {
+    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    return false;
+  }
+  try {
+    renameSync(tmpPath, destPath);
+  } catch {
+    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    return false;
+  }
+  return true;
+}
+
+/**
+ * After opencli's `xiaohongshu download` has saved image files to slugDir
+ * with its own `_1.jpg`-style ordering (which may NOT match the author's
+ * intended display order), re-fetch images from the live xhs DOM in
+ * display order and replace opencli's files. Returns the ordered list of
+ * local filenames (`_01.jpg`, `_02.jpg`, ...); falls back to the
+ * opencli-provided list on any failure.
+ *
+ * Strategy:
+ *   1. Extract image URLs from the live post DOM (display order, deduped)
+ *   2. Download each into `<noteid>_01.jpg`, `_02.jpg`, ... (zero-padded
+ *      for cross-tool sort stability)
+ *   3. Delete opencli's `_1.jpg` through `_N.jpg` files (they're the same
+ *      images in a different order; keep disk tidy)
+ *   4. Return the new ordered list
+ */
+/**
+ * Reorder result: `files` is the final ordered image list (or opencli's
+ * original if we couldn't improve), `error` is set ONLY when the DOM
+ * extractor itself failed — lets the caller push `xhs-dom-extraction-failed`
+ * onto quality_flags without conflating "no reorder needed" with
+ * "reorder broken".
+ */
+interface XhsReorderResult {
+  files: string[];
+  error?: string;
+}
+
+function reorderXhsImagesByDomPosition(
+  url: string,
+  slugDir: string,
+  opencliFiles: string[],
+  noteId: string | null,
+): XhsReorderResult {
+  if (opencliFiles.length === 0) return { files: opencliFiles };
+  const extraction = extractXhsImageUrlsInOrder(url);
+  if (extraction.error) {
+    // DOM query failed. Surface the error; keep opencli's order.
+    return { files: opencliFiles, error: extraction.error };
+  }
+  const orderedUrls = extraction.urls;
+  if (orderedUrls.length === 0) return { files: opencliFiles };
+  // Count-sanity:
+  //   DOM == opencli  → normal case, reorder 1:1
+  //   DOM <  opencli  → opencli has duplicates (e.g. same image returned
+  //                     twice by the xhs note API). DOM's dedupe by ID is
+  //                     authoritative — use DOM count, delete extras.
+  //   DOM >  opencli  → something weird; trust opencli to avoid data loss.
+  if (orderedUrls.length > opencliFiles.length) return { files: opencliFiles };
+
+  const prefix = noteId || opencliFiles[0].replace(/_\d+\.[a-z]+$/i, "");
+  // Pad to at least 2 digits so new filenames DIFFER from opencli's
+  // `_1.jpg`..`_8.jpg` single-digit naming. Otherwise name collision
+  // causes the "delete opencli's files" step to delete our own downloads.
+  const pad = Math.max(2, String(orderedUrls.length).length);
+  const newFiles: string[] = [];
+  for (let i = 0; i < orderedUrls.length; i++) {
+    const ext = (orderedUrls[i].match(/\.(jpe?g|png|webp)(?:\?|$)/i)?.[1] ?? "jpg").toLowerCase();
+    const name = `${prefix}_${String(i + 1).padStart(pad, "0")}.${ext === "jpeg" ? "jpg" : ext}`;
+    const dest = join(slugDir, name);
+    const ok = downloadImageToPath(orderedUrls[i], dest);
+    if (!ok) {
+      // Clean up partial downloads before aborting; keep opencli's originals
+      for (const partial of newFiles) {
+        try { rmSync(join(slugDir, partial), { force: true }); } catch {}
+      }
+      return { files: opencliFiles };
+    }
+    newFiles.push(name);
+  }
+  // Success — delete opencli's originals. Name collision is impossible now
+  // because pad ≥ 2 ensures newFiles use `_01..._NN` while opencli used
+  // `_1..._N`. Belt-and-suspenders: skip deleting any file whose name
+  // appears in newFiles.
+  const newSet = new Set(newFiles);
+  for (const f of opencliFiles) {
+    if (newSet.has(f)) continue;
+    try { rmSync(join(slugDir, f), { force: true }); } catch {}
+  }
+  return { files: newFiles };
+}
+
+/**
+ * Clean an xhs title for use as a search query. Strips the "小红书" suffix
+ * (often appended to titles) and trims.
+ */
+function xhsSearchQuery(title: string): string {
+  return title
+    .replace(/\s*-?\s*小红书\s*$/, "")
+    .trim()
+    .slice(0, 80);
+}
+
+/**
+ * Extract note-id from an xhs URL (full or xhslink form). Returns null if
+ * the URL doesn't look like an xhs URL we recognize.
+ */
+function extractXhsNoteId(url: string): string | null {
+  // Full URL form: /discovery/item/<noteid> or /explore/<noteid> or /search_result/<noteid>
+  const m = url.match(/\/(?:discovery\/item|explore|search_result)\/([a-f0-9]+)/i);
+  if (m) return m[1];
+  return null;
+}
+
+/**
+ * Try to rescue a stale xsec_token URL by searching xhs for the note's
+ * title. Returns a fresh search-result URL on a match, null otherwise.
+ *
+ * Strategy: search by title, check that the top result's note_id (if we
+ * know ours) matches. If no id to verify, trust the top result if the
+ * title substring matches.
+ */
+function findFreshXhsUrl(titleHint: string, originalUrl: string): string | null {
+  if (!titleHint) return null;
+  const query = xhsSearchQuery(titleHint);
+  if (!query) return null;
+  const targetId = extractXhsNoteId(originalUrl);
+  let searchStdout = "";
+  try {
+    searchStdout = runOpencli(
+      ["xiaohongshu", "search", query, "-f", "json", "--limit", "5"],
+      { timeoutMs: 60_000 },
+    );
+  } catch {
+    return null;
+  }
+  // Parse the JSON array (opencli emits rows)
+  let rows: Array<{ url?: string; title?: string }>;
+  try {
+    const parsed = JSON.parse(searchStdout.slice(searchStdout.search(/[\[{]/)));
+    rows = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return null;
+  }
+  // Prefer a row whose URL contains our target note-id; fall back to top
+  // result when we don't have an id.
+  if (targetId) {
+    for (const row of rows) {
+      if (row.url && row.url.includes(targetId)) return row.url;
+    }
+  }
+  // No id match. Require a STRONG title match to avoid false positives
+  // (xhs titles are often re-shared; many different posts mention the same
+  // keyword). Accept a row only if either:
+  //   (a) the returned title is a prefix of our query (xhs often truncates
+  //       long titles with "..." or cuts at a shorter length), OR
+  //   (b) the returned title is substantially (≥70% of its length) contained
+  //       in our query as a contiguous substring
+  //
+  // The megatron case shows why: original title
+  //   "megatron是一个伟大的工程但也有伟大的负担"
+  // returned candidate
+  //   "Slime集成了SGLang和Megatron"
+  // share only "Megatron" (8 chars); rejecting this is correct.
+  const queryLower = query.toLowerCase();
+  const stripEllipsis = (s: string) => s.replace(/\s*(?:\.\.\.|…)\s*$/, "").trim();
+  for (const row of rows) {
+    if (!row.url || !row.title) continue;
+    const titleLower = stripEllipsis(row.title.toLowerCase());
+    if (titleLower.length < 6) continue;
+
+    // (a) title is a prefix of query (handles xhs truncation of long titles)
+    if (queryLower.startsWith(titleLower)) return row.url;
+
+    // (b) find longest contiguous substring shared; accept iff it covers
+    //     ≥70% of the shorter side (catches cases where the title has a
+    //     few extra chars vs the query, or vice versa)
+    let bestLen = 0;
+    for (let i = 0; i < queryLower.length; i++) {
+      for (let j = 0; j < titleLower.length; j++) {
+        let k = 0;
+        while (
+          i + k < queryLower.length &&
+          j + k < titleLower.length &&
+          queryLower[i + k] === titleLower[j + k]
+        ) k++;
+        if (k > bestLen) bestLen = k;
+      }
+    }
+    const shortLen = Math.min(queryLower.length, titleLower.length);
+    if (bestLen >= Math.ceil(shortLen * 0.7) && bestLen >= 10) {
+      return row.url;
+    }
+  }
+  return null;
+}
+
+function fetchXhsViaAdapter(url: string, slugDir: string, options: { titleHint?: string } = {}): AdapterResult {
   const beforeMtime = Date.now();
   mkdirSync(slugDir, { recursive: true });
 
-  // (1) Fetch markdown content
-  const noteStdout = runOpencli(
-    ["xiaohongshu", "note", url, "-f", "md"],
-    { timeoutMs: 90_000 },
-  );
-  if (!noteStdout.trim()) {
-    throw makeError(
-      "parse-failure", "L3",
-      `xiaohongshu note returned empty for ${url}`,
-      { remediation: "verify URL has a valid xsec_token; try opening the URL in the opencli Chrome" },
-    );
-  }
-
-  // (2) Download images/videos. Best-effort: a failure here is L2, not L3.
-  //     xhs has a known silent-failure mode where the download subcommand
-  //     exits 0 but produces zero files on repeat calls in the same session.
-  //     Mitigation: if we see 0 assets after the first call, sleep 5s and
-  //     retry once. Still zero → flag xhs-download-silent-fail (L2).
+  // (1) Try to fetch text body via `note`. As of opencli 1.7.4+, `note`
+  //     strictly requires a full xiaohongshu.com URL with a CURRENT xsec_token.
+  //     Our Raindrop bookmarks often have stale tokens (saved months ago) or
+  //     are xhslink.com shortlinks (which `note` doesn't accept at all).
+  //
+  //     Recovery attempts, in order:
+  //       a) `note <original-url>` — fast path; works if the saved URL still
+  //          has a valid xsec_token (recent bookmarks)
+  //       b) open URL in browser to get the CURRENT xsec_token URL (works for
+  //          xhslink shortlinks + stale tokens; relies on user's xhs login)
+  //       c) if no browser session, try title-based search as a best-effort
+  //          text recovery (fuzzy; may match the wrong post for niche content)
+  //       d) fall back to `download`-only (images) + title stub body
+  let noteStdout = "";
+  let noteSucceeded = false;
   const adapterNotes: string[] = [];
   const extraFlags: string[] = [];
+  let browserOpened = false;
+
+  const runNote = (targetUrl: string): string | null => {
+    try {
+      const out = runOpencli(
+        ["xiaohongshu", "note", targetUrl, "-f", "md"],
+        { timeoutMs: 90_000 },
+      );
+      return out.trim() ? out : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Attempt (a): original URL. If it succeeds, no browser is needed.
+  // Otherwise the recovery ladder (b, c) opens the browser — we wrap the
+  // whole ladder in try/finally so any throw still closes the browser tab,
+  // preventing a hung Chrome session from leaking into the next adapter run.
+  const firstTry = runNote(url);
+  if (firstTry) {
+    noteStdout = firstTry;
+    noteSucceeded = true;
+  } else {
+    try {
+      // Attempt (b): browser-based URL resolution — the robust path
+      adapterNotes.push("xhs note failed on original URL; attempting browser-based URL resolution");
+      const freshUrl = resolveXhsViaBrowser(url);
+      browserOpened = true;
+      if (freshUrl && freshUrl !== url) {
+        adapterNotes.push(`xhs browser resolved to fresh URL: ...${freshUrl.slice(-80)}`);
+        const secondTry = runNote(freshUrl);
+        if (secondTry) {
+          noteStdout = secondTry;
+          noteSucceeded = true;
+          adapterNotes.push("xhs note succeeded on browser-refreshed URL");
+        } else {
+          adapterNotes.push("xhs note also failed on browser-refreshed URL");
+        }
+      } else if (freshUrl === url) {
+        adapterNotes.push("xhs browser returned same URL (no redirect happened)");
+      } else {
+        adapterNotes.push("xhs browser navigation failed or returned non-xhs URL");
+      }
+
+      // Attempt (c): title-based search as best-effort — skip if we got a
+      // browser-resolved URL that just failed `note` (same post, wouldn't help)
+      if (!noteSucceeded && options.titleHint && !freshUrl) {
+        adapterNotes.push("attempting title-based xhs search as last resort");
+        const searchUrl = findFreshXhsUrl(options.titleHint, url);
+        if (searchUrl) {
+          adapterNotes.push(`xhs search found candidate: ...${searchUrl.slice(-80)}`);
+          const thirdTry = runNote(searchUrl);
+          if (thirdTry) {
+            noteStdout = thirdTry;
+            noteSucceeded = true;
+            adapterNotes.push("xhs note succeeded on search-refreshed URL");
+          }
+        } else {
+          adapterNotes.push("xhs search returned no strong-enough match");
+        }
+      }
+    } finally {
+      if (browserOpened) closeBrowser();
+    }
+  }
+
+  if (!noteSucceeded) {
+    adapterNotes.push("xhs note unavailable; falling back to download-only");
+    extraFlags.push("xhs-text-body-unavailable");
+  }
+
+  // (2) Download images/videos. Unlike `note`, `download` accepts xhslink
+  //     shortlinks directly — critical for our 68 xhslink bookmarks. Best-
+  //     effort: a failure is L2, not L3. Silent-fail retry logic below.
   let imageFiles: string[] = [];
   let downloadCallSucceeded = false;
   try {
@@ -798,11 +1398,50 @@ function fetchXhsViaAdapter(url: string, slugDir: string): AdapterResult {
     } catch {}
   }
 
-  // (4) Assemble final markdown: note stdout + image-list section
-  let markdown = noteStdout.trim() + "\n";
+  // (3.5) Reorder images to match xhs DOM display order. opencli's `_1.jpg`
+  //       through `_N.jpg` naming is NOT guaranteed to match the author's
+  //       intended display order — we re-fetch in DOM order and overwrite.
+  //       Only runs if we have images to reorder.
+  if (imageFiles.length > 0) {
+    const noteIdMatch = imageFiles[0].match(/^([^_]+)_\d+\./);
+    const noteId = noteIdMatch ? noteIdMatch[1] : null;
+    const { files: reordered, error: reorderError } = reorderXhsImagesByDomPosition(
+      url, slugDir, imageFiles, noteId,
+    );
+    if (reorderError) {
+      // DOM extraction failed — keep opencli's ordering but flag so
+      // downstream (classifyQuality + the end-of-run status report) knows
+      // the image order is unverified.
+      extraFlags.push("xhs-dom-extraction-failed");
+      adapterNotes.push(`xhs: DOM extraction failed (${reorderError.slice(0, 120)}); keeping opencli image order`);
+    }
+    if (reordered !== imageFiles) {
+      adapterNotes.push(`xhs: reordered ${reordered.length} image(s) to match DOM display order`);
+      imageFiles = reordered;
+    }
+  }
+
+  // (4) Assemble final markdown. Three cases:
+  //   a) note succeeded: full markdown (title + content + metadata table) from `note`
+  //   b) note failed + we have title hint: stub with title + image list
+  //   c) note failed + no title: minimal stub with URL only + image list
+  let markdown: string;
+  if (noteSucceeded) {
+    markdown = noteStdout.trim() + "\n";
+  } else {
+    const title = options.titleHint?.trim() || "(Xiaohongshu note — title unavailable)";
+    markdown =
+      `| field | value |\n` +
+      `| --- | --- |\n` +
+      `| title | ${title} |\n` +
+      `| source_url | ${url} |\n` +
+      `| note | Text body unavailable — xhs requires fresh xsec_token, saved bookmarks use stale tokens. Images fetched below where possible. |\n`;
+  }
   if (imageFiles.length > 0) {
     markdown += "\n## Images\n\n";
-    imageFiles.sort();
+    // Natural-number sort: xhs filenames like `<id>_1.jpg`, `<id>_2.jpg`, ..., `<id>_11.jpg`.
+    // Default string sort puts `_10` before `_2`; we want numeric order.
+    imageFiles.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
     for (const f of imageFiles) markdown += `![${f}](${f})\n`;
     markdown += "\n";
   }
@@ -819,7 +1458,13 @@ function fetchZhihuArticleViaAdapter(url: string, slugDir: string): AdapterResul
     { timeoutMs: 120_000 },
   );
   const h = harvestAdapterOutput(slugDir, beforeMtime);
-  return { markdown: h.content, imageFiles: h.images, rawMetadata: tryParseJsonLines(stdout) };
+  return {
+    markdown: h.content,
+    imageFiles: h.images,
+    rawMetadata: tryParseJsonLines(stdout),
+    extraFlags: h.errors.length > 0 ? ["adapter-output-partial"] : undefined,
+    adapterNotes: h.errors.length > 0 ? h.errors.map((e) => `harvest: ${e}`) : undefined,
+  };
 }
 
 /** Native zhihu question adapter: www.zhihu.com/question/<id> — prints structured answers to stdout. */
@@ -843,7 +1488,368 @@ function fetchWechatViaAdapter(url: string, slugDir: string): AdapterResult {
     { timeoutMs: 120_000 },
   );
   const h = harvestAdapterOutput(slugDir, beforeMtime);
-  return { markdown: h.content, imageFiles: h.images, rawMetadata: tryParseJsonLines(stdout) };
+  return {
+    markdown: h.content,
+    imageFiles: h.images,
+    rawMetadata: tryParseJsonLines(stdout),
+    extraFlags: h.errors.length > 0 ? ["adapter-output-partial"] : undefined,
+    adapterNotes: h.errors.length > 0 ? h.errors.map((e) => `harvest: ${e}`) : undefined,
+  };
+}
+
+/**
+ * DeepWiki renders mermaid diagrams client-side. The `<div class="mermaid">`
+ * elements carry the full source in a `data-original-text` attribute.
+ * Extract all of them via a browser session so we can embed proper
+ * ```mermaid blocks in our markdown instead of the exploded node-list text
+ * opencli web-read produces.
+ *
+ * Called only for wiki.litenext.digital URLs. Returns [] on failure (we
+ * just leave the diagram-node runs as-is; the deepwiki post-processor
+ * wraps them in plain-text code blocks as a fallback).
+ */
+interface DeepwikiMermaidExtractResult {
+  sources: string[];
+  error?: string;
+}
+
+function extractDeepwikiMermaidSources(url: string): DeepwikiMermaidExtractResult {
+  // Browser lifetime owned fully by this function — finally-block closes.
+  let browserOpened = false;
+  try {
+    const openRes = spawnSync("opencli", ["browser", "open", url], { encoding: "utf8", timeout: browserTimeoutMs("open") });
+    if (openRes.status !== 0) {
+      return { sources: [], error: `browser open exited ${openRes.status}` };
+    }
+    browserOpened = true;
+    // Wait for mermaid client-side render. 12s empirically sufficient on cached cache;
+    // we accept the cost because deepwiki is 11 bookmarks total.
+    sleepMs(12_000);
+    const evalRes = spawnSync(
+      "opencli",
+      ["browser", "eval", 'JSON.stringify(Array.from(document.querySelectorAll(".mermaid[data-original-text]")).map(el => el.getAttribute("data-original-text")))'],
+      { encoding: "utf8", timeout: browserTimeoutMs("eval"), maxBuffer: 10 * 1024 * 1024 },
+    );
+    if (evalRes.status !== 0) {
+      return { sources: [], error: `browser eval exited ${evalRes.status}` };
+    }
+    // Find the JSON array in stdout (may have opencli banner noise after)
+    const out = evalRes.stdout || "";
+    const jsonStart = out.indexOf("[");
+    if (jsonStart < 0) {
+      return { sources: [], error: "no JSON array in mermaid eval output" };
+    }
+    // Find matching end of the JSON array (greedy — scan forward for `]`
+    // matching the outer `[`)
+    let depth = 0;
+    let jsonEnd = -1;
+    for (let i = jsonStart; i < out.length; i++) {
+      if (out[i] === "[") depth++;
+      else if (out[i] === "]") { depth--; if (depth === 0) { jsonEnd = i; break; } }
+    }
+    if (jsonEnd < 0) {
+      return { sources: [], error: "unterminated JSON array in mermaid eval output" };
+    }
+    try {
+      const arr = JSON.parse(out.slice(jsonStart, jsonEnd + 1));
+      const sources = Array.isArray(arr) ? arr.filter((x: unknown): x is string => typeof x === "string") : [];
+      return { sources };
+    } catch (e) {
+      return {
+        sources: [],
+        error: `mermaid JSON parse failed: ${e instanceof Error ? e.message : e}`,
+      };
+    }
+  } catch (e) {
+    return {
+      sources: [],
+      error: `extractDeepwikiMermaidSources threw: ${e instanceof Error ? e.message : e}`,
+    };
+  } finally {
+    if (browserOpened) closeBrowser();
+  }
+}
+
+/**
+ * DeepWiki renders tables client-side from markdown source, and opencli
+ * web-read's DOM-to-markdown converter frequently drops them entirely
+ * (producing content.md with no `|` rows even though the page clearly has
+ * a table).  Fix: after web-read, navigate in-browser, extract each
+ * `<table>` element as a {precedingHeading, rows} record, and splice
+ * proper markdown tables into the output after their matching headings.
+ *
+ * Returned shape per table:
+ *   { precedingHeading: "Key Files" | "Comparison with Native Runner" | ...,
+ *     rows: [["File","Lines","Description"], ["daft/runners/ray_runner.py", ...], ...] }
+ *
+ * Returns [] on failure.
+ */
+interface DeepwikiTable {
+  precedingHeading: string;
+  rows: string[][];
+}
+
+interface DeepwikiTablesExtractResult {
+  tables: DeepwikiTable[];
+  error?: string;
+}
+
+function extractDeepwikiTables(url: string): DeepwikiTablesExtractResult {
+  // Browser lifetime owned fully by this function — finally-block closes.
+  let browserOpened = false;
+  try {
+    const openRes = spawnSync("opencli", ["browser", "open", url], { encoding: "utf8", timeout: browserTimeoutMs("open") });
+    if (openRes.status !== 0) {
+      return { tables: [], error: `browser open exited ${openRes.status}` };
+    }
+    browserOpened = true;
+    sleepMs(12_000);
+    const js = `JSON.stringify(Array.from(document.querySelectorAll("table")).map(t => {
+      let cur = t;
+      let heading = "";
+      for (let k = 0; k < 20 && !heading; k++) {
+        cur = cur.previousElementSibling || (cur.parentElement && cur.parentElement.previousElementSibling);
+        if (!cur) break;
+        if (/^H[1-6]$/.test(cur.tagName) && cur.innerText.trim().length > 0) {
+          heading = cur.innerText.trim();
+          break;
+        }
+      }
+      const rows = Array.from(t.rows).map(r => Array.from(r.cells).map(c => c.innerText.trim().replace(/\\n+/g, " ")));
+      return { precedingHeading: heading, rows };
+    }))`;
+    const evalRes = spawnSync("opencli", ["browser", "eval", js], {
+      encoding: "utf8",
+      timeout: browserTimeoutMs("eval"),
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    if (evalRes.status !== 0) {
+      return { tables: [], error: `browser eval exited ${evalRes.status}` };
+    }
+    const out = evalRes.stdout || "";
+    const jsonStart = out.indexOf("[");
+    if (jsonStart < 0) {
+      return { tables: [], error: "no JSON array in tables eval output" };
+    }
+    let depth = 0;
+    let jsonEnd = -1;
+    for (let i = jsonStart; i < out.length; i++) {
+      if (out[i] === "[") depth++;
+      else if (out[i] === "]") { depth--; if (depth === 0) { jsonEnd = i; break; } }
+    }
+    if (jsonEnd < 0) {
+      return { tables: [], error: "unterminated JSON array in tables eval output" };
+    }
+    try {
+      const arr = JSON.parse(out.slice(jsonStart, jsonEnd + 1));
+      const tables = Array.isArray(arr)
+        ? arr.filter((x: unknown): x is DeepwikiTable =>
+            typeof x === "object" && x !== null && "rows" in x)
+        : [];
+      return { tables };
+    } catch (e) {
+      return {
+        tables: [],
+        error: `tables JSON parse failed: ${e instanceof Error ? e.message : e}`,
+      };
+    }
+  } catch (e) {
+    return {
+      tables: [],
+      error: `extractDeepwikiTables threw: ${e instanceof Error ? e.message : e}`,
+    };
+  } finally {
+    if (browserOpened) closeBrowser();
+  }
+}
+
+/**
+ * Convert a 2D array of cells into a standard markdown table. First row is
+ * treated as headers. Cells containing `|` are escaped.
+ */
+function renderMarkdownTable(rows: string[][]): string {
+  if (rows.length === 0) return "";
+  const escape = (s: string) => s.replace(/\|/g, "\\|").replace(/\s*\n\s*/g, " ");
+  const widths = rows.reduce(
+    (acc, row) => row.map((c, i) => Math.max(acc[i] ?? 0, escape(c).length)),
+    [] as number[],
+  );
+  const ncols = widths.length;
+  const lines: string[] = [];
+  const headerCells = (rows[0] || []).concat(Array(ncols).fill("")).slice(0, ncols);
+  lines.push("| " + headerCells.map((c) => escape(c)).join(" | ") + " |");
+  lines.push("| " + widths.map(() => "---").join(" | ") + " |");
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i].concat(Array(ncols).fill("")).slice(0, ncols);
+    lines.push("| " + row.map((c) => escape(c)).join(" | ") + " |");
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Splice DeepWiki tables into the markdown: for each table with a known
+ * preceding heading, find that heading in the md and insert the rendered
+ * markdown table on a new paragraph after it.
+ *
+ * Skips tables whose heading can't be found — we leave them out rather than
+ * risk inserting at the wrong location. (Future improvement: fuzzy match on
+ * first-paragraph-text when no heading matches.)
+ */
+function spliceDeepwikiTables(md: string, tables: DeepwikiTable[]): string {
+  if (tables.length === 0) return md;
+  let current = md;
+  for (const t of tables) {
+    if (!t.precedingHeading || t.rows.length === 0) continue;
+
+    // Escape regex chars in the heading
+    const esc = t.precedingHeading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`^(#{1,6}\\s+${esc}\\s*)$`, "m");
+    const match = re.exec(current);
+    if (!match) continue;
+    const insertAt = (match.index ?? 0) + match[0].length;
+
+    // Remove the plain-text cell-run that follows the heading, if it matches
+    // this table's cells. opencli's DOM-to-markdown converter turns table
+    // cells into a sequence of paragraphs (one per cell, blank-line separated,
+    // code-fenced for monospace cells). We scan forward from insertAt and
+    // remove exactly the number of cell-blocks we expect.
+    const totalCells = t.rows.length * (t.rows[0]?.length ?? 0);
+    const removalEnd = findPlainTextCellRunEnd(current, insertAt, t.rows);
+    if (removalEnd > insertAt && totalCells > 0) {
+      current = current.slice(0, insertAt) + current.slice(removalEnd);
+    }
+
+    const tableMd = renderMarkdownTable(t.rows);
+    const insertion = "\n\n" + tableMd + "\n";
+    current = current.slice(0, insertAt) + insertion + current.slice(insertAt);
+  }
+  return current;
+}
+
+/**
+ * From the character offset `start` in `md`, scan forward for the
+ * plain-text cell-run corresponding to the given table's cells. Each cell
+ * is expected to appear as its own paragraph (possibly in a `code` span).
+ * Returns the offset past the last matched cell, or `start` if no match.
+ *
+ * We match cells in order: the first N rendered paragraphs after `start`
+ * should equal (or contain) each cell value in turn, where N = rows*cols.
+ * Soft matching: allow code-span formatting (backticks stripped) and
+ * leading/trailing whitespace.
+ */
+function findPlainTextCellRunEnd(md: string, start: number, rows: string[][]): number {
+  const expectedCells: string[] = [];
+  for (const row of rows) {
+    for (const cell of row) expectedCells.push(cell.trim());
+  }
+  if (expectedCells.length === 0) return start;
+  const normalize = (s: string) => s
+    .replace(/^`|`$/g, "")                   // strip surrounding backticks
+    .replace(/^\s+|\s+$/g, "");              // trim
+
+  // Walk paragraphs (blank-line separated) from `start`
+  let cursor = start;
+  while (cursor < md.length && md[cursor] === "\n") cursor++;  // skip leading blank lines
+  let runStart = cursor;
+  let matchedCount = 0;
+
+  for (const want of expectedCells) {
+    // Skip blank lines
+    while (cursor < md.length && (md[cursor] === "\n" || md[cursor] === "\r" || md[cursor] === " " || md[cursor] === "\t")) cursor++;
+    if (cursor >= md.length) break;
+    // Read until next blank line (double newline) or end
+    let end = cursor;
+    while (end < md.length) {
+      if (md[end] === "\n" && end + 1 < md.length && md[end + 1] === "\n") break;
+      end++;
+    }
+    const got = normalize(md.slice(cursor, end));
+    const wantNorm = normalize(want);
+    // Accept exact match OR one-side contains the other (handles line wraps)
+    if (got === wantNorm || got.includes(wantNorm) || wantNorm.includes(got)) {
+      matchedCount++;
+      cursor = end;
+    } else {
+      break;
+    }
+  }
+  // Only count as a valid run if we matched a substantial fraction (≥70%).
+  // Partial matches might be coincidence.
+  if (matchedCount >= Math.ceil(expectedCells.length * 0.7)) {
+    // Include trailing newlines so we don't leave orphaned blank lines
+    while (cursor < md.length && md[cursor] === "\n") cursor++;
+    return cursor;
+  }
+  return start;
+}
+
+/**
+ * Splice mermaid sources into a deepwiki markdown output. Walks the markdown
+ * looking for "diagram-node runs" (runs of ≥6 consecutive short lines that
+ * aren't markdown-formatted — the signature of an exploded mermaid diagram)
+ * and replaces each such run with the Nth entry from `mermaidSources`.
+ *
+ * When we have MORE diagram runs than mermaid sources (shouldn't happen but
+ * defensive), the extra runs are left as-is for the post-processor fallback
+ * to wrap in plain code blocks.
+ */
+function spliceDeepwikiMermaid(md: string, mermaidSources: string[]): string {
+  if (mermaidSources.length === 0) return md;
+  const lines = md.split("\n");
+  const out: string[] = [];
+  const isDiagramNode = (t: string): boolean => {
+    if (t.length === 0 || t.length > 40) return false;
+    if (t.split(/\s+/).length > 5) return false;
+    if (/^[#\-*>![|`]/.test(t)) return false;
+    if (/^\d+\./.test(t)) return false;
+    if (/^(?:image|img)\//i.test(t)) return false;
+    if (/^https?:\/\//.test(t)) return false;
+    return true;
+  };
+  let i = 0;
+  let mermaidIdx = 0;
+  let inCodeFence = false;  // track fence state so we don't splice INSIDE a ```python etc. block
+  while (i < lines.length) {
+    // Pass through fence open/close + fence contents verbatim
+    if (/^```/.test(lines[i].trim())) {
+      out.push(lines[i]);
+      i++;
+      inCodeFence = !inCodeFence;
+      continue;
+    }
+    if (inCodeFence) {
+      out.push(lines[i]);
+      i++;
+      continue;
+    }
+    const runStart = i;
+    const collected: string[] = [];
+    while (i < lines.length) {
+      const t = lines[i].trim();
+      if (/^```/.test(t)) break;  // don't consume into a fence
+      if (t === "") { i++; continue; }
+      if (isDiagramNode(t)) { collected.push(t); i++; continue; }
+      break;
+    }
+    if (collected.length >= 6 && mermaidIdx < mermaidSources.length) {
+      out.push("```mermaid");
+      out.push(mermaidSources[mermaidIdx].trim());
+      out.push("```");
+      out.push("");
+      mermaidIdx++;
+    } else {
+      // Scan didn't find a long-enough diagram run. Emit lines [runStart, i)
+      // EXCLUSIVE of i — if i is now at a fence line, we must let the outer
+      // loop process it so inCodeFence toggles correctly. If the scan didn't
+      // advance at all (runStart === i), we'd infinite-loop; force-advance.
+      for (let j = runStart; j < i && j < lines.length; j++) out.push(lines[j]);
+      if (i === runStart) {
+        out.push(lines[i]);
+        i++;
+      }
+    }
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
 }
 
 /**
@@ -853,6 +1859,12 @@ function fetchWechatViaAdapter(url: string, slugDir: string): AdapterResult {
  * hydrate before content is scraped. Adds ~7s per fetch — tolerable at v1
  * scale, and we auto-retry with 60s on short-body / loading-skeleton flags
  * (empirically: DeepWiki needs ~60s for its article body to fully render).
+ *
+ * DeepWiki special-case: after the web-read call, we do an extra browser
+ * navigation to extract mermaid source from each `.mermaid[data-original-text]`
+ * element and splice proper ```mermaid code blocks into the markdown
+ * replacing the exploded node-list runs opencli produces. Costs an extra
+ * ~15s per deepwiki page; worth it for diagram fidelity.
  */
 function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: boolean, waitSeconds = 10): AdapterResult {
   const beforeMtime = Date.now();
@@ -869,7 +1881,55 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
     { timeoutMs: 120_000 + waitSeconds * 1000 },
   );
   const h = harvestAdapterOutput(slugDir, beforeMtime);
-  const result: AdapterResult = { markdown: h.content, imageFiles: h.images, rawMetadata: tryParseJsonLines(stdout) };
+  let resultMarkdown = h.content;
+  const adapterNotesLocal: string[] = [];
+  const adapterFlagsLocal: string[] = [];
+
+  // Propagate any filesystem-level harvest issues (failed renames, stat
+  // errors) as quality flags. Content is still usable — but the user
+  // should know some assets may have been dropped.
+  if (h.errors.length > 0) {
+    adapterFlagsLocal.push("adapter-output-partial");
+    for (const e of h.errors) adapterNotesLocal.push(`harvest: ${e}`);
+  }
+
+  // DeepWiki: after web-read, do an extra browser pass to extract BOTH
+  // mermaid diagrams AND tables from the rendered DOM (which opencli's
+  // DOM-to-markdown converter frequently drops). One browser session
+  // serves both extractions to halve the navigation cost.
+  if (/wiki\.litenext\.digital$/.test(hostnameOf(url))) {
+    const mermaidResult = extractDeepwikiMermaidSources(url);
+    if (mermaidResult.error) {
+      adapterFlagsLocal.push("deepwiki-mermaid-extraction-failed");
+      adapterNotesLocal.push(`deepwiki: mermaid extraction failed (${mermaidResult.error.slice(0, 120)})`);
+    } else if (mermaidResult.sources.length > 0) {
+      const spliced = spliceDeepwikiMermaid(resultMarkdown, mermaidResult.sources);
+      if (spliced !== resultMarkdown) {
+        resultMarkdown = spliced;
+        adapterNotesLocal.push(`deepwiki: spliced ${mermaidResult.sources.length} mermaid source(s) from rendered DOM`);
+      }
+    }
+    const tablesResult = extractDeepwikiTables(url);
+    if (tablesResult.error) {
+      adapterFlagsLocal.push("deepwiki-table-extraction-failed");
+      adapterNotesLocal.push(`deepwiki: table extraction failed (${tablesResult.error.slice(0, 120)})`);
+    } else if (tablesResult.tables.length > 0) {
+      const spliced = spliceDeepwikiTables(resultMarkdown, tablesResult.tables);
+      if (spliced !== resultMarkdown) {
+        resultMarkdown = spliced;
+        const matched = tablesResult.tables.filter((t) => t.precedingHeading && t.rows.length > 0).length;
+        adapterNotesLocal.push(`deepwiki: spliced ${matched}/${tablesResult.tables.length} table(s) from rendered DOM`);
+      }
+    }
+  }
+
+  const result: AdapterResult = {
+    markdown: resultMarkdown,
+    imageFiles: h.images,
+    rawMetadata: tryParseJsonLines(stdout),
+    adapterNotes: adapterNotesLocal.length > 0 ? adapterNotesLocal : undefined,
+    extraFlags: adapterFlagsLocal.length > 0 ? adapterFlagsLocal : undefined,
+  };
 
   // Heuristic retry: if we got a suspiciously-short result or explicit
   // "Loading…" skeleton (common on client-rendered SPAs), retry ONCE with
@@ -928,6 +1988,11 @@ export interface FetchUrlOpts {
   downloadImages: boolean;
   force: boolean;
   /**
+   * Optional title (from Raindrop bookmark) used as a fallback stub when
+   * content fetch degrades (e.g. xhs `note` rejection → image-only mode).
+   */
+  titleHint?: string;
+  /**
    * Optional markdown transform hook. Runs BETWEEN adapter output and
    * writeRawArchive. Used by hirono's post-processor pipeline to strip
    * site-specific UI chrome, resolve relative image URLs (which may then
@@ -962,12 +2027,29 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     ? "domain-override"
     : "direct";
 
+  // Acquire the per-slug fetch lock BEFORE the machine-wide browser lock.
+  // This catches the case where two processes both target the same slug —
+  // they'd both pass the browser-lock check (if releases interleave) but
+  // still corrupt each other's raw/<slug>/ writes. Release order: slug
+  // lock released last, after the browser lock is free (LIFO pattern is
+  // cleanest; we implement via the finally ordering below).
+  const releaseSlugLock = acquireSlugLock(slugDir, opts.slug);
+  try {
+
+  // Acquire the machine-wide opencli browser lock. opencli drives ONE shared
+  // Chrome tab per machine via the extension; two concurrent fetchers would
+  // corrupt each other's navigation. Fail-fast on contention per plan H1.2.
+  // Release happens in the outer finally below so even a throw in an adapter
+  // cleanly frees the lock for the next caller.
+  const releaseBrowserLock = acquireBrowserLock(`fetchUrlAndStore:${adapter}`, opts.slug);
+  try {
+
   let result: AdapterResult;
   const extraNotes: string[] = [];
   if (dispatch) extraNotes.push(`opencli adapter: ${dispatch.friendlyName}`);
 
   switch (adapter) {
-    case "xiaohongshu":    result = fetchXhsViaAdapter(opts.url, slugDir); break;
+    case "xiaohongshu":    result = fetchXhsViaAdapter(opts.url, slugDir, { titleHint: opts.titleHint }); break;
     case "zhihu-article":  result = fetchZhihuArticleViaAdapter(opts.url, slugDir); break;
     case "zhihu-question": result = fetchZhihuQuestionViaAdapter(opts.url); break;
     case "weixin":         result = fetchWechatViaAdapter(opts.url, slugDir); break;
@@ -1050,6 +2132,12 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     force: opts.force,
     preExistingImages: [...images, ...additionalImages],
   });
+  } finally {
+    releaseBrowserLock();
+  }
+  } finally {
+    releaseSlugLock();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1200,7 +2288,7 @@ export function reclassifyRawSlug(slug: string): SourceJson | null {
   });
   src.quality_flags = flags;
   src.quality_status = quality_status;
-  writeFileSync(sourcePath, JSON.stringify(src, null, 2) + "\n", "utf8");
+  writeFileAtomic(sourcePath, JSON.stringify(src, null, 2) + "\n");
   return src;
 }
 

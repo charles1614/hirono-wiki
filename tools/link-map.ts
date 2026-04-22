@@ -6,6 +6,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { basename, join, relative, sep } from "node:path";
 import { createHash } from "node:crypto";
 
@@ -60,7 +61,7 @@ export function loadMap(path: string): LinkMap {
 }
 
 export function saveMap(path: string, map: LinkMap): void {
-  writeFileSync(path, JSON.stringify(map, null, 2) + "\n", "utf8");
+  writeFileAtomic(path, JSON.stringify(map, null, 2) + "\n");
 }
 
 // ---------------------------------------------------------------------------

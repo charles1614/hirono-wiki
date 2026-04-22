@@ -22,6 +22,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
+import { writeFileAtomic } from "../../shared/atomic-write.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..", "..");
@@ -115,7 +116,7 @@ export async function runRefresh(opts: { token?: string; outputPath?: string } =
     total: all.length,
     bookmarks: all,
   };
-  writeFileSync(outputPath, JSON.stringify(cache, null, 2), "utf8");
+  writeFileAtomic(outputPath, JSON.stringify(cache, null, 2));
   return { total: all.length, outputPath };
 }
 

@@ -48,7 +48,8 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { normalizeUrl, type SourceIndex } from "./build-sources-index.ts";
+import { normalizeUrl, readSourceIndexStrict, type SourceIndex } from "./build-sources-index.ts";
+import { writeFileAtomic } from "./shared/atomic-write.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -107,16 +108,14 @@ function loadState(path: string): BatchState {
 }
 
 function saveState(path: string, state: BatchState): void {
-  writeFileSync(path, JSON.stringify(state, null, 2) + "\n", "utf8");
+  writeFileAtomic(path, JSON.stringify(state, null, 2) + "\n");
 }
 
 function loadSourcesIndex(path: string): SourceIndex {
-  if (!existsSync(path)) return {};
-  try {
-    return JSON.parse(readFileSync(path, "utf8")) as SourceIndex;
-  } catch {
-    return {};
-  }
+  // Delegate to the strict reader: a corrupted index file is a stop-the-
+  // world condition (would cause every ingest to think all URLs are new
+  // and create duplicates). Propagate the IndexCorruptedError up.
+  return readSourceIndexStrict(path);
 }
 
 // ---------------------------------------------------------------------------

@@ -27,6 +27,7 @@ import {
 } from "../hirono/shared/post-process.ts";
 import { buildReport, formatReport, type Cache } from "../hirono/raindrop/check.ts";
 import { resolveIdentifier } from "../hirono/raindrop/export.ts";
+import { slugifyTitle, deriveSlug, buildPlan } from "../hirono/raindrop/fetch-all.ts";
 
 // ---------------------------------------------------------------------------
 // extractRelativeImageRefs
@@ -57,6 +58,24 @@ test("extractRelativeImageRefs: ignores fenced code blocks", () => {
     "![nope](/nope.png)",
     "```",
   ].join("\n");
+  assert.deepEqual(extractRelativeImageRefs(md), ["/real.png"]);
+});
+
+test("extractRelativeImageRefs: SKIPS bare `images/...` local artifact refs", () => {
+  // opencli adapters save images to a local `images/` subdir and emit
+  // `images/img_NNN.png` refs. Those are local files, not web URLs.
+  const md = `
+![local](images/img_001.png)
+![also local](figure-1.png)
+![web](/static/x.png)
+![explicit rel](./foo.png)
+  `;
+  const refs = extractRelativeImageRefs(md);
+  assert.deepEqual(refs.sort(), ["./foo.png", "/static/x.png"]);
+});
+
+test("extractRelativeImageRefs: skips data: URIs", () => {
+  const md = `![inline](data:image/png;base64,iVBORw0K...)\n![real](/real.png)`;
   assert.deepEqual(extractRelativeImageRefs(md), ["/real.png"]);
 });
 
@@ -441,4 +460,108 @@ test("resolveIdentifier: ID not in cache throws", () => {
   withTmpCache(cache, (cachePath) => {
     assert.throws(() => resolveIdentifier("999", { cachePath }), /not found in cache/);
   });
+});
+
+// ---------------------------------------------------------------------------
+// fetch-all: slug derivation + plan builder
+// ---------------------------------------------------------------------------
+
+test("slugifyTitle: ASCII kebab-case", () => {
+  assert.equal(slugifyTitle("Hello World"), "hello-world");
+  assert.equal(slugifyTitle("DeepWiki · slime · overview"), "deepwiki-slime-overview");
+  assert.equal(slugifyTitle("NVFP4 Inference (50 PFLOPS)"), "nvfp4-inference-50-pflops");
+});
+
+test("slugifyTitle: preserves Chinese characters", () => {
+  assert.equal(slugifyTitle("小红书 - megatron"), "小红书-megatron");
+  assert.equal(slugifyTitle("混元团队"), "混元团队");
+});
+
+test("slugifyTitle: truncates to 40 chars", () => {
+  const long = "a".repeat(100);
+  assert.equal(slugifyTitle(long).length, 40);
+});
+
+test("slugifyTitle: collapses repeated hyphens + trims edges", () => {
+  assert.equal(slugifyTitle("!!!hello...world!!!"), "hello-world");
+});
+
+test("deriveSlug: combines date + slugified title", () => {
+  const b = { bookmark_id: 123, title: "AWS Trainium3 Deep Dive", link: "https://x.com/", created: "2026-02-04T01:08:19Z" };
+  assert.equal(deriveSlug(b), "2026-02-04-aws-trainium3-deep-dive");
+});
+
+test("deriveSlug: falls back to bookmark_id when title empty", () => {
+  const b = { bookmark_id: 123, title: "", link: "https://x.com/", created: "2026-01-15" };
+  assert.equal(deriveSlug(b), "2026-01-15-raindrop-123");
+});
+
+test("deriveSlug: today's date when created missing", () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const b = { bookmark_id: 1, title: "Foo", link: "https://x.com/" };
+  assert.equal(deriveSlug(b), `${today}-foo`);
+});
+
+test("buildPlan: dedupes by normalized URL, keeps smallest bookmark_id", () => {
+  const cache: Cache = {
+    fetched_at: "2026-04-21T00:00:00Z",
+    total: 2,
+    bookmarks: [
+      { bookmark_id: 200, title: "A copy", link: "https://example.com/post", created: "2026-04-01" },
+      { bookmark_id: 100, title: "A original", link: "https://example.com/post", created: "2026-04-01" },
+    ],
+  };
+  const plan = buildPlan(cache);
+  assert.equal(plan.length, 1);
+  assert.equal(plan[0].bookmark_id, 100);
+  assert.equal(plan[0].title, "A original");
+});
+
+test("buildPlan: --only-host filters", () => {
+  const cache: Cache = {
+    fetched_at: "2026-04-21T00:00:00Z",
+    total: 3,
+    bookmarks: [
+      { bookmark_id: 1, title: "github", link: "https://github.com/x/y", created: "2026-04-01" },
+      { bookmark_id: 2, title: "lmsys", link: "https://lmsys.org/blog/x", created: "2026-04-01" },
+      { bookmark_id: 3, title: "www.github.com", link: "https://www.github.com/a/b", created: "2026-04-01" },
+    ],
+  };
+  const plan = buildPlan(cache, { onlyHost: "github.com" });
+  assert.equal(plan.length, 2);
+  assert.ok(plan.every((p) => p.host === "github.com"));
+});
+
+test("buildPlan: --limit caps fetch actions", () => {
+  const cache: Cache = {
+    fetched_at: "2026-04-21T00:00:00Z",
+    total: 5,
+    bookmarks: Array.from({ length: 5 }, (_, i) => ({
+      bookmark_id: i + 1,
+      title: `post ${i}`,
+      link: `https://example.com/${i}`,
+      created: "2026-04-01",
+    })),
+  };
+  const plan = buildPlan(cache, { limit: 2 });
+  const fetches = plan.filter((p) => p.action === "fetch");
+  const overLimit = plan.filter((p) => p.action === "skip-already-planned");
+  assert.equal(fetches.length, 2);
+  assert.equal(overLimit.length, 3);
+});
+
+test("buildPlan: slug collisions disambiguated by bookmark_id suffix", () => {
+  // Two bookmarks that would produce the same derived slug (same title + date).
+  const cache: Cache = {
+    fetched_at: "2026-04-21T00:00:00Z",
+    total: 2,
+    bookmarks: [
+      { bookmark_id: 1, title: "Same title", link: "https://a.example.com/", created: "2026-04-01" },
+      { bookmark_id: 2, title: "Same title", link: "https://b.example.com/", created: "2026-04-01" },
+    ],
+  };
+  const plan = buildPlan(cache);
+  assert.equal(plan.length, 2);
+  const slugs = plan.map((p) => p.slug);
+  assert.equal(new Set(slugs).size, 2, "slugs should be unique after disambiguation");
 });

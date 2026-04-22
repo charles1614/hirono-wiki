@@ -21,6 +21,7 @@ import {
   buildStatusReport,
   buildSyncPlan,
   remediationFor,
+  browserTimeoutMs,
 } from "../fetch-raw.ts";
 
 // ---------------------------------------------------------------------------
@@ -723,4 +724,65 @@ test("remediationFor: loading-skeleton → SPA hint", () => {
 test("remediationFor: no recognized flag → fallback hint", () => {
   const r = remediationFor(["unknown-flag"], "https://x.example.com");
   assert.match(r, /inspect/);
+});
+
+// ---------------------------------------------------------------------------
+// browserTimeoutMs
+// ---------------------------------------------------------------------------
+
+test("browserTimeoutMs: defaults when env unset", () => {
+  const save = {
+    open: process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS,
+    eval: process.env.HIRONO_BROWSER_EVAL_TIMEOUT_MS,
+    close: process.env.HIRONO_BROWSER_CLOSE_TIMEOUT_MS,
+    doctor: process.env.HIRONO_BROWSER_DOCTOR_TIMEOUT_MS,
+  };
+  delete process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS;
+  delete process.env.HIRONO_BROWSER_EVAL_TIMEOUT_MS;
+  delete process.env.HIRONO_BROWSER_CLOSE_TIMEOUT_MS;
+  delete process.env.HIRONO_BROWSER_DOCTOR_TIMEOUT_MS;
+  try {
+    assert.equal(browserTimeoutMs("open"),   30_000);
+    assert.equal(browserTimeoutMs("eval"),   15_000);
+    assert.equal(browserTimeoutMs("close"),  5_000);
+    assert.equal(browserTimeoutMs("doctor"), 10_000);
+  } finally {
+    if (save.open)   process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS   = save.open;
+    if (save.eval)   process.env.HIRONO_BROWSER_EVAL_TIMEOUT_MS   = save.eval;
+    if (save.close)  process.env.HIRONO_BROWSER_CLOSE_TIMEOUT_MS  = save.close;
+    if (save.doctor) process.env.HIRONO_BROWSER_DOCTOR_TIMEOUT_MS = save.doctor;
+  }
+});
+
+test("browserTimeoutMs: honors env overrides", () => {
+  const prev = process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS;
+  process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS = "60000";
+  try {
+    assert.equal(browserTimeoutMs("open"), 60_000);
+  } finally {
+    if (prev === undefined) delete process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS;
+    else process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS = prev;
+  }
+});
+
+test("browserTimeoutMs: ignores garbage env values", () => {
+  const prev = process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS;
+  process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS = "not-a-number";
+  try {
+    assert.equal(browserTimeoutMs("open"), 30_000);
+  } finally {
+    if (prev === undefined) delete process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS;
+    else process.env.HIRONO_BROWSER_OPEN_TIMEOUT_MS = prev;
+  }
+});
+
+test("browserTimeoutMs: ignores negative / zero values", () => {
+  const prev = process.env.HIRONO_BROWSER_EVAL_TIMEOUT_MS;
+  process.env.HIRONO_BROWSER_EVAL_TIMEOUT_MS = "0";
+  try {
+    assert.equal(browserTimeoutMs("eval"), 15_000);
+  } finally {
+    if (prev === undefined) delete process.env.HIRONO_BROWSER_EVAL_TIMEOUT_MS;
+    else process.env.HIRONO_BROWSER_EVAL_TIMEOUT_MS = prev;
+  }
 });

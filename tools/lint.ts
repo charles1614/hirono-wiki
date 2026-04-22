@@ -48,7 +48,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index";
 
 export interface Issue {
   kind: CheckKind;
@@ -255,6 +255,96 @@ function yearForSourcePath(repoPath: string): string {
   return m ? m[1] : new Date().getFullYear().toString();
 }
 
+/**
+ * sources-index: assert that .wiki-sources-index.json is (a) parseable and
+ * (b) every entry's repo_path still points at a real Sources/*.md file.
+ *
+ * Parse failures are hard errors — the index is what the dedup layer uses
+ * to avoid double-ingesting URLs, so corruption silently metastasizes.
+ * Stale repo_path (index points at a since-renamed / deleted file) is a
+ * warning — reindex will fix it on the next run, but it's worth surfacing.
+ */
+export function checkSourcesIndex(repoRoot: string): Issue[] {
+  const issues: Issue[] = [];
+  const indexPath = join(repoRoot, ".wiki-sources-index.json");
+  if (!existsSync(indexPath)) return issues;  // not an error — may not have been built yet
+
+  let raw: string;
+  try {
+    raw = readFileSync(indexPath, "utf8");
+  } catch (err) {
+    issues.push({
+      kind: "sources-index",
+      severity: "error",
+      path: ".wiki-sources-index.json",
+      detail: `could not read: ${err instanceof Error ? err.message : err}`,
+      hint: "check file permissions, or delete and rebuild via `tsx build-sources-index.ts`",
+    });
+    return issues;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    issues.push({
+      kind: "sources-index",
+      severity: "error",
+      path: ".wiki-sources-index.json",
+      detail: `JSON parse failed (${raw.length} bytes): ${err instanceof Error ? err.message : err}`,
+      hint: "inspect the file; restore from .wiki-sources-index.json.bak if present, or rebuild via `tsx build-sources-index.ts`",
+    });
+    return issues;
+  }
+
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    issues.push({
+      kind: "sources-index",
+      severity: "error",
+      path: ".wiki-sources-index.json",
+      detail: `top-level value is not a JSON object (got ${Array.isArray(parsed) ? "array" : typeof parsed})`,
+      hint: "rebuild via `tsx build-sources-index.ts`",
+    });
+    return issues;
+  }
+
+  // Consistency check: every entry's repo_path must point at a real file.
+  for (const [url, entry] of Object.entries(parsed as Record<string, unknown>)) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      issues.push({
+        kind: "sources-index",
+        severity: "error",
+        path: ".wiki-sources-index.json",
+        detail: `entry for ${url.slice(0, 80)} is not an object`,
+        hint: "rebuild via `tsx build-sources-index.ts`",
+      });
+      continue;
+    }
+    const repoPath = (entry as Record<string, unknown>).repo_path;
+    if (typeof repoPath !== "string") {
+      issues.push({
+        kind: "sources-index",
+        severity: "error",
+        path: ".wiki-sources-index.json",
+        detail: `entry for ${url.slice(0, 80)} is missing repo_path`,
+        hint: "rebuild via `tsx build-sources-index.ts`",
+      });
+      continue;
+    }
+    if (!existsSync(join(repoRoot, repoPath))) {
+      issues.push({
+        kind: "sources-index",
+        severity: "warn",
+        path: ".wiki-sources-index.json",
+        detail: `entry for ${url.slice(0, 80)} points at missing file ${repoPath}`,
+        hint: "rebuild via `tsx build-sources-index.ts` to drop stale entries",
+      });
+    }
+  }
+
+  return issues;
+}
+
 export function checkFrontmatter(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
   const required: Record<Bucket, string[]> = {
@@ -298,7 +388,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -316,6 +406,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("tier-mismatch"))  issues.push(...checkTierMismatch(docs));
   if (checks.includes("frontmatter"))    issues.push(...checkFrontmatter(docs));
   if (checks.includes("raw-orphan"))     issues.push(...checkRawOrphan(docs, repoRoot));
+  if (checks.includes("sources-index"))  issues.push(...checkSourcesIndex(repoRoot));
   return issues;
 }
 

@@ -21,7 +21,8 @@
  *   }
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, copyFileSync, existsSync } from "node:fs";
+import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
@@ -39,6 +40,53 @@ export interface SourceIndexEntry {
 }
 
 export type SourceIndex = Record<string, SourceIndexEntry>;
+
+/**
+ * Thrown by the strict readers (`readSourceIndexStrict`) when the on-disk
+ * sources-index file exists but cannot be parsed. Caller should surface
+ * the file path + size + error to the user — **never** silently fall back
+ * to empty, which would cause every subsequent ingest to think all URLs
+ * are new and create duplicate Source docs across the corpus.
+ *
+ * Attach `cause` (the original error) for debuggability.
+ */
+export class IndexCorruptedError extends Error {
+  public readonly path: string;
+  public readonly fileSize: number;
+  public readonly parseError: string;
+  constructor(path: string, fileSize: number, parseError: string) {
+    super(
+      `sources index at ${path} failed to parse: ${parseError} ` +
+      `(file size: ${fileSize} bytes). ` +
+      `Refusing to silently fall back to empty (would duplicate every ingest). ` +
+      `Inspect the file, fix or delete it (a .bak sibling exists if a prior write succeeded), then retry.`,
+    );
+    this.name = "IndexCorruptedError";
+    this.path = path;
+    this.fileSize = fileSize;
+    this.parseError = parseError;
+  }
+}
+
+/**
+ * Strictly read the sources index. Returns {} if the file doesn't exist;
+ * throws IndexCorruptedError if it exists but parses as garbage.
+ * Callers that today silently catch and return {} should migrate to this.
+ */
+export function readSourceIndexStrict(path: string): SourceIndex {
+  if (!existsSync(path)) return {};
+  const raw = readFileSync(path, "utf8");
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("top-level value is not a JSON object");
+    }
+    return parsed as SourceIndex;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new IndexCorruptedError(path, raw.length, msg);
+  }
+}
 
 /**
  * Normalize a URL for dedup:
@@ -111,12 +159,26 @@ function formatDate(v: unknown): string {
 }
 
 function loadExisting(path: string): SourceIndex {
-  if (!existsSync(path)) return {};
-  try {
-    return JSON.parse(readFileSync(path, "utf8")) as SourceIndex;
-  } catch {
-    return {};
+  // Strict read: a corrupt index is a stop-the-world condition. Silently
+  // falling back to {} would cause every subsequent ingest to dedupe
+  // against an empty index and create duplicate Source docs.
+  return readSourceIndexStrict(path);
+}
+
+/**
+ * Write the sources index with a `.bak` sibling of the prior version.
+ * The backup is best-effort — if it fails the primary write still proceeds.
+ * On-disk write is atomic (tmp + rename) so a crash can't truncate to zero.
+ */
+export function writeSourceIndex(path: string, index: SourceIndex): void {
+  if (existsSync(path)) {
+    try {
+      copyFileSync(path, `${path}.bak`);
+    } catch {
+      // Non-fatal; a corrupt .bak is no worse than no .bak.
+    }
   }
+  writeFileAtomic(path, JSON.stringify(index, null, 2) + "\n");
 }
 
 function main(): void {
@@ -137,7 +199,7 @@ function main(): void {
     console.log(`[build-sources-index] would write ${INDEX_PATH} (--dry-run)`);
     return;
   }
-  writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2) + "\n", "utf8");
+  writeSourceIndex(INDEX_PATH, index);
   console.log(`[build-sources-index] wrote ${INDEX_PATH}`);
 }
 

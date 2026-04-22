@@ -135,6 +135,7 @@ export function runExport(opts: ExportOpts): { source: SourceJson; slug: string 
     url: resolved.url,
     viaBrowser: opts.viaBrowser ?? false,
     downloadImages: opts.downloadImages ?? true,
+    titleHint: resolved.bookmark?.title,
     // Append-only by default: if content.md exists, next fetch writes
     // content-rev2.md etc. Prevents a bad refetch from clobbering good
     // content (e.g. SPA cold-cache producing "Loading..." skeleton).
