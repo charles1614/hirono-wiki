@@ -152,6 +152,7 @@ export function runExport(opts: ExportOpts): { source: SourceJson; slug: string 
           ...r.notes,
         ],
         extraImageUrls: r.newAbsoluteImageUrls,
+        extraFlags: r.extraFlags.length > 0 ? r.extraFlags : undefined,
       };
     },
   });

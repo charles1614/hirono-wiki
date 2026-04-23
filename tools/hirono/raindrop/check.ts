@@ -4,11 +4,11 @@
  *   1. Duplicate URLs (same normalized URL across multiple bookmark IDs)
  *   2. Hostname coverage (covered by DISPATCH_RULES / falls through to
  *      web-read / unknown)
- *   3. New-hostnames-to-consider — uncovered domains with ≥5 bookmarks
+ *   3. New-hostnames-to-consider — uncovered domains with >1 bookmark
  *
  * The command reads from a cache file (populated separately by the
  * MCP-capable caller). Exits non-zero when duplicates exist OR any
- * uncovered hostname has ≥5 bookmarks, so it's useful as a CI/batch-close
+ * uncovered hostname has >1 bookmark, so it's useful as a CI/batch-close
  * signal.
  *
  * Usage:
@@ -107,7 +107,7 @@ export function buildReport(cache: Cache): CheckReport {
 
   const hosts = [...hostCounts.values()].sort((a, b) => b.count - a.count);
   const uncovered_high_frequency = hosts.filter(
-    (h) => h.coverage === "web-read-fallback" && h.count >= 5,
+    (h) => h.coverage === "web-read-fallback" && h.count > 1,
   );
 
   return {
@@ -147,7 +147,7 @@ export function formatReport(r: CheckReport): string {
   lines.push(``);
 
   // Uncovered high-frequency
-  lines.push(`## Uncovered hostnames with ≥5 bookmarks (${r.uncovered_high_frequency.length})`);
+  lines.push(`## Uncovered hostnames with >1 bookmark (${r.uncovered_high_frequency.length})`);
   if (r.uncovered_high_frequency.length === 0) {
     lines.push(`_All high-frequency domains are covered by a dedicated adapter._`);
   } else {

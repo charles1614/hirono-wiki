@@ -143,6 +143,7 @@ interface DispatchRule {
 }
 
 export const DISPATCH_RULES: DispatchRule[] = [
+  // ── Native opencli adapters ──────────────────────────────────────────────
   {
     match: (_u, h) => /(?:^|\.)xiaohongshu\.com$/i.test(h) || h === "xhslink.com",
     adapter: "xiaohongshu",
@@ -163,6 +164,43 @@ export const DISPATCH_RULES: DispatchRule[] = [
     adapter: "weixin",
     friendlyName: "wechat",
   },
+
+  // ── Group 1: web-read + existing post-processors ─────────────────────────
+  { match: (_u, h) => h === "github.com",            adapter: "web-read", friendlyName: "github-web" },
+  { match: (_u, h) => h === "arxiv.org",             adapter: "web-read", friendlyName: "arxiv-web" },
+  { match: (_u, h) => h === "wiki.litenext.digital", adapter: "web-read", friendlyName: "deepwiki-litenext" },
+  { match: (_u, h) => h === "deepwiki.com",          adapter: "web-read", friendlyName: "deepwiki-com" },
+
+  // ── Group 2: Substack newsletters ────────────────────────────────────────
+  { match: (_u, h) => h === "newsletter.semianalysis.com",    adapter: "web-read", friendlyName: "substack-semianalysis" },
+  { match: (_u, h) => h === "magazine.sebastianraschka.com",  adapter: "web-read", friendlyName: "substack-sebastianraschka" },
+  { match: (_u, h) => h === "sebastianraschka.com",           adapter: "web-read", friendlyName: "sebastianraschka-blog" },
+
+  // ── Group 3: Forums ───────────────────────────────────────────────────────
+  { match: (_u, h) => h === "linux.do",   adapter: "web-read", friendlyName: "linux-do-discourse" },
+  { match: (_u, h) => h === "reddit.com" || h === "www.reddit.com", adapter: "web-read", friendlyName: "reddit-web" },
+
+  // ── Group 4: Twitter / X (auth-gated — post-processor produces stub) ──────
+  { match: (_u, h) => h === "x.com" || h === "twitter.com", adapter: "web-read", friendlyName: "x-metadata-stub" },
+
+  // ── Group 5: Feishu internal wikis ───────────────────────────────────────
+  { match: (_u, h) => /\.feishu\.cn$/i.test(h), adapter: "web-read", friendlyName: "feishu-wiki" },
+
+  // ── Group 6: Generic article / blog / research sites ─────────────────────
+  { match: (_u, h) => h === "intuitionlabs.ai",       adapter: "web-read", friendlyName: "intuitionlabs-blog" },
+  { match: (_u, h) => h === "sspai.com",              adapter: "web-read", friendlyName: "sspai-blog" },
+  { match: (_u, h) => h === "nvidianews.nvidia.com",  adapter: "web-read", friendlyName: "nvidia-news" },
+  { match: (_u, h) => h === "qwen.ai",                adapter: "web-read", friendlyName: "qwen-blog" },
+  { match: (_u, h) => h === "lmsys.org",              adapter: "web-read", friendlyName: "lmsys-blog" },
+  { match: (_u, h) => h === "epoch.ai",               adapter: "web-read", friendlyName: "epoch-research" },
+  { match: (_u, h) => h === "developer.nvidia.com",   adapter: "web-read", friendlyName: "nvidia-dev" },
+  { match: (_u, h) => h === "blog.google",            adapter: "web-read", friendlyName: "google-blog" },
+  { match: (_u, h) => h === "aleksagordic.com" || h === "www.aleksagordic.com", adapter: "web-read", friendlyName: "aleksagordic-blog" },
+  { match: (_u, h) => h === "huggingface.co",         adapter: "web-read", friendlyName: "huggingface-web" },
+  { match: (_u, h) => h === "blog.csdn.net",          adapter: "web-read", friendlyName: "csdn-blog" },
+  { match: (_u, h) => h === "01.me",                  adapter: "web-read", friendlyName: "blog-01me" },
+  { match: (_u, h) => h === "docs.nvidia.com",        adapter: "web-read", friendlyName: "nvidia-docs" },
+  { match: (_u, h) => h === "sohu.com" || h === "www.sohu.com", adapter: "web-read", friendlyName: "sohu-news" },
 ];
 
 export function hostnameOf(url: string): string {
@@ -193,11 +231,13 @@ interface WaitOverride {
 
 const WEB_READ_WAIT_OVERRIDES: WaitOverride[] = [
   // DeepWiki — client-rendered, ~20s to hydrate article body on cold cache
-  { match: (_u, h) => h === "wiki.litenext.digital", waitSeconds: 20 },
+  { match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com", waitSeconds: 20 },
   // Notion (personal + team workspaces) — heavy client rendering
   { match: (_u, h) => h === "notion.so" || /\.notion\.so$/i.test(h), waitSeconds: 20 },
   // Vercel preview deployments — typically next.js SSG+hydration
   { match: (_u, h) => /\.vercel\.app$/i.test(h), waitSeconds: 20 },
+  // Qwen blog / epoch.ai — React SPAs, slow hydration
+  { match: (_u, h) => h === "qwen.ai" || h === "epoch.ai", waitSeconds: 20 },
 ];
 
 export const DEFAULT_WEB_READ_WAIT_SECONDS = 10;
@@ -278,7 +318,44 @@ export interface QualityContext {
   downloadedImageCount?: number;
   xhsDownloadSilentFail?: boolean;
   extraFlags?: string[];
+  /**
+   * The URL that was fetched. When set, enables per-host expected-size-band
+   * and structural checks (heading count, host-specific minimum body size).
+   * Omitted for legacy call sites that only have markdown without URL.
+   */
+  originUrl?: string;
 }
+
+/**
+ * Per-host minimum body size (chars). Set conservatively — this is meant to
+ * catch egregious extractor misfires where opencli latches onto a sidebar /
+ * collections card / related-links widget instead of the actual article body
+ * (like the `huggingface.co/blog/moe` case where opencli returned 276 chars
+ * when the real article is ~30 KB). Hosts absent from the map fall through
+ * to the generic 500-char `short-body` floor.
+ *
+ * Values are deliberately below typical article length so we only fire when
+ * extraction is obviously broken, not when a genuine short post exists.
+ */
+const HOST_MIN_BODY_SIZES: Array<{ match: (u: string, h: string) => boolean; minChars: number }> = [
+  // HF blog posts: expect full articles (5-50 KB typical). Spaces are
+  // deliberately excluded — their READMEs are often 1-3 KB and handled by a
+  // dedicated README fetcher + stub fallback.
+  { match: (u, h) => h === "huggingface.co" && /\/blog\//.test(u), minChars: 2000 },
+  { match: (_u, h) => h === "arxiv.org", minChars: 1500 },
+  { match: (_u, h) => h === "github.com", minChars: 1000 },
+  { match: (_u, h) => h === "docs.nvidia.com" || h === "developer.nvidia.com", minChars: 1500 },
+  { match: (_u, h) => h === "magazine.sebastianraschka.com" || h === "newsletter.semianalysis.com" || h === "sebastianraschka.com", minChars: 3000 },
+  { match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com", minChars: 1500 },
+  { match: (_u, h) => h === "aleksagordic.com" || h === "www.aleksagordic.com", minChars: 3000 },
+  { match: (_u, h) => h === "blog.google", minChars: 1500 },
+  { match: (_u, h) => h === "intuitionlabs.ai", minChars: 2000 },
+  { match: (_u, h) => h === "lmsys.org", minChars: 2000 },
+  { match: (_u, h) => h === "blog.csdn.net", minChars: 2000 },
+  { match: (_u, h) => h === "sspai.com", minChars: 2000 },
+  { match: (_u, h) => h === "01.me", minChars: 1500 },
+  { match: (_u, h) => h === "qwen.ai", minChars: 1500 },
+];
 
 export interface QualityResult {
   suspicious: boolean;
@@ -289,7 +366,41 @@ export interface QualityResult {
 export function classifyQuality(content: string, ctx: QualityContext = {}): QualityResult {
   const flags: string[] = [];
   const trimmed = content.trim();
-  if (trimmed.length < 500) flags.push("short-body");
+  // `intentional-stub` is emitted by post-processors that deliberately
+  // replace content with a short metadata stub (HF Spaces, x.com auth-gate,
+  // private feishu). For those, skip the size- and structure-based flags —
+  // the short body is by design, not a broken extraction.
+  const isStub = ctx.extraFlags?.includes("intentional-stub") ?? false;
+  if (!isStub && trimmed.length < 500) flags.push("short-body");
+
+  // Per-host expected-size band: flag when body is above the generic 500-char
+  // floor but still below what we expect for this host. Targets the case
+  // where opencli returned *something* (so no generic `short-body`) but that
+  // something is clearly a sidebar/card rather than the article body.
+  if (!isStub && ctx.originUrl) {
+    const host = hostnameOf(ctx.originUrl).toLowerCase();
+    const rule = HOST_MIN_BODY_SIZES.find((r) => r.match(ctx.originUrl!, host));
+    if (rule && trimmed.length < rule.minChars && !flags.includes("short-body")) {
+      flags.push("below-host-expected-size");
+    }
+  }
+
+  // Structural check: a body with substantial text (≥ 2 KB) but zero
+  // headings is suspicious — article pages almost always have some `##` /
+  // `###` hierarchy. Zero headings in a long body usually means opencli
+  // grabbed a sidebar/card/feed item rather than the article.
+  // Skip when `short-body` / `below-host-expected-size` already fired (those
+  // flags already indicate a bad extraction; no need to double-count).
+  if (
+    !isStub &&
+    trimmed.length >= 2000 &&
+    !flags.includes("short-body") &&
+    !flags.includes("below-host-expected-size")
+  ) {
+    const headingCount = (trimmed.match(/^#{1,6}\s+\S/gm) ?? []).length;
+    if (headingCount === 0) flags.push("no-headings-in-body");
+  }
+
   for (const kw of LOGIN_WALL_KEYWORDS) {
     if (trimmed.includes(kw)) {
       flags.push("login-wall-keyword");
@@ -321,6 +432,10 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   if (ctx.xhsDownloadSilentFail) flags.push("xhs-download-silent-fail");
   if (ctx.extraFlags) {
     for (const f of ctx.extraFlags) {
+      // `intentional-stub` is a control signal consumed above (to skip
+      // size-based flags). It is NOT a quality problem and should not
+      // appear in the output flags list or cause `status=flagged`.
+      if (f === "intentional-stub") continue;
       if (f && !flags.includes(f)) flags.push(f);
     }
   }
@@ -519,6 +634,7 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
     declaredImageCount,
     downloadedImageCount: images.length,
     extraFlags: args.qualityFlags,
+    originUrl: args.originUrl,
   });
 
   const src: SourceJson = {
@@ -1935,8 +2051,11 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
   // "Loading…" skeleton (common on client-rendered SPAs), retry ONCE with
   // a 60-second wait. Bounded to one retry — avoids pathological delays.
   if (waitSeconds < 60) {
-    const q = classifyQuality(result.markdown);
-    const suspiciousForRetry = q.flags.includes("short-body") || q.flags.includes("loading-skeleton");
+    const q = classifyQuality(result.markdown, { originUrl: url });
+    const suspiciousForRetry =
+      q.flags.includes("short-body") ||
+      q.flags.includes("loading-skeleton") ||
+      q.flags.includes("below-host-expected-size");
     if (suspiciousForRetry) {
       // Clear harvested files so the retry has a clean slate (but keep source.json if already written)
       try {
@@ -1948,7 +2067,137 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
       return fetchWebReadViaAdapter(url, slugDir, downloadImages, 60);
     }
   }
+
+  // Final fallback for HuggingFace blog posts: every HF blog post has its
+  // source markdown committed to github.com/huggingface/blog (the "Update on
+  // GitHub" button on the rendered page links to it). If opencli extraction
+  // still misfired after the 60-second retry, bypass the DOM entirely and
+  // pull the authoritative markdown source from GitHub's raw endpoint.
+  //
+  // This covers cases like `huggingface.co/blog/moe` where a prominent
+  // "Collections" sidebar card above the article body confuses opencli's
+  // readability heuristic and it returns the card's description instead of
+  // `.blog-content`.
+  if (waitSeconds >= 60 && /^https?:\/\/huggingface\.co\/blog\/[^?#/]+/.test(url)) {
+    const q = classifyQuality(result.markdown, { originUrl: url });
+    const stillBad =
+      q.flags.includes("short-body") ||
+      q.flags.includes("below-host-expected-size");
+    if (stillBad) {
+      const ghResult = fetchHuggingFaceBlogFromGithub(url, slugDir, downloadImages);
+      if (ghResult) {
+        // Clear any partial opencli harvest before replacing with GitHub source.
+        // (Preserve the images dir the GH adapter just populated, if any.)
+        try {
+          for (const f of readdirSync(slugDir, { withFileTypes: true })) {
+            if (f.name === "source.json" || ghResult.imageFiles.includes(f.name)) continue;
+            rmSync(join(slugDir, f.name), { recursive: true, force: true });
+          }
+        } catch {}
+        return ghResult;
+      }
+    }
+  }
+
   return result;
+}
+
+/**
+ * HuggingFace-blog-specific fallback: fetch the authoritative markdown source
+ * from github.com/huggingface/blog. Returns null when the GitHub copy isn't
+ * available (404, network error, or URL isn't an HF blog post).
+ *
+ * Image paths in the GitHub source are typically site-relative
+ * (`/blog/assets/moe/foo.png`); they get resolved to absolute HF URLs by
+ * `resolveRelativeImageUrls` downstream, then downloaded by `processImages`.
+ * YAML frontmatter is stripped and its `title` / `authors` fields are
+ * rewritten as the content's H1 and a `> **Authors:** ...` callout, matching
+ * the shape produced by the opencli-path `huggingfaceBlogReformat` processor
+ * (so the downstream post-processing pipeline sees a consistent format).
+ */
+function fetchHuggingFaceBlogFromGithub(
+  url: string,
+  slugDir: string,
+  downloadImages: boolean,
+): AdapterResult | null {
+  const m = url.match(/^https?:\/\/huggingface\.co\/blog\/([^?#/]+)/);
+  if (!m) return null;
+  const slug = m[1];
+  const ghUrl = `https://raw.githubusercontent.com/huggingface/blog/main/${slug}.md`;
+  const res = spawnSync("curl", ["-sfL", "-A", "Mozilla/5.0", ghUrl], {
+    encoding: "utf8",
+    timeout: 30_000,
+  });
+  if (res.status !== 0 || !res.stdout || res.stdout.length < 500) return null;
+
+  let body = res.stdout;
+  let title: string | undefined;
+  const authorHandles: string[] = [];
+
+  // Parse YAML frontmatter if present (opening `---` on the first line).
+  const fmMatch = body.match(/^---\n([\s\S]*?)\n---\n/);
+  if (fmMatch) {
+    body = body.slice(fmMatch[0].length);
+    const fm = fmMatch[1];
+    const titleMatch = fm.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+    if (titleMatch) title = titleMatch[1].trim();
+    for (const line of fm.split("\n")) {
+      const am = line.match(/^\s*-\s*user:\s*(\S+)/);
+      if (am) authorHandles.push(am[1]);
+    }
+  }
+
+  let markdown = body.trim() + "\n";
+  // Add an H1 only if the body doesn't already start with one.
+  if (!/^#\s+/m.test(markdown.slice(0, 200)) && title) {
+    markdown = `# ${title}\n\n${markdown}`;
+  }
+
+  // Insert authors callout right after the H1 (or at top if no H1).
+  if (authorHandles.length > 0) {
+    const label = authorHandles.length === 1 ? "Author" : "Authors";
+    const rendered = authorHandles
+      .map((h) => `[@${h}](https://huggingface.co/${h})`)
+      .join(", ");
+    const authorLine = `> **${label}:** ${rendered}`;
+    if (/^#\s+/m.test(markdown)) {
+      markdown = markdown.replace(/^(#\s+[^\n]+\n)/, `$1\n${authorLine}\n\n`);
+    } else {
+      markdown = `${authorLine}\n\n${markdown}`;
+    }
+  }
+
+  // Resolve site-relative image paths (/blog/assets/...) to absolute HF URLs so
+  // processImages can download them. Matches both markdown `![](/path)` and
+  // HTML `<img src="/path">` forms.
+  markdown = markdown.replace(
+    /(!\[[^\]]*\]\()(\/[^)\s]+)(\))/g,
+    (_m, pre, path, post) => `${pre}https://huggingface.co${path}${post}`,
+  );
+  markdown = markdown.replace(
+    /(<img\b[^>]*\bsrc=["'])(\/[^"']+)(["'])/g,
+    (_m, pre, path, post) => `${pre}https://huggingface.co${path}${post}`,
+  );
+
+  // Download the images referenced in the markdown. processImages extracts
+  // both `![](url)` and `<img src="url">`, filters to http(s), downloads via
+  // curl, and rewrites each URL in-place to the local filename.
+  const imageFiles: string[] = [];
+  if (downloadImages) {
+    const r = processImages(markdown, slugDir, true);
+    markdown = r.content;
+    for (const rec of r.images) imageFiles.push(rec.local);
+  }
+
+  return {
+    markdown,
+    title,
+    imageFiles,
+    rawMetadata: { source: "github-raw", ghUrl, slug },
+    adapterNotes: [
+      `huggingface: opencli extraction failed; fell back to GitHub raw (${res.stdout.length} chars, ${authorHandles.length} author(s), ${imageFiles.length} image(s))`,
+    ],
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -2007,7 +2256,35 @@ export interface FetchUrlOpts {
   };
 }
 
+/**
+ * URLs we refuse to fetch. An L2 error (queue-and-continue) fires at the
+ * fetchUrlAndStore entry so bulk jobs skip cleanly without writing anything
+ * to disk. Single-URL callers (`hirono raindrop export <url>`) see the
+ * specific `auto-skipped-*` code so they can decide whether to proceed.
+ *
+ * HuggingFace Spaces are auto-skipped: their UI is client-rendered so there
+ * is no meaningful static content to archive. READMEs are often just one-
+ * line descriptions that don't justify the fetch.
+ */
+const AUTO_SKIP_RULES: Array<{
+  match: (url: string) => boolean;
+  code: string;
+  reason: string;
+}> = [
+  {
+    match: (u) => /^https?:\/\/huggingface\.co\/spaces\/[^/]+\/[^/?#]+/.test(u),
+    code: "auto-skipped-hf-space",
+    reason: "HuggingFace Spaces are interactive apps with no static content to archive",
+  },
+];
+
 export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
+  for (const rule of AUTO_SKIP_RULES) {
+    if (rule.match(opts.url)) {
+      throw makeError(rule.code, "L2", rule.reason, { domain: hostnameOf(opts.url) });
+    }
+  }
+
   if (!opencliDoctorOk()) {
     throw makeError(
       "extension-offline", "L3",
@@ -2285,6 +2562,7 @@ export function reclassifyRawSlug(slug: string): SourceJson | null {
     declaredImageCount,
     downloadedImageCount,
     extraFlags: preservedFlags,
+    originUrl: src.origin_url,
   });
   src.quality_flags = flags;
   src.quality_status = quality_status;

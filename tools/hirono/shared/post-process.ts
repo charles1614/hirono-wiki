@@ -24,6 +24,13 @@ export interface PostProcessResult {
    */
   newAbsoluteImageUrls: string[];
   notes: string[];
+  /**
+   * Optional quality flags the processor wants to surface. Most processors
+   * leave this empty. Stub-producing processors (HF Spaces, x.com auth-gate)
+   * emit `intentional-stub` so classifyQuality knows to skip size-based
+   * flags — the short body is deliberate, not a broken extraction.
+   */
+  extraFlags?: string[];
 }
 
 export interface PostProcessor {
@@ -426,27 +433,51 @@ export const resolveRelativeImageUrls: PostProcessor = {
  */
 export const deepwikiStripNav: PostProcessor = {
   name: "deepwiki-strip-file-nav",
-  match: (_u, h) => h === "wiki.litenext.digital",
+  match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com",
   transform: (md, _originUrl) => {
-    // Find the start of the nav block (### Files is the first heading after a possible preamble)
+    const notes: string[] = [];
+
+    // wiki.litenext.digital pattern: "### Files" ... "Edit\n"
     const filesIdx = md.indexOf("### Files");
-    if (filesIdx < 0) return { md, newAbsoluteImageUrls: [], notes: [] };
-    // Find the "Edit\n" line that marks end of chrome. After it comes the
-    // article title and body.
-    const afterFiles = md.slice(filesIdx);
-    const editMatch = afterFiles.match(/\nEdit\n/);
-    if (!editMatch || editMatch.index === undefined) {
-      return { md, newAbsoluteImageUrls: [], notes: [] };
+    if (filesIdx >= 0) {
+      const afterFiles = md.slice(filesIdx);
+      const editMatch = afterFiles.match(/\nEdit\n/);
+      if (editMatch && editMatch.index !== undefined) {
+        const editEnd = filesIdx + editMatch.index + editMatch[0].length;
+        const cleaned = md.slice(0, filesIdx) + md.slice(editEnd);
+        notes.push(`deepwiki: stripped file-navigator chrome (${editEnd - filesIdx} chars)`);
+        return {
+          md: cleaned.replace(/\n{3,}/g, "\n\n").trimStart(),
+          newAbsoluteImageUrls: [],
+          notes,
+        };
+      }
     }
-    const editEnd = filesIdx + editMatch.index + editMatch[0].length;
-    const cleaned = md.slice(0, filesIdx) + md.slice(editEnd);
-    // Collapse multiple blank lines that result from the removal
-    const normalized = cleaned.replace(/\n{3,}/g, "\n\n").trimStart();
-    return {
-      md: normalized,
-      newAbsoluteImageUrls: [],
-      notes: [`deepwiki: stripped file-navigator chrome (${editEnd - filesIdx} chars)`],
-    };
+
+    // deepwiki.com pattern: nav + TOC links until a lone "Menu\n" line, then "# Article"
+    // Strip from start of doc (after the preamble header) through the "Menu" line.
+    const menuMatch = md.match(/\nMenu\n/);
+    if (menuMatch && menuMatch.index !== undefined) {
+      // Find first H1 after "Menu"
+      const afterMenu = md.slice(menuMatch.index + menuMatch[0].length);
+      const h1Match = afterMenu.match(/^#+\s+/m);
+      if (h1Match && h1Match.index !== undefined) {
+        // Preserve the preamble block (title + source line + ---) before the nav
+        const preambleEnd = md.indexOf("\n---\n");
+        const preamble = preambleEnd >= 0 ? md.slice(0, preambleEnd + 5) : "";
+        const articleStart = menuMatch.index + menuMatch[0].length + h1Match.index;
+        const stripped = articleStart - (preambleEnd >= 0 ? preambleEnd + 5 : 0);
+        const cleaned = preamble + "\n" + md.slice(articleStart);
+        notes.push(`deepwiki: stripped deepwiki.com nav chrome (${stripped} chars)`);
+        return {
+          md: cleaned.replace(/\n{3,}/g, "\n\n"),
+          newAbsoluteImageUrls: [],
+          notes,
+        };
+      }
+    }
+
+    return { md, newAbsoluteImageUrls: [], notes: [] };
   },
 };
 
@@ -492,12 +523,59 @@ export const githubStripUIChrome: PostProcessor = {
       /^## Pull Request Toolbar$/,
       /^Copy file name to clipboard(Expand all lines:.*)?$/,
       /^Open in \[github\.dev\]\(https:\/\/github\.dev\/\)/,
+      // Issue / PR sidebar chrome
+      /^No branches or pull requests\s*$/,
+      /^Notifications?\s*$/,
+      /^Customize\s*$/,
+      /^Subscribe\s*$/,
+      /^You're not receiving notifications/i,
+      /^### Participants\s*$/,
+      /^### Issue actions\s*$/,
+      /^## Issue actions\s*$/,
+      /^-\s*Give feedback\s*$/,
+      /^Linked pull requests?\s*$/,
+      /^Assignees?\s*$/,
+      /^Labels?\s*$/,
+      /^Projects?\s*$/,
+      /^Milestone\s*$/,
+      /^Development\s*$/,
+      /^Lock conversation\s*$/,
+      /^Pin issue\s*$/,
+      /^Convert to discussion\s*$/,
+      /^Transfer issue\s*$/,
+      /^Delete issue\s*$/,
+      /^\+\d+\s*$/,  // participant count overflow "+2"
+      /^No projects\s*$/,
+      /^No milestone\s*$/,
+      /^None yet\s*$/,
+      /^### Milestone\s*$/,
+      /^### Relationships\s*$/,
+      /^### Development\s*$/,
+      /^### Notifications\s*$/,
+    ];
+    // Sidebar section headers that mark start of trailing chrome (GitHub issues).
+    // These heading-level sidebar sections always appear after all actual content.
+    const sidebarCutoffs: RegExp[] = [
+      /^## Metadata\s*$/,       // GitHub trailing metadata block
+      /^## Add a comment\s*$/, // GitHub comment box chrome
+      /^### Assignees?\s*$/,  // bottom sidebar always starts here
+      /^### Participants\s*$/,
+      /^## Participants\s*$/,
+      /^### Projects?\s*$/,
+      /^## Projects?\s*$/,
+      /^### Fields\s*$/,
+      /^### Labels?\s*$/,
+      /^### Type\s*$/,
+      /^### Relationships?\s*$/,
     ];
     const lines = md.split("\n");
     const kept: string[] = [];
     let stripped = 0;
+    let truncated = false;
     for (const line of lines) {
+      if (truncated) break;
       const trim = line.trim();
+      if (sidebarCutoffs.some((re) => re.test(trim))) { truncated = true; break; }
       if (chromeLinePatterns.some((re) => re.test(trim))) {
         stripped++;
         continue;
@@ -505,10 +583,13 @@ export const githubStripUIChrome: PostProcessor = {
       kept.push(line);
     }
     const cleaned = kept.join("\n").replace(/\n{3,}/g, "\n\n");
+    const notes: string[] = [];
+    if (stripped > 0) notes.push(`github: stripped ${stripped} UI-chrome lines`);
+    if (truncated) notes.push(`github: truncated at Participants sidebar`);
     return {
       md: cleaned,
       newAbsoluteImageUrls: [],
-      notes: stripped > 0 ? [`github: stripped ${stripped} UI-chrome lines`] : [],
+      notes,
     };
   },
 };
@@ -608,10 +689,19 @@ export const substackReformat: PostProcessor = {
     // Known Substack CNAMEs + the generic substack.com domain.
     h === "newsletter.semianalysis.com" ||
     h === "magazine.sebastianraschka.com" ||
+    h === "sebastianraschka.com" ||
     /(?:^|\.)substack\.com$/i.test(h),
   transform: (md, _originUrl) => {
     const notes: string[] = [];
     let out = md;
+
+    // -- Step 0: strip "Discover more from X" newsletter CTA block --------
+    // This block appears between the `---` separator and the article H1.
+    // Pattern: "Discover more from [Name]\n\n...\n\nOver N subscribers\n\n..."
+    out = out.replace(
+      /\n(Discover more from [\s\S]+?Over \d[\d,]* subscribers?[\s\S]*?\n)(?=# |\n# )/g,
+      "\n",
+    );
 
     // -- Step 1: detect + drop Substack header chrome ---------------------
     // Layout we observe (after `---` separator inserted by fetch-raw):
@@ -806,23 +896,87 @@ export const substackReformat: PostProcessor = {
       notes.push(`substack: unwrapped click-to-enlarge image links`);
     }
 
-    // -- Step 3: strip trailing paywall / subscribe widget -----------------
+    // -- Step 3: strip trailing paywall / subscribe widget + engagement ----
     const paywallMarkers = [
       /^## This post is for paid subscribers\s*$/m,
       /^## Continue reading\s*$/m,
       /^\[Subscribe\]\(https:\/\/[^)]+\/subscribe/m,
+      // Likes facepile: "NN Likes∙" line with engagement counters
+      /^\d{1,6}\s*Likes[∙·]\s*$/m,
     ];
     for (const re of paywallMarkers) {
       const m = re.exec(out);
       if (m && typeof m.index === "number") {
-        out = out.slice(0, m.index).trimEnd() + "\n";
-        notes.push(`substack: truncated at paywall/subscribe widget`);
+        // Walk back past avatar images AND past the subscribe/legal block.
+        const before = out.slice(0, m.index);
+        // Strip trailing avatar images
+        let cleaned = before.replace(/\s*(?:!\[[^\]]*\]\([^)]+\)\s*)+$/i, "");
+        // Strip trailing subscribe CTA blocks. Substack may have 1-3 CTAs
+        // at the bottom. Strategy: walk backwards from end of cleaned, find
+        // any `* * *` divider followed by subscribe-related content, and
+        // truncate there. Repeat until no more subscribe-adjacent dividers.
+        const subscribeIndicators = [
+          /\bsubscribe\b/i,
+          /\bsupport my work\b/i,
+          /\breader.supported\b/i,
+          /\bpaid subscriber/i,
+        ];
+        let prev = cleaned;
+        for (let attempt = 0; attempt < 4; attempt++) {
+          // Find all `* * *` occurrences
+          const dividers: number[] = [];
+          let searchFrom = 0;
+          let idx: number;
+          while ((idx = prev.indexOf("\n\n* * *\n", searchFrom)) >= 0) {
+            dividers.push(idx);
+            searchFrom = idx + 1;
+          }
+          let cut = -1;
+          // Walk dividers from the end; if the block after a divider looks
+          // subscribe-related AND is within 3000 chars of end, cut there.
+          for (let d = dividers.length - 1; d >= 0; d--) {
+            const afterDiv = prev.slice(dividers[d], Math.min(dividers[d] + 500, prev.length));
+            if (subscribeIndicators.some((re) => re.test(afterDiv))) {
+              cut = dividers[d];
+              break;
+            }
+          }
+          if (cut < 0) break;
+          prev = prev.slice(0, cut);
+        }
+        cleaned = prev;
+        out = cleaned.trimEnd() + "\n";
+        notes.push(`substack: truncated at paywall/subscribe/engagement widget`);
         break;
       }
     }
 
     // -- Step 4: strip `PreviousNext` / `Previous`/`Next` nav if trailing --
     out = out.replace(/\n(?:PreviousNext|Previous\s+Next|Previous|Next)\s*$/g, "\n");
+
+    // -- Step 4b: strip trailing engagement-counter block -------------------
+    // Pattern: one or more bare integers + "Share" at end of doc, possibly
+    // with blank lines between. e.g. "\n47\n\n55\n\nShare\n"
+    out = out.replace(/(\n\s*\d+\s*)+\n\s*Share\s*$/g, "\n");
+
+    // -- Step 5: strip inline "reader-supported / Subscribe" CTA blocks -----
+    // Substack injects these mid-article and at the end. Strip wherever found.
+    out = out.replace(
+      /\n\n[A-Z][^.\n]+ is a reader-supported publication[^\n]*\n\nSubscribe\n?/g,
+      "\n\n",
+    );
+
+    // -- Step 6: strip trailing `* * *` + author/subscribe CTA block --------
+    // Run unconditionally: catches cases where paywall handler fired too early.
+    out = out.replace(
+      /\n\n\* \* \*\n\n([\s\S]{0,3000})$/,
+      (match, block) => {
+        if (/\bsubscribe\b|\bpersonal passion\b|\breader.supported\b|\bsupport my work\b/i.test(block)) {
+          return "\n";
+        }
+        return match;
+      },
+    );
 
     return {
       md: out.replace(/\n{3,}/g, "\n\n").trimEnd() + "\n",
@@ -918,7 +1072,7 @@ export const xhsReformatNoteTable: PostProcessor = {
 
 export const deepwikiWrapDiagramNodes: PostProcessor = {
   name: "deepwiki-wrap-diagram-nodes",
-  match: (_u, h) => h === "wiki.litenext.digital",
+  match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com",
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     const out: string[] = [];
@@ -1013,6 +1167,721 @@ export const stripColorTags: PostProcessor = {
   },
 };
 
+
+// ---------------------------------------------------------------------------
+// arxiv.org: note when URL is a raw PDF (binary, not useful as markdown)
+// ---------------------------------------------------------------------------
+
+export const arxivPdfNote: PostProcessor = {
+  name: "arxiv-pdf-note",
+  match: (u, h) => h === "arxiv.org" && /\/pdf\//.test(u),
+  transform: (md, originUrl) => {
+    // Rewrite /pdf/<id> → /abs/<id> in the source-link line so the reader
+    // can navigate to the abstract page. The content may be partial (Chrome
+    // PDF renderer extracts text but loses formatting).
+    const absUrl = originUrl.replace(/\/pdf\//, "/abs/").replace(/\.pdf$/, "");
+    const note = `\n> **Note:** This was fetched from a PDF URL. For structured metadata see the [abstract page](${absUrl}).\n`;
+    return {
+      md: md.trimEnd() + "\n" + note,
+      newAbsoluteImageUrls: [],
+      notes: [`arxiv: added PDF-URL note (abstract: ${absUrl})`],
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// sebastianraschka.com: personal blog — strip nav / footer chrome
+// ---------------------------------------------------------------------------
+
+export const sebastianraschkaBlogCleanup: PostProcessor = {
+  name: "sebastianraschka-blog-cleanup",
+  match: (_u, h) => h === "sebastianraschka.com",
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    const chromePatterns: RegExp[] = [
+      /^Subscribe to my newsletter/i,
+      /^Sign up to receive/i,
+      /^Follow me on/i,
+      /^Twitter\s*[\|·]/i,
+      /^GitHub\s*[\|·]/i,
+      /^\[Twitter\]/i,
+      /^\[GitHub\]/i,
+      /^←\s*(Back|Previous)/i,
+      /^→\s*(Next|Forward)/i,
+      /^Tags?:/i,
+      /^Share:/i,
+      /^Posted (in|on)\b/i,
+      /^Filed under\b/i,
+      /^© \d{4}/,
+    ];
+    const kept: string[] = [];
+    let stripped = 0;
+    for (const line of lines) {
+      const t = line.trim();
+      if (chromePatterns.some((re) => re.test(t))) { stripped++; continue; }
+      kept.push(line);
+    }
+    return {
+      md: kept.join("\n").replace(/\n{3,}/g, "\n\n"),
+      newAbsoluteImageUrls: [],
+      notes: stripped > 0 ? [`sebastianraschka: stripped ${stripped} chrome lines`] : [],
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// HuggingFace blog: strip KaTeX triple-render, engagement chrome, anchor prefixes
+// ---------------------------------------------------------------------------
+//
+// HuggingFace's blog rendering injects a lot of junk that the generic article
+// cleanup can't handle:
+//   1. KaTeX renders each formula THREE times inline:
+//      `<text-fallback> <LaTeX-source> <alt-text-fallback>`
+//      where <LaTeX-source> contains `\\[a-zA-Z]+` commands (two literal
+//      backslashes + letters — see file hex dump) and the fallbacks use
+//      unicode math chars. We detect the triplet and collapse to `$<LaTeX>$`.
+//   2. Every heading has an anchor-link prefix: `## [](#anchor-slug)Title`.
+//   3. A duplicate H1 (after the main H1) also carries the anchor prefix.
+//   4. Top-of-article engagement: `Upvote / NNN / avatar list / +NNN`.
+//   5. Author block with awkward `[Name\n\nhandle\n\nFollow](/profile)` shape.
+//   6. Nav links `[Back to Articles]`, `[Update on GitHub]`.
+//   7. Trailing `More Articles from our Blog` section + related-post cards.
+
+export const huggingfaceBlogReformat: PostProcessor = {
+  name: "huggingface-blog-reformat",
+  match: (_u, h) => h === "huggingface.co",
+  transform: (md, _originUrl) => {
+    const notes: string[] = [];
+    let out = md;
+
+    // 1. Strip `[Back to Articles](/blog)` nav link
+    const beforeBack = out.length;
+    out = out.replace(/^\[Back to Articles\]\([^)]+\)\s*\n/m, "");
+    if (out.length < beforeBack) notes.push("hf: stripped Back-to-Articles nav");
+
+    // 2. Strip anchor-prefix from ALL headings: `## [](#slug)Title` → `## Title`
+    const anchorRe = /^(#+\s+)\[\]\(#[^)]+\)\s*(.+)$/gm;
+    let anchorCount = 0;
+    out = out.replace(anchorRe, (_m, hash, title) => {
+      anchorCount++;
+      return `${hash}${title}`;
+    });
+    if (anchorCount > 0) notes.push(`hf: stripped ${anchorCount} heading anchor prefix(es)`);
+
+    // 3. Strip the post-frontmatter header block: duplicate H1 + "Published ..."
+    //    + "[Update on GitHub](...)" lines. These appear after the `---` fence
+    //    that separates our generated frontmatter from the fetched body.
+    const beforeHeader = out.length;
+    out = out.replace(
+      /(\n---\n)\s*# [^\n]+\n+(?:Published [^\n]+\n+)?(?:\[Update on GitHub\]\([^)]+\)\s*\n)?/,
+      "$1\n",
+    );
+    if (out.length < beforeHeader) notes.push("hf: stripped duplicate-H1 + Published + Update-on-GitHub header");
+
+    // 4. Strip top engagement block:  ` Upvote\n\nNNN\n\n- [avatar](/user) ... - +NNN\n`
+    out = out.replace(
+      /\n\s*Upvote\s*\n+\d+\s*\n+(?:-\s*\[!\[\]\([^)]+\)\]\([^)]+(?:\s+"[^"]*")?\)\s*\n+)+(?:-\s*\+\d+\s*\n+)?/g,
+      "\n",
+    );
+
+    // 5. Reformat author blocks (handles multi-author posts). Each block:
+    //   [![Name's avatar](img)](/user)
+    //   [Name
+    //   user
+    //   Follow
+    //   ](/user)
+    // Multi-author pages have N of these back-to-back; we collapse all into a
+    // single line: `> **Authors:** [A](/a) (@a), [B](/b) (@b), ...`
+    const authorBlockRe =
+      /\[!\[([^\]]*?)(?:'s avatar)?\]\([^)]+\)\]\(\/([^)]+)\)\s*\n+\[([^\n]+)\n+([^\n]+)\n+Follow\s*\n+\]\(\/[^)]+\)/g;
+    const authors: Array<{ name: string; handle: string }> = [];
+    let scanMatch: RegExpExecArray | null;
+    while ((scanMatch = authorBlockRe.exec(out)) !== null) {
+      authors.push({ name: scanMatch[3].trim(), handle: scanMatch[4].trim() });
+    }
+    if (authors.length > 0) {
+      let idx = 0;
+      out = out.replace(authorBlockRe, () => {
+        idx++;
+        if (idx > 1) return ""; // drop subsequent blocks
+        const label = authors.length === 1 ? "Author" : "Authors";
+        const rendered = authors
+          .map((a) => `[${a.name}](/${a.handle}) (@${a.handle})`)
+          .join(", ");
+        return `> **${label}:** ${rendered}`;
+      });
+      notes.push(`hf: reformatted ${authors.length} author block(s)`);
+    }
+
+    // 5b. Normalize HuggingFace datasets image URLs that use backslash-escaped
+    // parens (`image%20\(17\).png`). The generic image-URL extractor's regex
+    // `[^)\s]+` stops at the first `)`, truncating the URL mid-path and failing
+    // to download. Converting `\(` / `\)` to the URL-encoded form `%28` / `%29`
+    // yields a paren-free URL that extractImageUrls + curl can both handle.
+    // Surfaced URLs are returned via `newAbsoluteImageUrls` so the
+    // post-processor image-download pass picks them up.
+    const normalizedImageUrls: string[] = [];
+    out = out.replace(
+      // Match `![alt](url)` where url may contain `\(` / `\)` escape sequences.
+      /!\[([^\]]*)\]\(((?:[^)\\]|\\[()])+)\)/g,
+      (match, alt, url) => {
+        if (!/\\[()]/.test(url)) return match;
+        const cleanUrl = url.replace(/\\\(/g, "%28").replace(/\\\)/g, "%29");
+        if (/^https?:\/\//i.test(cleanUrl)) normalizedImageUrls.push(cleanUrl);
+        return `![${alt}](${cleanUrl})`;
+      },
+    );
+    if (normalizedImageUrls.length > 0) {
+      notes.push(
+        `hf: normalized ${normalizedImageUrls.length} image URL(s) with escaped parens`,
+      );
+    }
+
+    // 6. Fix triple-rendered KaTeX math formulas
+    out = collapseHfTripleMath(out, notes);
+
+    // 6b. Collapse triple-rendered SINGLE-VARIABLE math: `N N N` → `$N$`.
+    // Single variables have no `\\[a-z]+` command, so the main triplet collapser
+    // can't see them. HuggingFace still renders `$N$` three times for the text
+    // fallback / LaTeX source / alt-text fallback — all identical.
+    const beforeVarCollapse = out.length;
+    out = out.replace(/\b([A-Za-z])\s+\1\s+\1\b/g, "$$$1$$");
+    if (out.length < beforeVarCollapse) {
+      notes.push("hf: collapsed single-variable triplets (e.g. `N N N` → `$N$`)");
+    }
+
+    // 7. Truncate at "More Articles from our Blog" trailing section OR at
+    //    the JS-rendered footer headings `## {Models|Datasets|Papers|
+    //    Collections} mentioned in this article N` (content is lazy-loaded
+    //    by JS and web-read only captures the empty heading shells).
+    const trailingMarkers = [
+      /\n\s*More Articles from our Blog\s*\n/,
+      /\n\s*##\s+(?:Models|Datasets|Papers|Collections|Spaces)\s+mentioned in this article\b/,
+    ];
+    let earliestCut = -1;
+    for (const re of trailingMarkers) {
+      const m = out.search(re);
+      if (m >= 0 && (earliestCut < 0 || m < earliestCut)) earliestCut = m;
+    }
+    if (earliestCut >= 0) {
+      out = out.slice(0, earliestCut);
+      notes.push("hf: truncated at trailing section (More-Articles / mentioned-in-article shells)");
+    }
+
+    return {
+      md: out.replace(/\n{3,}/g, "\n\n").trimEnd() + "\n",
+      newAbsoluteImageUrls: normalizedImageUrls,
+      notes,
+    };
+  },
+};
+
+// Collapse HuggingFace's triple-rendered KaTeX pattern: `V1 LATEX V3` → `$LATEX$`
+//
+// Structure of HuggingFace inline math:
+//   <text-fallback> <LaTeX-source> <alt-text-fallback>
+// where V2 uses `\\[a-zA-Z]+` commands (e.g. `\\text{Model Memory}`, `\\times`)
+// and V1/V3 use unicode math (`×`, `⟹`, `\=`) as compact token glue.
+//
+// Algorithm (character-level):
+//   1. Find each LaTeX expression — contiguous runs of `\\[a-zA-Z]+` (and their
+//      brace groups), plus interstitial math fill (single-letter vars, digits,
+//      operators, spacing). Merge adjacent runs separated only by math fill.
+//   2. Expand the span's left/right through immediately-adjacent "single math
+//      atoms" (a single letter, digit, or operator surrounded by whitespace)
+//      because those belong to the LaTeX expression (e.g. `N` and `P` in
+//      `N \\times P`) rather than to V1/V3 (which use compound tokens).
+//   3. Compute V3 = content after V2 up to sentence boundary (`. ` / `.$` / `\n`).
+//   4. Compute V1 candidate — content between the previous sentence boundary
+//      and V2. Then find the longest suffix of V1 whose whitespace-normalized
+//      form matches a prefix (or equals) the normalized V3. That suffix IS V1.
+//      Everything before it is prose — keep it.
+//   5. If V1 ≈ V3 (trigram overlap ≥ 70%), collapse `proseprefix V1 V2 V3` to
+//      `proseprefix $V2$`. Otherwise leave the line unchanged.
+const HF_LATEX_CMD = /\\\\[a-zA-Z]+/;
+
+function collapseHfTripleMath(text: string, notes: string[]): string {
+  let collapsed = 0;
+
+  const lines = text.split("\n");
+  const out = lines.map((line) => {
+    if (!HF_LATEX_CMD.test(line)) return line;
+    const fixed = fixLineTripleMath(line);
+    if (fixed !== line) collapsed++;
+    return fixed;
+  });
+
+  if (collapsed > 0) notes.push(`hf: collapsed ${collapsed} triple-rendered math line(s)`);
+  return out.join("\n");
+}
+
+// A LaTeX command match, possibly followed by a brace group.
+const LATEX_CMD_WITH_BRACES =
+  /\\\\[a-zA-Z]+(?:\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\})?/g;
+
+function fixLineTripleMath(line: string): string {
+  // 1. Find LaTeX cmd spans.
+  const latexSpans: Array<{ start: number; end: number }> = [];
+  let m: RegExpExecArray | null;
+  const cmdRe = new RegExp(LATEX_CMD_WITH_BRACES.source, "g");
+  while ((m = cmdRe.exec(line)) !== null) {
+    latexSpans.push({ start: m.index, end: m.index + m[0].length });
+  }
+  if (latexSpans.length === 0) return line;
+
+  // 2. Merge adjacent LaTeX spans whose gap is "math fill" (no multi-letter word).
+  //    Math fill: whitespace, single letters, digits, operators, unicode math,
+  //    single-char backslash escapes (`\=`, `\,`), braces.
+  const mergedSpans: Array<{ start: number; end: number }> = [{ ...latexSpans[0] }];
+  for (let i = 1; i < latexSpans.length; i++) {
+    const last = mergedSpans[mergedSpans.length - 1];
+    const gap = line.slice(last.end, latexSpans[i].start);
+    if (/[A-Za-z]{2,}/.test(gap)) {
+      mergedSpans.push({ ...latexSpans[i] });
+    } else {
+      last.end = latexSpans[i].end;
+    }
+  }
+
+  // 3. For each merged span, expand through adjacent math atoms (multi-char
+  //    tokens like `10{,}000`, `10^{-4}`, `4.6894` that are part of V2 —
+  //    digits, braces, operators, short vars, no multi-letter words, no
+  //    unicode math binders `× ⟹ ·` that bind V1/V3 compound tokens).
+  const isV2Atom = (tok: string): boolean => {
+    if (tok.length === 0) return false;
+    if (/[A-Za-z]{2,}/.test(tok)) return false;       // multi-letter word → V1/V3 prose
+    if (/[×⟹⋯≥≤·]/.test(tok)) return false;           // unicode math binder → V1/V3 compound
+    return /^[=+\-*/<>()\[\]{},.0-9A-Za-z\\^_]+$/.test(tok);
+  };
+  for (const span of mergedSpans) {
+    // Left-expand
+    while (true) {
+      const before = line.slice(0, span.start);
+      const match = before.match(/(?:^|\s)(\S+)(\s+)$/);
+      if (!match || match.index === undefined) break;
+      if (!isV2Atom(match[1])) break;
+      const atomOffset = match[0].indexOf(match[1]);
+      span.start = match.index + atomOffset;
+    }
+    // Right-expand
+    while (true) {
+      const after = line.slice(span.end);
+      const match = after.match(/^(\s+)(\S+?)(?=\s|$|[,;])/);
+      if (!match) break;
+      if (!isV2Atom(match[2])) break;
+      span.end += match[1].length + match[2].length;
+    }
+    // Consume trailing closing brackets attached to span.end (no whitespace
+    // between) — handles expressions like `\\max(\\text{A}, \\text{B}))` where
+    // the trailing `}})` isn't part of any individual LaTeX cmd but belongs
+    // to the outer expression.
+    while (span.end < line.length && /[)}\]]/.test(line[span.end])) {
+      span.end++;
+    }
+  }
+
+  // Normalize for comparison: strip whitespace, invisible unicode, trailing period.
+  const normalize = (s: string) =>
+    s
+      .replace(/\s+/g, "")
+      .replace(/[\u2060-\u206F\u180B-\u180E\uFEFF\u200B-\u200D]+/g, "") // invisibles
+      .replace(/[。.]$/, "");
+
+  // 4. Process spans right-to-left so earlier indices stay valid.
+  let result = line;
+  for (let idx = mergedSpans.length - 1; idx >= 0; idx--) {
+    const span = mergedSpans[idx];
+    const v2Raw = result.slice(span.start, span.end).trim();
+    if (!HF_LATEX_CMD.test(v2Raw)) continue;
+    // Convert raw `\\cmd` (two literal backslashes, HuggingFace's markdown-
+    // escaped form) to proper `\cmd` (single backslash) for KaTeX/MathJax.
+    // In LaTeX, `\\` is a newline — not a command escape — so leaving it as
+    // `\\text` would break rendering. `\,` / `\=` etc. (single backslash +
+    // non-letter) are already correct and are not affected by the regex.
+    const v2 = v2Raw.replace(/\\\\/g, "\\");
+
+    // V3: after span, consume V2→V3 separator (leading `. `, `, `, `: `, or plain ws).
+    const tail = result.slice(span.end);
+    const sepMatch = tail.match(/^([.,;:]?\s*)/);
+    const sepLen = sepMatch ? sepMatch[0].length : 0;
+    const v3Region = tail.slice(sepLen);
+    // V3 extends until `. ` / `.$` / `, ` / `$` (already-collapsed math) / `\n`
+    // / end-of-line. Stopping at `, ` prevents swallowing prose that follows
+    // a triplet mid-line (`A×B×L×P, estimated using ...`); stopping at `$`
+    // prevents a second (already-collapsed) formula being absorbed into V3.
+    const v3EndMatch = v3Region.match(/^([^\n]*?)(\.(?=\s|$)|,(?=\s)|\$|\n|$)/);
+    if (!v3EndMatch) continue;
+    const v3 = v3EndMatch[1];
+    const v3ConsumedLen = sepLen + v3EndMatch[1].length;
+    const v3Terminator = v3EndMatch[2] === "\n" ? "\n" : "";
+
+    const v3Norm = normalize(v3);
+    if (v3Norm.length < 3) continue;
+
+    // V1: the head before span.start. v1Region = head with trailing ws stripped.
+    // We do NOT clip at `. ` / `: ` / `\n` — the suffix-match naturally stops at
+    // the prose-math boundary (prose chars break the suffix-match).
+    const head = result.slice(0, span.start);
+    const v1Region = head.replace(/\s+$/, "");
+
+    // Walk back char-by-char through v1Region to find the longest suffix
+    // whose normalized form equals a suffix of v3Norm.
+    let bestJ = v1Region.length;
+    let bestNormLen = 0;
+    for (let j = v1Region.length - 1; j >= 0; j--) {
+      const candidate = normalize(v1Region.slice(j));
+      if (candidate.length === 0) continue;
+      if (v3Norm.endsWith(candidate)) {
+        bestJ = j;
+        bestNormLen = candidate.length;
+      } else {
+        break;
+      }
+    }
+
+    const v3IsMathLike = /[0-9×⟹≥≤·∞∑∏∫√=+\-]/.test(v3Norm) && v3Norm.length >= 3;
+    if (!v3IsMathLike) continue;
+    if (bestNormLen < Math.max(3, Math.floor(v3Norm.length * 0.6))) continue;
+
+    // Advance bestJ past any leading whitespace in v1Region.slice(bestJ) so
+    // prosePrefix retains the leading indentation / spacing.
+    while (bestJ < v1Region.length && /\s/.test(v1Region[bestJ])) bestJ++;
+
+    const prosePrefix = head.slice(0, bestJ);
+    const afterV3 = result.slice(span.end + v3ConsumedLen);
+
+    // Leading separator before `$`: if prosePrefix ends in whitespace or is
+    // empty, no extra separator; otherwise prepend one space.
+    const sep = prosePrefix.length === 0 || /\s$/.test(prosePrefix) ? "" : " ";
+    result = `${prosePrefix}${sep}$${v2}$${v3Terminator}${afterV3}`;
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Generic article cleanup — Groups 6 (English + Chinese tech blogs)
+// ---------------------------------------------------------------------------
+
+const ARTICLE_CLEANUP_HOSTS = new Set([
+  "intuitionlabs.ai",
+  "sspai.com",
+  "nvidianews.nvidia.com",
+  "qwen.ai",
+  "lmsys.org",
+  "epoch.ai",
+  "developer.nvidia.com",
+  "blog.google",
+  "aleksagordic.com",
+  "www.aleksagordic.com",
+  "huggingface.co",
+  "blog.csdn.net",
+  "01.me",
+  "docs.nvidia.com",
+  "sohu.com",
+  "www.sohu.com",
+]);
+
+export const articleCleanup: PostProcessor = {
+  name: "article-cleanup",
+  match: (_u, h) => ARTICLE_CLEANUP_HOSTS.has(h),
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    const notes: string[] = [];
+
+    // Common chrome line patterns across article/blog sites
+    const chromeLinePatterns: RegExp[] = [
+      // Nav / breadcrumbs
+      /^(Home|首页)\s*[›»>|]\s*/i,
+      /^(Blog|博客|Articles?|文章|News|新闻|Research|Docs?|Documentation)\s*[›»>|]/i,
+      // Share / social
+      /^Share\s*:?\s*$/i,
+      /^分享\s*:?\s*$/,
+      /^(Tweet|转发|点赞|收藏)\s*$/i,
+      /^\[(Twitter|X|LinkedIn|Facebook|HackerNews|Reddit)\]/i,
+      // Subscribe / newsletter CTA
+      /^Subscribe\s*$/i,
+      /^订阅\s*$/,
+      /^(Sign up|注册).{0,40}(newsletter|邮件|通知)/i,
+      // Comment section headers
+      /^(Comments?|评论)\s*\(\d*\)\s*$/i,
+      /^\d+\s*(Comments?|评论)\s*$/i,
+      // Related / recommended
+      /^(Related|推荐|相关|More from|更多)\s*(Posts?|Articles?|Reading|文章)?\s*:?\s*$/i,
+      // Pagination chrome
+      /^(Previous|Next|Prev)\s*(Post|Article|Page)?\s*$/i,
+      /^-\s*\[(Prev|Next|Previous|Archive)\]\(/i,
+      /^(上一篇|下一篇|上一页|下一页)\s*$/,
+      // Date / author lines that appear standalone as UI chrome (not inline with content)
+      /^(Published|Updated|Modified|Last updated|发布于|更新于)\s*[：:]/i,
+      // CSDN-specific
+      /^博主\s*/,
+      /^关注\s*$/,
+      /^举报\s*(本文章)?\s*$/,
+      /^(扫码分享|扫码)\s*$/,
+      /^版权声明\s*[：:]/,
+      // HuggingFace spaces chrome
+      /^Running on/i,
+      /^This Space is (running|powered)/i,
+      // Sohu
+      /^搜狐号\s*[：:]/,
+      /^内容(合作|举报|投诉)/,
+      /^\*{0,2}关于\S{1,8}\*{0,2}\s*$/,  // sohu "关于一博" author section header
+      /返回搜狐，查看更多/,
+      // Google blog chrome
+      /^POSTED IN:\s*$/i,
+      // Copyright / footer
+      /^© \d{4}/,
+      /^All rights reserved\s*\.?\s*$/i,
+      /^Privacy Policy\s*[|·]\s*Terms/i,
+      /^隐私政策\s*[|·]\s*(条款|服务)/,
+    ];
+
+    const kept: string[] = [];
+    let stripped = 0;
+
+    // Also truncate at common trailing-chrome anchors
+    const trailingCutoffs: RegExp[] = [
+      /^## (Comments?|评论区|Related Posts?|You may also like|推荐阅读)/i,
+      /^# (Footer|Navigation|Menu)\b/i,
+      /^### Related Posts?\s*$/i,
+      /为本文章充电$/,  // sspai engagement section
+      /^讨论\s*$/, // sspai comment section
+      /^© 本文著作权归作者所有/,  // sspai copyright
+      /^Tap or paste here to upload/i,  // HuggingFace comment box
+      /^Upload images.*dragging in the text input/i,  // HuggingFace comment box v2
+      /^EditPreview\s*$/i,  // HuggingFace markdown editor tabs
+      /^### Community\s*$/,  // HuggingFace community/comments section
+      /^评分：\d/,  // sohu article rating section
+
+    ];
+
+    let truncated = false;
+    for (let i = 0; i < lines.length; i++) {
+      const t = lines[i].trim();
+      if (!truncated && trailingCutoffs.some((re) => re.test(t))) {
+        truncated = true;
+        notes.push(`article-cleanup: truncated at trailing chrome ("${t.slice(0, 40)}")`);
+        break;
+      }
+      if (chromeLinePatterns.some((re) => re.test(t))) { stripped++; continue; }
+      kept.push(lines[i]);
+    }
+    if (stripped > 0) notes.push(`article-cleanup: stripped ${stripped} chrome lines`);
+
+    let result = kept.join("\n").replace(/\n{3,}/g, "\n\n");
+    // Strip stray closing link fragments left by truncated multi-line links: `\n](url)`
+    result = result.replace(/\n+\]\([^)]*\)\s*$/, "\n");
+
+    return {
+      md: result,
+      newAbsoluteImageUrls: [],
+      notes,
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// linux.do (Discourse): reformat thread into OP + replies structure
+// ---------------------------------------------------------------------------
+
+export const linuxDoReformat: PostProcessor = {
+  name: "linux-do-reformat",
+  match: (_u, h) => h === "linux.do",
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    const notes: string[] = [];
+
+    // Strip Discourse UI chrome lines
+    const discourseChrome: RegExp[] = [
+      /^(Home|首页|Categories|Latest|Top|New|Unread)\s*$/i,
+      /^(Log In|Sign Up|登录|注册)\s*$/i,
+      /^(Reply|回复|Like|点赞|Share|分享|Bookmark|Flag|More)\s*$/i,
+      /^\d+\s*(Likes?|Replies?|Views?|回复|浏览)\s*$/i,
+      /^(Jump to|Skip to)\s+/i,
+      /^Created\s+\d/i,
+      /^Last reply\s+/i,
+      /^Suggested Topics?\s*$/i,
+      /^Back to top\s*$/i,
+      /^(←|→|‹|›)\s*(Back|Forward|Previous|Next)/i,
+    ];
+
+    const kept: string[] = [];
+    let stripped = 0;
+    for (const line of lines) {
+      const t = line.trim();
+      if (discourseChrome.some((re) => re.test(t))) { stripped++; continue; }
+      kept.push(line);
+    }
+    if (stripped > 0) notes.push(`linux.do: stripped ${stripped} Discourse chrome lines`);
+
+    let joined = kept.join("\n");
+
+    // Strip trailing engagement block: "1.5k views N likes N links N users" + avatar list
+    joined = joined.replace(
+      /\n+\d[\d.,]*[km]?\s+views[\s\S]*$/i,
+      "\n",
+    );
+
+    // Collapse runs of blank lines
+    const cleaned = joined.replace(/\n{3,}/g, "\n\n");
+    return { md: cleaned, newAbsoluteImageUrls: [], notes };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// reddit.com: clean thread output, handle share-URL redirect note
+// ---------------------------------------------------------------------------
+
+export const redditReformat: PostProcessor = {
+  name: "reddit-reformat",
+  match: (_u, h) => h === "reddit.com" || h === "www.reddit.com",
+  transform: (md, originUrl) => {
+    const notes: string[] = [];
+    const lines = md.split("\n");
+
+    // Reddit /s/ short URLs redirect to actual post — note the original URL
+    if (/\/s\/[A-Za-z0-9]+/.test(originUrl)) {
+      notes.push(`reddit: fetched via share short-URL (${originUrl}); content is the redirected thread`);
+    }
+
+    const redditChrome: RegExp[] = [
+      /^(Log In|Sign Up|Sign in|Create Account)\s*$/i,
+      /^(Join|Leave|Subscribe|Unsubscribe)\s*(community|subreddit)?\s*$/i,
+      /^(Posted by|Submitted by|u\/)\s*/i,
+      /^\d+\s*(upvotes?|points?|comments?|shares?)\s*$/i,
+      /^(Share|Save|Hide|Report|Crosspost|Award)\s*$/i,
+      /^(Reddit Premium|Coins|Help|About|Careers|Press|Blog|Rules|Moderators?)\s*$/i,
+      /^(View all comments|Sort by|Best|Top|New|Controversial)\s*:?\s*$/i,
+      /^(← Back|Go to|See more)\s*/i,
+      /^(Get the Reddit app|Scan this QR code)/i,
+      /^(Community info|r\/\w+)\s*$/i,
+      /^More posts from\s+/i,
+      /^(Promoted|Sponsored)\s*$/i,
+    ];
+
+    const kept: string[] = [];
+    let stripped = 0;
+    for (const line of lines) {
+      const t = line.trim();
+      if (redditChrome.some((re) => re.test(t))) { stripped++; continue; }
+      kept.push(line);
+    }
+    if (stripped > 0) notes.push(`reddit: stripped ${stripped} UI-chrome lines`);
+
+    return {
+      md: kept.join("\n").replace(/\n{3,}/g, "\n\n"),
+      newAbsoluteImageUrls: [],
+      notes,
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// x.com (Twitter): auth-gated stub
+// ---------------------------------------------------------------------------
+
+export const xMetadataStub: PostProcessor = {
+  name: "x-metadata-stub",
+  match: (_u, h) => h === "x.com" || h === "twitter.com",
+  transform: (md, originUrl) => {
+    // If web-read got real content (unlikely but possible for embeds), keep it.
+    // Real content heuristic: more than 500 chars and doesn't look like login wall.
+    const authGatedHints = [
+      "Sign in to X", "Log in to Twitter", "Sign up for X",
+      "Don't miss what's happening", "New to X?",
+    ];
+    const isGated = md.length < 800 || authGatedHints.some((h) => md.includes(h));
+    if (!isGated) return { md, newAbsoluteImageUrls: [], notes: [] };
+
+    // Produce a metadata-only stub
+    const stub = [
+      `# Tweet / X post`,
+      ``,
+      `> **Source:** ${originUrl}`,
+      `> **Status:** auth-gated — Twitter/X requires login to fetch tweet content.`,
+      `> The full tweet is available at the original URL above.`,
+      ``,
+      `*This entry is a metadata stub. Content could not be extracted without authentication.*`,
+      ``,
+    ].join("\n");
+
+    return {
+      md: stub,
+      newAbsoluteImageUrls: [],
+      notes: [`x.com: auth-gated — produced metadata stub`],
+      extraFlags: ["intentional-stub"],
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Feishu internal wikis: detect auth-gate, note lark-hirono as alternative
+// ---------------------------------------------------------------------------
+
+export const feishuWikiCleaner: PostProcessor = {
+  name: "feishu-wiki-cleaner",
+  match: (_u, h) => /\.feishu\.cn$/i.test(h),
+  transform: (md, originUrl) => {
+    const notes: string[] = [];
+
+    // Detect login wall
+    const loginHints = ["请登录", "Login", "Sign in", "立即登录", "账号密码"];
+    const isGated = md.length < 1000 || loginHints.some((h) => md.includes(h));
+    if (isGated) {
+      const stub = [
+        `# Feishu Wiki Page`,
+        ``,
+        `> **Source:** ${originUrl}`,
+        `> **Status:** auth-gated — this is a private Feishu wiki page.`,
+        `> Fetch with: \`lark-hirono fetch --doc <node-token>\``,
+        ``,
+        `*Node token is the last path segment of the wiki URL.*`,
+        ``,
+      ].join("\n");
+      return {
+        md: stub,
+        newAbsoluteImageUrls: [],
+        notes: [`feishu: auth-gated — produced stub with lark-hirono fetch instructions`],
+        extraFlags: ["intentional-stub"],
+      };
+    }
+
+    // Public feishu content: strip common chrome
+    const chromePatterns: RegExp[] = [
+      /^飞书\s*$/,
+      /^(登录|注册|下载)\s*$/,
+      /^(首页|文档|云盘|消息)\s*$/,
+      /^Last modified:\s+/i,
+      /^Modified\s+\w+\s+\d+,?\s+\d{4}\s*$/i,
+      /^Share\s*$/i,
+      /^header-v2\s*$/i,
+    ];
+    let out = md;
+    // Strip trailing comments/word-count block
+    out = out.replace(
+      /\n+Comments\s*\(\d+\)[\s\S]*$/i,
+      "\n",
+    );
+    // Strip invisible/formatting unicode characters
+    out = out.replace(/[\u200B\u200C\u200D\uFEFF\u2060\u00AD\u034F\u202C\u202D\u202A\u202B\u2028\u2029]+/g, "");
+    // Strip "Unable to print" code-block placeholder
+    out = out.replace(/\n\nUnable to print\n\n/g, "\n\n");
+
+    const lines = out.split("\n");
+    const kept = lines.filter((l) => !chromePatterns.some((re) => re.test(l.trim())));
+    const stripped = lines.length - kept.length;
+    if (stripped > 0) notes.push(`feishu: stripped ${stripped} UI-chrome lines`);
+    if (stripped > 0 || out.length < md.length) notes.push(`feishu: cleaned public wiki chrome`);
+
+    return {
+      md: kept.join("\n").replace(/\n{3,}/g, "\n\n"),
+      newAbsoluteImageUrls: [],
+      notes,
+    };
+  },
+};
+
 // ---------------------------------------------------------------------------
 // pipeline
 // ---------------------------------------------------------------------------
@@ -1032,15 +1901,26 @@ export const PROCESSORS: PostProcessor[] = [
   anthropicStripSvgExplosion,
   arxivStripTrailingChrome,
   arxivStructureImprove,
-  // substack (semianalysis etc.): strip dup H1 + paywall + unwrap
-  // click-to-enlarge. Runs early so URL resolver sees cleaner state.
+  arxivPdfNote,
+  // substack (semianalysis, magazine.sebastianraschka): strip dup H1 + paywall + unwrap
   substackReformat,
+  // sebastianraschka.com is also Substack; substackReformat handles it
   // xhs: table → prose reformat (runs before URL resolver so resolver
   // doesn't touch the rewritten content)
   xhsReformatNoteTable,
   // deepwiki: wrap diagram-node runs (runs AFTER deepwikiStripNav so the
   // file-navigator chrome is already gone before we look for diagram runs)
   deepwikiWrapDiagramNodes,
+  // Forum cleanups
+  linuxDoReformat,
+  redditReformat,
+  // Auth-gated stubs (run before URL resolver — stub has no image refs)
+  xMetadataStub,
+  feishuWikiCleaner,
+  // HuggingFace blog: fix KaTeX triple-math + engagement chrome (before articleCleanup)
+  huggingfaceBlogReformat,
+  // Generic article/blog sites cleanup
+  articleCleanup,
   // Then generic URL resolution (acts on whatever markdown survived).
   resolveRelativeImageUrls,
   // Then generic cosmetic cleanups (order matters: strip noise before
@@ -1059,21 +1939,25 @@ export function applyPostProcessors(
   appliedNames: string[];
   newAbsoluteImageUrls: string[];
   notes: string[];
+  extraFlags: string[];
 } {
   const host = hostnameOf(originUrl);
   let current = md;
   const applied: string[] = [];
   const notes: string[] = [];
   const urls: string[] = [];
+  const flags: string[] = [];
   for (const p of processors) {
     if (!p.match(originUrl, host)) continue;
     const r = p.transform(current, originUrl);
-    if (r.md !== current || r.notes.length > 0 || r.newAbsoluteImageUrls.length > 0) {
+    const hasFlags = (r.extraFlags?.length ?? 0) > 0;
+    if (r.md !== current || r.notes.length > 0 || r.newAbsoluteImageUrls.length > 0 || hasFlags) {
       applied.push(p.name);
     }
     current = r.md;
     notes.push(...r.notes);
     urls.push(...r.newAbsoluteImageUrls);
+    if (r.extraFlags) flags.push(...r.extraFlags);
   }
-  return { md: current, appliedNames: applied, newAbsoluteImageUrls: urls, notes };
+  return { md: current, appliedNames: applied, newAbsoluteImageUrls: urls, notes, extraFlags: flags };
 }
