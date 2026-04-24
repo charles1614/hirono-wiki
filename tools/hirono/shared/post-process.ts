@@ -2769,6 +2769,58 @@ export const feishuWikiCleaner: PostProcessor = {
  *   2. Relative-URL resolver SECOND (operates on cleaned markdown).
  *   3. Generic cosmetic cleanups LAST.
  */
+// ---------------------------------------------------------------------------
+// blog.google: strip social-share block + fragmented byline
+// ---------------------------------------------------------------------------
+
+export const blogGoogleCleanup: PostProcessor = {
+  name: "blog-google-cleanup",
+  match: (_u, h) => h === "blog.google",
+  transform: (md, _originUrl) => {
+    const notes: string[] = [];
+    let out = md;
+
+    // Strip the social-share block:
+    //   [\nx.com\n](twitter.com/intent/tweet?...)[...](facebook)[...](linkedin)[...](mailto:...)
+    //   Copy link
+    // The links are glued together with no separating newlines.
+    const shareBlockRe =
+      /\[\s*\n*\s*x\.com\s*\n*\s*\]\([^)]+\)\[\s*\n*\s*Facebook\s*\n*\s*\]\([^)]+\)\[\s*\n*\s*LinkedIn\s*\n*\s*\]\([^)]+\)\[\s*\n*\s*Mail\s*\n*\s*\]\([^)]+\)\s*\n+Copy link\s*\n*/gs;
+    const shareMatches = out.match(shareBlockRe);
+    if (shareMatches) {
+      out = out.replace(shareBlockRe, "");
+      notes.push(`blog.google: stripped ${shareMatches.length} social-share block(s)`);
+    }
+
+    // Strip author avatar block:
+    //   [![Name](images/img_NNN.webp)
+    //
+    //   Name
+    //
+    //   Role description](https://blog.google/authors/slug/)
+    const authorBlockRe =
+      /\n+\s*\[!\[[^\]]+\]\(images\/[^)]+\)\s*\n+[^\n]+\n+[^\n]+\]\(https?:\/\/blog\.google\/authors\/[^)]+\)\s*\n*/g;
+    const authorMatches = out.match(authorBlockRe);
+    if (authorMatches) {
+      out = out.replace(authorBlockRe, "\n\n");
+      notes.push(`blog.google: stripped ${authorMatches.length} author avatar block(s)`);
+    }
+
+    // Collapse fragmented byline. opencli emits each span as a separate
+    // paragraph: "Oct 28, 2021\n\n·\n\n5 min read\n". The `·` separator
+    // and read-time are noise (we already have 发布时间 in preamble);
+    // the date is redundant too. Strip the whole trio.
+    const bylineRe =
+      /\n+(?:[A-Z][a-z]{2,8} \d{1,2}, \d{4})\s*\n+·\s*\n+\d+\s*min read\s*\n+/;
+    if (bylineRe.test(out)) {
+      out = out.replace(bylineRe, "\n\n");
+      notes.push("blog.google: collapsed fragmented date/read-time byline");
+    }
+
+    return { md: out, newAbsoluteImageUrls: [], notes };
+  },
+};
+
 /**
  * Generic: demote every body H1 (after the frontmatter `---` separator) to
  * H2. CLAUDE.md §2 contract: exactly one `# ` in the document — the
@@ -2789,13 +2841,32 @@ export const enforceSingleH1: PostProcessor = {
     const sepIdx = md.indexOf("\n---\n");
     if (sepIdx < 0) return { md, newAbsoluteImageUrls: [], notes: [] };
     const bodyStart = sepIdx + 5;
-    const preamble = md.slice(0, bodyStart);
-    const body = md.slice(bodyStart);
-    // Count body H1s up-front
-    const bodyH1s = (body.match(/^# /gm) || []).length;
-    if (bodyH1s === 0) return { md, newAbsoluteImageUrls: [], notes: [] };
-    // Demote every body H1 to H2, but only if the line is a real heading
-    // (starts at column 0, not inside a code fence).
+    let preamble = md.slice(0, bodyStart);
+    let body = md.slice(bodyStart);
+
+    // If the preamble's `# Title` is a TRUNCATED PREFIX of the first body H1
+    // (same words, body version extends further), replace the preamble
+    // title with the full body version and drop the body H1 — common on
+    // slugified-title fetches (blog.google etc.) where the slug chopped
+    // the real title mid-word. Only fires when the body H1 starts with
+    // the exact preamble title followed by a word boundary.
+    const preH1Match = preamble.match(/^# (.+)$/m);
+    const bodyH1Match = body.match(/^# (.+)$/m);
+    let titleFixed = false;
+    if (preH1Match && bodyH1Match) {
+      const preTitle = preH1Match[1].trim();
+      const bodyTitle = bodyH1Match[1].trim();
+      if (
+        preTitle.length < bodyTitle.length &&
+        bodyTitle.startsWith(preTitle) &&
+        /[\s\-\p{P}]/u.test(bodyTitle.charAt(preTitle.length))
+      ) {
+        preamble = preamble.replace(/^# .+$/m, `# ${bodyTitle}`);
+        body = body.replace(/^# .+\n+/m, "");
+        titleFixed = true;
+      }
+    }
+    // Demote every remaining body H1 to H2, fence-aware.
     const lines = body.split("\n");
     let inFence = false;
     let demoted = 0;
@@ -2807,7 +2878,9 @@ export const enforceSingleH1: PostProcessor = {
         demoted++;
       }
     }
-    if (demoted === 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    if (!titleFixed && demoted === 0) {
+      return { md, newAbsoluteImageUrls: [], notes: [] };
+    }
     let newBody = lines.join("\n");
     // Dedupe a consecutive-identical H2 pair (common after substack title
     // echo demotion: `## Title\n\n## Title`).
@@ -2815,10 +2888,13 @@ export const enforceSingleH1: PostProcessor = {
       /(^## [^\n]+\n)\n*\1/gm,
       "$1",
     );
+    const notes: string[] = [];
+    if (titleFixed) notes.push("enforce-single-h1: replaced truncated preamble title with full body H1");
+    if (demoted > 0) notes.push(`enforce-single-h1: demoted ${demoted} body H1(s) to H2`);
     return {
       md: preamble + newBody,
       newAbsoluteImageUrls: [],
-      notes: [`enforce-single-h1: demoted ${demoted} body H1(s) to H2`],
+      notes,
     };
   },
 };
@@ -2850,6 +2926,7 @@ export const PROCESSORS: PostProcessor[] = [
   // HuggingFace blog: fix KaTeX triple-math + engagement chrome (before articleCleanup)
   huggingfaceBlogReformat,
   // Generic article/blog sites cleanup
+  blogGoogleCleanup,
   articleCleanup,
   // Then generic URL resolution (acts on whatever markdown survived).
   resolveRelativeImageUrls,
