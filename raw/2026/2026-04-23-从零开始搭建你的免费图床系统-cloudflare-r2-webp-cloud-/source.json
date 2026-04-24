@@ -1,0 +1,233 @@
+{
+  "fetched_at": "2026-04-24T16:14:08.061Z",
+  "origin": "url:https://sspai.com/post/90170",
+  "origin_url": "https://sspai.com/post/90170",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "e0ae5a912c4b45149666ec6d71b6efb26617ad7c1555abb3e4fda1a252cd34b0",
+  "content_length": 17042,
+  "quality_flags": [
+    "login-wall-keyword"
+  ],
+  "quality_status": "flagged",
+  "images": [
+    {
+      "local": "images/img_001.JPG",
+      "remote": "",
+      "bytes": 2114
+    },
+    {
+      "local": "images/img_002.JPG",
+      "remote": "",
+      "bytes": 2964
+    },
+    {
+      "local": "images/img_003.jpeg",
+      "remote": "",
+      "bytes": 41310
+    },
+    {
+      "local": "images/img_004.png",
+      "remote": "",
+      "bytes": 38834
+    },
+    {
+      "local": "images/img_005.png",
+      "remote": "",
+      "bytes": 24960
+    },
+    {
+      "local": "images/img_006.png",
+      "remote": "",
+      "bytes": 76836
+    },
+    {
+      "local": "images/img_007.png",
+      "remote": "",
+      "bytes": 53114
+    },
+    {
+      "local": "images/img_008.png",
+      "remote": "",
+      "bytes": 87602
+    },
+    {
+      "local": "images/img_009.png",
+      "remote": "",
+      "bytes": 37492
+    },
+    {
+      "local": "images/img_010.png",
+      "remote": "",
+      "bytes": 27944
+    },
+    {
+      "local": "images/img_011.png",
+      "remote": "",
+      "bytes": 30654
+    },
+    {
+      "local": "images/img_012.png",
+      "remote": "",
+      "bytes": 47440
+    },
+    {
+      "local": "images/img_013.png",
+      "remote": "",
+      "bytes": 20060
+    },
+    {
+      "local": "images/img_014.png",
+      "remote": "",
+      "bytes": 40832
+    },
+    {
+      "local": "images/img_015.png",
+      "remote": "",
+      "bytes": 44694
+    },
+    {
+      "local": "images/img_016.png",
+      "remote": "",
+      "bytes": 34988
+    },
+    {
+      "local": "images/img_017.png",
+      "remote": "",
+      "bytes": 76628
+    },
+    {
+      "local": "images/img_018.png",
+      "remote": "",
+      "bytes": 70006
+    },
+    {
+      "local": "images/img_019.png",
+      "remote": "",
+      "bytes": 43552
+    },
+    {
+      "local": "images/img_020.png",
+      "remote": "",
+      "bytes": 32712
+    },
+    {
+      "local": "images/img_021.png",
+      "remote": "",
+      "bytes": 63976
+    },
+    {
+      "local": "images/img_022.png",
+      "remote": "",
+      "bytes": 44580
+    },
+    {
+      "local": "images/img_023.png",
+      "remote": "",
+      "bytes": 19192
+    },
+    {
+      "local": "images/img_024.png",
+      "remote": "",
+      "bytes": 125054
+    },
+    {
+      "local": "images/img_025.png",
+      "remote": "",
+      "bytes": 33884
+    },
+    {
+      "local": "images/img_026.png",
+      "remote": "",
+      "bytes": 85648
+    },
+    {
+      "local": "images/img_027.png",
+      "remote": "",
+      "bytes": 54230
+    },
+    {
+      "local": "images/img_028.png",
+      "remote": "",
+      "bytes": 75744
+    },
+    {
+      "local": "images/img_029.png",
+      "remote": "",
+      "bytes": 29048
+    },
+    {
+      "local": "images/img_030.png",
+      "remote": "",
+      "bytes": 103926
+    },
+    {
+      "local": "images/img_031.png",
+      "remote": "",
+      "bytes": 103918
+    },
+    {
+      "local": "images/img_032.jpeg",
+      "remote": "",
+      "bytes": 978
+    },
+    {
+      "local": "images/img_033.png",
+      "remote": "",
+      "bytes": 182
+    },
+    {
+      "local": "images/img_034.jpg",
+      "remote": "",
+      "bytes": 5432
+    },
+    {
+      "local": "images/img_035.png",
+      "remote": "",
+      "bytes": 580
+    },
+    {
+      "local": "images/img_036.JPG",
+      "remote": "",
+      "bytes": 460
+    },
+    {
+      "local": "images/img_037.JPG",
+      "remote": "",
+      "bytes": 2462
+    }
+  ],
+  "notes": [
+    "opencli adapter: sspai-blog",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8l5b34t8s07b8fhg.jpeg?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8ldb34t8g67no2q0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8llb34t8g5vb9ta0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8m5b34t8g67no2qg.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8mdb34t8s07b8fi0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8mlb34t8g5vb9tag.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8n5b34t8g5vb9tb0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8ndb34t8g2c7246g.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8nlb34t8s07b8fig.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8o5b34t8s07b8fj0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8odb34t8s07b8fjg.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8olb34t8g2c72470.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8otb34t8g5vb9tbg.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8p5b34t8g2c7247g.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8plb34t8g2c72480.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8ptb34t8g2c7248g.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8q5b34t8g2c72490.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8qlb34t8g2c7249g.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8qtb34t8g5vb9tc0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8r5b34t8g5vb9tcg.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8rdb34t8g5vb9td0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8rlb34t8g2c724a0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8s5b34t8s07b8fk0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8sdb34t8g2c724ag.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8stb34t8s07b8fkg.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8t5b34t8g5vb9tdg.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8tdb34t8g5vb9te0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8tlb34t8s07b8fl0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "image download failed: https://cdnfile.sspai.com/editor/u_/cq2b8u5b34t8g67no2r0.png?imageView2/2/w/1120/q/90/interlace/1/ignore-error/1/format/webp",
+    "37 images downloaded by adapter"
+  ]
+}

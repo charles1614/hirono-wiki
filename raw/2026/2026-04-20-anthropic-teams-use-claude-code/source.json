@@ -1,12 +1,13 @@
 {
-  "fetched_at": "2026-04-20T13:52:43.261Z",
+  "fetched_at": "2026-04-22T15:58:04.034Z",
   "origin": "url:https://www.anthropic.com/news/how-anthropic-teams-use-claude-code",
   "origin_url": "https://www.anthropic.com/news/how-anthropic-teams-use-claude-code",
   "fetcher": "opencli",
   "fetcher_reason": "direct",
-  "content_sha": "79cb225d45dd27dcc123efe50be5ebffcdc3ed3fb52be2ddb96005ed97b88147",
-  "content_length": 10558,
+  "content_sha": "b79469c54953d9dc83edf5b9cf086ad6606e607ca5afd5f0aa87ef6020a7496c",
+  "content_length": 10536,
   "quality_flags": [],
+  "quality_status": "good",
   "images": [
     {
       "local": "images/img_001.svg",
@@ -46,6 +47,5 @@
   ],
   "notes": [
     "7 images downloaded by adapter"
-  ],
-  "quality_status": "good"
+  ]
 }

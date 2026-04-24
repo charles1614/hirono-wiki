@@ -1,0 +1,59 @@
+{
+  "fetched_at": "2026-04-23T15:38:29.902Z",
+  "origin": "url:https://github.com/pytorch/torchtitan/blob/main/README.md",
+  "origin_url": "https://github.com/pytorch/torchtitan/blob/main/README.md",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "b0d0913550cb309c045cc14cf09ee8938dac73d9fe01b8af0ecf9863ea58c732",
+  "content_length": 10825,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "01-badge.svg",
+      "remote": "",
+      "bytes": 2317
+    },
+    {
+      "local": "02-badge.svg",
+      "remote": "",
+      "bytes": 2312
+    },
+    {
+      "local": "03-arXiv-2410.06511-b31b1b.svg",
+      "remote": "",
+      "bytes": 1110
+    },
+    {
+      "local": "04-ICLR-2025-violet.svg",
+      "remote": "",
+      "bytes": 1078
+    },
+    {
+      "local": "05-pytorch-forum-DE3412.svg",
+      "remote": "",
+      "bytes": 1095
+    },
+    {
+      "local": "06-license-BSD_3--Clause-lightgrey.svg",
+      "remote": "",
+      "bytes": 1126
+    },
+    {
+      "local": "07-image.bin",
+      "remote": "",
+      "bytes": 1087
+    },
+    {
+      "local": "08-image.bin",
+      "remote": "",
+      "bytes": 1118
+    }
+  ],
+  "notes": [
+    "opencli adapter: github-web",
+    "github-raw: fetched README.md from raw.githubusercontent.com (11166 chars, 8 image(s))",
+    "hirono post-processors: strip-empty-anchor-links",
+    "8 images downloaded by adapter"
+  ]
+}

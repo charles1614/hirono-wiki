@@ -1,0 +1,55 @@
+{
+  "fetched_at": "2026-04-23T06:44:38.546Z",
+  "origin": "url:https://lmsys.org/blog/2026-01-21-novita-glm4/",
+  "origin_url": "https://lmsys.org/blog/2026-01-21-novita-glm4/",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "77493509ad880b14c3c234e4967de721541ee096002548ed948dd21cb31b5190",
+  "content_length": 10112,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "01-shared-experts-fusion.png",
+      "remote": "https://lmsys.org/images/blog/novita-glm4/shared-experts-fusion.png",
+      "bytes": 283968
+    },
+    {
+      "local": "02-qknorm-fusion.png",
+      "remote": "https://lmsys.org/images/blog/novita-glm4/qknorm-fusion.png",
+      "bytes": 147633
+    },
+    {
+      "local": "03-async-transfer-schedule.png",
+      "remote": "https://lmsys.org/images/blog/novita-glm4/async-transfer-schedule.png",
+      "bytes": 50554
+    },
+    {
+      "local": "04-async-transfer-ttft.png",
+      "remote": "https://lmsys.org/images/blog/novita-glm4/async-transfer-ttft.png",
+      "bytes": 36688
+    },
+    {
+      "local": "05-benchmark-ttft.png",
+      "remote": "https://lmsys.org/images/blog/novita-glm4/benchmark-ttft.png",
+      "bytes": 83112
+    },
+    {
+      "local": "06-benchmark-tpot.png",
+      "remote": "https://lmsys.org/images/blog/novita-glm4/benchmark-tpot.png",
+      "bytes": 71183
+    },
+    {
+      "local": "07-suffix-decoding.png",
+      "remote": "https://lmsys.org/images/blog/novita-glm4/suffix-decoding.png",
+      "bytes": 154475
+    }
+  ],
+  "notes": [
+    "opencli adapter: lmsys-blog",
+    "hirono post-processors: resolve-relative-image-urls, unescape-brackets-in-links",
+    "resolved 7 relative image URL(s) against origin",
+    "un-escaped brackets in link text",
+    "7 images downloaded by post-processor"
+  ]
+}

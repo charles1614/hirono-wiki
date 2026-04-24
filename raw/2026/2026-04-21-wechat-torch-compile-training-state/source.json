@@ -1,0 +1,15 @@
+{
+  "fetched_at": "2026-04-22T16:08:51.055Z",
+  "origin": "url:https://mp.weixin.qq.com/s/cNTkNZyyETQrHDDYdSSyvw",
+  "origin_url": "https://mp.weixin.qq.com/s/cNTkNZyyETQrHDDYdSSyvw",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "05bcb6f15dab50f8bdfdc51daf7f1c99e79f9fbb0ccae89601b9ef9edf2eff81",
+  "content_length": 12906,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: wechat"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "fetched_at": "2026-04-23T07:24:40.111Z",
+  "origin": "url:https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/",
+  "origin_url": "https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "c099b089c6bc280b846bc112cea8d8fc7611aa1aeefe840a42aed51b5ee52584",
+  "content_length": 10495,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.webp",
+      "remote": "",
+      "bytes": 5826
+    },
+    {
+      "local": "images/img_002.gif",
+      "remote": "",
+      "bytes": 5044834
+    }
+  ],
+  "notes": [
+    "opencli adapter: google-blog",
+    "hirono post-processors: article-cleanup",
+    "article-cleanup: stripped 3 chrome lines",
+    "2 images downloaded by adapter"
+  ]
+}

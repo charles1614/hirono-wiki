@@ -551,14 +551,38 @@ function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 102
 }
 
 /** Download images + rewrite references in the markdown to local paths. */
-export function processImages(content: string, slugDir: string, enabled: boolean): { content: string; images: ImageRecord[]; notes: string[] } {
+export function processImages(content: string, slugDir: string, enabled: boolean, originUrl?: string): { content: string; images: ImageRecord[]; notes: string[] } {
   if (!enabled) return { content, images: [], notes: ["images: skipped (--no-images)"] };
-  const urls = extractImageUrls(content).filter((u) => /^https?:\/\//i.test(u));
-  if (urls.length === 0) return { content, images: [], notes: [] };
+  const all = extractImageUrls(content);
+  // Resolve site-relative refs (only starting with `/` or `../`) against
+  // originUrl when present. Without this, opencli's URL-stripping (lmsys,
+  // csdn, etc.) leaves `/images/foo.png` refs that processImages can't
+  // download because they aren't http(s) URLs. Refs like `images/img_001.png`
+  // or `01-foo.png` are left alone — those are already-local filenames the
+  // adapter produced, and resolving them against origin would generate a
+  // bogus remote URL and 404.
+  let rewritten = content;
+  const downloadList: Array<{ ref: string; url: string }> = [];
+  for (const ref of all) {
+    if (/^https?:\/\//i.test(ref)) {
+      downloadList.push({ ref, url: ref });
+      continue;
+    }
+    if (!originUrl) continue;
+    // Only resolve root-anchored (/foo) or explicit relative (./foo, ../foo).
+    // Bare `foo.png` or `images/foo.png` are already-local filenames.
+    if (!/^(?:\/|\.\.?\/)/.test(ref)) continue;
+    try {
+      const abs = new URL(ref, originUrl).toString();
+      if (/^https?:\/\//i.test(abs)) downloadList.push({ ref, url: abs });
+    } catch {
+      // Unresolvable — leave as-is
+    }
+  }
+  if (downloadList.length === 0) return { content, images: [], notes: [] };
   const records: ImageRecord[] = [];
   const notes: string[] = [];
-  let rewritten = content;
-  urls.forEach((url, i) => {
+  downloadList.forEach(({ ref, url }, i) => {
     const local = localNameFor(url, i + 1);
     const dest = join(slugDir, local);
     const bytes = downloadImage(url, dest);
@@ -567,8 +591,8 @@ export function processImages(content: string, slugDir: string, enabled: boolean
       return;
     }
     records.push({ local, remote: url, bytes });
-    // Rewrite all occurrences of the remote URL → local filename
-    rewritten = rewritten.split(url).join(local);
+    // Rewrite the ORIGINAL ref in markdown (may be absolute or relative).
+    rewritten = rewritten.split(ref).join(local);
   });
   return { content: rewritten, images: records, notes };
 }
@@ -3103,13 +3127,16 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     if (r.extraImageUrls) extraAbsoluteImageUrls.push(...r.extraImageUrls);
   }
 
-  // Download any newly-absolute image URLs surfaced by the transform.
-  // These are typically site-relative refs like `/images/foo.png` that
-  // the post-processor resolved against origin. Merge the successful
-  // downloads into the images array we hand to writeRawArchive.
+  // Unconditionally run processImages on the finalized markdown to catch
+  // any remote `![](https://...)` refs the opencli adapter missed and
+  // any new absolute URLs surfaced by the post-processor. Idempotent
+  // (skips non-http refs; already-local paths). Previously this only
+  // ran when the post-processor explicitly flagged new URLs, which left
+  // systemic remote-ref leakage on lmsys / sspai / semianalysis / csdn
+  // fetches where opencli's own --download-images is incomplete.
   const additionalImages: ImageRecord[] = [];
-  if (extraAbsoluteImageUrls.length > 0) {
-    const r = processImages(finalMarkdown, slugDir, opts.downloadImages);
+  if (opts.downloadImages) {
+    const r = processImages(finalMarkdown, slugDir, true, opts.url);
     finalMarkdown = r.content;
     additionalImages.push(...r.images);
     if (r.notes.length > 0) postProcessNotes.push(...r.notes);

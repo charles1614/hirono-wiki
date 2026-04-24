@@ -475,7 +475,7 @@ Moving on to the Trainium3 NL72x2 Switched SKU, the scale-up topology is somewha
 
 [
 
-![trn3 scale up switch roadmap](https://substackcdn.com/image/fetch/$s_!wFKF!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8d62d5fc-67c5-4a73-8a0b-7068b96f8f0a_2044x1084.png "trn3 scale up switch roadmap")
+![trn3 scale up switch roadmap](33-image.bin "trn3 scale up switch roadmap")
 
 
 ](https://substackcdn.com/image/fetch/$s_!wFKF!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8d62d5fc-67c5-4a73-8a0b-7068b96f8f0a_2044x1084.png)

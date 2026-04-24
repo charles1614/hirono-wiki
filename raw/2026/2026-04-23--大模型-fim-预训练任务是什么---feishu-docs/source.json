@@ -1,0 +1,40 @@
+{
+  "fetched_at": "2026-04-24T16:13:17.290Z",
+  "origin": "url:https://swfvqxo30ma.feishu.cn/wiki/J4CQwxPruisyFXk599AcIdDInPh",
+  "origin_url": "https://swfvqxo30ma.feishu.cn/wiki/J4CQwxPruisyFXk599AcIdDInPh",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "f5efdbdbcc95a1fea1d03a032240c8fd4540a4989c8cea212fb3190ee5785a84",
+  "content_length": 2427,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.webp",
+      "remote": "",
+      "bytes": 122013
+    },
+    {
+      "local": "images/img_002.webp",
+      "remote": "",
+      "bytes": 2537
+    },
+    {
+      "local": "01-img_001.webp",
+      "remote": "https://swfvqxo30ma.feishu.cn/wiki/images/img_001.webp",
+      "bytes": 94471
+    },
+    {
+      "local": "02-img_002.webp",
+      "remote": "https://swfvqxo30ma.feishu.cn/wiki/images/img_002.webp",
+      "bytes": 94471
+    }
+  ],
+  "notes": [
+    "opencli adapter: feishu-wiki",
+    "image download failed: https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/v2/cover/EbPybaNLbos015xGtyyc6sMwn1d/?fallback_source=1&height=1280&mount_node_token=doxcnVDeiaeGTkYIxpXF1gyFXCd&mount_point=docx_image&policy=equal&width=1280",
+    "image download failed: https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/v2/cover/TPAUbnnF3oRGzdxsHNrcg8I4nnh/?fallback_source=1&height=1280&mount_node_token=doxcnyIqUFiBMRZxYg9P6wdcLjf&mount_point=docx_image&policy=equal&width=1280",
+    "2 images downloaded by adapter",
+    "2 images downloaded by post-processor"
+  ]
+}

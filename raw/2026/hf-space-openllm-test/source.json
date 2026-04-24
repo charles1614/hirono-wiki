@@ -1,0 +1,16 @@
+{
+  "fetched_at": "2026-04-23T13:12:26.609Z",
+  "origin": "url:https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard",
+  "origin_url": "https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "cbe82286c2064395e28a3986aa8104d97a6bbc4b6b799587185843ccc6d255ea",
+  "content_length": 1794,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: huggingface-web",
+    "hf-space: fetched README from git repo (1852 chars raw, 1473 chars body, 0 image(s))"
+  ]
+}

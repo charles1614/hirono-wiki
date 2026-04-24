@@ -1,0 +1,136 @@
+{
+  "fetched_at": "2026-04-22T16:08:05.219Z",
+  "origin": "url:https://ai.meta.com/blog/spdl-faster-ai-model-training-with-thread-based-data-loading-reality-labs/",
+  "origin_url": "https://ai.meta.com/blog/spdl-faster-ai-model-training-with-thread-based-data-loading-reality-labs/",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "06f0551567a810739ba72062114a06183bc6bbfb614f567aa6fdc22d183ff498",
+  "content_length": 28340,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.svg",
+      "remote": "",
+      "bytes": 13990
+    },
+    {
+      "local": "images/img_002.png",
+      "remote": "",
+      "bytes": 73713
+    },
+    {
+      "local": "images/img_003.png",
+      "remote": "",
+      "bytes": 48963
+    },
+    {
+      "local": "images/img_004.png",
+      "remote": "",
+      "bytes": 94651
+    },
+    {
+      "local": "images/img_005.png",
+      "remote": "",
+      "bytes": 61957
+    },
+    {
+      "local": "images/img_006.png",
+      "remote": "",
+      "bytes": 98123
+    },
+    {
+      "local": "images/img_007.png",
+      "remote": "",
+      "bytes": 109148
+    },
+    {
+      "local": "images/img_008.png",
+      "remote": "",
+      "bytes": 27391
+    },
+    {
+      "local": "images/img_009.png",
+      "remote": "",
+      "bytes": 84130
+    },
+    {
+      "local": "images/img_010.png",
+      "remote": "",
+      "bytes": 175178
+    },
+    {
+      "local": "images/img_011.png",
+      "remote": "",
+      "bytes": 313747
+    },
+    {
+      "local": "images/img_012.png",
+      "remote": "",
+      "bytes": 41174
+    },
+    {
+      "local": "images/img_013.png",
+      "remote": "",
+      "bytes": 103529
+    },
+    {
+      "local": "images/img_014.png",
+      "remote": "",
+      "bytes": 106431
+    },
+    {
+      "local": "images/img_015.png",
+      "remote": "",
+      "bytes": 83145
+    },
+    {
+      "local": "images/img_016.gif",
+      "remote": "",
+      "bytes": 2315590
+    },
+    {
+      "local": "images/img_017.jpg",
+      "remote": "",
+      "bytes": 359753
+    },
+    {
+      "local": "images/img_018.png",
+      "remote": "",
+      "bytes": 772033
+    },
+    {
+      "local": "images/img_019.svg",
+      "remote": "",
+      "bytes": 768
+    },
+    {
+      "local": "images/img_020.svg",
+      "remote": "",
+      "bytes": 1015
+    },
+    {
+      "local": "images/img_021.svg",
+      "remote": "",
+      "bytes": 536
+    },
+    {
+      "local": "images/img_022.svg",
+      "remote": "",
+      "bytes": 1126
+    },
+    {
+      "local": "images/img_023.svg",
+      "remote": "",
+      "bytes": 806
+    },
+    {
+      "local": "images/img_024.svg",
+      "remote": "",
+      "bytes": 771
+    }
+  ],
+  "notes": [
+    "24 images downloaded by adapter"
+  ]
+}

@@ -1,0 +1,250 @@
+{
+  "fetched_at": "2026-04-23T12:31:54.386Z",
+  "origin": "url:https://huggingface.co/blog/1_58_llm_extreme_quantization",
+  "origin_url": "https://huggingface.co/blog/1_58_llm_extreme_quantization",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "5fa5c6d41381956fa1dabb5ec7a5b56d3d4d96628b55dc232ce5435b2af7b237",
+  "content_length": 46597,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_002.jpeg",
+      "remote": "",
+      "bytes": 11598
+    },
+    {
+      "local": "images/img_003.png",
+      "remote": "",
+      "bytes": 3512
+    },
+    {
+      "local": "images/img_004.png",
+      "remote": "",
+      "bytes": 5792
+    },
+    {
+      "local": "images/img_006.jpeg",
+      "remote": "",
+      "bytes": 10080
+    },
+    {
+      "local": "images/img_007.png",
+      "remote": "",
+      "bytes": 9570
+    },
+    {
+      "local": "images/img_008.jpeg",
+      "remote": "",
+      "bytes": 13840
+    },
+    {
+      "local": "images/img_009.png",
+      "remote": "",
+      "bytes": 6178
+    },
+    {
+      "local": "images/img_010.jpeg",
+      "remote": "",
+      "bytes": 9492
+    },
+    {
+      "local": "images/img_011.png",
+      "remote": "",
+      "bytes": 18908
+    },
+    {
+      "local": "images/img_012.jpeg",
+      "remote": "",
+      "bytes": 11806
+    },
+    {
+      "local": "images/img_013.png",
+      "remote": "",
+      "bytes": 45624
+    },
+    {
+      "local": "images/img_014.png",
+      "remote": "",
+      "bytes": 37568
+    },
+    {
+      "local": "images/img_015.png",
+      "remote": "",
+      "bytes": 47674
+    },
+    {
+      "local": "images/img_016.png",
+      "remote": "",
+      "bytes": 105381
+    },
+    {
+      "local": "images/img_017.png",
+      "remote": "",
+      "bytes": 108679
+    },
+    {
+      "local": "images/img_018.png",
+      "remote": "",
+      "bytes": 22432
+    },
+    {
+      "local": "images/img_019.png",
+      "remote": "",
+      "bytes": 18053
+    },
+    {
+      "local": "images/img_020.png",
+      "remote": "",
+      "bytes": 11427
+    },
+    {
+      "local": "images/img_021.png",
+      "remote": "",
+      "bytes": 10680
+    },
+    {
+      "local": "images/img_022.png",
+      "remote": "",
+      "bytes": 47096
+    },
+    {
+      "local": "images/img_023.png",
+      "remote": "",
+      "bytes": 117717
+    },
+    {
+      "local": "images/img_024.png",
+      "remote": "",
+      "bytes": 13288
+    },
+    {
+      "local": "images/img_025.png",
+      "remote": "",
+      "bytes": 37930
+    },
+    {
+      "local": "images/img_026.png",
+      "remote": "",
+      "bytes": 51940
+    },
+    {
+      "local": "images/img_027.png",
+      "remote": "",
+      "bytes": 41966
+    },
+    {
+      "local": "images/img_028.png",
+      "remote": "",
+      "bytes": 131222
+    },
+    {
+      "local": "images/img_029.png",
+      "remote": "",
+      "bytes": 79992
+    },
+    {
+      "local": "images/img_030.png",
+      "remote": "",
+      "bytes": 319243
+    },
+    {
+      "local": "images/img_031.png",
+      "remote": "",
+      "bytes": 154838
+    },
+    {
+      "local": "images/img_032.png",
+      "remote": "",
+      "bytes": 19135
+    },
+    {
+      "local": "images/img_033.png",
+      "remote": "",
+      "bytes": 54457
+    },
+    {
+      "local": "images/img_034.png",
+      "remote": "",
+      "bytes": 34524
+    },
+    {
+      "local": "images/img_035.png",
+      "remote": "",
+      "bytes": 5020
+    },
+    {
+      "local": "images/img_036.png",
+      "remote": "",
+      "bytes": 46047
+    },
+    {
+      "local": "images/img_037.png",
+      "remote": "",
+      "bytes": 44321
+    },
+    {
+      "local": "images/img_039.jpeg",
+      "remote": "",
+      "bytes": 10682
+    },
+    {
+      "local": "images/img_040.png",
+      "remote": "",
+      "bytes": 7262
+    },
+    {
+      "local": "images/img_042.png",
+      "remote": "",
+      "bytes": 8778
+    },
+    {
+      "local": "images/img_044.jpeg",
+      "remote": "",
+      "bytes": 9054
+    },
+    {
+      "local": "images/img_045.jpeg",
+      "remote": "",
+      "bytes": 6604
+    },
+    {
+      "local": "images/img_047.jpeg",
+      "remote": "",
+      "bytes": 10620
+    },
+    {
+      "local": "images/img_050.jpeg",
+      "remote": "",
+      "bytes": 12636
+    },
+    {
+      "local": "images/img_051.jpeg",
+      "remote": "",
+      "bytes": 6046
+    },
+    {
+      "local": "images/img_052.png",
+      "remote": "",
+      "bytes": 12028
+    },
+    {
+      "local": "images/img_054.jpeg",
+      "remote": "",
+      "bytes": 5452
+    }
+  ],
+  "notes": [
+    "opencli adapter: huggingface-web",
+    "hirono post-processors: huggingface-blog-reformat, unescape-brackets-in-links",
+    "hf: stripped Back-to-Articles nav",
+    "hf: stripped 22 heading anchor prefix(es)",
+    "hf: stripped duplicate-H1 + Published + Update-on-GitHub header",
+    "hf: reformatted 6 author block(s)",
+    "hf: collapsed 7 triple-rendered math line(s)",
+    "hf: truncated at trailing section (More-Articles / mentioned-in-article shells)",
+    "un-escaped brackets in link text",
+    "45 images downloaded by adapter"
+  ]
+}

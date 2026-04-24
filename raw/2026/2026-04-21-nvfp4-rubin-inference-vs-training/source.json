@@ -1,0 +1,76 @@
+{
+  "fetched_at": "2026-04-22T16:08:23.768Z",
+  "origin": "url:https://github.com/NVIDIA/TransformerEngine/issues/2565",
+  "origin_url": "https://github.com/NVIDIA/TransformerEngine/issues/2565",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "6ae6ec4c9af2ead9ffae25ba9e806bb96e1e402dcbc0f9e1ddfe1c6132e0d1fa",
+  "content_length": 6306,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.jpg",
+      "remote": "",
+      "bytes": 1544
+    },
+    {
+      "local": "images/img_002.jpg",
+      "remote": "",
+      "bytes": 1544
+    },
+    {
+      "local": "images/img_003.jpg",
+      "remote": "",
+      "bytes": 1533
+    },
+    {
+      "local": "images/img_004.jpg",
+      "remote": "",
+      "bytes": 1533
+    },
+    {
+      "local": "images/img_005.jpg",
+      "remote": "",
+      "bytes": 1567
+    },
+    {
+      "local": "images/img_006.jpg",
+      "remote": "",
+      "bytes": 2511
+    },
+    {
+      "local": "images/img_007.jpg",
+      "remote": "",
+      "bytes": 1434
+    },
+    {
+      "local": "images/img_008.jpg",
+      "remote": "",
+      "bytes": 1952
+    },
+    {
+      "local": "images/img_009.jpg",
+      "remote": "",
+      "bytes": 1942
+    },
+    {
+      "local": "images/img_010.jpg",
+      "remote": "",
+      "bytes": 1533
+    },
+    {
+      "local": "images/img_011.jpg",
+      "remote": "",
+      "bytes": 1544
+    },
+    {
+      "local": "images/img_012.jpg",
+      "remote": "",
+      "bytes": 1687
+    }
+  ],
+  "notes": [
+    "12 images downloaded by adapter"
+  ]
+}

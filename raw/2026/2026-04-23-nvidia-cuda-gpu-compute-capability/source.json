@@ -1,0 +1,15 @@
+{
+  "fetched_at": "2026-04-23T06:48:00.427Z",
+  "origin": "url:https://developer.nvidia.com/cuda/gpus",
+  "origin_url": "https://developer.nvidia.com/cuda/gpus",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "6c83322dbea208758a11a04cd575d86ec64b9b550e777a25e89f1f8c79727991",
+  "content_length": 2341,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: nvidia-dev"
+  ]
+}

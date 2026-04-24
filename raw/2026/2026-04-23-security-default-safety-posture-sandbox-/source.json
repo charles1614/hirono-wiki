@@ -1,0 +1,158 @@
+{
+  "fetched_at": "2026-04-23T15:39:02.213Z",
+  "origin": "url:https://github.com/openclaw/openclaw/issues/7827",
+  "origin_url": "https://github.com/openclaw/openclaw/issues/7827",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "0581e418836d9872bb3aa442dfaa23ed9bd9a9f9a7a33148da5364612b1af9b2",
+  "content_length": 8401,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.jpg",
+      "remote": "",
+      "bytes": 1857
+    },
+    {
+      "local": "images/img_002.jpg",
+      "remote": "",
+      "bytes": 9034
+    },
+    {
+      "local": "images/img_003.jpg",
+      "remote": "",
+      "bytes": 3888
+    },
+    {
+      "local": "images/img_004.jpg",
+      "remote": "",
+      "bytes": 6137
+    },
+    {
+      "local": "images/img_005.jpg",
+      "remote": "",
+      "bytes": 1804
+    },
+    {
+      "local": "images/img_006.jpg",
+      "remote": "",
+      "bytes": 4970
+    },
+    {
+      "local": "images/img_007.jpg",
+      "remote": "",
+      "bytes": 2156
+    },
+    {
+      "local": "images/img_008.jpg",
+      "remote": "",
+      "bytes": 1369
+    },
+    {
+      "local": "images/img_009.jpg",
+      "remote": "",
+      "bytes": 1567
+    },
+    {
+      "local": "images/img_010.jpg",
+      "remote": "",
+      "bytes": 7141
+    },
+    {
+      "local": "images/img_011.jpg",
+      "remote": "",
+      "bytes": 2698
+    },
+    {
+      "local": "images/img_012.jpg",
+      "remote": "",
+      "bytes": 1559
+    },
+    {
+      "local": "images/img_013.jpg",
+      "remote": "",
+      "bytes": 1547
+    },
+    {
+      "local": "images/img_014.jpg",
+      "remote": "",
+      "bytes": 1547
+    },
+    {
+      "local": "images/img_015.jpg",
+      "remote": "",
+      "bytes": 1547
+    },
+    {
+      "local": "images/img_016.jpg",
+      "remote": "",
+      "bytes": 1408
+    },
+    {
+      "local": "images/img_017.jpg",
+      "remote": "",
+      "bytes": 1424
+    },
+    {
+      "local": "images/img_018.jpg",
+      "remote": "",
+      "bytes": 1612
+    },
+    {
+      "local": "images/img_019.jpg",
+      "remote": "",
+      "bytes": 1554
+    },
+    {
+      "local": "images/img_020.jpg",
+      "remote": "",
+      "bytes": 1127
+    },
+    {
+      "local": "images/img_021.jpg",
+      "remote": "",
+      "bytes": 6068
+    },
+    {
+      "local": "images/img_022.jpg",
+      "remote": "",
+      "bytes": 2404
+    },
+    {
+      "local": "images/img_023.jpg",
+      "remote": "",
+      "bytes": 1381
+    },
+    {
+      "local": "images/img_024.jpg",
+      "remote": "",
+      "bytes": 1952
+    },
+    {
+      "local": "images/img_025.jpg",
+      "remote": "",
+      "bytes": 1543
+    }
+  ],
+  "notes": [
+    "opencli adapter: github-web",
+    "github-api: augmented with 1 comment(s) from REST API",
+    "hirono post-processors: github-strip-ui-chrome, unescape-brackets-in-links",
+    "github: collapsed OP identity block into attribution heading",
+    "github: demoted OP-body heading levels to nest under attribution",
+    "github: collapsed 4 label link(s)",
+    "github: collapsed 19 activity-event block(s)",
+    "github: collapsed 3 comment-header block(s)",
+    "github: collapsed 4 commit-reference block(s)",
+    "github: stripped pagination chrome (5 items behind \"Load more\" not fetched)",
+    "github: collapsed 5 alt-format commit-reference block(s)",
+    "github: stripped 9 avatar image(s)",
+    "github: stripped inline empty-anchor participant list",
+    "github: stripped 28 activity-timeline line(s) (keeping only OP + comments)",
+    "github: stripped 9 UI-chrome lines",
+    "github: truncated at sidebar",
+    "un-escaped brackets in link text",
+    "25 images downloaded by adapter"
+  ]
+}

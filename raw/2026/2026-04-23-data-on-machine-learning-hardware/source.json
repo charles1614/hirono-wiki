@@ -1,0 +1,25 @@
+{
+  "fetched_at": "2026-04-23T06:46:07.074Z",
+  "origin": "url:https://epoch.ai/data/machine-learning-hardware#explore-the-data",
+  "origin_url": "https://epoch.ai/data/machine-learning-hardware#explore-the-data",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "d87c2b7b495687e389f209d30957e7ed2123aed88c494f391b589c94d3aa5418",
+  "content_length": 3376,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "01-show-sidebar.svg",
+      "remote": "https://epoch.ai/assets/icons/show-sidebar.svg",
+      "bytes": 388
+    }
+  ],
+  "notes": [
+    "opencli adapter: epoch-research",
+    "web-read: used domain-override wait=20s",
+    "hirono post-processors: resolve-relative-image-urls",
+    "resolved 1 relative image URL(s) against origin",
+    "1 images downloaded by post-processor"
+  ]
+}

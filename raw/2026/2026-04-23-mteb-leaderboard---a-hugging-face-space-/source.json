@@ -1,0 +1,17 @@
+{
+  "fetched_at": "2026-04-23T13:12:23.934Z",
+  "origin": "url:https://huggingface.co/spaces/mteb/leaderboard",
+  "origin_url": "https://huggingface.co/spaces/mteb/leaderboard",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "cce23a383f67ffc98bc782c438b41d95ca4b46fd38d4f5a4523a1d38991515a0",
+  "content_length": 395,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: huggingface-web",
+    "hirono post-processors: huggingface-spaces-stub",
+    "hf-spaces: produced metadata stub for mteb/leaderboard"
+  ]
+}

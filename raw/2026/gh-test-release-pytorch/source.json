@@ -1,0 +1,16 @@
+{
+  "fetched_at": "2026-04-23T15:38:49.822Z",
+  "origin": "url:https://github.com/pytorch/pytorch/releases/tag/v2.5.0",
+  "origin_url": "https://github.com/pytorch/pytorch/releases/tag/v2.5.0",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "cde5a7dd3ff27b8174209bcd7aaf62f903eb04ca70513ffeb5fe2d4adf56cafb",
+  "content_length": 91080,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: github-web",
+    "github-release: fetched v2.5.0 notes via REST API (90844 chars body, 0 image(s))"
+  ]
+}

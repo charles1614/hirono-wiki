@@ -20,51 +20,7 @@ Claude
 
 Code
 
-Teams
-
-across
-
-Anthropic
-
-use
-
-Claude
-
-Code
-
-for
-
-everything
-
-from
-
-debugging
-
-production
-
-issues
-
-and
-
-navigating
-
-unfamiliar
-
-codebases
-
-to
-
-building
-
-custom
-
-automation
-
-tools.
-
-Here's
-
-how.
+Teams across Anthropic use Claude Code for everything from debugging production issues and navigating unfamiliar codebases to building custom automation tools. Here's how.
 
 [](#)
 

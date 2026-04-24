@@ -1,0 +1,26 @@
+{
+  "fetched_at": "2026-04-23T04:43:15.514Z",
+  "origin": "url:https://www.reddit.com/r/ClaudeAI/s/UgkMOt8PZn",
+  "origin_url": "https://www.reddit.com/r/ClaudeAI/s/UgkMOt8PZn",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "f7dc6e7f9af2dbb4a3aeb5f0a1c6dee7fd5f0531c21d581f730c806567d8e9ce",
+  "content_length": 211,
+  "quality_flags": [
+    "short-body"
+  ],
+  "quality_status": "flagged",
+  "images": [
+    {
+      "local": "images/img_001.jpg",
+      "remote": "",
+      "bytes": 8889
+    }
+  ],
+  "notes": [
+    "opencli adapter: reddit-web",
+    "hirono post-processors: reddit-reformat",
+    "reddit: fetched via share short-URL (https://www.reddit.com/r/ClaudeAI/s/UgkMOt8PZn); content is the redirected thread",
+    "1 images downloaded by adapter"
+  ]
+}

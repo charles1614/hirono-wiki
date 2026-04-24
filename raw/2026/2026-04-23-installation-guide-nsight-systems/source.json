@@ -1,0 +1,16 @@
+{
+  "fetched_at": "2026-04-23T07:14:38.643Z",
+  "origin": "url:https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html",
+  "origin_url": "https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "37f2232374d9efc793b0c7af6f62c29396b0eeb400aaff2fd0e2dd59938098f3",
+  "content_length": 25606,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: nvidia-docs",
+    "hirono post-processors: article-cleanup"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "fetched_at": "2026-04-23T05:48:53.082Z",
+  "origin": "url:https://upiwgvvcb4.feishu.cn/wiki/RT9hw9alFi3vkAkv9mhcmuq8nBf?fromScene=spaceOverview",
+  "origin_url": "https://upiwgvvcb4.feishu.cn/wiki/RT9hw9alFi3vkAkv9mhcmuq8nBf?fromScene=spaceOverview",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "4b4a0b2cf408dd393a661472e78ebb8f8ae702b4436246c839f9e8796a62a139",
+  "content_length": 2704,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.webp",
+      "remote": "",
+      "bytes": 122013
+    }
+  ],
+  "notes": [
+    "opencli adapter: feishu-wiki",
+    "1 images downloaded by adapter"
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "fetched_at": "2026-04-23T06:30:30.137Z",
+  "origin": "url:https://qwen.ai/blog?id=qwen3.5",
+  "origin_url": "https://qwen.ai/blog?id=qwen3.5",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "3437e8ccb1b2d1c57805dacd9ed572e20f9835a5134382d64c1aab97b0d1780e",
+  "content_length": 104928,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.png",
+      "remote": "",
+      "bytes": 1585038
+    },
+    {
+      "local": "images/img_002.png",
+      "remote": "",
+      "bytes": 2390876
+    },
+    {
+      "local": "images/img_003.png",
+      "remote": "",
+      "bytes": 189081
+    },
+    {
+      "local": "images/img_004.png",
+      "remote": "",
+      "bytes": 786399
+    },
+    {
+      "local": "images/img_005.jpg",
+      "remote": "",
+      "bytes": 343151
+    },
+    {
+      "local": "images/img_006.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "images/img_007.jpg",
+      "remote": "",
+      "bytes": 486134
+    },
+    {
+      "local": "images/img_008.jpg",
+      "remote": "",
+      "bytes": 478893
+    },
+    {
+      "local": "images/img_009.jpg",
+      "remote": "",
+      "bytes": 478558
+    },
+    {
+      "local": "images/img_010.jpg",
+      "remote": "",
+      "bytes": 487838
+    },
+    {
+      "local": "images/img_011.jpg",
+      "remote": "",
+      "bytes": 466097
+    },
+    {
+      "local": "images/img_012.png",
+      "remote": "",
+      "bytes": 5238612
+    },
+    {
+      "local": "images/img_013.png",
+      "remote": "",
+      "bytes": 5234334
+    },
+    {
+      "local": "images/img_014.jpg",
+      "remote": "",
+      "bytes": 51118
+    },
+    {
+      "local": "images/img_015.png",
+      "remote": "",
+      "bytes": 84688
+    },
+    {
+      "local": "images/img_017.png",
+      "remote": "",
+      "bytes": 82092
+    },
+    {
+      "local": "images/img_019.png",
+      "remote": "",
+      "bytes": 269765
+    },
+    {
+      "local": "images/img_020.jpeg",
+      "remote": "",
+      "bytes": 66042
+    }
+  ],
+  "notes": [
+    "opencli adapter: qwen-blog",
+    "web-read: used domain-override wait=20s",
+    "hirono post-processors: article-cleanup, unescape-brackets-in-links",
+    "un-escaped brackets in link text",
+    "18 images downloaded by adapter"
+  ]
+}

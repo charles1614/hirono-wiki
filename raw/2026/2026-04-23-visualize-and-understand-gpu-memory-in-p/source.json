@@ -1,0 +1,151 @@
+{
+  "fetched_at": "2026-04-23T13:17:23.617Z",
+  "origin": "url:https://huggingface.co/blog/train_memory",
+  "origin_url": "https://huggingface.co/blog/train_memory",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "ed29726b44da5bddce905000b2cfe28e96434d835538e5da613eb9dc519c0aa6",
+  "content_length": 13948,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.jpeg",
+      "remote": "",
+      "bytes": 11806
+    },
+    {
+      "local": "images/img_002.jpeg",
+      "remote": "",
+      "bytes": 20826
+    },
+    {
+      "local": "images/img_003.png",
+      "remote": "",
+      "bytes": 6178
+    },
+    {
+      "local": "images/img_005.jpeg",
+      "remote": "",
+      "bytes": 6046
+    },
+    {
+      "local": "images/img_006.jpeg",
+      "remote": "",
+      "bytes": 6656
+    },
+    {
+      "local": "images/img_007.jpeg",
+      "remote": "",
+      "bytes": 8780
+    },
+    {
+      "local": "images/img_008.png",
+      "remote": "",
+      "bytes": 152218
+    },
+    {
+      "local": "images/img_009.png",
+      "remote": "",
+      "bytes": 139821
+    },
+    {
+      "local": "images/img_010.png",
+      "remote": "",
+      "bytes": 114871
+    },
+    {
+      "local": "images/img_011.png",
+      "remote": "",
+      "bytes": 285804
+    },
+    {
+      "local": "images/img_012.png",
+      "remote": "",
+      "bytes": 269916
+    },
+    {
+      "local": "images/img_013.png",
+      "remote": "",
+      "bytes": 12406
+    },
+    {
+      "local": "images/img_015.jpeg",
+      "remote": "",
+      "bytes": 9028
+    },
+    {
+      "local": "images/img_016.jpeg",
+      "remote": "",
+      "bytes": 17020
+    },
+    {
+      "local": "images/img_017.png",
+      "remote": "",
+      "bytes": 24660
+    },
+    {
+      "local": "images/img_019.jpeg",
+      "remote": "",
+      "bytes": 9712
+    },
+    {
+      "local": "images/img_020.jpeg",
+      "remote": "",
+      "bytes": 3442
+    },
+    {
+      "local": "images/img_021.jpeg",
+      "remote": "",
+      "bytes": 21134
+    },
+    {
+      "local": "images/img_022.jpeg",
+      "remote": "",
+      "bytes": 9492
+    },
+    {
+      "local": "images/img_025.jpeg",
+      "remote": "",
+      "bytes": 9852
+    },
+    {
+      "local": "images/img_026.jpeg",
+      "remote": "",
+      "bytes": 4784
+    },
+    {
+      "local": "images/img_027.jpeg",
+      "remote": "",
+      "bytes": 9334
+    },
+    {
+      "local": "images/img_029.png",
+      "remote": "",
+      "bytes": 12028
+    },
+    {
+      "local": "images/img_030.jpeg",
+      "remote": "",
+      "bytes": 9004
+    },
+    {
+      "local": "images/img_031.jpeg",
+      "remote": "",
+      "bytes": 15954
+    }
+  ],
+  "notes": [
+    "opencli adapter: huggingface-web",
+    "hirono post-processors: huggingface-blog-reformat, unescape-brackets-in-links",
+    "hf: stripped Back-to-Articles nav",
+    "hf: stripped 12 heading anchor prefix(es)",
+    "hf: stripped duplicate-H1 + Published + Update-on-GitHub header",
+    "hf: reformatted 1 author block(s)",
+    "hf: collapsed 19 triple-rendered math line(s)",
+    "hf: collapsed single-variable triplets (e.g. `N N N` → `$N$`)",
+    "hf: truncated at trailing section (More-Articles / mentioned-in-article shells)",
+    "un-escaped brackets in link text",
+    "25 images downloaded by adapter"
+  ]
+}

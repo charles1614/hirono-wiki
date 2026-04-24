@@ -1,0 +1,20 @@
+{
+  "fetched_at": "2026-04-23T23:37:18.265Z",
+  "origin": "url:https://wiki.litenext.digital/wiki/slime?file=02-distributed-orchestration",
+  "origin_url": "https://wiki.litenext.digital/wiki/slime?file=02-distributed-orchestration",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "d0f2bd4216b7e61c24bc90da1e4efa7dcc5337ceae8939ade1c43994b5d26eea",
+  "content_length": 29105,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: deepwiki-litenext",
+    "web-read: used domain-override wait=20s",
+    "deepwiki: spliced 10 mermaid source(s) from rendered DOM",
+    "deepwiki: spliced 1/1 table(s) from rendered DOM",
+    "hirono post-processors: deepwiki-strip-file-nav",
+    "deepwiki: stripped file-navigator chrome (274 chars)"
+  ]
+}

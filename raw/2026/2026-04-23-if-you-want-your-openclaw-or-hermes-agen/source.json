@@ -1,0 +1,33 @@
+{
+  "fetched_at": "2026-04-23T13:00:10.734Z",
+  "origin": "url:https://x.com/garrytan/status/2042497872114090069?s=12&t=NY2Gen7OO07bmDYBV03nRg",
+  "origin_url": "https://x.com/garrytan/status/2042497872114090069?s=12&t=NY2Gen7OO07bmDYBV03nRg",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "af909c3959f1aeea3c699f397064d2fc1c911db57a8f5bd7ba83f59b80fa51ee",
+  "content_length": 1205,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.jpg",
+      "remote": "",
+      "bytes": 1959
+    },
+    {
+      "local": "images/img_002.png",
+      "remote": "",
+      "bytes": 1265
+    },
+    {
+      "local": "images/img_003.jpg",
+      "remote": "",
+      "bytes": 19904
+    }
+  ],
+  "notes": [
+    "opencli adapter: x-metadata-stub",
+    "hirono post-processors: strip-empty-anchor-links",
+    "3 images downloaded by adapter"
+  ]
+}

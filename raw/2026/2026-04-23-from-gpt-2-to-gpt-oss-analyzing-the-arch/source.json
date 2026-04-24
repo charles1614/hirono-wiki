@@ -1,0 +1,189 @@
+{
+  "fetched_at": "2026-04-23T04:11:09.698Z",
+  "origin": "url:https://sebastianraschka.com/blog/2025/from-gpt-2-to-gpt-oss.html",
+  "origin_url": "https://sebastianraschka.com/blog/2025/from-gpt-2-to-gpt-oss.html",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "a78ca4546a96cca39d7488438e2227f401c9e68f3788ebead660245ded484275",
+  "content_length": 38062,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.jpeg",
+      "remote": "",
+      "bytes": 2302
+    },
+    {
+      "local": "images/img_002.jpeg",
+      "remote": "",
+      "bytes": 1444
+    },
+    {
+      "local": "images/img_003.png",
+      "remote": "",
+      "bytes": 245493
+    },
+    {
+      "local": "images/img_004.png",
+      "remote": "",
+      "bytes": 13963
+    },
+    {
+      "local": "images/img_005.png",
+      "remote": "",
+      "bytes": 222758
+    },
+    {
+      "local": "images/img_006.png",
+      "remote": "",
+      "bytes": 111439
+    },
+    {
+      "local": "images/img_007.png",
+      "remote": "",
+      "bytes": 67724
+    },
+    {
+      "local": "images/img_008.png",
+      "remote": "",
+      "bytes": 88769
+    },
+    {
+      "local": "images/img_009.png",
+      "remote": "",
+      "bytes": 165552
+    },
+    {
+      "local": "images/img_010.png",
+      "remote": "",
+      "bytes": 198834
+    },
+    {
+      "local": "images/img_011.png",
+      "remote": "",
+      "bytes": 101137
+    },
+    {
+      "local": "images/img_012.png",
+      "remote": "",
+      "bytes": 67087
+    },
+    {
+      "local": "images/img_013.jpeg",
+      "remote": "",
+      "bytes": 222756
+    },
+    {
+      "local": "images/img_014.png",
+      "remote": "",
+      "bytes": 114687
+    },
+    {
+      "local": "images/img_015.png",
+      "remote": "",
+      "bytes": 186701
+    },
+    {
+      "local": "images/img_016.png",
+      "remote": "",
+      "bytes": 283417
+    },
+    {
+      "local": "images/img_017.png",
+      "remote": "",
+      "bytes": 270882
+    },
+    {
+      "local": "images/img_018.png",
+      "remote": "",
+      "bytes": 85886
+    },
+    {
+      "local": "images/img_019.png",
+      "remote": "",
+      "bytes": 254039
+    },
+    {
+      "local": "images/img_020.png",
+      "remote": "",
+      "bytes": 189728
+    },
+    {
+      "local": "images/img_021.png",
+      "remote": "",
+      "bytes": 189343
+    },
+    {
+      "local": "images/img_022.png",
+      "remote": "",
+      "bytes": 12644
+    },
+    {
+      "local": "images/img_023.png",
+      "remote": "",
+      "bytes": 87259
+    },
+    {
+      "local": "images/img_024.png",
+      "remote": "",
+      "bytes": 58602
+    },
+    {
+      "local": "images/img_025.png",
+      "remote": "",
+      "bytes": 170655
+    },
+    {
+      "local": "images/img_026.png",
+      "remote": "",
+      "bytes": 94055
+    },
+    {
+      "local": "images/img_027.png",
+      "remote": "",
+      "bytes": 218016
+    },
+    {
+      "local": "images/img_028.jpeg",
+      "remote": "",
+      "bytes": 140338
+    },
+    {
+      "local": "images/img_029.png",
+      "remote": "",
+      "bytes": 798
+    },
+    {
+      "local": "images/img_030.png",
+      "remote": "",
+      "bytes": 1903
+    },
+    {
+      "local": "images/img_031.png",
+      "remote": "",
+      "bytes": 1885
+    },
+    {
+      "local": "images/img_032.png",
+      "remote": "",
+      "bytes": 1895
+    },
+    {
+      "local": "images/img_033.png",
+      "remote": "",
+      "bytes": 1846
+    }
+  ],
+  "notes": [
+    "opencli adapter: sebastianraschka-blog",
+    "hirono post-processors: substack-reformat, strip-empty-anchor-links, unescape-brackets-in-links",
+    "substack: stripped 4 header-chrome line(s)",
+    "substack: collapsed 1 embedded post card(s)",
+    "substack: unwrapped click-to-enlarge image links",
+    "substack: truncated at paywall/subscribe/engagement widget",
+    "stripped 1 empty-text anchor link(s)",
+    "un-escaped brackets in link text",
+    "33 images downloaded by adapter"
+  ]
+}

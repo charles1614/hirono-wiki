@@ -1,0 +1,26 @@
+{
+  "fetched_at": "2026-04-23T12:12:42.084Z",
+  "origin": "url:https://huggingface.co/blog/deepseek-r1",
+  "origin_url": "https://huggingface.co/blog/deepseek-r1",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "6a320c812e041caebcc23e2ff3d29f0e9f5f2d284e3d07e97b5b49225d94fde8",
+  "content_length": 135,
+  "quality_flags": [
+    "short-body"
+  ],
+  "quality_status": "flagged",
+  "images": [
+    {
+      "local": "01-huggingface_logo_unhappy.svg",
+      "remote": "https://huggingface.co/front/assets/huggingface_logo_unhappy.svg",
+      "bytes": 5618
+    }
+  ],
+  "notes": [
+    "opencli adapter: huggingface-web",
+    "hirono post-processors: huggingface-blog-reformat, resolve-relative-image-urls",
+    "resolved 1 relative image URL(s) against origin",
+    "1 images downloaded by post-processor"
+  ]
+}

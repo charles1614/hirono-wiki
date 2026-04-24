@@ -1,0 +1,79 @@
+{
+  "fetched_at": "2026-04-23T13:12:50.357Z",
+  "origin": "url:https://huggingface.co/blog/moe",
+  "origin_url": "https://huggingface.co/blog/moe",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "f59fc96b0028e9ae74d29f2ebb050b37b367e35ec91154efd44454158a03146e",
+  "content_length": 32798,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "01-00_switch_transformer.png",
+      "remote": "",
+      "bytes": 180810
+    },
+    {
+      "local": "02-01_moe_layer.png",
+      "remote": "",
+      "bytes": 45000
+    },
+    {
+      "local": "03-02_moe_block.png",
+      "remote": "",
+      "bytes": 154592
+    },
+    {
+      "local": "04-03_switch_layer.png",
+      "remote": "",
+      "bytes": 83706
+    },
+    {
+      "local": "05-04_switch_table.png",
+      "remote": "",
+      "bytes": 39742
+    },
+    {
+      "local": "06-05_experts_learning.png",
+      "remote": "",
+      "bytes": 177540
+    },
+    {
+      "local": "07-06_superglue_curves.png",
+      "remote": "",
+      "bytes": 110440
+    },
+    {
+      "local": "08-07_superglue_bars.png",
+      "remote": "",
+      "bytes": 29256
+    },
+    {
+      "local": "09-08_superglue_dense_vs_sparse.png",
+      "remote": "",
+      "bytes": 42814
+    },
+    {
+      "local": "10-09_fine_tune_evals.png",
+      "remote": "",
+      "bytes": 45463
+    },
+    {
+      "local": "11-10_parallelism.png",
+      "remote": "",
+      "bytes": 113103
+    },
+    {
+      "local": "12-11_expert_matmuls.png",
+      "remote": "",
+      "bytes": 71816
+    }
+  ],
+  "notes": [
+    "opencli adapter: huggingface-web",
+    "huggingface: opencli extraction failed; fell back to GitHub raw (33688 chars, 6 author(s), 12 image(s))",
+    "hirono post-processors: huggingface-blog-reformat",
+    "12 images downloaded by adapter"
+  ]
+}
