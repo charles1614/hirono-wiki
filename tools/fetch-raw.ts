@@ -1810,19 +1810,24 @@ function renderMarkdownTable(rows: string[][]): string {
  * Skips tables whose heading can't be found — we leave them out rather than
  * risk inserting at the wrong location. (Future improvement: fuzzy match on
  * first-paragraph-text when no heading matches.)
+ *
+ * Returns `{ md, matched, skipped }` so the caller can flag partial splices.
  */
-function spliceDeepwikiTables(md: string, tables: DeepwikiTable[]): string {
-  if (tables.length === 0) return md;
+function spliceDeepwikiTables(md: string, tables: DeepwikiTable[]): { md: string; matched: number; skipped: number } {
+  if (tables.length === 0) return { md, matched: 0, skipped: 0 };
   let current = md;
+  let matched = 0;
+  let skipped = 0;
   for (const t of tables) {
-    if (!t.precedingHeading || t.rows.length === 0) continue;
+    if (!t.precedingHeading || t.rows.length === 0) { skipped++; continue; }
 
     // Escape regex chars in the heading
     const esc = t.precedingHeading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(`^(#{1,6}\\s+${esc}\\s*)$`, "m");
     const match = re.exec(current);
-    if (!match) continue;
+    if (!match) { skipped++; continue; }
     const insertAt = (match.index ?? 0) + match[0].length;
+    matched++;
 
     // Remove the plain-text cell-run that follows the heading, if it matches
     // this table's cells. opencli's DOM-to-markdown converter turns table
@@ -1839,7 +1844,7 @@ function spliceDeepwikiTables(md: string, tables: DeepwikiTable[]): string {
     const insertion = "\n\n" + tableMd + "\n";
     current = current.slice(0, insertAt) + insertion + current.slice(insertAt);
   }
-  return current;
+  return { md: current, matched, skipped };
 }
 
 /**
@@ -1901,21 +1906,47 @@ function findPlainTextCellRunEnd(md: string, start: number, rows: string[][]): n
 
 /**
  * Splice mermaid sources into a deepwiki markdown output. Walks the markdown
- * looking for "diagram-node runs" (runs of ≥6 consecutive short lines that
+ * looking for "diagram-node runs" (runs of consecutive short lines that
  * aren't markdown-formatted — the signature of an exploded mermaid diagram)
  * and replaces each such run with the Nth entry from `mermaidSources`.
  *
- * When we have MORE diagram runs than mermaid sources (shouldn't happen but
- * defensive), the extra runs are left as-is for the post-processor fallback
- * to wrap in plain code blocks.
+ * The minimum run length is adaptive: derived from the smallest extracted
+ * source's node count (clamped to [3, 6]). This keeps us from mis-splicing
+ * into non-diagram short-line clusters while still catching small diagrams
+ * (sequence, state, ER) that have as few as 3–4 exploded labels.
+ *
+ * Returns `{ md, placed, total }` so the caller can flag when we placed
+ * fewer diagrams than were extracted (silent-miss guard).
  */
-function spliceDeepwikiMermaid(md: string, mermaidSources: string[]): string {
-  if (mermaidSources.length === 0) return md;
+function spliceDeepwikiMermaid(md: string, mermaidSources: string[]): { md: string; placed: number; total: number } {
+  if (mermaidSources.length === 0) return { md, placed: 0, total: 0 };
+  // Adaptive threshold: smallest source's identifier-line count, clamped to [3, 6].
+  // A mermaid source like `graph LR\n  A --> B\n  B --> C` has ~3 content lines;
+  // opencli's exploded rendering produces one line per node label, so the run
+  // should have at least that many short lines.
+  const sourceLineCounts = mermaidSources.map((s) =>
+    s.split("\n").filter((l) => l.trim().length > 0).length,
+  );
+  const smallest = Math.min(...sourceLineCounts);
+  const minRun = Math.max(3, Math.min(6, Math.floor(smallest / 2) || 3));
   const lines = md.split("\n");
   const out: string[] = [];
   const isDiagramNode = (t: string): boolean => {
-    if (t.length === 0 || t.length > 40) return false;
-    if (t.split(/\s+/).length > 5) return false;
+    if (t.length === 0) return false;
+    // Presence of literal `\\n` is a strong mermaid-label signal — mermaid
+    // uses `\n` inside node labels for manual line breaks, which opencli
+    // renders as the escaped literal `\\n` in markdown. Normal prose never
+    // contains this. Accept any length when seen.
+    if (/\\n|\\_/.test(t)) {
+      if (t.length > 200) return false;  // sanity cap
+      return true;
+    }
+    // Tightened generic rules: short lines with few words, no markdown markers.
+    // Previous caps (40 chars / 5 words) were too strict for mermaid labels
+    // like `Critic slice (optional)\n[actor_num_gpus : actor+critic_num_gpus]`
+    // which split into 7+ tokens and exceed 40 chars. Widened to 80/10.
+    if (t.length > 80) return false;
+    if (t.split(/\s+/).length > 10) return false;
     if (/^[#\-*>![|`]/.test(t)) return false;
     if (/^\d+\./.test(t)) return false;
     if (/^(?:image|img)\//i.test(t)) return false;
@@ -1947,7 +1978,7 @@ function spliceDeepwikiMermaid(md: string, mermaidSources: string[]): string {
       if (isDiagramNode(t)) { collected.push(t); i++; continue; }
       break;
     }
-    if (collected.length >= 6 && mermaidIdx < mermaidSources.length) {
+    if (collected.length >= minRun && mermaidIdx < mermaidSources.length) {
       out.push("```mermaid");
       out.push(mermaidSources[mermaidIdx].trim());
       out.push("```");
@@ -1965,7 +1996,7 @@ function spliceDeepwikiMermaid(md: string, mermaidSources: string[]): string {
       }
     }
   }
-  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+  return { md: out.join("\n").replace(/\n{3,}/g, "\n\n"), placed: mermaidIdx, total: mermaidSources.length };
 }
 
 /**
@@ -2019,10 +2050,14 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
       adapterFlagsLocal.push("deepwiki-mermaid-extraction-failed");
       adapterNotesLocal.push(`deepwiki: mermaid extraction failed (${mermaidResult.error.slice(0, 120)})`);
     } else if (mermaidResult.sources.length > 0) {
-      const spliced = spliceDeepwikiMermaid(resultMarkdown, mermaidResult.sources);
+      const { md: spliced, placed, total } = spliceDeepwikiMermaid(resultMarkdown, mermaidResult.sources);
       if (spliced !== resultMarkdown) {
         resultMarkdown = spliced;
-        adapterNotesLocal.push(`deepwiki: spliced ${mermaidResult.sources.length} mermaid source(s) from rendered DOM`);
+        adapterNotesLocal.push(`deepwiki: spliced ${placed}/${total} mermaid source(s) from rendered DOM`);
+      }
+      if (placed < total) {
+        adapterFlagsLocal.push("deepwiki-mermaid-splice-incomplete");
+        adapterNotesLocal.push(`deepwiki: WARNING — extracted ${total} mermaid sources but only placed ${placed}`);
       }
     }
     const tablesResult = extractDeepwikiTables(url);
@@ -2030,11 +2065,14 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
       adapterFlagsLocal.push("deepwiki-table-extraction-failed");
       adapterNotesLocal.push(`deepwiki: table extraction failed (${tablesResult.error.slice(0, 120)})`);
     } else if (tablesResult.tables.length > 0) {
-      const spliced = spliceDeepwikiTables(resultMarkdown, tablesResult.tables);
+      const { md: spliced, matched, skipped } = spliceDeepwikiTables(resultMarkdown, tablesResult.tables);
       if (spliced !== resultMarkdown) {
         resultMarkdown = spliced;
-        const matched = tablesResult.tables.filter((t) => t.precedingHeading && t.rows.length > 0).length;
         adapterNotesLocal.push(`deepwiki: spliced ${matched}/${tablesResult.tables.length} table(s) from rendered DOM`);
+      }
+      if (skipped > 0) {
+        adapterFlagsLocal.push("deepwiki-table-splice-incomplete");
+        adapterNotesLocal.push(`deepwiki: WARNING — ${skipped}/${tablesResult.tables.length} table(s) could not be spliced (heading not found)`);
       }
     }
   }
@@ -2099,7 +2137,452 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
     }
   }
 
+  // GitHub release fallback. For `/releases/tag/<v>` URLs, opencli captures
+  // the text but drops code blocks (``` fences become plain text) and
+  // tables (pipe syntax becomes prose). The REST API returns the release
+  // notes as clean markdown source. Replace opencli output with the API
+  // body when it's available.
+  {
+    const relResult = fetchGithubReleaseFromApi(url, slugDir, downloadImages);
+    if (relResult) {
+      try {
+        for (const f of readdirSync(slugDir, { withFileTypes: true })) {
+          if (f.name === "source.json" || relResult.imageFiles.includes(f.name)) continue;
+          rmSync(join(slugDir, f.name), { recursive: true, force: true });
+        }
+      } catch {}
+      return relResult;
+    }
+  }
+
+  // GitHub blob/repo-main fallback. For `/blob/<branch>/<path>` URLs and
+  // for repo-main URLs (which render the README), opencli drops a lot of
+  // markdown content — code blocks, tables, admonitions, raw HTML — because
+  // its readability extractor doesn't understand how GitHub wraps them.
+  // Replace opencli output with the raw markdown from
+  // `raw.githubusercontent.com` when it's available. This is identical in
+  // spirit to the HuggingFace-blog fallback above.
+  {
+    const ghRaw = fetchGithubRawFile(url, slugDir, downloadImages);
+    if (ghRaw) {
+      try {
+        for (const f of readdirSync(slugDir, { withFileTypes: true })) {
+          if (f.name === "source.json" || ghRaw.imageFiles.includes(f.name)) continue;
+          rmSync(join(slugDir, f.name), { recursive: true, force: true });
+        }
+      } catch {}
+      return ghRaw;
+    }
+  }
+
+  // GitHub PR/Issue body + comments augmentation. opencli's readability
+  // extractor often fails to capture the PR/issue body (it mistakes the
+  // comment editor or activity timeline for the main content) and the human
+  // comments. When we detect a GitHub PR or Issue URL, fetch the
+  // authoritative body + comments via GitHub's REST API and inject whatever
+  // opencli missed. See `augmentGithubPrIssueWithApi` for the injection
+  // strategy and duplicate detection.
+  if (/^https?:\/\/github\.com\/[^/]+\/[^/]+\/(?:pull|issues|discussions)\/\d+/.test(url)) {
+    const augmented = augmentGithubPrIssueWithApi(url, result.markdown, slugDir, downloadImages);
+    if (augmented.markdown !== result.markdown) {
+      result.markdown = augmented.markdown;
+      if (augmented.notes.length > 0) {
+        adapterNotesLocal.push(...augmented.notes);
+        result.adapterNotes = adapterNotesLocal.length > 0 ? adapterNotesLocal : undefined;
+      }
+      // Merge any newly-downloaded images into the adapter's image list so
+      // writeRawArchive's declared-vs-downloaded check doesn't false-flag.
+      if (augmented.imageFiles.length > 0) {
+        const existing = new Set(result.imageFiles);
+        for (const f of augmented.imageFiles) if (!existing.has(f)) result.imageFiles.push(f);
+      }
+    }
+  }
+
   return result;
+}
+
+/**
+ * GitHub release fallback. For `github.com/<org>/<repo>/releases/tag/<v>`,
+ * opencli captures the body text but mangles `\`\`\`` code fences (renders
+ * them as plain text, dropping the triple-backticks) and tables (pipe
+ * syntax becomes prose). The REST API returns the release notes as
+ * authoritative markdown source — code blocks + tables intact.
+ *
+ * Returns null when URL doesn't match the release pattern or the API call
+ * fails. Caller falls back to opencli result in that case.
+ */
+function fetchGithubReleaseFromApi(
+  url: string,
+  slugDir: string,
+  downloadImages: boolean,
+): AdapterResult | null {
+  const m = url.match(
+    /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/tag\/([^/?#]+)/,
+  );
+  if (!m) return null;
+  const [, org, repo, tag] = m;
+
+  const curlHeaders = [
+    "-H", "Accept: application/vnd.github+json",
+    "-H", "User-Agent: hirono-wiki",
+    "-H", "X-GitHub-Api-Version: 2022-11-28",
+  ];
+  if (process.env.GITHUB_TOKEN) {
+    curlHeaders.push("-H", `Authorization: Bearer ${process.env.GITHUB_TOKEN}`);
+  }
+
+  const apiUrl = `https://api.github.com/repos/${org}/${repo}/releases/tags/${encodeURIComponent(tag)}`;
+  const res = spawnSync("curl", ["-sfL", ...curlHeaders, apiUrl], {
+    encoding: "utf8",
+    timeout: 30_000,
+    maxBuffer: 50_000_000,  // release bodies can be huge (100KB+)
+  });
+  if (res.status !== 0 || !res.stdout) return null;
+
+  let rel: {
+    name?: string;
+    body?: string;
+    tag_name?: string;
+    published_at?: string;
+    author?: { login: string };
+    html_url?: string;
+  };
+  try { rel = JSON.parse(res.stdout); } catch { return null; }
+  if (!rel.body || rel.body.length < 200) return null;
+
+  const title = rel.name || rel.tag_name || tag;
+  const author = rel.author?.login;
+  const published = rel.published_at
+    ? (() => {
+        const d = new Date(rel.published_at!);
+        return `${d.toLocaleString("en-US", { month: "short" })} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+      })()
+    : null;
+
+  const metaBits: string[] = [];
+  if (author) metaBits.push(`Released by [${author}](https://github.com/${author})`);
+  if (published) metaBits.push(published);
+  if (rel.tag_name) metaBits.push(`tag \`${rel.tag_name}\``);
+
+  const frontmatter = [
+    `# ${org}/${repo}: ${title}`,
+    "",
+    `> 原文链接: ${url}`,
+    ...(metaBits.length > 0 ? [`> ${metaBits.join(" · ")}`] : []),
+    "",
+    "---",
+    "",
+    "",
+  ].join("\n");
+
+  let markdown = frontmatter + rel.body.trim() + "\n";
+
+  // Resolve relative image paths (if any) against the repo's raw-content base.
+  markdown = markdown.replace(
+    /(!\[[^\]]*\]\()([^)\s][^)\s]*)(\))/g,
+    (m2, pre, imgPath, post) => {
+      if (/^https?:\/\//i.test(imgPath)) return m2;
+      const path = imgPath.startsWith("/") ? imgPath.slice(1) : imgPath;
+      return `${pre}https://raw.githubusercontent.com/${org}/${repo}/${rel.tag_name || tag}/${path}${post}`;
+    },
+  );
+
+  const imageFiles: string[] = [];
+  if (downloadImages) {
+    const r = processImages(markdown, slugDir, true);
+    markdown = r.content;
+    for (const rec of r.images) imageFiles.push(rec.local);
+  }
+
+  return {
+    markdown,
+    title,
+    imageFiles,
+    rawMetadata: { source: "github-api-release", apiUrl, org, repo, tag },
+    adapterNotes: [
+      `github-release: fetched ${tag} notes via REST API (${rel.body.length} chars body, ${imageFiles.length} image(s))`,
+    ],
+  };
+}
+
+/**
+ * GitHub raw-content fallback for file-blob and repo-main URLs. Handles:
+ *   - `github.com/<org>/<repo>/blob/<branch>/<path>` → /raw/<branch>/<path>
+ *   - `github.com/<org>/<repo>` (repo main) → /raw/HEAD/README.md
+ *   - `github.com/<org>/<repo>/tree/<branch>[/path]` → .../README.md
+ *
+ * Returns null when the URL isn't one of those shapes, when the remote file
+ * is not markdown-ish, or when the fetch fails. Caller falls back to the
+ * opencli result in that case.
+ */
+function fetchGithubRawFile(
+  url: string,
+  slugDir: string,
+  downloadImages: boolean,
+): AdapterResult | null {
+  let rawUrl: string | null = null;
+  let branch = "HEAD";
+  let path = "README.md";
+  let org = "", repo = "";
+
+  // `/blob/<branch>/<path>`
+  const blobMatch = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+?)(?:[?#]|$)/);
+  // `/tree/<branch>[/<path>]` — treat as README at that path
+  const treeMatch = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/tree\/([^/]+)(?:\/(.+?))?(?:[?#]|$)/);
+  // Repo main `/<org>/<repo>` (no trailing slash or with trailing `/`)
+  const repoMatch = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/?#]+)\/?(?:[?#]|$)/);
+
+  if (blobMatch) {
+    [, org, repo, branch, path] = blobMatch;
+  } else if (treeMatch) {
+    [, org, repo, branch] = treeMatch;
+    path = (treeMatch[4] ? `${treeMatch[4]}/` : "") + "README.md";
+  } else if (
+    repoMatch &&
+    // exclude sub-paths we already handle elsewhere
+    !/\/(?:pull|issues|discussions|releases|blob|tree|actions|wiki|commits?|blame|graphs|pulse|compare|network)\//.test(url) &&
+    !/\/(?:pull|issues|discussions|releases|actions|wiki|pulse)\/?$/.test(url)
+  ) {
+    [, org, repo] = repoMatch;
+    branch = "HEAD";
+    path = "README.md";
+  } else {
+    return null;
+  }
+
+  rawUrl = `https://raw.githubusercontent.com/${org}/${repo}/${branch}/${path}`;
+  // Only meaningful for markdown-ish files.
+  if (!/\.(?:md|markdown|mdx)$/i.test(path)) return null;
+
+  const res = spawnSync("curl", ["-sfL", "-A", "Mozilla/5.0", rawUrl], {
+    encoding: "utf8",
+    timeout: 30_000,
+  });
+  if (res.status !== 0 || !res.stdout || res.stdout.length < 200) return null;
+
+  let body = res.stdout;
+
+  // Strip HTML `<div align="...">` wrappers that GitHub supports for centering —
+  // they're valid HTML inside markdown but render as raw tags in plain readers.
+  // Keep inner content.
+  body = body.replace(/^<div\s+[^>]*>\s*\n?/gim, "");
+  body = body.replace(/^<\/div>\s*\n?/gim, "");
+
+  // Resolve relative image paths (`foo.png`, `./docs/bar.png`, `/docs/baz.png`)
+  // to GitHub's raw-content host so processImages can fetch them. The URL
+  // base is the folder of `path` on the same branch.
+  const pathDir = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
+  const resolveBase = `https://raw.githubusercontent.com/${org}/${repo}/${branch}/${pathDir ? pathDir + "/" : ""}`;
+  const repoBase = `https://raw.githubusercontent.com/${org}/${repo}/${branch}/`;
+  body = body.replace(
+    /(!\[[^\]]*\]\()([^)\s][^)\s]*)(\))/g,
+    (m2, pre, imgPath, post) => {
+      if (/^https?:\/\//i.test(imgPath)) return m2;
+      if (imgPath.startsWith("/")) return `${pre}${repoBase.replace(/\/$/, "")}${imgPath}${post}`;
+      return `${pre}${resolveBase}${imgPath}${post}`;
+    },
+  );
+
+  // Extract title from first H1 (body may start with it, or not).
+  const h1Match = body.match(/^#\s+(.+?)\s*$/m);
+  const titleFromH1 = h1Match ? h1Match[1].trim() : null;
+  // Build a richer title that includes the repo for clarity.
+  const title = titleFromH1
+    ? `${org}/${repo}: ${titleFromH1}`
+    : `${org}/${repo}: ${path}`;
+
+  // Prepend the same frontmatter opencli emits: title H1 + source URL + fence.
+  // If the body's first line is the same H1, strip it so we don't duplicate.
+  if (titleFromH1 && h1Match) {
+    body = body.replace(/^#\s+.+?\s*\n+/, "");
+  }
+  const frontmatter = [`# ${title}`, "", `> 原文链接: ${url}`, "", "---", "", ""].join("\n");
+  let markdown = frontmatter + body.trim() + "\n";
+
+  const imageFiles: string[] = [];
+  if (downloadImages) {
+    const r = processImages(markdown, slugDir, true);
+    markdown = r.content;
+    for (const rec of r.images) imageFiles.push(rec.local);
+  }
+
+  return {
+    markdown,
+    title,
+    imageFiles,
+    rawMetadata: { source: "github-raw", rawUrl, org, repo, branch, path },
+    adapterNotes: [
+      `github-raw: fetched ${path} from raw.githubusercontent.com (${res.stdout.length} chars, ${imageFiles.length} image(s))`,
+    ],
+  };
+}
+
+/**
+ * GitHub REST API augmentation for Pull Request / Issue pages.
+ *
+ * Why: opencli's readability-based DOM extractor frequently fails to capture
+ * the PR/issue body text (especially on PR pages where the body is inside a
+ * specific `<div class="edit-comment-hide">` or similar that readability
+ * weights low) and the human comments. The activity timeline does come
+ * through, but the substantive content is gone.
+ *
+ * What: fetch via `api.github.com/repos/<org>/<repo>/{pulls,issues}/<n>` +
+ * `.../issues/<n>/comments`, detect which pieces are missing from opencli's
+ * markdown (by checking for a fingerprint of each body's first
+ * non-trivial line), and inject the missing pieces right after the
+ * `\n---\n` frontmatter fence as `## <NAME> opened/commented on <DATE>
+ * (<role>)` blocks. The existing post-processor pipeline sees these in the
+ * same shape it would have produced itself, so no duplicate-collapse is
+ * needed.
+ *
+ * Rate limits: 60/hour for anonymous IP. If `GITHUB_TOKEN` env var is set,
+ * use it for 5000/hour authenticated requests.
+ */
+function augmentGithubPrIssueWithApi(
+  url: string,
+  markdown: string,
+  slugDir: string,
+  downloadImages: boolean,
+): { markdown: string; notes: string[]; imageFiles: string[] } {
+  const m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/(pull|issues|discussions)\/(\d+)/);
+  if (!m) return { markdown, notes: [], imageFiles: [] };
+  const [, org, repo, kind, num] = m;
+  // REST API paths:
+  //   pull → pulls/<n>, comments at /issues/<n>/comments (shared thread)
+  //   issues → issues/<n>, comments at /issues/<n>/comments
+  //   discussions → discussions/<n>, comments at /discussions/<n>/comments
+  const apiKind = kind === "pull" ? "pulls" : kind === "issues" ? "issues" : "discussions";
+  const commentsPath =
+    kind === "discussions" ? `discussions/${num}/comments` : `issues/${num}/comments`;
+  const notes: string[] = [];
+
+  const curlHeaders = [
+    "-H", "Accept: application/vnd.github+json",
+    "-H", "User-Agent: hirono-wiki",
+    "-H", "X-GitHub-Api-Version: 2022-11-28",
+  ];
+  if (process.env.GITHUB_TOKEN) {
+    curlHeaders.push("-H", `Authorization: Bearer ${process.env.GITHUB_TOKEN}`);
+  }
+
+  const main = spawnSync(
+    "curl",
+    ["-sfL", ...curlHeaders, `https://api.github.com/repos/${org}/${repo}/${apiKind}/${num}`],
+    { encoding: "utf8", timeout: 30_000 },
+  );
+  if (main.status !== 0 || !main.stdout) return { markdown, notes };
+
+  let pr: { user?: { login: string }; body?: string; created_at?: string; author_association?: string };
+  try { pr = JSON.parse(main.stdout); } catch { return { markdown, notes, imageFiles: [] }; }
+
+  // Comments endpoint. Shared for issues/PRs (`/issues/<n>/comments`), distinct
+  // for discussions (`/discussions/<n>/comments`). Discussion API already
+  // flattens replies into the top-level list (each with `parent_id` pointing
+  // to its parent), so we just consume them in order.
+  const commentsRes = spawnSync(
+    "curl",
+    ["-sfL", ...curlHeaders, `https://api.github.com/repos/${org}/${repo}/${commentsPath}`],
+    { encoding: "utf8", timeout: 30_000 },
+  );
+  type Comment = {
+    user?: { login: string };
+    body?: string;
+    created_at?: string;
+    author_association?: string;
+    parent_id?: number;  // discussions: set on replies
+  };
+  let comments: Comment[] = [];
+  try { if (commentsRes.status === 0 && commentsRes.stdout) comments = JSON.parse(commentsRes.stdout); } catch {}
+
+  // Helper: format role (GitHub returns `MEMBER`, `CONTRIBUTOR`, `NONE`, etc.)
+  const formatRole = (role?: string): string => {
+    if (!role || role === "NONE") return "";
+    return ` (${role.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())})`;
+  };
+  // Helper: format a GitHub-API ISO date like `2025-06-01T22:18:23Z` to
+  // `Jun 1, 2025` for consistency with opencli's English-style dates.
+  const formatDate = (iso?: string): string => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return `${d.toLocaleString("en-US", { month: "short" })} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+  };
+  // Helper: check if a text's fingerprint (first substantial line, 40 chars)
+  // already appears in the opencli markdown. Used to skip injection when
+  // opencli DID capture the content.
+  const alreadyPresent = (text: string): boolean => {
+    if (!text) return true;
+    const firstLine = text.split("\n").find((l) => l.trim().length >= 20);
+    if (!firstLine) return true;
+    const fp = firstLine.trim().slice(0, 40);
+    return markdown.includes(fp);
+  };
+
+  const blocks: string[] = [];
+
+  // Helper: emit speaker block with name heading + metadata blockquote.
+  //   ## NAME
+  //
+  //   > opened this on DATE (Role)
+  //
+  //   body...
+  // Putting metadata in a blockquote below the name keeps the heading scannable
+  // and outlines cleanly (name is the navigable anchor), while still surfacing
+  // the timestamp + role.
+  const emitSpeaker = (name: string, verb: string, iso: string | undefined, role: string | undefined, body: string) => {
+    const dateStr = formatDate(iso);
+    const rolePart = formatRole(role);
+    blocks.push(`## ${name}`);
+    blocks.push("");
+    blocks.push(`> ${verb} on ${dateStr}${rolePart.replace(/^ \((.*)\)$/, " · $1")}`);
+    blocks.push("");
+    blocks.push(body.trim());
+    blocks.push("");
+  };
+
+  // OP body (verb is "opened this" for PR/issue, "opened this discussion" for discussions)
+  const opVerb = kind === "discussions" ? "opened this discussion" : "opened this";
+  if (pr.body && !alreadyPresent(pr.body)) {
+    emitSpeaker(pr.user?.login || "OP", opVerb, pr.created_at, pr.author_association, pr.body);
+  }
+
+  // Each human/bot comment. For discussions, comments with `parent_id` set are
+  // replies; give them a distinct "replied" verb so the threading is visible
+  // in the output.
+  for (const c of comments) {
+    if (!c.body || alreadyPresent(c.body)) continue;
+    const verb = (kind === "discussions" && c.parent_id) ? "replied" : "commented";
+    emitSpeaker(c.user?.login || "unknown", verb, c.created_at, c.author_association, c.body);
+  }
+
+  if (blocks.length === 0) return { markdown, notes, imageFiles: [] };
+
+  // Inject after the `---` fence (our frontmatter terminator) so the injected
+  // blocks appear BEFORE any opencli-harvested content but AFTER the synthesized
+  // title + source-url metadata.
+  const fenceIdx = markdown.indexOf("\n---\n");
+  const insertPos = fenceIdx >= 0 ? fenceIdx + "\n---\n".length : 0;
+  let injected =
+    markdown.slice(0, insertPos) + "\n" + blocks.join("\n") + "\n" + markdown.slice(insertPos);
+
+  // Download any images that were in the API-injected content (typically
+  // `github.com/user-attachments/assets/...` URLs from PR descriptions) and
+  // rewrite them to local filenames. Without this, the injection adds image
+  // markdown referencing remote URLs that never get fetched to disk.
+  const imageFiles: string[] = [];
+  if (downloadImages) {
+    const r = processImages(injected, slugDir, true);
+    injected = r.content;
+    for (const rec of r.images) imageFiles.push(rec.local);
+  }
+
+  const commentsInjected = blocks.filter((l) => /^> commented on /.test(l)).length;
+  const opInjected = blocks.some((l) => /^> opened this on /.test(l));
+  notes.push(
+    `github-api: augmented with${opInjected ? " body" : ""}${opInjected && commentsInjected ? " +" : ""}${commentsInjected ? ` ${commentsInjected} comment(s)` : ""} from REST API${imageFiles.length > 0 ? ` (+${imageFiles.length} image(s))` : ""}`,
+  );
+
+  return { markdown: injected, notes, imageFiles };
 }
 
 /**
