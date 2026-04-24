@@ -45,6 +45,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { acquireBrowserLock, acquireSlugLock } from "./hirono/shared/browser-lock.ts";
+import { deepwikiStripNav } from "./hirono/shared/post-process.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -2185,6 +2186,20 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
   // DOM-to-markdown converter frequently drops). One browser session
   // serves both extractions to halve the navigation cost.
   if (/^(?:wiki\.litenext\.digital|deepwiki\.com)$/.test(hostnameOf(url))) {
+    // Strip deepwiki nav chrome (top sidebar, dup H1 block, trailing TOC)
+    // at the adapter layer so raw/*/content.md is already clean — splicer
+    // then works on the cleaned markdown. Previously this ran only during
+    // the downstream post-processor pass, which left raw/ files ugly when
+    // inspected directly.
+    try {
+      const stripResult = deepwikiStripNav.transform(resultMarkdown, url);
+      if (stripResult.md !== resultMarkdown) {
+        resultMarkdown = stripResult.md;
+        for (const n of stripResult.notes) adapterNotesLocal.push(n);
+      }
+    } catch (e) {
+      adapterNotesLocal.push(`deepwiki: nav-strip failed (${e instanceof Error ? e.message : e})`);
+    }
     const mermaidResult = extractDeepwikiMermaidSources(url);
     if (mermaidResult.error) {
       adapterFlagsLocal.push("deepwiki-mermaid-extraction-failed");
