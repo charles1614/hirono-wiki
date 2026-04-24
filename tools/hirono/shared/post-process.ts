@@ -2844,6 +2844,34 @@ export const enforceSingleH1: PostProcessor = {
     let preamble = md.slice(0, bodyStart);
     let body = md.slice(bodyStart);
 
+    // Normalize preamble: anything between the `# Title` line and the first
+    // `> ` blockquote (or `---` if no blockquote) is orphan content — e.g.
+    // multi-line tweet titles whose newlines broke out of the H1, or trailing
+    // page-title suffixes like `" / X`. Strip it.
+    let preambleNormalized = false;
+    const preLines = preamble.split("\n");
+    if (preLines.length > 0 && /^# /.test(preLines[0])) {
+      let firstMetaIdx = -1;
+      let sepLineIdx = -1;
+      for (let i = 1; i < preLines.length; i++) {
+        if (firstMetaIdx < 0 && /^> /.test(preLines[i])) firstMetaIdx = i;
+        if (preLines[i] === "---") { sepLineIdx = i; break; }
+      }
+      const endBoundary = firstMetaIdx > 0 ? firstMetaIdx : sepLineIdx;
+      if (endBoundary > 1) {
+        let hasOrphan = false;
+        for (let i = 1; i < endBoundary; i++) {
+          if (preLines[i].trim().length > 0) { hasOrphan = true; break; }
+        }
+        if (hasOrphan) {
+          const tail = preLines.slice(endBoundary);
+          preamble = [preLines[0], "", ...tail].join("\n");
+          if (!preamble.endsWith("---\n")) preamble = preamble + "\n";
+          preambleNormalized = true;
+        }
+      }
+    }
+
     // If the preamble's `# Title` is a TRUNCATED PREFIX of the first body H1
     // (same words, body version extends further), replace the preamble
     // title with the full body version and drop the body H1 — common on
@@ -2878,7 +2906,7 @@ export const enforceSingleH1: PostProcessor = {
         demoted++;
       }
     }
-    if (!titleFixed && demoted === 0) {
+    if (!preambleNormalized && !titleFixed && demoted === 0) {
       return { md, newAbsoluteImageUrls: [], notes: [] };
     }
     let newBody = lines.join("\n");
@@ -2889,6 +2917,7 @@ export const enforceSingleH1: PostProcessor = {
       "$1",
     );
     const notes: string[] = [];
+    if (preambleNormalized) notes.push("enforce-single-h1: stripped orphan content between title and metadata");
     if (titleFixed) notes.push("enforce-single-h1: replaced truncated preamble title with full body H1");
     if (demoted > 0) notes.push(`enforce-single-h1: demoted ${demoted} body H1(s) to H2`);
     return {
