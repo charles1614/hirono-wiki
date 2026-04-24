@@ -125,7 +125,11 @@ Additional strips: commit-ref bullets (`- [\`sha\`](url) title`), short-SHA foll
 
 Symptom: text like `Cluster GPU Resources` / `Total GPUs requested` / `_create_placement_group(num_gpus)\nPACK strategy` appears as loose paragraphs outside any ```` ```mermaid ```` fence. These are node labels from a mermaid diagram that opencli's DOM-to-markdown converter flattened into text.
 
-DeepWiki stores mermaid source in `[data-original-text]` attributes; `extractDeepwikiMermaidSources` pulls them in a post-adapter browser pass, then `spliceDeepwikiMermaid` replaces runs of orphan node-label lines with `\`\`\`mermaid ... \`\`\`` fences.
+DeepWiki stores mermaid source in different places depending on the host:
+- **wiki.litenext.digital**: `.mermaid[data-original-text]` attribute on each `<div>` — straightforward attribute pull.
+- **deepwiki.com**: no DOM attribute; source lives as `\`\`\`mermaid\n...\`\`\`` fences inside Next.js hydration scripts (`self.__next_f.push(...)`). Hydration ships the ENTIRE wiki's mermaids (not just the current page), so the extractor caps results to `document.querySelectorAll('svg[id^="mermaid"]').length` — the number of SVGs actually rendered on this page, in document order.
+
+`extractDeepwikiMermaidSources` tries the data-attr strategy first, falls back to script-scan + SVG-count cap. `spliceDeepwikiMermaid` then replaces runs of orphan node-label lines with `\`\`\`mermaid ... \`\`\`` fences.
 
 **When the splice misses a diagram**, it's because `isDiagramNode` rejected some of the label lines or the orphan run was shorter than the minimum-run threshold, so the splicer left the orphan text alone.
 

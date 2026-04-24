@@ -1641,9 +1641,54 @@ function extractDeepwikiMermaidSources(url: string): DeepwikiMermaidExtractResul
     // Wait for mermaid client-side render. 12s empirically sufficient on cached cache;
     // we accept the cost because deepwiki is 11 bookmarks total.
     sleepMs(12_000);
+    // Two-strategy extractor:
+    //   1. `.mermaid[data-original-text]` attribute (wiki.litenext.digital)
+    //   2. Next.js hydration scripts containing literal "```mermaid\\n...```"
+    //      (deepwiki.com, which renders client-side without data attributes).
+    //      Parse the script JSON-string escapes and dedupe by content.
+    // Two-strategy extractor:
+    //   1. `.mermaid[data-original-text]` attribute (wiki.litenext.digital)
+    //   2. Next.js hydration scripts containing literal "```mermaid\\n...```"
+    //      (deepwiki.com renders client-side without data attributes).
+    //
+    // For strategy 2, deepwiki.com ships the ENTIRE wiki's mermaid sources in
+    // the hydration bundle (one chunk per cross-linked page). So we cap the
+    // result to the number of `<svg id="mermaid-*">` elements actually rendered
+    // on THIS page, in document order. The first N sources in the scripts
+    // correspond to the first N rendered SVGs (deepwiki emits them in page order).
+    const evalScript = `(() => {
+  const fromAttr = Array.from(document.querySelectorAll(".mermaid[data-original-text]")).map(el => el.getAttribute("data-original-text")).filter(s => typeof s === "string" && s.length > 0);
+  if (fromAttr.length > 0) return JSON.stringify(fromAttr);
+  const renderedSvgCount = document.querySelectorAll("svg[id^=\\"mermaid\\"]").length;
+  if (renderedSvgCount === 0) return JSON.stringify([]);
+  const fences = [];
+  const re = /\\\`\\\`\\\`mermaid\\\\n([\\s\\S]*?)\\\`\\\`\\\`/g;
+  for (const s of document.querySelectorAll("script")) {
+    const t = s.textContent || "";
+    let m;
+    while ((m = re.exec(t)) !== null) fences.push(m[1]);
+  }
+  const decode = (raw) => {
+    try {
+      return JSON.parse('"' + raw.replace(/[\\x00-\\x1f]/g, c => '\\\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')) + '"');
+    } catch { return null; }
+  };
+  const seen = new Set();
+  const out = [];
+  for (const raw of fences) {
+    const decoded = decode(raw);
+    if (!decoded) continue;
+    const key = decoded.trim();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+    if (out.length >= renderedSvgCount) break;
+  }
+  return JSON.stringify(out);
+})()`;
     const evalRes = spawnSync(
       "opencli",
-      ["browser", "eval", 'JSON.stringify(Array.from(document.querySelectorAll(".mermaid[data-original-text]")).map(el => el.getAttribute("data-original-text")))'],
+      ["browser", "eval", evalScript],
       { encoding: "utf8", timeout: browserTimeoutMs("eval"), maxBuffer: 10 * 1024 * 1024 },
     );
     if (evalRes.status !== 0) {
@@ -2044,7 +2089,7 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
   // mermaid diagrams AND tables from the rendered DOM (which opencli's
   // DOM-to-markdown converter frequently drops). One browser session
   // serves both extractions to halve the navigation cost.
-  if (/wiki\.litenext\.digital$/.test(hostnameOf(url))) {
+  if (/^(?:wiki\.litenext\.digital|deepwiki\.com)$/.test(hostnameOf(url))) {
     const mermaidResult = extractDeepwikiMermaidSources(url);
     if (mermaidResult.error) {
       adapterFlagsLocal.push("deepwiki-mermaid-extraction-failed");

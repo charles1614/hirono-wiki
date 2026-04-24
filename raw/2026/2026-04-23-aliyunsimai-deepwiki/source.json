@@ -1,0 +1,18 @@
+{
+  "fetched_at": "2026-04-24T14:23:39.467Z",
+  "origin": "url:https://deepwiki.com/aliyun/SimAI/1-simai-overview",
+  "origin_url": "https://deepwiki.com/aliyun/SimAI/1-simai-overview",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "7a2021570ad27f9d5df743abda57c0bea64940703970d5f7441ed1060b909804",
+  "content_length": 24162,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: deepwiki-com",
+    "web-read: used domain-override wait=20s",
+    "deepwiki: spliced 3/3 mermaid source(s) from rendered DOM",
+    "deepwiki: spliced 3/3 table(s) from rendered DOM"
+  ]
+}
