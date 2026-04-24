@@ -1885,14 +1885,49 @@ function spliceDeepwikiTables(md: string, tables: DeepwikiTable[]): { md: string
     const sectionEnd = findNextHeadingOffset(current, insertAt);
     const runSpan = findPlainTextCellRunSpan(current, insertAt, sectionEnd, t.rows);
     if (runSpan && totalCells > 0) {
-      current = current.slice(0, runSpan.start) + current.slice(runSpan.end);
+      // Extend removal to swallow an orphan bold lead-in like
+      // `**Component Roles:**` that often precedes the cell-run and
+      // becomes pointless once the cells themselves are stripped.
+      const leadInStart = findOrphanLeadInStart(current, runSpan.start);
+      const removeFrom = leadInStart ?? runSpan.start;
+      current = current.slice(0, removeFrom) + current.slice(runSpan.end);
     }
 
+    // Re-find the heading after the removal; its offset may have changed.
+    const reMatch = re.exec(current);
+    const newInsertAt = reMatch ? (reMatch.index ?? 0) + reMatch[0].length : insertAt;
+    // Insert the table with a single leading \n (the heading line already
+    // ends with \n, so one \n gives a blank line; two would stack into a
+    // double blank). Trailing \n ensures the table is followed by content
+    // at paragraph distance.
     const tableMd = renderMarkdownTable(t.rows);
-    const insertion = "\n\n" + tableMd + "\n";
-    current = current.slice(0, insertAt) + insertion + current.slice(insertAt);
+    const insertion = "\n" + tableMd + "\n";
+    current = current.slice(0, newInsertAt) + insertion + current.slice(newInsertAt);
   }
   return { md: current, matched, skipped };
+}
+
+/**
+ * If the paragraph immediately before `runStart` is a short bold lead-in
+ * like `**Label:**` with no body text of its own, return the offset where
+ * that lead-in begins (so the caller can remove it along with the cell-run).
+ * Returns null if no orphan lead-in is present.
+ */
+function findOrphanLeadInStart(md: string, runStart: number): number | null {
+  // Walk backwards over whitespace to find the previous non-blank line.
+  let end = runStart;
+  while (end > 0 && /\s/.test(md[end - 1])) end--;
+  if (end === 0) return null;
+  // Find the start of the line containing `end`.
+  let start = end;
+  while (start > 0 && md[start - 1] !== "\n") start--;
+  const line = md.slice(start, end);
+  // Orphan lead-in shape: 1–6 words, wrapped in ** and ending with `:**`.
+  // Keep it tight — we don't want to accidentally swallow a real paragraph.
+  if (/^\*\*[^*\n]{1,60}:\*\*$/.test(line.trim()) && line.length < 80) {
+    return start;
+  }
+  return null;
 }
 
 /**
@@ -2080,6 +2115,10 @@ function spliceDeepwikiMermaid(md: string, mermaidSources: string[]): { md: stri
       break;
     }
     if (collected.length >= minRun && mermaidIdx < mermaidSources.length) {
+      // Ensure a blank line separates the fence from any preceding paragraph
+      // (a lone `\`\`\`mermaid` immediately after prose renders poorly and can
+      // even be mis-parsed as a continuation by some markdown engines).
+      if (out.length > 0 && out[out.length - 1].trim() !== "") out.push("");
       out.push("```mermaid");
       out.push(mermaidSources[mermaidIdx].trim());
       out.push("```");

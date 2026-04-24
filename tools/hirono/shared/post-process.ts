@@ -466,9 +466,43 @@ export const deepwikiStripNav: PostProcessor = {
         const preambleEnd = md.indexOf("\n---\n");
         const preamble = preambleEnd >= 0 ? md.slice(0, preambleEnd + 5) : "";
         const articleStart = menuMatch.index + menuMatch[0].length + h1Match.index;
-        const stripped = articleStart - (preambleEnd >= 0 ? preambleEnd + 5 : 0);
-        const cleaned = preamble + "\n" + md.slice(articleStart);
-        notes.push(`deepwiki: stripped deepwiki.com nav chrome (${stripped} chars)`);
+        const strippedLeading = articleStart - (preambleEnd >= 0 ? preambleEnd + 5 : 0);
+        let cleaned = preamble + "\n" + md.slice(articleStart);
+
+        // Strip deepwiki.com's second-H1 "page title" block that sits
+        // between the preamble and the first real H2. The shape is:
+        //   # <Page Title>\n\nRelevant source files\n\n-   [link](...)\n\n## First real heading
+        // We demote the H1 away entirely (the preamble H1 already carries
+        // the canonical title) and also drop the "Relevant source files" line.
+        const dupH1Re = /\n#\s+[^\n]+\n\nRelevant source files\n\n(?:-\s+\[[^\]]+\]\([^)]+\)[^\n]*\n\n)+(?=##\s)/;
+        const before = cleaned.length;
+        cleaned = cleaned.replace(dupH1Re, "\n");
+        const dupBytes = before - cleaned.length;
+
+        // Strip deepwiki.com trailing chrome. Appears at the very end:
+        //   Dismiss / Refresh this wiki / Enter email to refresh /
+        //   ### On this page + TOC list / Ask Devin about X / Fast
+        // Cut from the earliest marker through end-of-doc.
+        const trailAnchors = [
+          /\nDismiss\s*\n/,
+          /\n### On this page\s*\n/,
+          /\nAsk Devin about [^\n]+\n/,
+        ];
+        let trailStart = cleaned.length;
+        for (const re of trailAnchors) {
+          const m = cleaned.match(re);
+          if (m && m.index !== undefined && m.index < trailStart) trailStart = m.index;
+        }
+        let trailBytes = 0;
+        if (trailStart < cleaned.length) {
+          trailBytes = cleaned.length - trailStart;
+          cleaned = cleaned.slice(0, trailStart).replace(/\s+$/, "") + "\n";
+        }
+
+        const parts: string[] = [`nav chrome (${strippedLeading} chars)`];
+        if (dupBytes > 0) parts.push(`dup H1 block (${dupBytes} chars)`);
+        if (trailBytes > 0) parts.push(`trailing chrome (${trailBytes} chars)`);
+        notes.push(`deepwiki: stripped ${parts.join(", ")}`);
         return {
           md: cleaned.replace(/\n{3,}/g, "\n\n"),
           newAbsoluteImageUrls: [],

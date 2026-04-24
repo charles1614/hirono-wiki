@@ -99,7 +99,6 @@ Sources: [README.md64-78](https://github.com/aliyun/SimAI/blob/cee5b9f1/README.m
 
 ## Component Architecture
 
-
 | Component | Repository Location | Primary Purpose |
 | --- | --- | --- |
 | AICB | github.com/aliyun/aicb | AI Communication Benchmark - generates workload files by profiling compute and communication patterns of training/inference on real GPUs |
@@ -109,6 +108,7 @@ Sources: [README.md64-78](https://github.com/aliyun/SimAI/blob/cee5b9f1/README.m
 | vidur-alibabacloud | vidur-alibabacloud/ | Request scheduler - manages multi-request inference workloads with batching and scheduling policies (new in SimAI 1.5) |
 
 SimAI consists of five major components, each serving a distinct purpose in the simulation pipeline:
+
 ```mermaid
 graph TB
     subgraph External["External Components (Git Submodules)"]
@@ -154,8 +154,6 @@ graph TB
     AstraSim --> Analysis
 ```
 
-**Component Roles:**
-
 These components can be used individually or combined in various ways depending on the simulation requirements. See [Usage Scenarios](/aliyun/SimAI/4-usage-scenarios) for details on different combinations.
 
 Sources: [README.md79-94](https://github.com/aliyun/SimAI/blob/cee5b9f1/README.md?plain=1#L79-L94)
@@ -163,6 +161,7 @@ Sources: [README.md79-94](https://github.com/aliyun/SimAI/blob/cee5b9f1/README.m
 ## Operation Modes
 
 SimAI provides three distinct operation modes, each offering different trade-offs between simulation speed and accuracy:
+
 ```mermaid
 graph LR
     subgraph AnalyticalMode["SimAI-Analytical Mode"]
@@ -206,7 +205,6 @@ graph LR
 
 ### Mode Comparison
 
-
 | Mode | Fidelity | Speed | Use Case | Network Modeling |
 | --- | --- | --- | --- | --- |
 | Analytical | Low-Medium | Fast (seconds) | Parameter sweeps, early design exploration | Bus bandwidth abstraction via busbw.yaml |
@@ -224,6 +222,7 @@ Sources: [README.md98-104](https://github.com/aliyun/SimAI/blob/cee5b9f1/README.
 ## Usage Scenarios
 
 SimAI supports seven distinct usage scenarios that progressively increase in complexity and component integration:
+
 ```mermaid
 graph TB
     subgraph Single["Single-Component Scenarios"]
@@ -252,7 +251,6 @@ graph TB
 ```
 
 ### Scenario Overview
-
 
 | Scenario | Description | Components | Target Use Case |
 | --- | --- | --- | --- |
