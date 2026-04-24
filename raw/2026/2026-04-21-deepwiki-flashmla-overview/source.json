@@ -1,0 +1,19 @@
+{
+  "fetched_at": "2026-04-24T15:31:51.793Z",
+  "origin": "url:https://wiki.litenext.digital/wiki/flashmla?file=01-overview",
+  "origin_url": "https://wiki.litenext.digital/wiki/flashmla?file=01-overview",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "8fb7453d57a724e09c80eb951d65aea064d0c73dcf347112b1f4e336b4fca9ba",
+  "content_length": 14719,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: deepwiki-litenext",
+    "web-read: used domain-override wait=20s",
+    "deepwiki: stripped file-navigator chrome (269 chars)",
+    "deepwiki: spliced 2/2 mermaid source(s) from rendered DOM",
+    "deepwiki: spliced 4/4 table(s) from rendered DOM"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "fetched_at": "2026-04-24T15:35:06.742Z",
+  "origin": "url:https://wiki.litenext.digital/wiki/vllm?file=10-distributed#prefill-context-parallelism-pcp",
+  "origin_url": "https://wiki.litenext.digital/wiki/vllm?file=10-distributed#prefill-context-parallelism-pcp",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "c06705b00577f5fa69292961b839ba4dc296aba677d6c27ee656c06fc72d551c",
+  "content_length": 137,
+  "quality_flags": [
+    "short-body",
+    "loading-skeleton",
+    "deepwiki-mermaid-splice-incomplete",
+    "deepwiki-table-splice-incomplete"
+  ],
+  "quality_status": "flagged",
+  "images": [],
+  "notes": [
+    "opencli adapter: deepwiki-litenext",
+    "web-read: used domain-override wait=20s",
+    "deepwiki: stripped file-navigator chrome (495 chars)",
+    "deepwiki: WARNING — extracted 13 mermaid sources but only placed 0",
+    "deepwiki: WARNING — 16/16 table(s) could not be spliced (heading not found)"
+  ]
+}

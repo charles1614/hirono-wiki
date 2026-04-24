@@ -1,0 +1,17 @@
+{
+  "fetched_at": "2026-04-22T16:05:47.782Z",
+  "origin": "url:https://wiki.litenext.digital/wiki/slime?file=01-overview",
+  "origin_url": "https://wiki.litenext.digital/wiki/slime?file=01-overview",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "14c20bc4b02f508cb022cd65af960b6a3c582a1aba04031656eb7f206f8005b5",
+  "content_length": 29013,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "web-read: used domain-override wait=20s",
+    "deepwiki: spliced 9 mermaid source(s) from rendered DOM",
+    "deepwiki: spliced 3/3 table(s) from rendered DOM"
+  ]
+}

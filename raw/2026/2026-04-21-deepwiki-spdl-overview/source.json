@@ -1,0 +1,17 @@
+{
+  "fetched_at": "2026-04-22T16:06:27.344Z",
+  "origin": "url:https://wiki.litenext.digital/wiki/spdl?file=01-overview",
+  "origin_url": "https://wiki.litenext.digital/wiki/spdl?file=01-overview",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "40bbc63ec296dddf296b5aaa1e3254a9eb3b2eb616bd9262e7e27713100f2c89",
+  "content_length": 26070,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "web-read: used domain-override wait=20s",
+    "deepwiki: spliced 3 mermaid source(s) from rendered DOM",
+    "deepwiki: spliced 4/4 table(s) from rendered DOM"
+  ]
+}

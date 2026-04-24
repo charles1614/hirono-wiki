@@ -1,0 +1,22 @@
+{
+  "fetched_at": "2026-04-24T15:33:11.558Z",
+  "origin": "url:https://wiki.litenext.digital/wiki/megatron-lm?file=05-tensor-parallelism",
+  "origin_url": "https://wiki.litenext.digital/wiki/megatron-lm?file=05-tensor-parallelism",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "b3d048fb293db65d3aa63af7d080ede0a61058f420c6e73d746652499079b868",
+  "content_length": 13801,
+  "quality_flags": [
+    "deepwiki-mermaid-splice-incomplete"
+  ],
+  "quality_status": "flagged",
+  "images": [],
+  "notes": [
+    "opencli adapter: deepwiki-litenext",
+    "web-read: used domain-override wait=20s",
+    "deepwiki: stripped file-navigator chrome (1477 chars)",
+    "deepwiki: spliced 5/6 mermaid source(s) from rendered DOM",
+    "deepwiki: WARNING — extracted 6 mermaid sources but only placed 5",
+    "deepwiki: spliced 1/1 table(s) from rendered DOM"
+  ]
+}

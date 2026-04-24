@@ -1,0 +1,19 @@
+{
+  "fetched_at": "2026-04-24T15:33:53.464Z",
+  "origin": "url:https://wiki.litenext.digital/wiki/pytorch?file=02-core-tensor-library",
+  "origin_url": "https://wiki.litenext.digital/wiki/pytorch?file=02-core-tensor-library",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "2a23a2808d836aa7ca05c6e8dc86c93b4be0289e03d8234a4a20f450f3ef28bb",
+  "content_length": 6135,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: deepwiki-litenext",
+    "web-read: used domain-override wait=20s",
+    "deepwiki: stripped file-navigator chrome (423 chars)",
+    "deepwiki: spliced 2/2 mermaid source(s) from rendered DOM",
+    "deepwiki: spliced 2/2 table(s) from rendered DOM"
+  ]
+}
