@@ -156,42 +156,6 @@ graph TB
 
 **Component Roles:**
 
-Component
-
-Repository Location
-
-Primary Purpose
-
-**AICB**
-
-[github.com/aliyun/aicb](https://github.com/aliyun/SimAI/blob/cee5b9f1/github.com/aliyun/aicb)
-
-AI Communication Benchmark - generates workload files by profiling compute and communication patterns of training/inference on real GPUs
-
-**SimCCL**
-
-[github.com/aliyun/SimCCL](https://github.com/aliyun/SimAI/blob/cee5b9f1/github.com/aliyun/SimCCL)
-
-Simulated CCL - breaks down high-level collective operations (AllReduce, AllGather) into point-to-point communication primitives
-
-**astra-sim-alibabacloud**
-
-[astra-sim-alibabacloud/](https://github.com/aliyun/SimAI/blob/cee5b9f1/astra-sim-alibabacloud/)
-
-Core simulation engine - coordinates workload execution, manages event scheduling, implements NCCL-style communication algorithms
-
-**ns-3-alibabacloud**
-
-[github.com/aliyun/ns-3-alibabacloud](https://github.com/aliyun/SimAI/blob/cee5b9f1/github.com/aliyun/ns-3-alibabacloud)
-
-Network simulator - provides packet-level network modeling with support for RDMA, congestion control, and adaptive routing
-
-**vidur-alibabacloud**
-
-[vidur-alibabacloud/](https://github.com/aliyun/SimAI/blob/cee5b9f1/vidur-alibabacloud/)
-
-Request scheduler - manages multi-request inference workloads with batching and scheduling policies (new in SimAI 1.5)
-
 These components can be used individually or combined in various ways depending on the simulation requirements. See [Usage Scenarios](/aliyun/SimAI/4-usage-scenarios) for details on different combinations.
 
 Sources: [README.md79-94](https://github.com/aliyun/SimAI/blob/cee5b9f1/README.md?plain=1#L79-L94)
@@ -249,46 +213,6 @@ graph LR
 | Simulation | High | Slow (minutes-hours) | Detailed performance analysis, algorithm validation | Packet-level ns-3 simulation with full protocol stack |
 | Physical (Beta) | Real hardware | Real-time | Hardware validation, NIC behavior study | Actual RDMA traffic on CPU clusters |
 
-Mode
-
-Fidelity
-
-Speed
-
-Use Case
-
-Network Modeling
-
-**Analytical**
-
-Low-Medium
-
-Fast (seconds)
-
-Parameter sweeps, early design exploration
-
-Bus bandwidth abstraction via `busbw.yaml`
-
-**Simulation**
-
-High
-
-Slow (minutes-hours)
-
-Detailed performance analysis, algorithm validation
-
-Packet-level ns-3 simulation with full protocol stack
-
-**Physical** (Beta)
-
-Real hardware
-
-Real-time
-
-Hardware validation, NIC behavior study
-
-Actual RDMA traffic on CPU clusters
-
 **SimAI-Analytical** abstracts network communication using bus bandwidth values, allowing rapid iteration. Invoked via `./bin/SimAI_analytical` with parameters `-busbw example/busbw.yaml`. See [SimAI-Analytical Mode](/aliyun/SimAI/3.1-simai-analytical-mode) for details.
 
 **SimAI-Simulation** provides full-stack simulation with detailed network modeling. Requires topology generation via `gen_Topo_Template.py` and invoked via `./bin/SimAI_simulator`. See [SimAI-Simulation Mode (NS-3)](/aliyun/SimAI/3.2-simai-simulation-mode-\(ns-3\)) for details.
@@ -339,70 +263,6 @@ graph TB
 | 5. SimAI-Analytical | Fast workload simulation with abstracted network | AICB + astra-sim (analytical) | Rapid parameter exploration |
 | 6. SimAI-Simulation | Full-stack simulation with detailed network modeling | AICB + SimCCL + astra-sim + ns-3 | Accurate performance prediction |
 | 7. Multi-Request Inference | Simulate production inference serving with request scheduling | AICB + SimCCL + vidur + astra-sim | Inference system optimization |
-
-Scenario
-
-Description
-
-Components
-
-Target Use Case
-
-**1\. AICB Test Suite**
-
-Run communication patterns on actual GPU clusters
-
-AICB
-
-Hardware benchmarking, validation
-
-**2\. AICB Workload Generation**
-
-Profile compute/communication patterns to generate workload files
-
-AICB
-
-Creating simulation inputs from real models
-
-**3\. SimCCL Analysis**
-
-Break down collective operations into point-to-point primitives
-
-SimCCL
-
-Understanding communication algorithms
-
-**4\. Collective Comm w/o GPU**
-
-Perform RDMA collective communication on non-GPU clusters
-
-AICB + SimCCL + astra-sim (physical)
-
-Testing on CPU-only infrastructure
-
-**5\. SimAI-Analytical**
-
-Fast workload simulation with abstracted network
-
-AICB + astra-sim (analytical)
-
-Rapid parameter exploration
-
-**6\. SimAI-Simulation**
-
-Full-stack simulation with detailed network modeling
-
-AICB + SimCCL + astra-sim + ns-3
-
-Accurate performance prediction
-
-**7\. Multi-Request Inference**
-
-Simulate production inference serving with request scheduling
-
-AICB + SimCCL + vidur + astra-sim
-
-Inference system optimization
 
 Scenarios 1-3 use individual components in isolation. See [Scenarios 1-3: Single Component Uses](/aliyun/SimAI/4.1-scenarios-1-3:-single-component-uses).
 

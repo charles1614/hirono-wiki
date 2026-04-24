@@ -1874,15 +1874,18 @@ function spliceDeepwikiTables(md: string, tables: DeepwikiTable[]): { md: string
     const insertAt = (match.index ?? 0) + match[0].length;
     matched++;
 
-    // Remove the plain-text cell-run that follows the heading, if it matches
-    // this table's cells. opencli's DOM-to-markdown converter turns table
-    // cells into a sequence of paragraphs (one per cell, blank-line separated,
-    // code-fenced for monospace cells). We scan forward from insertAt and
-    // remove exactly the number of cell-blocks we expect.
+    // Remove the plain-text cell-run corresponding to this table. opencli's
+    // DOM-to-markdown converter renders each table cell as its own paragraph
+    // (blank-line separated, sometimes with **bold** cell emphasis from the
+    // source styling). On deepwiki.com the cell-run often appears AFTER a
+    // mermaid diagram or intro paragraph, not immediately after the heading —
+    // so we search within [insertAt, nextHeadingOrEnd) for the cell-run and
+    // remove the matched span (not a prefix from insertAt).
     const totalCells = t.rows.length * (t.rows[0]?.length ?? 0);
-    const removalEnd = findPlainTextCellRunEnd(current, insertAt, t.rows);
-    if (removalEnd > insertAt && totalCells > 0) {
-      current = current.slice(0, insertAt) + current.slice(removalEnd);
+    const sectionEnd = findNextHeadingOffset(current, insertAt);
+    const runSpan = findPlainTextCellRunSpan(current, insertAt, sectionEnd, t.rows);
+    if (runSpan && totalCells > 0) {
+      current = current.slice(0, runSpan.start) + current.slice(runSpan.end);
     }
 
     const tableMd = renderMarkdownTable(t.rows);
@@ -1893,60 +1896,113 @@ function spliceDeepwikiTables(md: string, tables: DeepwikiTable[]): { md: string
 }
 
 /**
- * From the character offset `start` in `md`, scan forward for the
- * plain-text cell-run corresponding to the given table's cells. Each cell
- * is expected to appear as its own paragraph (possibly in a `code` span).
- * Returns the offset past the last matched cell, or `start` if no match.
- *
- * We match cells in order: the first N rendered paragraphs after `start`
- * should equal (or contain) each cell value in turn, where N = rows*cols.
- * Soft matching: allow code-span formatting (backticks stripped) and
- * leading/trailing whitespace.
+ * Offset of the next `^#{1,6} ` heading after `start`, or `md.length` if none.
+ * Used to bound cell-run search to the current section.
  */
-function findPlainTextCellRunEnd(md: string, start: number, rows: string[][]): number {
+function findNextHeadingOffset(md: string, start: number): number {
+  const re = /^#{1,6}\s+\S/m;
+  re.lastIndex = 0;
+  const sub = md.slice(start);
+  const m = sub.match(re);
+  if (!m || m.index === undefined) return md.length;
+  return start + m.index;
+}
+
+/**
+ * Search `[start, end)` of `md` for a contiguous run of paragraphs that match
+ * the given table's cells (one paragraph per cell, blank-line separated, in
+ * row-major order). Returns `{start, end}` of the matched span, or `null` if
+ * no run of sufficient fidelity is found.
+ *
+ * Soft matching: strips `**bold**`, `` `code` ``, and whitespace so minor
+ * DOM-rendering artifacts (e.g. `**AICB**` vs `AICB`, `` `busbw.yaml` ``
+ * vs `busbw.yaml`) still match.
+ *
+ * Unlike the old `findPlainTextCellRunEnd`, this searches the whole section
+ * — it doesn't require the cell-run to start immediately after the heading.
+ * Needed because deepwiki.com often places an intro paragraph + mermaid
+ * diagram between the heading and the cell-run.
+ */
+function findPlainTextCellRunSpan(
+  md: string,
+  start: number,
+  end: number,
+  rows: string[][],
+): { start: number; end: number } | null {
   const expectedCells: string[] = [];
   for (const row of rows) {
     for (const cell of row) expectedCells.push(cell.trim());
   }
-  if (expectedCells.length === 0) return start;
+  if (expectedCells.length === 0) return null;
+  const firstWant = expectedCells[0];
+  const minMatches = Math.ceil(expectedCells.length * 0.7);
+
   const normalize = (s: string) => s
-    .replace(/^`|`$/g, "")                   // strip surrounding backticks
+    .replace(/\*\*([^*]+)\*\*/g, "$1")       // strip **bold**
+    .replace(/`([^`]+)`/g, "$1")             // strip `code` anywhere
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // unwrap [text](url) → text
+    .replace(/\\([._\-*])/g, "$1")           // unescape \\_ \\. \\- \\*
+    .replace(/\s+/g, " ")                    // collapse whitespace
     .replace(/^\s+|\s+$/g, "");              // trim
 
-  // Walk paragraphs (blank-line separated) from `start`
-  let cursor = start;
-  while (cursor < md.length && md[cursor] === "\n") cursor++;  // skip leading blank lines
-  let runStart = cursor;
-  let matchedCount = 0;
-
-  for (const want of expectedCells) {
-    // Skip blank lines
-    while (cursor < md.length && (md[cursor] === "\n" || md[cursor] === "\r" || md[cursor] === " " || md[cursor] === "\t")) cursor++;
-    if (cursor >= md.length) break;
-    // Read until next blank line (double newline) or end
-    let end = cursor;
-    while (end < md.length) {
-      if (md[end] === "\n" && end + 1 < md.length && md[end + 1] === "\n") break;
-      end++;
+  // Walk paragraphs in [start, end). For each paragraph whose normalized text
+  // is compatible with the first expected cell, attempt a sequential match.
+  let probe = start;
+  while (probe < end) {
+    // Skip to next non-blank paragraph start
+    while (probe < end && /\s/.test(md[probe])) probe++;
+    if (probe >= end) break;
+    // Don't start scan inside a code fence
+    if (md.slice(probe, probe + 3) === "```") {
+      // Skip past fence
+      const fenceEnd = md.indexOf("\n```", probe + 3);
+      probe = fenceEnd < 0 ? end : fenceEnd + 4;
+      continue;
     }
-    const got = normalize(md.slice(cursor, end));
+    // Attempt match starting at probe
+    const candidate = tryMatchCellRun(md, probe, end, expectedCells, minMatches, normalize);
+    if (candidate) return candidate;
+    // No match — advance to next paragraph boundary
+    const nextBlank = md.indexOf("\n\n", probe);
+    probe = nextBlank < 0 || nextBlank >= end ? end : nextBlank + 2;
+  }
+  return null;
+}
+
+function tryMatchCellRun(
+  md: string,
+  start: number,
+  end: number,
+  expectedCells: string[],
+  minMatches: number,
+  normalize: (s: string) => string,
+): { start: number; end: number } | null {
+  let cursor = start;
+  let matchedCount = 0;
+  const runStart = cursor;
+  for (const want of expectedCells) {
+    // Skip blank lines/whitespace between paragraphs
+    while (cursor < end && /\s/.test(md[cursor])) cursor++;
+    if (cursor >= end) break;
+    // Read paragraph (to next blank line)
+    let pEnd = cursor;
+    while (pEnd < end) {
+      if (md[pEnd] === "\n" && pEnd + 1 < end && md[pEnd + 1] === "\n") break;
+      pEnd++;
+    }
+    const got = normalize(md.slice(cursor, pEnd));
     const wantNorm = normalize(want);
-    // Accept exact match OR one-side contains the other (handles line wraps)
     if (got === wantNorm || got.includes(wantNorm) || wantNorm.includes(got)) {
       matchedCount++;
-      cursor = end;
+      cursor = pEnd;
     } else {
       break;
     }
   }
-  // Only count as a valid run if we matched a substantial fraction (≥70%).
-  // Partial matches might be coincidence.
-  if (matchedCount >= Math.ceil(expectedCells.length * 0.7)) {
-    // Include trailing newlines so we don't leave orphaned blank lines
-    while (cursor < md.length && md[cursor] === "\n") cursor++;
-    return cursor;
-  }
-  return start;
+  if (matchedCount < minMatches) return null;
+  // Include trailing newlines so we don't leave orphaned blank lines
+  while (cursor < end && md[cursor] === "\n") cursor++;
+  return { start: runStart, end: cursor };
 }
 
 /**
