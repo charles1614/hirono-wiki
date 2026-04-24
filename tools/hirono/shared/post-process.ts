@@ -2664,6 +2664,60 @@ export const feishuWikiCleaner: PostProcessor = {
  *   2. Relative-URL resolver SECOND (operates on cleaned markdown).
  *   3. Generic cosmetic cleanups LAST.
  */
+/**
+ * Generic: demote every body H1 (after the frontmatter `---` separator) to
+ * H2. CLAUDE.md §2 contract: exactly one `# ` in the document — the
+ * frontmatter title. Most source pages emit their section titles as H1
+ * (substack section divisions, HF blog sections, intuitionlabs sections,
+ * GitHub gist sections, etc.), which violates the contract.
+ *
+ * After demotion, drop a consecutive pair of identical `## ` lines if any
+ * (substack often echoes the article title right after `---`).
+ *
+ * This runs LAST in the chain so site-specific processors have first
+ * chance to strip/restructure their H1s.
+ */
+export const enforceSingleH1: PostProcessor = {
+  name: "enforce-single-h1",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    const sepIdx = md.indexOf("\n---\n");
+    if (sepIdx < 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    const bodyStart = sepIdx + 5;
+    const preamble = md.slice(0, bodyStart);
+    const body = md.slice(bodyStart);
+    // Count body H1s up-front
+    const bodyH1s = (body.match(/^# /gm) || []).length;
+    if (bodyH1s === 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    // Demote every body H1 to H2, but only if the line is a real heading
+    // (starts at column 0, not inside a code fence).
+    const lines = body.split("\n");
+    let inFence = false;
+    let demoted = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^```/.test(lines[i].trim())) inFence = !inFence;
+      if (inFence) continue;
+      if (/^# /.test(lines[i])) {
+        lines[i] = "#" + lines[i];
+        demoted++;
+      }
+    }
+    if (demoted === 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    let newBody = lines.join("\n");
+    // Dedupe a consecutive-identical H2 pair (common after substack title
+    // echo demotion: `## Title\n\n## Title`).
+    newBody = newBody.replace(
+      /(^## [^\n]+\n)\n*\1/gm,
+      "$1",
+    );
+    return {
+      md: preamble + newBody,
+      newAbsoluteImageUrls: [],
+      notes: [`enforce-single-h1: demoted ${demoted} body H1(s) to H2`],
+    };
+  },
+};
+
 export const PROCESSORS: PostProcessor[] = [
   // Site-specific content strips FIRST (while we still have site structure
   // to work with).
@@ -2699,6 +2753,9 @@ export const PROCESSORS: PostProcessor[] = [
   stripEmptyAnchorLinks,
   unescapeBracketsInLinks,
   stripColorTags,
+  // LAST: enforce §2 contract (single H1). Demotes every body H1 to H2
+  // after site-specific processors have had their shot at the top.
+  enforceSingleH1,
 ];
 
 export function applyPostProcessors(

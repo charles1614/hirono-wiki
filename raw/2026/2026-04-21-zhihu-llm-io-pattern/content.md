@@ -65,19 +65,19 @@ lseek 4
 
 总I/O Size分布图
 
-![](https://pic4.zhimg.com/v2-ed4e8d261854c0b5fefd2b8784af7b4b_1440w.jpg)
+![](images/img_001.jpg)
 
 Total I/O Size Histogram
 
 读操作 I/O Size分布图
 
-![](https://pica.zhimg.com/v2-b881034217f9b731e9a254019a58cf1a_1440w.jpg)
+![](images/img_002.jpg)
 
 Read I/O Size Histogram
 
 写操作I/O Size分布图
 
-![](https://pic2.zhimg.com/v2-3815ebe0de4479ceb4c3a347072fa147_1440w.jpg)
+![](images/img_003.jpg)
 
 Write I/O Size Histogram
 
@@ -180,19 +180,19 @@ I/O size分布情况如下（图片数字有点小，放大后可以看到更清
 
 **2.2.1 总I/O Size分布图**
 
-![](https://pica.zhimg.com/v2-c8fb7cb439c891bedf9d8d9c099e68ea_1440w.jpg)
+![](images/img_004.jpg)
 
 Total I/O Size Histogram
 
 **读操作 I/O Size分布图**
 
-![](https://pic1.zhimg.com/v2-90632308420070d504bfc6a493ef22b6_1440w.jpg)
+![](images/img_005.jpg)
 
 Read I/O Size Histogram
 
 **写操作I/O Size分布图**
 
-![](https://pic4.zhimg.com/v2-f38918df98e85be23cc3bbb8b0ba23bd_1440w.jpg)
+![](images/img_006.jpg)
 
 Read I/O Size Histogram
 

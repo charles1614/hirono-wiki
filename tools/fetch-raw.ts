@@ -1579,6 +1579,34 @@ function fetchZhihuArticleViaAdapter(url: string, slugDir: string): AdapterResul
   const adapterNotes: string[] = [];
   const adapterFlags: string[] = [];
 
+  // Rewrite remote zhimg.com image URLs to the local `images/img_NNN.*`
+  // paths. opencli's zhihu download saves the images but leaves the
+  // markdown pointing at pic*.zhimg.com. CLAUDE.md §3 requires all
+  // image refs to be local. Strategy: match remote refs in document
+  // order with local files in numeric-sorted order — zhihu downloads
+  // images in the same order they appear in the markdown.
+  if (h.images.length > 0) {
+    const remoteRefRe = /!\[([^\]]*)\]\(https?:\/\/(?:pic\d*|pica|picx)\.zhimg\.com\/[^)]+\)/g;
+    const remoteMatches = resultMarkdown.match(remoteRefRe) || [];
+    if (remoteMatches.length > 0) {
+      const localImages = [...h.images].sort();
+      if (remoteMatches.length === localImages.length) {
+        let idx = 0;
+        resultMarkdown = resultMarkdown.replace(remoteRefRe, (_m, alt) => {
+          // h.images entries may already include the "images/" prefix
+          // depending on the adapter's harvest layout; strip any leading
+          // "images/" to canonicalize.
+          const local = localImages[idx++].replace(/^images\//, "");
+          return `![${alt}](images/${local})`;
+        });
+        adapterNotes.push(`zhihu: rewrote ${remoteMatches.length} remote image URL(s) → local paths`);
+      } else {
+        adapterFlags.push("zhihu-image-count-mismatch");
+        adapterNotes.push(`zhihu: WARNING — ${remoteMatches.length} remote image refs but ${localImages.length} local files; skipping rewrite`);
+      }
+    }
+  }
+
   // opencli's zhihu-download converts <table> elements to a sequence of
   // per-cell paragraphs (one cell per paragraph, blank-line separated).
   // Recover proper markdown tables via a browser-DOM extraction pass,
