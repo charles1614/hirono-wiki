@@ -133,6 +133,44 @@ export const stripEmptyAnchorLinks: PostProcessor = {
 };
 
 /**
+ * Strip trailing tag-list chrome: a single line consisting ONLY of
+ * consecutive `[Name](/tag/slug/)` link tokens with no separators, typical
+ * of blog footers (blog.cloudflare.com, magazine.sebastianraschka.com, etc.).
+ * Conservative — only strips when the ENTIRE line matches (no prose, no
+ * punctuation between links) AND it's within the last 8 lines of the doc.
+ */
+export const stripTrailingTagList: PostProcessor = {
+  name: "strip-trailing-tag-list",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    let stripped = 0;
+    // Walk from end backwards, allowing trailing blanks
+    let i = lines.length - 1;
+    while (i >= 0 && lines[i].trim() === "") i--;
+    // Now i points at last non-blank line; repeat for tag-list lines
+    while (i >= 0 && i >= lines.length - 8) {
+      const trimmed = lines[i].trim();
+      // Must be at least 2 tag links, only tag links, no separators
+      if (/^(?:\[[^\]\n]+\]\(\/tag\/[^)\n]+\)){2,}$/.test(trimmed)) {
+        lines.splice(i, 1);
+        stripped++;
+        i--;
+        while (i >= 0 && lines[i].trim() === "") { lines.splice(i, 1); i--; }
+      } else {
+        break;
+      }
+    }
+    if (stripped === 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    return {
+      md: lines.join("\n"),
+      newAbsoluteImageUrls: [],
+      notes: [`stripped ${stripped} trailing tag-list chrome line(s)`],
+    };
+  },
+};
+
+/**
  * Strip discourse / GFM emoji image references: `![:name:](...twemoji...)`,
  * `![:name:](...emoji.slack-edge.com/...)`, etc. These are forum-style
  * decorative emoji markers that point at remote PNGs. They violate §3
@@ -2963,6 +3001,7 @@ export const PROCESSORS: PostProcessor[] = [
   // unescaping, otherwise we'd unescape things we'd immediately strip).
   stripEmptyAnchorLinks,
   stripDecorativeEmojiImages,
+  stripTrailingTagList,
   unescapeBracketsInLinks,
   stripColorTags,
   // LAST: enforce §2 contract (single H1). Demotes every body H1 to H2
