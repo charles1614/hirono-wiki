@@ -1575,13 +1575,75 @@ function fetchZhihuArticleViaAdapter(url: string, slugDir: string): AdapterResul
     { timeoutMs: 120_000 },
   );
   const h = harvestAdapterOutput(slugDir, beforeMtime);
+  let resultMarkdown = h.content;
+  const adapterNotes: string[] = [];
+  const adapterFlags: string[] = [];
+
+  // opencli's zhihu-download converts <table> elements to a sequence of
+  // per-cell paragraphs (one cell per paragraph, blank-line separated).
+  // Recover proper markdown tables via a browser-DOM extraction pass,
+  // then replace each flattened cell-run with its rendered pipe-table.
+  // Zhihu tables don't have clean preceding headings (they sit inside
+  // prose paragraphs), so we splice by cell-run match rather than by
+  // heading anchor.
+  if (resultMarkdown.length > 0) {
+    const tablesResult = extractDeepwikiTables(url);
+    if (tablesResult.error) {
+      adapterFlags.push("zhihu-table-extraction-failed");
+      adapterNotes.push(`zhihu: table extraction failed (${tablesResult.error.slice(0, 120)})`);
+    } else if (tablesResult.tables.length > 0) {
+      const { md, matched, skipped } = spliceTablesByCellRun(resultMarkdown, tablesResult.tables);
+      if (md !== resultMarkdown) {
+        resultMarkdown = md;
+        adapterNotes.push(`zhihu: spliced ${matched}/${tablesResult.tables.length} table(s) from rendered DOM`);
+      }
+      if (skipped > 0) {
+        adapterFlags.push("zhihu-table-splice-incomplete");
+        adapterNotes.push(`zhihu: WARNING — ${skipped}/${tablesResult.tables.length} table(s) could not be spliced (no matching cell-run found)`);
+      }
+    }
+  }
+
+  if (h.errors.length > 0) {
+    adapterFlags.push("adapter-output-partial");
+    for (const e of h.errors) adapterNotes.push(`harvest: ${e}`);
+  }
+
   return {
-    markdown: h.content,
+    markdown: resultMarkdown,
     imageFiles: h.images,
     rawMetadata: tryParseJsonLines(stdout),
-    extraFlags: h.errors.length > 0 ? ["adapter-output-partial"] : undefined,
-    adapterNotes: h.errors.length > 0 ? h.errors.map((e) => `harvest: ${e}`) : undefined,
+    extraFlags: adapterFlags.length > 0 ? adapterFlags : undefined,
+    adapterNotes: adapterNotes.length > 0 ? adapterNotes : undefined,
   };
+}
+
+/**
+ * Splice tables into a markdown body by finding each table's flattened
+ * cell-run anywhere in the document (not bounded by a heading). For each
+ * extracted table, search the whole markdown for a paragraph run whose
+ * cells match the table's cells (≥70% fidelity via `findPlainTextCellRunSpan`)
+ * and replace that span with the rendered pipe-table.
+ *
+ * Used by zhihu-article (tables don't have a reliable preceding heading).
+ */
+function spliceTablesByCellRun(md: string, tables: DeepwikiTable[]): { md: string; matched: number; skipped: number } {
+  if (tables.length === 0) return { md, matched: 0, skipped: 0 };
+  let current = md;
+  let matched = 0;
+  let skipped = 0;
+  for (const t of tables) {
+    if (t.rows.length === 0 || (t.rows[0]?.length ?? 0) === 0) { skipped++; continue; }
+    const span = findPlainTextCellRunSpan(current, 0, current.length, t.rows);
+    if (!span) { skipped++; continue; }
+    const tableMd = renderMarkdownTable(t.rows);
+    // Replace the cell-run span with the rendered table, padded with
+    // blank lines so it sits as its own paragraph block.
+    const insertion = "\n" + tableMd + "\n\n";
+    current = current.slice(0, span.start) + insertion + current.slice(span.end);
+    matched++;
+  }
+  return { md: current.replace(/\n{3,}/g, "\n\n"), matched, skipped };
 }
 
 /** Native zhihu question adapter: www.zhihu.com/question/<id> — prints structured answers to stdout. */

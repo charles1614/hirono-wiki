@@ -1,0 +1,48 @@
+{
+  "fetched_at": "2026-04-24T15:13:32.189Z",
+  "origin": "url:https://zhuanlan.zhihu.com/p/717560804",
+  "origin_url": "https://zhuanlan.zhihu.com/p/717560804",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "dbc783d110df39347956fbc71dd7d76da0153eca8d6209d4658a6061aafac566",
+  "content_length": 11366,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.jpg",
+      "remote": "",
+      "bytes": 573589
+    },
+    {
+      "local": "images/img_002.jpg",
+      "remote": "",
+      "bytes": 570876
+    },
+    {
+      "local": "images/img_003.jpg",
+      "remote": "",
+      "bytes": 458840
+    },
+    {
+      "local": "images/img_004.jpg",
+      "remote": "",
+      "bytes": 758044
+    },
+    {
+      "local": "images/img_005.jpg",
+      "remote": "",
+      "bytes": 678869
+    },
+    {
+      "local": "images/img_006.jpg",
+      "remote": "",
+      "bytes": 688001
+    }
+  ],
+  "notes": [
+    "opencli adapter: zhihu-article",
+    "zhihu: spliced 2/2 table(s) from rendered DOM",
+    "6 images downloaded by adapter"
+  ]
+}
