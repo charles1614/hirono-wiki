@@ -2899,25 +2899,24 @@ function fetchHuggingFaceBlogFromGithub(
     }
   }
 
-  let markdown = body.trim() + "\n";
-  // Add an H1 only if the body doesn't already start with one.
-  if (!/^#\s+/m.test(markdown.slice(0, 200)) && title) {
-    markdown = `# ${title}\n\n${markdown}`;
-  }
+  let bodyMd = body.trim() + "\n";
+  // Strip the body's leading H1 if present — we'll emit our own preamble H1.
+  bodyMd = bodyMd.replace(/^#\s+[^\n]+\n+/, "");
 
-  // Insert authors callout right after the H1 (or at top if no H1).
+  // Build the standard preamble: # title \n\n > 原文链接 \n (optional > Authors)
+  // \n\n --- \n\n (body). Matches §2 output contract so enforceSingleH1
+  // and the downstream checks have a real `\n---\n` anchor.
+  const finalTitle = title || "HuggingFace Blog Post";
+  const preambleLines: string[] = [`# ${finalTitle}`, "", `> 原文链接: ${url}`];
   if (authorHandles.length > 0) {
     const label = authorHandles.length === 1 ? "Author" : "Authors";
     const rendered = authorHandles
       .map((h) => `[@${h}](https://huggingface.co/${h})`)
       .join(", ");
-    const authorLine = `> **${label}:** ${rendered}`;
-    if (/^#\s+/m.test(markdown)) {
-      markdown = markdown.replace(/^(#\s+[^\n]+\n)/, `$1\n${authorLine}\n\n`);
-    } else {
-      markdown = `${authorLine}\n\n${markdown}`;
-    }
+    preambleLines.push(`> **${label}:** ${rendered}`);
   }
+  preambleLines.push("", "---", "", "");
+  let markdown = preambleLines.join("\n") + bodyMd;
 
   // Resolve site-relative image paths (/blog/assets/...) to absolute HF URLs so
   // processImages can download them. Matches both markdown `![](/path)` and

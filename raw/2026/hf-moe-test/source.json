@@ -1,11 +1,11 @@
 {
-  "fetched_at": "2026-04-23T13:12:50.357Z",
+  "fetched_at": "2026-04-24T16:16:35.118Z",
   "origin": "url:https://huggingface.co/blog/moe",
   "origin_url": "https://huggingface.co/blog/moe",
   "fetcher": "opencli",
   "fetcher_reason": "domain-override",
-  "content_sha": "f59fc96b0028e9ae74d29f2ebb050b37b367e35ec91154efd44454158a03146e",
-  "content_length": 32798,
+  "content_sha": "a27357e12297c8fac1374102f374267cafad9bbf8f27b98ac8ba15fd12f33683",
+  "content_length": 32849,
   "quality_flags": [],
   "quality_status": "good",
   "images": [
@@ -73,7 +73,6 @@
   "notes": [
     "opencli adapter: huggingface-web",
     "huggingface: opencli extraction failed; fell back to GitHub raw (33688 chars, 6 author(s), 12 image(s))",
-    "hirono post-processors: huggingface-blog-reformat",
     "12 images downloaded by adapter"
   ]
 }

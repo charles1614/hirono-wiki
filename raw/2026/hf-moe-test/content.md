@@ -1,6 +1,9 @@
 # Mixture of Experts Explained
 
+> 原文链接: https://huggingface.co/blog/moe
 > **Authors:** [@osanseviero](https://huggingface.co/osanseviero), [@lewtun](https://huggingface.co/lewtun), [@philschmid](https://huggingface.co/philschmid), [@smangrul](https://huggingface.co/smangrul), [@ybelkada](https://huggingface.co/ybelkada), [@pcuenq](https://huggingface.co/pcuenq)
+
+---
 
 > [!IMPORTANT]
 > There is a second iteration (Feb 2026) of the blog post where we cover how the `transformers` library has built around MoEs to make them "first class citizens" of the library and the Hub. Here is the link to the post: [Mixture of Experts (MoEs) in Transformers](https://huggingface.co/blog/moe-transformers)
@@ -33,6 +36,7 @@ Let’s dive in!
 - [Exciting directions of work](#exciting-directions-of-work)
 - [Some resources](#some-resources)
 
+
 ## TL;DR
 
 MoEs:
@@ -40,6 +44,7 @@ MoEs:
 - Have **faster inference** compared to a model with the same number of parameters
 - Require **high VRAM** as all experts are loaded in memory
 - Face many **challenges in fine-tuning**, but [recent work](https://arxiv.org/pdf/2305.14705.pdf) with MoE **instruction-tuning is promising**
+
 
 Let’s dive in!
 
@@ -53,6 +58,7 @@ So, what exactly is a MoE? In the context of transformer models, a MoE consists 
 
 - **Sparse MoE layers** are used instead of dense feed-forward network (FFN) layers. MoE layers have a certain number of “experts” (e.g. 8), where each expert is a neural network. In practice, the experts are FFNs, but they can also be more complex networks or even a MoE itself, leading to hierarchical MoEs!
 - A **gate network or router**, that determines which tokens are sent to which expert. For example, in the image below, the token “More” is sent to the second expert, and the token "Parameters” is sent to the first network. As we’ll explore later, we can send a token to more than one expert. How to route a token to an expert is one of the big decisions when working with MoEs - the router is composed of learned parameters and is pretrained at the same time as the rest of the network.
+
 
 <figure class="image text-center">
   <img src="01-00_switch_transformer.png" alt="Switch Layer">
@@ -232,6 +238,7 @@ Switch Transformers observed that at a fixed pretrain perplexity, the sparse mod
   <figcaption>In the small task (left), we can see clear overfitting as the sparse model does much worse in the validation set. In the larger task (right), the MoE performs well. This image is from the ST-MoE paper.</figcaption>
 </figure>
 
+
 One could experiment with freezing all non-expert weights. That is, we'll only update the MoE layers. This leads to a huge performance drop. We could try the opposite: freezing only the parameters in MoE layers, which worked almost as well as updating all parameters. This can help speed up and reduce memory for fine-tuning. This can be somewhat counter-intuitive as 80% of the parameters are in the MoE layers (in the ST-MoE project). Their hypothesis for that architecture is that, as expert layers only occur every 1/4 layers, and each token sees at most two experts per layer, updating the MoE parameters affects much fewer layers than updating other parameters.
 
 <figure class="image text-center">
@@ -253,6 +260,7 @@ At this point, you might be a bit sad that people have struggled to fine-tune Mo
 - Multi-task instruction-tuning followed by single-task fine-tuning
 
 When the authors fine-tuned the MoE and the T5 equivalent, the T5 equivalent was better. When the authors fine-tuned the Flan T5 (T5 instruct equivalent) MoE, the MoE performed significantly better. Not only this, the improvement of the Flan-MoE over the MoE was larger than Flan T5 over T5, indicating that MoEs might benefit much more from instruction tuning than dense models. MoEs benefit more from a higher number of tasks.  Unlike the previous discussion suggesting to turn off the auxiliary loss function, the loss actually prevents overfitting.
+
 
 <figure class="image text-center">
   <img src="10-09_fine_tune_evals.png" alt="MoEs benefit even more from instruct tuning than dense models">
@@ -349,6 +357,7 @@ So, TL;DR, some interesting areas to explore:
 - [MegaBlocks: Efficient Sparse Training with Mixture-of-Experts (Nov 2022)](https://arxiv.org/abs/2211.15841)
 - [Mixture-of-Experts Meets Instruction Tuning:A Winning Combination for Large Language Models (May 2023)](https://arxiv.org/abs/2305.14705)
 - [Mixtral-8x7B-v0.1](https://huggingface.co/mistralai/Mixtral-8x7B-v0.1), [Mixtral-8x7B-Instruct-v0.1](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1).
+
 
 ## Citation
 
