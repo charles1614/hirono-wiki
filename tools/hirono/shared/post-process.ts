@@ -133,6 +133,33 @@ export const stripEmptyAnchorLinks: PostProcessor = {
 };
 
 /**
+ * Strip discourse / GFM emoji image references: `![:name:](...twemoji...)`,
+ * `![:name:](...emoji.slack-edge.com/...)`, etc. These are forum-style
+ * decorative emoji markers that point at remote PNGs. They violate §3
+ * ("Images: all local") and add no value once we read the post. Replace
+ * with the bare `:name:` shortcode so the emotional cue survives as text.
+ */
+export const stripDecorativeEmojiImages: PostProcessor = {
+  name: "strip-decorative-emoji-images",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    // ![:emoji_name:](https://.../twemoji|emoji|emoji.slack-edge/... "tooltip")
+    // Also catches discourse's `![:name:](url ":name:")` with title.
+    const re = /!\[:([a-z0-9_+-]+):\]\(https?:\/\/[^)\s]*\/(?:twemoji|emoji|emojis)\/[^)]*\)/gi;
+    let count = 0;
+    const cleaned = md.replace(re, (_m, name) => {
+      count++;
+      return `:${name}:`;
+    });
+    return {
+      md: cleaned,
+      newAbsoluteImageUrls: [],
+      notes: count > 0 ? [`stripped ${count} decorative emoji image ref(s) → shortcodes`] : [],
+    };
+  },
+};
+
+/**
  * Un-escape markdown brackets in link text: `[\[profile\_data\]]` → `[profile_data]`.
  * opencli web-read over-escapes these when the original HTML had literal
  * `[` / `]` in anchor text. The escaped form isn't invalid Markdown but
@@ -1947,10 +1974,29 @@ export const arxivPdfNote: PostProcessor = {
   name: "arxiv-pdf-note",
   match: (u, h) => h === "arxiv.org" && /\/pdf\//.test(u),
   transform: (md, originUrl) => {
-    // Rewrite /pdf/<id> → /abs/<id> in the source-link line so the reader
-    // can navigate to the abstract page. The content may be partial (Chrome
-    // PDF renderer extracts text but loses formatting).
     const absUrl = originUrl.replace(/\/pdf\//, "/abs/").replace(/\.pdf$/, "");
+    // If the PDF fetch produced no real content (Chrome's PDF viewer
+    // sometimes yields empty/near-empty markdown), emit a proper stub
+    // pointing at the abstract page instead of a ~100-char note-only file.
+    // Threshold 1500 chars: an actual paper extract is many KB.
+    if (md.length < 1500) {
+      const stub = [
+        `# arXiv Paper (PDF-only fetch)`,
+        ``,
+        `> **Source:** ${originUrl}`,
+        `> **Status:** pdf-extraction-incomplete — Chrome's PDF viewer produced little or no extractable text.`,
+        `> **Abstract:** ${absUrl}`,
+        ``,
+        `*This entry is a metadata stub. Refetch the abstract URL above for paper metadata + HTML body.*`,
+        ``,
+      ].join("\n");
+      return {
+        md: stub,
+        newAbsoluteImageUrls: [],
+        notes: [`arxiv: PDF fetch empty — produced stub pointing at ${absUrl}`],
+        extraFlags: ["intentional-stub"],
+      };
+    }
     const note = `\n> **Note:** This was fetched from a PDF URL. For structured metadata see the [abstract page](${absUrl}).\n`;
     return {
       md: md.trimEnd() + "\n" + note,
@@ -2021,9 +2067,29 @@ export const sebastianraschkaBlogCleanup: PostProcessor = {
 export const huggingfaceBlogReformat: PostProcessor = {
   name: "huggingface-blog-reformat",
   match: (_u, h) => h === "huggingface.co",
-  transform: (md, _originUrl) => {
+  transform: (md, originUrl) => {
     const notes: string[] = [];
     let out = md;
+
+    // 0. Detect HF blog 404 page ("# 404\n\nThis blog post does not exist")
+    //    and short-circuit with a proper stub.
+    if (/^# 404\s*$/m.test(md) && /This blog post does not exist/.test(md)) {
+      const stub = [
+        `# HuggingFace Blog Post (not found)`,
+        ``,
+        `> **Source:** ${originUrl}`,
+        `> **Status:** page-removed — HuggingFace returned 404 for this blog slug.`,
+        ``,
+        `*This entry is a metadata stub. The post may have been renamed, unpublished, or never existed.*`,
+        ``,
+      ].join("\n");
+      return {
+        md: stub,
+        newAbsoluteImageUrls: [],
+        notes: [`hf: 404 page detected — produced stub`],
+        extraFlags: ["intentional-stub"],
+      };
+    }
 
     // 1. Strip `[Back to Articles](/blog)` nav link
     const beforeBack = out.length;
@@ -2509,6 +2575,45 @@ export const redditReformat: PostProcessor = {
   match: (_u, h) => h === "reddit.com" || h === "www.reddit.com",
   transform: (md, originUrl) => {
     const notes: string[] = [];
+
+    // Detect deleted/removed posts AND rate-limited/unloadable fetches.
+    // Shapes:
+    //   `# [deleted by user] : r/<sub>`          (title-level deletion)
+    //   `[removed]` as the body                  (mod-removed)
+    //   `[deleted]` as the body                  (user-deleted)
+    //   Short body + "Check Claude service status" or similar rate-limit chrome
+    const rateLimitHints = [
+      "Check Claude service status",
+      "you've been blocked",
+      "reddit is now live",
+    ];
+    const looksDeleted =
+      /^#\s+\[deleted by user\]/m.test(md) ||
+      /\n\s*\[removed\]\s*\n/.test(md) ||
+      (md.length < 500 && /\[deleted\]/.test(md));
+    const looksUnfetched =
+      md.length < 800 && rateLimitHints.some((h) => md.includes(h));
+    if (looksDeleted || looksUnfetched) {
+      const statusLine = looksDeleted
+        ? `page-removed — the post was deleted by its author or removed by moderators.`
+        : `fetch-blocked — Reddit did not return post content (rate-limit or anti-bot gate).`;
+      const stub = [
+        `# Reddit post (${looksDeleted ? "deleted or removed" : "unreachable"})`,
+        ``,
+        `> **Source:** ${originUrl}`,
+        `> **Status:** ${statusLine}`,
+        ``,
+        `*This entry is a metadata stub. ${looksDeleted ? "The original content is no longer available." : "Retry from a signed-in session or use old.reddit.com."}*`,
+        ``,
+      ].join("\n");
+      return {
+        md: stub,
+        newAbsoluteImageUrls: [],
+        notes: [`reddit: ${looksDeleted ? "deleted/removed" : "rate-limited"} — produced stub`],
+        extraFlags: ["intentional-stub"],
+      };
+    }
+
     const lines = md.split("\n");
 
     // Reddit /s/ short URLs redirect to actual post — note the original URL
@@ -2751,6 +2856,7 @@ export const PROCESSORS: PostProcessor[] = [
   // Then generic cosmetic cleanups (order matters: strip noise before
   // unescaping, otherwise we'd unescape things we'd immediately strip).
   stripEmptyAnchorLinks,
+  stripDecorativeEmojiImages,
   unescapeBracketsInLinks,
   stripColorTags,
   // LAST: enforce §2 contract (single H1). Demotes every body H1 to H2
