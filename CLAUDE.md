@@ -42,6 +42,8 @@ If any fail, STOP. Extraction fix, not cleanup.
 
 **After counts pass, read the output.** Counts are necessary but not sufficient. Before declaring done: skim the first 30 lines (chrome at top?), last 30 lines (chrome at tail?), and one mid-document section around each spliced element (orphan lead-ins? missing blank lines around fences/tables? doubled blank lines after headings?). If I can't spot these in counts, I have to read the text.
 
+**Per-host regression gate**: each adapter-covered host has a snapshot at `tools/__tests__/snapshots/<host>/<slug>.md` paired with a `<slug>.invariants.json` sidecar (feature counts captured at snapshot time). The test suite asserts feature-count invariants, not byte equality, so legitimate editorial revisions don't flake. When a snapshot test fails: re-fetch fresh, diff against snapshot, decide site-changed vs adapter-regressed (per the regression-triage workflow in the per-site plan).
+
 ## 2. Output contract
 
 Every fetched source must produce markdown in this shape:
@@ -218,15 +220,50 @@ When adding a new collapse, insert it at the right stage — order is load-beari
 
 A regex that fails because its input shape differs from expectation is usually an ordering problem, not a regex bug.
 
-## 5. New-URL protocol
+## 5. New-URL / new-host protocol
 
-When a URL type you haven't seen shows up:
+### 5a. Adapter-selection decision tree (preferred path for any new host)
 
-1. **Fidelity probe**: fetch 1–2 sample URLs via opencli, run the fidelity check against source truth (raw / API / HTML).
-2. **If fidelity fails** → look for a source-truth endpoint (REST API / raw content / git mirror). Build a fallback adapter modeled on `fetchGithubRawFile` / `augmentGithubPrIssueWithApi` / `fetchGithubReleaseFromApi`.
-3. **If fidelity passes** → run `grep -vE 'known-good-pattern' <file>` to surface unexpected chrome. Add to `chromeLinePatterns` / `sidebarCutoffs` as needed.
-4. **Show user the first 1–2 outputs before bulk-processing.** Don't guess the quality bar — preferences (what's content vs chrome, formatting choices) aren't knowable from markdown alone. Iterate.
-5. **When a preference generalizes, add it here.** Site-specific patterns go in the recipe for that host. Cross-site preferences (like "no bold in headings") go in §3.
+```
+   ┌─ Step 1: opencli list — does a community/built-in adapter cover this host?
+   │   yes → Layer 1 (use community adapter; record name+version in
+   │         tools/opencli/community-adapter-audit.md)
+   │   no  → Step 2
+   │
+   ├─ Step 2: bookmark count >= 2?
+   │   yes → Layer 2 (custom in-repo adapter at
+   │         tools/opencli/clis/<host>/<name>.js, symlinked into
+   │         ~/.opencli/ via tools/opencli/install-symlinks.sh)
+   │   no  → Layer 3 (web-read + generic post-processors; out of scope
+   │         until the host graduates to count >= 2)
+   │
+   ├─ Step 3: Wire DISPATCH_RULES in tools/fetch-raw.ts
+   ├─ Step 4: End-to-end fetch + read-through (CLAUDE.md §1 counts
+   │   AND eye-read). Sample-validity gate: quality_status=good +
+   │   content_length > 2000.
+   ├─ Step 5: If adapter output isn't perfect, add a site-specific
+   │   post-processor at tools/hirono/processors/<host>.ts (NOT in
+   │   shared/post-process.ts — that's reserved for cross-site cleanups).
+   ├─ Step 6: Capture per-host snapshot:
+   │     cp raw/2026/<slug>/content.md tools/__tests__/snapshots/<host>/<slug>.md
+   │     npx tsx tools/__tests__/snapshot-helpers.ts capture <path>
+   │     npx tsx --test tools/__tests__/per-host-snapshot.test.ts  # must pass
+   └─ Step 7: Commit (one host per commit so each is reversible).
+```
+
+### 5b. Long-tail graduation watchdog
+
+`hirono raindrop check` flags hosts that crossed from count==1 → count>=2 since the last accepted snapshot. Address each via Step 1+ above, then `hirono raindrop check --update-graduation-snapshot` to bake the new counts into `tools/opencli/host-counts.json`. Non-zero exit code if there are unaddressed graduations.
+
+### 5c. Iterate on the first 1–2 outputs before bulk-processing
+
+Don't guess the quality bar — preferences (what's content vs chrome, formatting choices) aren't knowable from markdown alone. Show the user the first sample and iterate.
+
+### 5d. Where preferences live
+
+- **Site-specific** (chrome to strip, layout quirks unique to one host) → `tools/hirono/processors/<host>.ts`
+- **Cross-site** (truly applies to N+ hosts identically: H1 contract, twemoji shortcode rewrite, image canonicalization) → `tools/hirono/shared/post-process.ts`
+- **Recipes for non-obvious patterns** (auth walls, hidden APIs, multi-step extraction) → §4 of this file
 
 ## 6. Regression set
 
@@ -282,16 +319,29 @@ echo "$f:" \
 - **`tools/fetch-raw.ts`**:
   - `AUTO_SKIP_RULES` — URL refuse-list (currently HF Spaces, L2 skip)
   - `HOST_MIN_BODY_SIZES` — per-host+URL-path size bands
+  - `DISPATCH_RULES` — host → opencli adapter routing (line ~146)
   - `classifyQuality` — flag assembly; consumes `intentional-stub`
   - `fetchWebReadViaAdapter` — opencli wrapper + fallback ladder (60s retry → HF blog GitHub-raw → GitHub release API → GitHub file/repo raw → GitHub PR/issue/discussion REST API augmentation)
   - Fallback adapters: `fetchHuggingFaceBlogFromGithub`, `fetchGithubReleaseFromApi`, `fetchGithubRawFile`, `augmentGithubPrIssueWithApi` (handles all 3 conversation kinds)
-- **`tools/hirono/shared/post-process.ts`**:
-  - `PROCESSORS` — ordered pipeline
-  - `githubStripUIChrome` — match narrow to `/(pull|issues|discussions)/\d+`; internal ordering matters (§4 "Post-processor ordering")
-  - `huggingfaceBlogReformat` — KaTeX + anchor prefix + multi-author + image URL normalization + trailing-footer truncation
-  - `substackReformat` — paywall + CTAs + click-to-enlarge unwrap
-  - `articleCleanup` — generic blog/article trailing-chrome + related-post strip
+- **`tools/opencli/`** — in-repo home of opencli adapters (Layer 2):
+  - `clis/<site>/<name>.js` — adapter source (git-tracked)
+  - `sites/<site>/` — recon notes, fixtures, endpoint refs per site
+  - `install-symlinks.sh` — idempotent bootstrap that links into `~/.opencli/clis/` so opencli's loader sees in-repo source
+  - `community-adapter-audit.md` — per-host record of Layer-1 community coverage
+  - `host-counts.json` — graduation watchdog snapshot (used by `hirono raindrop check`)
+- **`tools/hirono/processors/`** — site-specific post-processors (per-host file):
+  - `<host>.ts` — one file per host with site-specific chrome cleanups; localizes blast radius
+  - `index.ts` — re-exports `siteSpecificProcessors[]` for the pipeline composer
+- **`tools/hirono/shared/post-process.ts`** — generic / cross-site processors only (truly N+ host applicability):
+  - `PROCESSORS` — ordered pipeline (site-specific first, then generic cross-site)
+  - `enforceSingleH1`, `stripDecorativeEmojiImages`, `stripTrailingTagList`, `stripShareWidgetLines`, `processImages`, `resolveRelativeImageUrls`, `unescapeBracketsInLinks`, `stripEmptyAnchorLinks`, `stripColorTags`
+  - **Legacy** site-specific processors (substackReformat, deepwikiStripNav, githubStripUIChrome, huggingfaceBlogReformat, etc.) still live here pending migration to `tools/hirono/processors/<host>.ts` as their hosts move to community-adapter coverage
   - `applyPostProcessors` — aggregates `extraFlags` including `intentional-stub`
+- **`tools/__tests__/`**:
+  - `post-process-fixtures.test.ts` — fixture pairs for each processor (47 cases)
+  - `per-host-snapshot.test.ts` — per-host snapshot regression suite
+  - `snapshot-helpers.ts` — feature-count helpers + sidecar I/O + CLI for capturing invariants
+  - `snapshots/<host>/<slug>.md` + `<slug>.invariants.json` — per-host snapshots
 
 ## Keeping this file fresh
 
