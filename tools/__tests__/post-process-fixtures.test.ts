@@ -189,9 +189,9 @@ test("xhsReformatNoteTable: standard note with title + author + content + images
   ].join("\n");
   const r = xhsReformatNoteTable.transform(md, "https://www.xiaohongshu.com/discovery/item/abc");
   assert.match(r.md, /^# Megatron 训练心得/m);
-  assert.match(r.md, /\*\*来源 \/ Source:\*\* https:\/\/www\.xiaohongshu\.com/);
-  assert.match(r.md, /\*\*作者 \/ Author:\*\* someone/);
-  assert.match(r.md, /123 likes.*67 collects.*45 comments/);
+  assert.match(r.md, /^> 原文链接: https:\/\/www\.xiaohongshu\.com/m);
+  assert.match(r.md, /^> 作者: someone/m);
+  assert.match(r.md, /^> 互动: 123 likes.*67 collects.*45 comments/m);
   assert.match(r.md, /\*\*标签 \/ Tags:\*\* #AI #training/);
   assert.match(r.md, /## Images[\s\S]*img_001\.jpg/);
   // emoji-based line-breaks

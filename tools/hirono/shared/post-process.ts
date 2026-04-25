@@ -1913,13 +1913,14 @@ export const xhsReformatNoteTable: PostProcessor = {
     const title = kv.get("title") || "(Xiaohongshu note)";
     result.push(`# ${title}`);
     result.push("");
-    result.push(`**来源 / Source:** ${originUrl}`);
-    if (kv.get("author")) result.push(`**作者 / Author:** ${kv.get("author")}`);
+    // §2 contract: blockquote frontmatter (`> 原文链接:` + optional metadata).
+    result.push(`> 原文链接: ${originUrl}`);
+    if (kv.get("author")) result.push(`> 作者: ${kv.get("author")}`);
     const stats: string[] = [];
     if (kv.get("likes")) stats.push(`${kv.get("likes")} likes`);
     if (kv.get("collects")) stats.push(`${kv.get("collects")} collects`);
     if (kv.get("comments")) stats.push(`${kv.get("comments")} comments`);
-    if (stats.length) result.push(`**互动 / Engagement:** ${stats.join(" · ")}`);
+    if (stats.length) result.push(`> 互动: ${stats.join(" · ")}`);
     result.push("", "---", "");
 
     const contentRaw = kv.get("content") || "";
