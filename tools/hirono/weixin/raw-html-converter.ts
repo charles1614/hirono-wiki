@@ -149,6 +149,31 @@ export interface WeixinSvgFile {
 }
 
 /**
+ * Extract `<svg>...</svg>` blocks from the raw HTML BEFORE sanitization.
+ *
+ * The CSS-strip in convertWeixinHtml removes every `style="..."` attribute
+ * to dodge jsdom's CSS-shorthand parser bug. But mermaid-rendered SVGs
+ * carry ALL their visual semantics (fill colors, stroke widths, marker
+ * arrowhead fills, font families) in inline styles — strip them and the
+ * SVG renders as a black-on-white wireframe with broken arrows.
+ *
+ * Solution: harvest each SVG's original outerHTML (with styles intact)
+ * here, BEFORE the strip pass. Match by ordinal — the Nth `<svg>` jsdom
+ * sees == the Nth `<svg>` we extracted. processSvgs then uses these
+ * pristine bytes when writing the .svg file, so the saved file renders
+ * correctly even though the in-memory DOM SVG is style-less.
+ */
+function extractOriginalSvgs(rawHtml: string): string[] {
+  const out: string[] = [];
+  const re = /<svg\b[\s\S]*?<\/svg>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(rawHtml)) !== null) {
+    out.push(m[0]);
+  }
+  return out;
+}
+
+/**
  * Process inline `<svg>` elements:
  *   - REAL diagrams (mermaid flowcharts, architecture pictures, etc.) are
  *     extracted as standalone `.svg` files and replaced with a markdown
@@ -161,16 +186,28 @@ export interface WeixinSvgFile {
  * containing "flowchart"/"sequence"/"diagram"/"graph". The decorative dots
  * are typically 450-650 bytes with just 3 `<ellipse>` children. Real
  * mermaid SVGs run well into the tens of KB.
+ *
+ * `originalSvgs` carries the pristine pre-style-strip bytes (see
+ * extractOriginalSvgs above) so the saved .svg file renders correctly.
  */
-function processSvgs(doc: Document, root: Element): { files: WeixinSvgFile[]; dropped: number } {
+function processSvgs(
+  doc: Document,
+  root: Element,
+  originalSvgs: string[],
+): { files: WeixinSvgFile[]; dropped: number } {
   const svgs = root.querySelectorAll("svg");
   const files: WeixinSvgFile[] = [];
   let dropped = 0;
   let realCounter = 0;
+  let svgIndex = -1;
   for (const svg of svgs) {
-    const html = svg.outerHTML;
+    svgIndex++;
+    // Use the in-DOM (style-less) outerHTML for the heuristic, since it's
+    // what jsdom has. Either form is equivalently valid for size-based
+    // detection (the colored-dot decorative SVGs barely change with styles).
+    const inDomHtml = svg.outerHTML;
     const ariaRole = (svg.getAttribute("aria-roledescription") || "").toLowerCase();
-    const isReal = html.length >= 2000
+    const isReal = inDomHtml.length >= 2000
       || /flowchart|sequence|diagram|graph|state-diagram|class-diagram/.test(ariaRole);
     if (!isReal) {
       svg.remove();
@@ -179,7 +216,11 @@ function processSvgs(doc: Document, root: Element): { files: WeixinSvgFile[]; dr
     }
     realCounter++;
     const localFilename = `weixin-svg-${String(realCounter).padStart(3, "0")}.svg`;
-    files.push({ localFilename, svg: html });
+    // Prefer the pre-strip pristine SVG bytes if we have them; fall back to
+    // the in-DOM form if the index doesn't line up (shouldn't happen, but
+    // we don't want to crash if regex misses a malformed SVG).
+    const fileBody = originalSvgs[svgIndex] ?? inDomHtml;
+    files.push({ localFilename, svg: fileBody });
     // Replace with an <img>-equivalent so turndown emits ![](filename).
     // Tag with data-local-svg="1" so normalizeImages skips it (otherwise
     // its filter for http-only src would treat the relative ref as a
@@ -282,6 +323,11 @@ export function convertWeixinHtml(
   metadata: WeixinMetadata,
   originUrl: string,
 ): ConvertResult {
+  // Capture original SVG bytes BEFORE the style-strip below — mermaid SVGs
+  // store all visual semantics in inline styles and would render as
+  // black-and-white wireframes without them.
+  const originalSvgs = extractOriginalSvgs(contentHtml);
+
   // jsdom 23+ parses inline `style="..."` and crashes on malformed
   // background-shorthand expressions (which weixin/mdnice can emit). Styles
   // are irrelevant to markdown conversion, so strip every `style` attribute
@@ -295,8 +341,9 @@ export function convertWeixinHtml(
 
   // 1. SVGs: real diagrams → standalone .svg files + ![](ref); decorative
   //    section-marker dots → drop. Runs BEFORE list-marker / image walks so
-  //    we don't process SVG-internal nodes as list markers.
-  const svgResult = processSvgs(doc, root);
+  //    we don't process SVG-internal nodes as list markers. Uses the
+  //    pre-strip originalSvgs for the file body so styles survive.
+  const svgResult = processSvgs(doc, root, originalSvgs);
 
   // 2. <li> mdnice prefix strip
   const listMarkersCleaned = stripListMarkerPrefixes(doc);
