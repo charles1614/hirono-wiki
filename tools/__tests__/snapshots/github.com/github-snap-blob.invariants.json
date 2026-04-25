@@ -8,5 +8,8 @@
   "h2s": 13,
   "h3s": 11,
   "body_chars": 24939,
-  "chrome_denylist_matches": 0
+  "chrome_denylist_matches": 0,
+  "unbalanced_bold_runs": 0,
+  "empty_headings": 0,
+  "splicer_appendix_markers": 0
 }

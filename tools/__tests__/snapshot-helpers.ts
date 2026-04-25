@@ -43,6 +43,18 @@ export interface SnapshotInvariants {
   body_chars: number;
   /** Bare-text lines matching the chrome denylist (must equal zero). */
   chrome_denylist_matches: number;
+  /** Runs of 3+ asterisks `\*{3,}` outside code fences (must be 0; signals
+   *  unbalanced bold from nested-emphasis HTML — see `normalizeEmphasis` in
+   *  `tools/hirono/weixin/raw-html-converter.ts`). */
+  unbalanced_bold_runs: number;
+  /** Empty-text headings like `## ` with no content (must be 0; signals
+   *  H1-demotion artifact when the source's H1 first child was decorative
+   *  whitespace). */
+  empty_headings: number;
+  /** Any line containing `附录（位置未识别）` (must be 0; the legacy
+   *  weixin-DOM splicer's "couldn't anchor; appended at end" sentinel — its
+   *  presence means content placement failed). */
+  splicer_appendix_markers: number;
 }
 
 /**
@@ -112,6 +124,38 @@ export function countFeatures(md: string): SnapshotInvariants {
     }
   }
 
+  // Quality-defect counts — each MUST be zero, surfaced as hard-rule
+  // assertions in per-host-snapshot.test.ts.
+  let unbalanced_bold_runs = 0;
+  let empty_headings = 0;
+  let splicer_appendix_markers = 0;
+  inFence = false;
+  for (const l of md.split("\n")) {
+    if (/^```/.test(l.trim())) { inFence = !inFence; continue; }
+    if (inFence) continue;
+    // Unbalanced bold runs:
+    //   (a) Three+ consecutive asterisks (`****X****`, `******X******`) from
+    //       self-nested <strong> chains.
+    //   (b) Odd number of `**` markers on a line (`**A**丨B**` = 3 markers
+    //       from adjacent <strong>s with text between). After stripping
+    //       inline-code spans (which can legitimately contain `**` like
+    //       Python's `2**(10+i)`), an odd count means at least one open
+    //       without close.
+    if (/\*{3,}/.test(l)) {
+      unbalanced_bold_runs++;
+    } else {
+      // Strip CommonMark-style inline-code spans of any backtick width:
+      // `` ` `…` ``, `` `` `…` `` ``, etc. Width-matched closing.
+      const stripped = l.replace(/(`+)[^\n]*?\1/g, "");
+      const matches = stripped.match(/\*\*/g);
+      if (matches && matches.length % 2 === 1) unbalanced_bold_runs++;
+    }
+    // Empty ATX heading like `## ` with no text — H1-demotion artifact.
+    if (/^#{1,6}\s*$/.test(l)) empty_headings++;
+    // Legacy weixin DOM-splicer's "couldn't anchor" sentinel.
+    if (l.includes("附录（位置未识别）")) splicer_appendix_markers++;
+  }
+
   return {
     h1,
     frontmatter_present,
@@ -123,6 +167,9 @@ export function countFeatures(md: string): SnapshotInvariants {
     h3s,
     body_chars: body.length,
     chrome_denylist_matches: chromeMatches,
+    unbalanced_bold_runs,
+    empty_headings,
+    splicer_appendix_markers,
   };
 }
 
@@ -176,6 +223,9 @@ export function diffInvariants(
   eq("tables", "exact");
   eq("images", "exact");
   eq("chrome_denylist_matches", "exact");
+  eq("unbalanced_bold_runs", "exact");
+  eq("empty_headings", "exact");
+  eq("splicer_appendix_markers", "exact");
   tol("h2s", 1);
   tol("h3s", 2);
   // body_chars intentionally NOT asserted

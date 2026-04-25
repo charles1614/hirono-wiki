@@ -149,12 +149,19 @@ console.log(r.md.split("\n").slice(0, 30).join("\n"));
 console.log("--- TAIL 30 ---");
 console.log(r.md.split("\n").slice(-30).join("\n"));
 
-// Hard rules
+// Hard rules — keep in sync with per-host-snapshot.test.ts hard-rule asserts.
+// Recompute invariants from the FINAL on-disk markdown (after image-ref
+// rewriting above) so we catch any bug introduced by the rewrite pass too.
+const finalInv = countFeatures(readFileSync(snapPath, "utf8"));
+writeInvariants(snapPath, finalInv);
 const fail: string[] = [];
-if (inv.h1 !== 1) fail.push(`h1=${inv.h1} (expected 1)`);
-if (!inv.frontmatter_present) fail.push(`'> 原文链接:' not in first 10 lines`);
-if (inv.remote_images > 0) fail.push(`remote-image refs = ${inv.remote_images} (expected 0)`);
-if (inv.chrome_denylist_matches > 0) fail.push(`chrome denylist matches = ${inv.chrome_denylist_matches} (expected 0)`);
+if (finalInv.h1 !== 1) fail.push(`h1=${finalInv.h1} (expected 1)`);
+if (!finalInv.frontmatter_present) fail.push(`'> 原文链接:' not in first 10 lines`);
+if (finalInv.unbalanced_bold_runs > 0) fail.push(`${finalInv.unbalanced_bold_runs} line(s) with unbalanced bold (3+ stars OR odd \`**\` count) — see CLAUDE.md §4 mdnice recipe`);
+if (finalInv.empty_headings > 0) fail.push(`${finalInv.empty_headings} empty heading line(s) like '## '`);
+if (finalInv.splicer_appendix_markers > 0) fail.push(`${finalInv.splicer_appendix_markers} '附录（位置未识别）' marker(s) — splicer fallback fired`);
+if (finalInv.remote_images > 0) fail.push(`remote-image refs = ${finalInv.remote_images} (expected 0)`);
+if (finalInv.chrome_denylist_matches > 0) fail.push(`chrome denylist matches = ${finalInv.chrome_denylist_matches} (expected 0)`);
 
 if (missingRefs.length > 0) {
   fail.push(`${missingRefs.length} image refs in markdown that aren't in raw/: ${missingRefs.slice(0, 3).join(", ")}${missingRefs.length > 3 ? "..." : ""} (adapter bug: emits ref but doesn't download file)`);

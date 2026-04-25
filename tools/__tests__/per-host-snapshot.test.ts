@@ -85,6 +85,9 @@ for (const { host, slug, mdPath } of pairs) {
     assert.equal(c.frontmatter_present, true, `${host}/${slug}: missing '> 原文链接:' in first 10 lines`);
     assert.equal(c.remote_images, 0, `${host}/${slug}: ${c.remote_images} remote-image refs (must be 0; per CLAUDE.md §3)`);
     assert.equal(c.chrome_denylist_matches, 0, `${host}/${slug}: ${c.chrome_denylist_matches} bare chrome lines from denylist`);
+    assert.equal(c.unbalanced_bold_runs, 0, `${host}/${slug}: ${c.unbalanced_bold_runs} line(s) with 3+ consecutive asterisks (signals unbalanced bold from nested-emphasis HTML; see CLAUDE.md §4 "WeChat / mdnice malformed bold")`);
+    assert.equal(c.empty_headings, 0, `${host}/${slug}: ${c.empty_headings} empty heading line(s) like '## ' (H1-demotion artifact)`);
+    assert.equal(c.splicer_appendix_markers, 0, `${host}/${slug}: ${c.splicer_appendix_markers} '附录（位置未识别）' marker(s) (legacy splicer fallback — content placement failed)`);
   });
 
   test(`snapshot[${host}/${slug}]: every image ref resolves to a real file`, () => {

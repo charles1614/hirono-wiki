@@ -7,6 +7,9 @@
   "images": 15,
   "h2s": 0,
   "h3s": 0,
-  "body_chars": 12259,
-  "chrome_denylist_matches": 0
+  "body_chars": 12799,
+  "chrome_denylist_matches": 0,
+  "unbalanced_bold_runs": 0,
+  "empty_headings": 0,
+  "splicer_appendix_markers": 0
 }
