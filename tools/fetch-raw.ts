@@ -47,6 +47,7 @@ import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { acquireBrowserLock, acquireSlugLock } from "./hirono/shared/browser-lock.ts";
 import { deepwikiStripNav } from "./hirono/shared/post-process.ts";
 import { convertWeixinHtml } from "./hirono/weixin/raw-html-converter.ts";
+import { convertXhsHtml } from "./hirono/xhs/raw-html-converter.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -1096,6 +1097,129 @@ export interface XhsDomExtractResult {
   error?: string;
 }
 
+/**
+ * Combined Layer-4 xhs extractor: opens the page in opencli's browser,
+ * extracts body text + metadata + image URLs in a single eval pass, and
+ * closes the session. Returns everything the new converter needs.
+ *
+ * Body comes from `#detail-desc.textContent` — preserves the `\n\t\n`
+ * paragraph separators that opencli's `xiaohongshu note` collapses.
+ * Image URLs use the same carousel-dedup logic as
+ * `extractXhsImageUrlsInOrder` (sort by `left` position, drop wrap-around
+ * negatives, dedupe by image-id segment).
+ */
+export interface XhsFullContent {
+  title: string;
+  descText: string;
+  author: string;
+  likes?: string;
+  collects?: string;
+  comments?: string;
+  imageUrls: string[];
+  /** Resolved final URL after any redirects (e.g. xhslink.com → xiaohongshu.com/discovery/item/<noteid>). */
+  finalUrl?: string;
+  error?: string;
+}
+
+export function extractXhsFullContent(url: string): XhsFullContent {
+  let browserOpened = false;
+  try {
+    spawnSync("opencli", ["browser", "open", url], { encoding: "utf8", timeout: browserTimeoutMs("open") });
+    browserOpened = true;
+    sleepMs(3500);
+    const evalScript = `(() => {
+      const t = document.querySelector("#detail-title");
+      const d = document.querySelector("#detail-desc");
+      const author = document.querySelector(".author .name") || document.querySelector("a.name") || document.querySelector("span.username");
+      // Stats: walk .interactions .count, but skip per-comment likes (each
+      // comment has its own like-wrapper). The article-level stats live in
+      // .engage-bar (or similar footer container); they are LAST in DOM
+      // order. Strategy: filter out any count whose ancestor is a comment
+      // node (.parent-comment / .comment-item / .reply-container), then
+      // take the last seen for each category — equivalently, skip counts
+      // inside comment containers entirely.
+      const stats = { likes: "", collects: "", comments: "" };
+      document.querySelectorAll(".interactions .count").forEach(c => {
+        // Exclude counts inside any comment container.
+        if (c.closest(".parent-comment, .comment-item, .reply-container, .comment-content")) return;
+        const txt = (c.textContent || "").trim();
+        if (!txt || /^[^0-9]+$/.test(txt)) return;
+        const par = c.closest(".like-wrapper, .collect-wrapper, .chat-wrapper");
+        if (!par) return;
+        if (par.className.indexOf("collect") >= 0) stats.collects = txt;
+        else if (par.className.indexOf("chat") >= 0) stats.comments = txt;
+        else stats.likes = txt;
+      });
+      // Images — same carousel-dedup as extractXhsImageUrlsInOrder
+      const items = Array.from(document.querySelectorAll("img"))
+        .filter(i => { const w = i.naturalWidth || i.width; return w >= 400 && i.src.indexOf("xhscdn") > 0; })
+        .map(i => ({ src: i.src, left: Math.round(i.getBoundingClientRect().left) }))
+        .filter(it => typeof it.left === "number" && it.left >= 0)
+        .sort((a, b) => a.left - b.left);
+      const seen = new Set();
+      const imageUrls = [];
+      for (const it of items) {
+        const m = it.src.match(/\\/([^/!]+)!/);
+        const key = m ? m[1] : it.src;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        imageUrls.push(it.src);
+      }
+      return JSON.stringify({
+        title: t ? (t.textContent || "").trim() : "",
+        descText: d ? (d.textContent || "") : "",
+        author: author ? (author.textContent || "").trim().replace(/关注$/, "").trim() : "",
+        likes: stats.likes,
+        collects: stats.collects,
+        comments: stats.comments,
+        imageUrls,
+        finalUrl: window.location.href,
+      });
+    })()`;
+    const res = spawnSync("opencli", ["browser", "eval", evalScript], {
+      encoding: "utf8",
+      timeout: browserTimeoutMs("eval"),
+      maxBuffer: 8 * 1024 * 1024,
+    });
+    if (res.status !== 0) {
+      return { title: "", descText: "", author: "", imageUrls: [], error: `eval exited ${res.status}` };
+    }
+    const stdout = res.stdout || "";
+    const start = stdout.indexOf("{");
+    if (start < 0) return { title: "", descText: "", author: "", imageUrls: [], error: "no JSON object in eval output" };
+    let depth = 0, end = -1, inStr = false, esc = false;
+    for (let i = start; i < stdout.length; i++) {
+      const c = stdout[i];
+      if (esc) { esc = false; continue; }
+      if (c === "\\") { esc = true; continue; }
+      if (c === "\"") { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === "{") depth++;
+      else if (c === "}") { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end < 0) return { title: "", descText: "", author: "", imageUrls: [], error: "unterminated JSON object" };
+    try {
+      const parsed = JSON.parse(stdout.slice(start, end + 1));
+      return {
+        title: parsed.title || "",
+        descText: parsed.descText || "",
+        author: parsed.author || "",
+        likes: parsed.likes || undefined,
+        collects: parsed.collects || undefined,
+        comments: parsed.comments || undefined,
+        imageUrls: Array.isArray(parsed.imageUrls) ? parsed.imageUrls : [],
+        finalUrl: parsed.finalUrl || undefined,
+      };
+    } catch (e) {
+      return { title: "", descText: "", author: "", imageUrls: [], error: `JSON parse failed: ${e instanceof Error ? e.message : e}` };
+    }
+  } catch (e) {
+    return { title: "", descText: "", author: "", imageUrls: [], error: `extractXhsFullContent threw: ${e instanceof Error ? e.message : e}` };
+  } finally {
+    if (browserOpened) closeBrowser();
+  }
+}
+
 export function extractXhsImageUrlsInOrder(url: string): XhsDomExtractResult {
   // Browser lifetime is fully owned by this function — open at the top,
   // close in finally so any throw or early return still frees the tab.
@@ -1412,98 +1536,84 @@ function fetchXhsViaAdapter(url: string, slugDir: string, options: { titleHint?:
   const beforeMtime = Date.now();
   mkdirSync(slugDir, { recursive: true });
 
-  // (1) Try to fetch text body via `note`. As of opencli 1.7.4+, `note`
-  //     strictly requires a full xiaohongshu.com URL with a CURRENT xsec_token.
-  //     Our Raindrop bookmarks often have stale tokens (saved months ago) or
-  //     are xhslink.com shortlinks (which `note` doesn't accept at all).
+  // (1) Layer-4 body extraction via opencli browser + own converter.
+  //     Replaces the previous opencli `xiaohongshu note` pipeline whose
+  //     output collapsed paragraph boundaries (`#detail-desc.textContent`
+  //     `\n\t\n` separators were lost in opencli's table-format output).
   //
-  //     Recovery attempts, in order:
-  //       a) `note <original-url>` — fast path; works if the saved URL still
-  //          has a valid xsec_token (recent bookmarks)
-  //       b) open URL in browser to get the CURRENT xsec_token URL (works for
-  //          xhslink shortlinks + stale tokens; relies on user's xhs login)
-  //       c) if no browser session, try title-based search as a best-effort
-  //          text recovery (fuzzy; may match the wrong post for niche content)
-  //       d) fall back to `download`-only (images) + title stub body
-  let noteStdout = "";
-  let noteSucceeded = false;
+  //     One browser session does it all: fresh-URL resolution + body
+  //     extraction + metadata + image URL list. Fall back to the legacy
+  //     `note`+`download` path if Layer 4 returns no body (image-only
+  //     post or auth/captcha failure).
   const adapterNotes: string[] = [];
   const extraFlags: string[] = [];
-  let browserOpened = false;
+  let layer4Markdown = "";
+  let layer4Images: string[] = [];
+  let layer4Succeeded = false;
 
-  const runNote = (targetUrl: string): string | null => {
-    try {
-      const out = runOpencli(
-        ["xiaohongshu", "note", targetUrl, "-f", "md"],
-        { timeoutMs: 90_000 },
-      );
-      return out.trim() ? out : null;
-    } catch {
-      return null;
+  const xhsFull = extractXhsFullContent(url);
+  if (xhsFull.error) {
+    adapterNotes.push(`xhs Layer-4 browser extraction failed: ${xhsFull.error.slice(0, 120)}`);
+  } else if (xhsFull.descText.trim().length > 0) {
+    // Body content available — use Layer 4 converter directly. Image
+    // download via curl, naming follows the existing `<noteid>_NN.jpg`
+    // convention so snapshots remain comparable.
+    // Prefer noteid from the post-redirect final URL (xhslink shortlinks
+    // resolve to xiaohongshu.com/discovery/item/<noteid> at runtime).
+    const noteId = extractXhsNoteId(xhsFull.finalUrl || url) || extractXhsNoteId(url) || "xhs";
+    const pad = Math.max(2, String(xhsFull.imageUrls.length).length);
+    for (let i = 0; i < xhsFull.imageUrls.length; i++) {
+      const imgUrl = xhsFull.imageUrls[i];
+      const ext = (imgUrl.match(/\.(jpe?g|png|webp)(?:\?|$)/i)?.[1] ?? "jpg").toLowerCase();
+      const name = `${noteId}_${String(i + 1).padStart(pad, "0")}.${ext === "jpeg" ? "jpg" : ext}`;
+      const dest = join(slugDir, name);
+      if (downloadImageToPath(imgUrl, dest)) layer4Images.push(name);
     }
-  };
-
-  // Attempt (a): original URL. If it succeeds, no browser is needed.
-  // Otherwise the recovery ladder (b, c) opens the browser — we wrap the
-  // whole ladder in try/finally so any throw still closes the browser tab,
-  // preventing a hung Chrome session from leaking into the next adapter run.
-  const firstTry = runNote(url);
-  if (firstTry) {
-    noteStdout = firstTry;
-    noteSucceeded = true;
+    const conv = convertXhsHtml(
+      xhsFull.descText,
+      {
+        title: xhsFull.title,
+        author: xhsFull.author,
+        likes: xhsFull.likes,
+        collects: xhsFull.collects,
+        comments: xhsFull.comments,
+      },
+      url,
+      layer4Images,
+    );
+    layer4Markdown = conv.markdown;
+    layer4Succeeded = true;
+    adapterNotes.push(
+      `xhs Layer-4: ${conv.stats.paragraphs} paragraph(s), ${conv.stats.tagsExtracted} tag(s), ${layer4Images.length}/${xhsFull.imageUrls.length} image(s) downloaded`,
+    );
   } else {
-    try {
-      // Attempt (b): browser-based URL resolution — the robust path
-      adapterNotes.push("xhs note failed on original URL; attempting browser-based URL resolution");
-      const freshUrl = resolveXhsViaBrowser(url);
-      browserOpened = true;
-      if (freshUrl && freshUrl !== url) {
-        adapterNotes.push(`xhs browser resolved to fresh URL: ...${freshUrl.slice(-80)}`);
-        const secondTry = runNote(freshUrl);
-        if (secondTry) {
-          noteStdout = secondTry;
-          noteSucceeded = true;
-          adapterNotes.push("xhs note succeeded on browser-refreshed URL");
-        } else {
-          adapterNotes.push("xhs note also failed on browser-refreshed URL");
-        }
-      } else if (freshUrl === url) {
-        adapterNotes.push("xhs browser returned same URL (no redirect happened)");
-      } else {
-        adapterNotes.push("xhs browser navigation failed or returned non-xhs URL");
-      }
-
-      // Attempt (c): title-based search as best-effort — skip if we got a
-      // browser-resolved URL that just failed `note` (same post, wouldn't help)
-      if (!noteSucceeded && options.titleHint && !freshUrl) {
-        adapterNotes.push("attempting title-based xhs search as last resort");
-        const searchUrl = findFreshXhsUrl(options.titleHint, url);
-        if (searchUrl) {
-          adapterNotes.push(`xhs search found candidate: ...${searchUrl.slice(-80)}`);
-          const thirdTry = runNote(searchUrl);
-          if (thirdTry) {
-            noteStdout = thirdTry;
-            noteSucceeded = true;
-            adapterNotes.push("xhs note succeeded on search-refreshed URL");
-          }
-        } else {
-          adapterNotes.push("xhs search returned no strong-enough match");
-        }
-      }
-    } finally {
-      if (browserOpened) closeBrowser();
-    }
+    adapterNotes.push("xhs Layer-4: empty descText (likely image-only post or auth failure); falling back to legacy stub path");
   }
 
-  if (!noteSucceeded) {
-    adapterNotes.push("xhs note unavailable; falling back to download-only");
-    // Mark as intentional-stub — the body text genuinely isn't available
-    // (image-only post, expired xhs session, captcha, or rate-limit) and
-    // we've produced a sensible stub message. classifyQuality strips
-    // `intentional-stub` and suppresses `xhs-text-body-unavailable` from
-    // dragging the file into the `flagged` bucket.
-    extraFlags.push("xhs-text-body-unavailable", "intentional-stub");
+  if (layer4Succeeded) {
+    return {
+      markdown: layer4Markdown,
+      title: xhsFull.title || undefined,
+      imageFiles: layer4Images,
+      rawMetadata: {
+        source: "xhs-raw-layer4",
+        title: xhsFull.title,
+        author: xhsFull.author,
+        likes: xhsFull.likes,
+        collects: xhsFull.collects,
+        comments: xhsFull.comments,
+      },
+      extraFlags: extraFlags.length > 0 ? extraFlags : undefined,
+      adapterNotes,
+    };
   }
+
+  // ===== Legacy stub path (image-only posts only) =====
+  // Layer 4 didn't get body text. Use opencli download to recover images
+  // and emit an intentional-stub.
+  let noteSucceeded = false;
+  const noteStdout = ""; // unused on this path
+  extraFlags.push("xhs-text-body-unavailable", "intentional-stub");
 
   // (2) Download images/videos. Unlike `note`, `download` accepts xhslink
   //     shortlinks directly — critical for our 68 xhslink bookmarks. Best-
