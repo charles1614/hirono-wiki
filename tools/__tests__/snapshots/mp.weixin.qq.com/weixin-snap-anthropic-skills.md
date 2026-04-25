@@ -47,7 +47,7 @@ Skill 的核心设计思想叫**渐进式披露**（Progressive Disclosure）。
 
 什么意思？就是不一股脑把所有内容塞进 AI 的上下文，而是分三层按需加载。
 
-**第一层：YAML frontmatter（**100 tokens**）**
+**第一层：YAML frontmatter（）100 tokens**
 
 **这一层始终驻留在 Claude 的系统提示里。只包含两个字段：**`name` 和 `description`。
 
@@ -427,4 +427,4 @@ Phase 4: Slack MCP → 在 #engineering 频道通知团队
 
 ![图片](weixin-snap-anthropic-skills-images/weixin-img-002.jpg)
 
-**一起“**点**赞”**三连**↓**
+**一起“**点赞”三连**↓**

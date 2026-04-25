@@ -94,6 +94,121 @@ function textWithLineBreaks(el: Element): string {
 }
 
 /**
+ * Unwrap every `<span>` outside of `<pre>`/`<code>` by replacing it with
+ * its children. mdnice uses spans purely as style carriers (no markdown
+ * meaning), and they sit BETWEEN otherwise-mergeable emphasis runs. After
+ * this pass, `<strong>A</strong><span><strong>B</strong></span>` becomes
+ * `<strong>A</strong><strong>B</strong>` — so normalizeEmphasis can merge.
+ *
+ * Inside `<pre>`/`<code>` we keep spans because textWithLineBreaks may
+ * use the structure (e.g. detecting `<br>` inside spans). Skip those.
+ */
+function unwrapInertSpans(root: Element): void {
+  // Multi-pass — unwrapping a span can expose more spans to unwrap.
+  for (let pass = 0; pass < 5; pass++) {
+    const spans = root.querySelectorAll("span");
+    let unwrapped = 0;
+    for (const sp of Array.from(spans)) {
+      // Skip spans inside <pre>/<code>.
+      let inCode = false;
+      let p: Element | null = sp.parentElement;
+      while (p) {
+        if (p.tagName === "PRE" || p.tagName === "CODE") { inCode = true; break; }
+        p = p.parentElement;
+      }
+      if (inCode) continue;
+      const parent = sp.parentNode;
+      if (!parent) continue;
+      while (sp.firstChild) parent.insertBefore(sp.firstChild, sp);
+      sp.remove();
+      unwrapped++;
+    }
+    if (unwrapped === 0) break;
+  }
+}
+
+/**
+ * Normalize emphasis-tag chains the WeChat editor produces:
+ *
+ *   1. Adjacent same-type siblings: `<strong>A</strong><strong>B</strong>`
+ *      get merged into `<strong>AB</strong>`. Without this, turndown emits
+ *      `**A****B**` — and any post-processing that collapses `\*{4,}` to
+ *      `**` produces the malformed `**A**B**` (unbalanced 5 asterisks).
+ *
+ *   2. Self-nesting: `<strong><b>X</b></strong>` and similar collapse to a
+ *      single `<strong>X</strong>` so we get `**X**` instead of `****X****`.
+ *
+ * Applied to STRONG, B, EM, I in document order, looping until stable.
+ */
+function normalizeEmphasis(doc: Document, root: Element): number {
+  const TYPE_MAP: Record<string, string> = {
+    STRONG: "STRONG", B: "STRONG",
+    EM: "EM", I: "EM",
+  };
+  let changes = 0;
+  // First pass: unwrap self-nested emphasis. Loop until stable — three or
+  // more levels of nesting take that many passes to fully flatten.
+  for (let pass = 0; pass < 8; pass++) {
+    let passChanges = 0;
+    for (const tag of ["STRONG", "B", "EM", "I"]) {
+      for (const el of Array.from(root.querySelectorAll(tag.toLowerCase()))) {
+        const elType = TYPE_MAP[el.tagName];
+        if (!elType) continue;
+        const childEls = Array.from(el.children);
+        if (childEls.length === 1 && TYPE_MAP[childEls[0].tagName] === elType) {
+          const inner = childEls[0];
+          while (inner.firstChild) el.appendChild(inner.firstChild);
+          inner.remove();
+          passChanges++;
+        }
+      }
+    }
+    changes += passChanges;
+    if (passChanges === 0) break;
+  }
+  // Second pass: merge adjacent same-type siblings. Walk all parents that
+  // have multiple emphasis children; coalesce in-place.
+  const parents = new Set<Element>();
+  for (const el of Array.from(root.querySelectorAll("strong, b, em, i"))) {
+    if (el.parentElement) parents.add(el.parentElement);
+  }
+  for (const p of parents) {
+    let cur: Element | null = p.firstElementChild;
+    while (cur) {
+      const curType = TYPE_MAP[cur.tagName];
+      const next = cur.nextElementSibling;
+      if (next && curType && TYPE_MAP[next.tagName] === curType) {
+        // Check there's no non-whitespace text node between them.
+        let between = cur.nextSibling;
+        let hasText = false;
+        while (between && between !== next) {
+          if (between.nodeType === 3 && (between.textContent || "").trim().length > 0) {
+            hasText = true;
+            break;
+          }
+          between = between.nextSibling;
+        }
+        if (!hasText) {
+          // Move next's children into cur, drop intermediate whitespace + next.
+          let n: ChildNode | null = cur.nextSibling;
+          while (n && n !== next) {
+            const nx: ChildNode | null = n.nextSibling;
+            n.remove();
+            n = nx;
+          }
+          while (next.firstChild) cur.appendChild(next.firstChild);
+          next.remove();
+          changes++;
+          continue; // re-check cur with its new neighbor
+        }
+      }
+      cur = next;
+    }
+  }
+  return changes;
+}
+
+/**
  * Strip mdnice's pre-rendered list-marker prefix from each `<li>`.
  *
  * WeChat's editor (mdnice) injects the visual bullet/number AS A TEXT NODE
@@ -377,6 +492,18 @@ export function convertWeixinHtml(
   // 2. <li> mdnice prefix strip
   const listMarkersCleaned = stripListMarkerPrefixes(doc);
 
+  // 2a. Unwrap all <span> elements OUTSIDE of <pre>/<code>. mdnice nests
+  //     emphasis inside style-only <span> wrappers like
+  //     `<strong>A</strong><span><strong>B</strong></span>` which keeps
+  //     the two STRONGs from being adjacent siblings — emphasis-merge
+  //     would miss them. Inside <pre>/<code> we keep <span>s because
+  //     textWithLineBreaks relies on the full DOM structure.
+  unwrapInertSpans(root);
+
+  // 2b. Normalize emphasis chains: merge adjacent <strong><strong>, unwrap
+  //     <strong><b> nesting. Prevents `**A****B**` and `****X****` shapes.
+  normalizeEmphasis(doc, root);
+
   // 3. <img> normalize → local placeholder + return download list
   const imagesToDownload = normalizeImages(doc, root);
 
@@ -392,9 +519,6 @@ export function convertWeixinHtml(
   // Drop empty headings (e.g. `## ` with no text). They appear when turndown
   // picks up a heading whose only child is decorative whitespace.
   body = body.replace(/^#{1,6}\s*$\n?/gm, "");
-  // Collapse runs of 4+ asterisks (WeChat sometimes nests <b><strong> giving
-  // `****` or `******`) down to a normal bold pair `**`.
-  body = body.replace(/\*{4,}/g, "**");
   // Re-collapse newlines after the strips above.
   body = body.replace(/\n{3,}/g, "\n\n");
 
