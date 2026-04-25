@@ -35,6 +35,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { convertWeixinHtml } from "../hirono/weixin/raw-html-converter.ts";
 import { convertXhsHtml } from "../sites/xhs/converter.ts";
+import {
+  convertGithubPrIssue,
+  convertGithubRelease,
+  convertGithubRaw,
+} from "../sites/github/converter.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
 // (npm test runs from tools/; manual `npx tsx ...` runs from repo root).
@@ -69,7 +74,7 @@ function listFixtures(): Fixture[] {
 }
 
 interface InputDoc {
-  fn: "convertWeixinHtml" | "convertXhsHtml";
+  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw";
   args: unknown[];
 }
 
@@ -87,6 +92,23 @@ function runConverter(input: InputDoc): { markdown: string; rest: Record<string,
     const r = convertXhsHtml(descText, metadata as any, originUrl, imageRefs);
     const { markdown, ...rest } = r;
     return { markdown, rest: rest as Record<string, unknown> };
+  }
+  // GitHub converters return a string directly (not a {markdown, ...rest} shape).
+  // We wrap as { markdown: string, rest: {} } so the existing test infra reuses.
+  if (input.fn === "convertGithubPrIssue") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const md = convertGithubPrIssue(input.args[0] as any);
+    return { markdown: md, rest: {} };
+  }
+  if (input.fn === "convertGithubRelease") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const md = convertGithubRelease(input.args[0] as any);
+    return { markdown: md, rest: {} };
+  }
+  if (input.fn === "convertGithubRaw") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const md = convertGithubRaw(input.args[0] as any);
+    return { markdown: md, rest: {} };
   }
   throw new Error(`unknown converter fn: ${(input as InputDoc).fn}`);
 }

@@ -345,6 +345,7 @@ from sglang.jit_kernel.utils import (
 if TYPE_CHECKING:
     from tvm_ffi.module import Module
 
+
 @cache_once
 def _jit_scale_module(dtype: torch.dtype) -> Module:
     """Compile and cache the JIT scale module for a given dtype."""
@@ -355,6 +356,7 @@ def _jit_scale_module(dtype: torch.dtype) -> Module:
         cuda_files=["elementwise/scale.cuh"],
         cuda_wrappers=[("scale", f"scale<{args}>")],
     )
+
 
 def scale(src: torch.Tensor, factor: float, out: torch.Tensor | None = None) -> torch.Tensor:
     """
@@ -467,6 +469,7 @@ from sglang.test.ci.ci_register import register_cuda_ci
 
 register_cuda_ci(est_time=30, suite="stage-b-kernel-unit-1-gpu-large")
 
+
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
 @pytest.mark.parametrize("size", [1, 127, 128, 1024, 4097])  # cover tail remainder
 @pytest.mark.parametrize("factor", [0.5, 1.0, 2.0, 3.0])
@@ -478,6 +481,7 @@ def test_scale_correctness(dtype, size, factor):
     rtol, atol = (1e-5, 1e-6) if dtype == torch.float32 else (1e-2, 1e-2)
     torch.testing.assert_close(out, expected, rtol=rtol, atol=atol)
 
+
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
 def test_scale_out_param(dtype):
     src = torch.randn(1024, dtype=dtype, device="cuda")
@@ -486,15 +490,18 @@ def test_scale_out_param(dtype):
     assert result is out
     torch.testing.assert_close(out, src * 2.0, rtol=1e-2, atol=1e-2)
 
+
 def test_scale_cpu_error():
     src = torch.randn(128, dtype=torch.float16)  # CPU tensor
     with pytest.raises(RuntimeError, match="CUDA"):
         scale(src, 2.0)
 
+
 def test_scale_unsupported_dtype():
     src = torch.randint(0, 10, (128,), dtype=torch.int32, device="cuda")
     with pytest.raises(RuntimeError, match="dtype"):
         scale(src, 2.0)
+
 
 if __name__ == "__main__":
     import sys
@@ -534,6 +541,7 @@ SIZE_LIST = get_benchmark_range(
 
 configs = list(itertools.product(SIZE_LIST))
 
+
 @triton.testing.perf_report(
     triton.testing.Benchmark(
         x_names=["size"],
@@ -557,6 +565,7 @@ def benchmark(size: int, provider: str):
         fn = lambda: src * factor
 
     return run_benchmark(fn)
+
 
 if __name__ == "__main__":
     benchmark.run(print_data=True)

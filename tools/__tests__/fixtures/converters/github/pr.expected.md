@@ -15,7 +15,7 @@
 Follow-up to the work and discussion in this PR https://github.com/vllm-project/vllm/pull/22188.
 Here we expose the metrics we're currently tracking for the nixl connector to prometheus.
 
-![image](github-snap-pr-images/01-image.png)
+![image](https://github.com/user-attachments/assets/502e0a19-a66b-49d5-b2ae-0e5caf0bf759)
 
 cc @markmc  
 
@@ -24,7 +24,7 @@ Update:
 
 ---
 
-### markmc
+## markmc
 
 > reviewed (changes requested) on Oct 24, 2025 · Member
 
@@ -36,7 +36,7 @@ Couple of small inline comments on buckets too :+1:
 
 ---
 
-### simon-mo
+## simon-mo
 
 > reviewed (approved) on Oct 28, 2025 · Collaborator
 
@@ -44,7 +44,7 @@ Couple of small inline comments on buckets too :+1:
 
 ---
 
-### markmc
+## markmc
 
 > review-commented on Oct 23, 2025 · Member · file `vllm/v1/metrics/loggers.py`
 
@@ -68,7 +68,7 @@ Checking it out:
 
 ---
 
-### markmc
+## markmc
 
 > review-commented on Oct 23, 2025 · Member · file `vllm/v1/metrics/loggers.py`
 

@@ -11,9 +11,11 @@
 
 import type { Site } from "./_shared/types.ts";
 import { site as xhs } from "./xhs/index.ts";
+import { site as github } from "./github/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
+  github,
 ];
 
 export function routeSite(url: string): Site | null {

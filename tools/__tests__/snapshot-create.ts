@@ -77,7 +77,13 @@ const isStub = flags.some((f: string) => stubFlags.has(f));
 const MICRO_POST_HOSTS = new Set([
   "xhslink.com", "www.xiaohongshu.com", "xiaohongshu.com", "x.com", "twitter.com",
 ]);
-const minLen = MICRO_POST_HOSTS.has(host) || MICRO_POST_HOSTS.has(`www.${host}`) ? 500 : 2000;
+// PR/issue/discussion bodies on github.com are often short by design
+// (especially small bug-fix PRs). 1000-char floor catches genuinely empty
+// pages without false-rejecting normal short PRs.
+const GITHUB_HOSTS = new Set(["github.com"]);
+const minLen = MICRO_POST_HOSTS.has(host) || MICRO_POST_HOSTS.has(`www.${host}`)
+  ? 500
+  : GITHUB_HOSTS.has(host) ? 1000 : 2000;
 if (!isStub && (qStatus !== "good" || cLen < minLen)) {
   console.error(`[gate] sample fails validity (need status=good AND length>${minLen}, OR intentional-stub)`);
   console.error(`       got status=${qStatus} length=${cLen} flags=${flags.join(",")}`);

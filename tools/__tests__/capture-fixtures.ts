@@ -25,6 +25,19 @@ import { fileURLToPath } from "node:url";
 
 import { convertWeixinHtml } from "../hirono/weixin/raw-html-converter.ts";
 import { convertXhsHtml } from "../sites/xhs/converter.ts";
+import {
+  convertGithubPrIssue,
+  convertGithubRelease,
+  convertGithubRaw,
+} from "../sites/github/converter.ts";
+import {
+  parseGithubUrl,
+  fetchPrIssue,
+  fetchRelease,
+  fetchRaw,
+  fetchTreeReadme,
+  fetchRepoReadme,
+} from "../sites/github/fetcher.ts";
 import { extractXhsFullContent, sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
 import { spawnSync } from "node:child_process";
 
@@ -145,10 +158,74 @@ function captureXhs(name: string, url: string): void {
   console.log(`[capture xhs] markdown ${result.markdown.length} chars, ${imageRefs.length} image refs`);
 }
 
+function captureGithub(name: string, url: string): void {
+  console.log(`[capture github] ${url}`);
+  const parsed = parseGithubUrl(url);
+  if (!parsed) throw new Error(`could not parse github URL: ${url}`);
+  const dir = join(FIXTURES_ROOT, "github");
+  mkdirSync(dir, { recursive: true });
+
+  let fn: string;
+  let args: unknown[];
+  let markdown: string;
+
+  if (parsed.kind === "pr" || parsed.kind === "issue" || parsed.kind === "discussion") {
+    const result = fetchPrIssue(parsed.org, parsed.repo, parsed.ref!, parsed.kind);
+    if (!result) throw new Error(`github ${parsed.kind} REST API fetch failed`);
+    const convInput = {
+      kind: parsed.kind === "pr" ? "pull" : parsed.kind === "issue" ? "issues" : "discussions",
+      org: parsed.org,
+      repo: parsed.repo,
+      number: parseInt(parsed.ref!, 10),
+      originUrl: url,
+      main: result.main,
+      comments: result.comments,
+      reviews: result.reviews,
+      reviewComments: result.reviewComments,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    markdown = convertGithubPrIssue(convInput as any);
+    fn = "convertGithubPrIssue";
+    args = [convInput];
+  } else if (parsed.kind === "release") {
+    const release = fetchRelease(parsed.org, parsed.repo, parsed.ref!);
+    if (!release) throw new Error(`github release fetch failed`);
+    const convInput = { org: parsed.org, repo: parsed.repo, tag: parsed.ref!, originUrl: url, release };
+    markdown = convertGithubRelease(convInput);
+    fn = "convertGithubRelease";
+    args = [convInput];
+  } else if (parsed.kind === "blob" || parsed.kind === "tree" || parsed.kind === "repo") {
+    let raw = null;
+    if (parsed.kind === "blob") raw = fetchRaw(parsed.org, parsed.repo, parsed.branch!, parsed.path!);
+    else if (parsed.kind === "tree") raw = fetchTreeReadme(parsed.org, parsed.repo, parsed.branch!, parsed.path || "");
+    else raw = fetchRepoReadme(parsed.org, parsed.repo);
+    if (!raw) throw new Error(`github raw fetch failed`);
+    const convInput = {
+      org: parsed.org,
+      repo: parsed.repo,
+      branch: raw.branch,
+      path: raw.resolvedPath,
+      originUrl: url,
+      body: raw.body,
+    };
+    markdown = convertGithubRaw(convInput);
+    fn = "convertGithubRaw";
+    args = [convInput];
+  } else {
+    throw new Error(`unsupported github URL kind: ${parsed.kind}`);
+  }
+
+  writeFileSync(join(dir, `${name}.input.json`), JSON.stringify({ fn, args }, null, 2) + "\n");
+  writeFileSync(join(dir, `${name}.expected.md`), markdown);
+  writeFileSync(join(dir, `${name}.expected.json`), JSON.stringify({}, null, 2) + "\n");
+  console.log(`[capture github] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
+  console.log(`[capture github] markdown ${markdown.length} chars (kind=${parsed.kind})`);
+}
+
 const [host, name, url] = process.argv.slice(2);
 if (!host || !name || !url) {
   console.error("usage: capture-fixtures.ts <host> <name> <url>");
-  console.error("  host = weixin | xhs");
+  console.error("  host = weixin | xhs | github");
   console.error("  name = identifier for the fixture (e.g. gpu-container)");
   console.error("  url  = the URL to fetch");
   process.exit(2);
@@ -156,4 +233,5 @@ if (!host || !name || !url) {
 
 if (host === "weixin") captureWeixin(name, url);
 else if (host === "xhs") captureXhs(name, url);
+else if (host === "github") captureGithub(name, url);
 else { console.error(`unknown host: ${host}`); process.exit(2); }

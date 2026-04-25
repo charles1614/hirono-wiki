@@ -11,10 +11,10 @@
 
 > opened this on Feb 3, 2026 · Contributor
 
-#### Summary
+### Summary
 OpenClaw’s documentation describes a “reasonably safe” deployment posture that assumes sandboxed Docker execution, non‑root users, no network egress from the sandbox, and isolated workspaces. Today, these are recommendations rather than defaults. This issue proposes moving the default posture closer to the documented model, especially for new installations and public‑facing agents.
 
-#### Motivation
+### Motivation
 OpenClaw runs a large, multi‑component codebase with capabilities such as shell execution, file operations, browser automation, and multi‑channel messaging. In this setting:
 
 - Sandboxing is currently opt‑in (`sandbox.mode` is off by default).
@@ -23,29 +23,29 @@ OpenClaw runs a large, multi‑component codebase with capabilities such as shel
 
 As a result, many users are likely to deploy agents in a posture that is weaker than what the security documentation implicitly assumes, particularly when following “quick start” guides.
 
-#### Proposed Changes
+### Proposed Changes
 
-##### 1. Safer sandbox defaults for new installations
+#### 1. Safer sandbox defaults for new installations
 - Set the default sandbox mode to at least `"non-main"` (or introduce a “secure preset” that does this and make it the recommended path in quick start flows).
 - Keep `sandbox.docker.network` at `"none"` for sandboxed sessions by default.
 - Recommend `workspaceAccess: "none"` in sample configurations unless an agent explicitly requires host workspace access.
 
-##### 2. Safer session isolation presets
+#### 2. Safer session isolation presets
 - Provide a “secure DM mode” preset that sets `dmScope: "per-channel-peer"` so that DMs from different people do not share context by default.
 - Make this preset the recommended configuration for agents that handle private or sensitive conversations.
 
-##### 3. Public/untrusted agent profile
+#### 3. Public/untrusted agent profile
 - Add a documented profile for public/group agents that:
   - Enables sandboxing by default (e.g., `sandbox.mode: "all"`, `workspaceAccess: "none"`, `sandbox.docker.network: "none"`).
   - Denies high‑risk tools by default (for example: `exec`, `browser`, `web_fetch`, `gateway`, `nodes`, `cron`).
   - Avoids loading long‑term memory or broad history in shared contexts.
 
-#### Implementation Notes
+### Implementation Notes
 - All changes can be implemented as additive presets to avoid breaking existing setups.
 - Default changes can be scoped to new installations or gated behind explicit “secure mode” opt‑ins, with migration notes for existing environments.
 - The goal is to make the secure posture easy to adopt and clearly signposted, not to remove flexibility for advanced operators.
 
-#### Request for Maintainers
+### Request for Maintainers
 - Would maintainers be open to introducing one or more “secure” presets as described above, and/or adjusting defaults for new installations?
 - I’m happy to follow up with small, focused PRs (one for sandbox defaults/presets, one for DM scope presets, one for a public agent profile) so we can iterate on the details incrementally.
 
