@@ -157,6 +157,29 @@ The previous thresholds (40 chars / 5 tokens) rejected labels like `Critic slice
 
 **Silent-miss guard — `deepwiki-mermaid-splice-incomplete` / `deepwiki-table-splice-incomplete`.** Both splicers return `{placed, total}` / `{matched, skipped}`. When placed < total or skipped > 0, the adapter emits the corresponding flag + a `WARNING — extracted N but only placed M` note into `source.json`. Grep for these flags after bulk-fetches to surface diagrams/tables that were extracted but couldn't be reinserted (usually: heading text drift for tables, or `isDiagramNode` rejection for mermaid).
 
+### WeChat / mdnice malformed bold + lists + code (Layer-4 hosts)
+
+mdnice (the editor most weixin authors use) emits HTML with several
+quirks that Markdown converters mishandle. opencli's weixin adapter has
+no raw-HTML option, so we extract `#js_content` outerHTML via
+`browser eval` and convert in
+`tools/hirono/weixin/raw-html-converter.ts`. The recipes below are
+encoded there; reference implementations for any new Layer-4 host.
+
+| Symptom | Cause | Fix in converter |
+|---|---|---|
+| `-   • text` / `1.  1. text` | mdnice injects visual bullet/number AS TEXT inside each `<li>` | `stripListMarkerPrefixes` — trim leading `[•·●◦‧▪◆■▶►]` or `[0-9]+[.、)]` from the first text node of every `<li>` |
+| `**作者**丨何煦阳**` (5 unbalanced `*`) | Adjacent `<strong>A</strong><strong>B</strong>` siblings → turndown emits `**A****B**`; naive `\*{4,}` collapse breaks the closing pair | HTML-level: `unwrapInertSpans` first (pure-style `<span>` wrappers block adjacency detection), then `normalizeEmphasis` Pass 2 merges adjacent same-type siblings |
+| `******text******` (6+ `*`) | `<strong><strong><strong>X</strong></strong></strong>` self-nesting up to 3 levels | `normalizeEmphasis` Pass 1 — LOOP unwrap until stable (8 passes max) |
+| `## **title**` redundant bold | `<h2><strong>title</strong></h2>` | Post-turndown regex strips `^(#{1,6}\s+)\*+\s*([^*\n]+?)\s*\*+\s*$` → `$1$2` |
+| Empty `## ` heading lines | H1 with whitespace-only first child → `enforceSingleH1` demotes to empty `## ` | Post-turndown regex drops `^#{1,6}\s*$\n?` |
+| Multi-line code collapsed to 1 line | mdnice splits a code block into lines via `<br>` (Shape A2) or per-line `<code>` children (Shape B) or per-line `<p>`/`<section>` siblings (Shape C); `Node.textContent` silently drops `<br>` | `textWithLineBreaks(el)` — manual tree walk emitting `\n` for `<br>` AND between `<p>`/`<div>`/`<section>` block siblings. Single rule branches on `<code>`-child count: multi → join with `\n`; single → text + lang from `class="language-X"`; bare `<pre>` → walk-with-breaks |
+| YAML/code body content silently lost | Single `<pre>` with multi `<code>` children, taking only `.querySelector("code")` returns just the first line | Use `Array.from(pre.children).filter(c => c.tagName === "CODE")` and join all with `\n` |
+| `data-lang="sql"` mislabel | mdnice frequently mis-tags actual YAML/bash/text as `sql` | For multi-`<code>` shape, IGNORE `data-lang`. Single-`<code>` shape can trust `<code class="language-X">` (more reliable) |
+| jsdom CSS-shorthand crash | malformed `style="background:..."` from mdnice trips jsdom 23+ | Strip `style="..."` from raw HTML before passing to JSDOM (regex pre-pass) |
+| SVG diagrams flattened to garbage | WeChat embeds mermaid-rendered flowcharts as inline `<svg>` with `<foreignObject>` labels, not `<text>`. Source recovery is INFEASIBLE — mdnice strips every `class` and `id` from the rendered SVG, leaving anonymous `<g>`/`<rect>`/`<path>` with no semantic structure to reconstruct mermaid from. Save SVG-as-image. | `processSvgs(doc, root, originalSvgs)`: real (≥2KB OR has `aria-roledescription` matching flowchart/sequence/diagram/graph) → save as `weixin-svg-NNN.svg` standalone file + `<img data-local-svg="1" src="…">` placeholder; decorative (~500-byte 3-ellipse dots) → drop. CRITICAL: harvest pristine SVG bytes BEFORE the style-strip pass, otherwise the saved file renders as black-on-white wireframe with broken markers (mermaid's visual semantics live entirely in inline styles) |
+| SVG placeholder removed by `normalizeImages` | The placeholder `<img src="weixin-svg-001.svg">` has a relative URL → `normalizeImages`'s http-only filter treats it as a tracking pixel | Tag SVG placeholders with `data-local-svg="1"`; `normalizeImages` checks for it and skips |
+
 ### KaTeX triple-rendered math (HuggingFace blog)
 
 Each inline formula appears 3x: text-fallback + LaTeX-source (with `\\cmd`) + alt-text-fallback. `collapseHfTripleMath` uses V1/V3 suffix-match to collapse. After collapse, convert `\\cmd` → `\cmd` — LaTeX `\\` means newline, not a command escape. Single-variable `N N N → $N$` is a separate pass (no `\\` to anchor on).
@@ -237,6 +260,18 @@ A regex that fails because its input shape differs from expectation is usually a
    │   no  → Layer 3 (web-read + generic post-processors; out of scope
    │         until the host graduates to count >= 2)
    │
+   ├─ Step 2b — ESCALATE to Layer 4 (raw-HTML + own converter) when:
+   │   - The Layer-1/2 adapter outputs Markdown only (no raw-HTML option)
+   │   - AND its conversion has structural bugs that post-processing can't
+   │     reach (doubled list markers, lost inline code in tables, SVG
+   │     diagrams flattened, multi-line `<pre>` collapsed, etc.)
+   │   - AND the bugs keep multiplying despite each band-aid
+   │   Then: bypass the adapter's converter; use opencli for browser+auth
+   │   only (`browser open` + `browser eval document.querySelector(...)
+   │   .outerHTML`), then convert ourselves with jsdom + turndown +
+   │   per-site DOM transforms at tools/hirono/<host>/raw-html-converter.ts.
+   │   Reference: tools/hirono/weixin/raw-html-converter.ts (mp.weixin.qq.com).
+   │
    ├─ Step 3: Wire DISPATCH_RULES in tools/fetch-raw.ts
    ├─ Step 4: End-to-end fetch + read-through (CLAUDE.md §1 counts
    │   AND eye-read). Sample-validity gate: quality_status=good +
@@ -244,10 +279,17 @@ A regex that fails because its input shape differs from expectation is usually a
    ├─ Step 5: If adapter output isn't perfect, add a site-specific
    │   post-processor at tools/hirono/processors/<host>.ts (NOT in
    │   shared/post-process.ts — that's reserved for cross-site cleanups).
-   ├─ Step 6: Capture per-host snapshot:
+   │   For Layer-4 hosts, post-processors are usually unnecessary (the
+   │   converter already has full control).
+   ├─ Step 6: Capture per-host snapshot — at LEAST 3 per host, chosen to
+   │   exercise different adapter branches (e.g. text-heavy + image-heavy
+   │   + code/table-heavy). Each adapter is one code path; one snapshot
+   │   only catches the bugs that one URL happens to trigger.
    │     cp raw/2026/<slug>/content.md tools/__tests__/snapshots/<host>/<slug>.md
    │     npx tsx tools/__tests__/snapshot-helpers.ts capture <path>
    │     npx tsx --test tools/__tests__/per-host-snapshot.test.ts  # must pass
+   │   Better: use tools/__tests__/snapshot-create.ts which fetches +
+   │   bundles images + writes invariants in one shot.
    └─ Step 7: Commit (one host per commit so each is reversible).
 ```
 
@@ -263,6 +305,7 @@ Don't guess the quality bar — preferences (what's content vs chrome, formattin
 
 - **Site-specific** (chrome to strip, layout quirks unique to one host) → `tools/hirono/processors/<host>.ts`
 - **Cross-site** (truly applies to N+ hosts identically: H1 contract, twemoji shortcode rewrite, image canonicalization) → `tools/hirono/shared/post-process.ts`
+- **Site needs its own CONVERTER (Layer 4)** (the upstream adapter's HTML→Markdown is opaque/lossy and post-processing can't reach the bug) → `tools/hirono/<host>/raw-html-converter.ts` (e.g. `tools/hirono/weixin/raw-html-converter.ts`). Pipeline: opencli browser open + eval HTML → jsdom + turndown + per-site DOM transforms → markdown
 - **Recipes for non-obvious patterns** (auth walls, hidden APIs, multi-step extraction) → §4 of this file
 
 ## 6. Regression set
@@ -281,6 +324,9 @@ Before committing post-processor/adapter changes, re-export these AND check each
 | `github.com/pytorch/pytorch/releases/tag/v2.5.0` | Release API body, ≥18 fences, ≥10 table rows, `> Released by ... · date · tag` metadata | good · ~91KB |
 | `github.com/ggml-org/llama.cpp/discussions/5138` | REST API body + 24 speakers (7 top + 17 `> replied on`) | good · ~9KB |
 | `wiki.litenext.digital/wiki/slime?file=02-distributed-orchestration` | 9 mermaid code blocks via deepwiki splicer, 0 orphan `\n` labels outside fences (see "DeepWiki mermaid diagrams leaking as orphan labels" recipe) | good · ~29KB |
+| `mp.weixin.qq.com/s/PcyKi5q8zT-tJ_9rzgKSqg` (Anthropic Skills) | Layer 4 raw-HTML, 30 fences, 0 doubled markers, 0 unbalanced bold runs, YAML body intact | good · ~6KB |
+| `mp.weixin.qq.com/s/FcK3QmzudPZzqsz85odFlQ` (GPU container) | Layer 4 raw-HTML, 14 fences, 21 table rows, 1 SVG diagram preserved as `weixin-snap-gpu-container-images/weixin-svg-001.svg` (with inline styles), all multi-line code blocks intact | good · ~6KB + 20KB SVG |
+| `mp.weixin.qq.com/s/44_UrbaQu2U1EAB9OrGNxQ` (Xiaomi interview) | Layer 4 raw-HTML, image-heavy interview, 15 images downloaded, `**作者丨何煦阳**` properly merged from adjacent strongs | good · ~12KB |
 
 **Block-ship one-liner** (anything > 0 for remote_imgs/activity, or FM == 0, or feature < contract → DO NOT SHIP):
 
@@ -308,6 +354,7 @@ echo "$f:" \
 | `images-declared-but-none-downloaded` | Markdown has images but disk is empty (silent adapter failure) |
 | `adapter-output-partial` | Adapter harvest had rename/stat errors |
 | `xhs-download-silent-fail` | xhs adapter exited 0 but saved no images |
+| `weixin-image-download-partial` | Layer-4 weixin pipeline: at least one image URL failed to curl-download |
 | `auto-skipped-hf-space` | L2 pre-fetch skip |
 | `deepwiki-mermaid-extraction-failed` / `deepwiki-mermaid-splice-incomplete` | Browser pass failed, or extracted N sources but placed < N (orphan labels remain) |
 | `deepwiki-table-extraction-failed` / `deepwiki-table-splice-incomplete` | Browser pass failed, or some tables couldn't find their preceding heading anchor |
@@ -332,6 +379,9 @@ echo "$f:" \
 - **`tools/hirono/processors/`** — site-specific post-processors (per-host file):
   - `<host>.ts` — one file per host with site-specific chrome cleanups; localizes blast radius
   - `index.ts` — re-exports `siteSpecificProcessors[]` for the pipeline composer
+- **`tools/hirono/<host>/raw-html-converter.ts`** — Layer-4 own-converter modules:
+  - `weixin/raw-html-converter.ts` — first reference implementation. Pure function (no I/O): takes `(contentHtml, metadata, originUrl)` → `{markdown, imagesToDownload, svgFiles, metadata, stats}`. The fetcher does the actual `downloadImage` + `writeFileSync` for SVGs.
+  - Pipeline order inside the converter: `extractOriginalSvgs(rawHtml)` (BEFORE style strip — preserves inline styles for the saved SVG file) → CSS strip → JSDOM parse → `processSvgs` → `stripListMarkerPrefixes` → `unwrapInertSpans` → `normalizeEmphasis` → `normalizeImages` → turndown → post-turndown regex cleanups → §2 frontmatter assembly
 - **`tools/hirono/shared/post-process.ts`** — generic / cross-site processors only (truly N+ host applicability):
   - `PROCESSORS` — ordered pipeline (site-specific first, then generic cross-site)
   - `enforceSingleH1`, `stripDecorativeEmojiImages`, `stripTrailingTagList`, `stripShareWidgetLines`, `processImages`, `resolveRelativeImageUrls`, `unescapeBracketsInLinks`, `stripEmptyAnchorLinks`, `stripColorTags`
