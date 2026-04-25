@@ -343,6 +343,57 @@ echo "$f:" \
   "FM=$(head -5 $f | grep -c 原文链接)"
 ```
 
+## 6b. Test suite (the gate before commit)
+
+Run `npm test` (cwd `tools/`) before every commit that touches an adapter, converter, or post-processor. The suite is the regression gate; do not bypass it.
+
+```bash
+cd tools && npm test           # runs node --import tsx --test __tests__/*.test.ts
+```
+
+**Three layers of test coverage** — each catches a different class of bug:
+
+| Layer | File | What fails it |
+|---|---|---|
+| Per-host snapshot tests | `__tests__/per-host-snapshot.test.ts` | (a) snapshot `.md` was hand-edited away from its sidecar `.invariants.json`; (b) snapshot contains a hard-rule defect: `h1 != 1`, missing `> 原文链接:`, remote `![](http://...)` refs, bare chrome lines (Subscribe/订阅/etc.), `\*{3,}` runs OR odd `**` count outside code (unbalanced bold), empty `## ` heading lines, `附录（位置未识别）` markers; (c) any local image ref doesn't resolve to a real file in the snapshot's `-images/` dir |
+| Converter-fixture tests | `__tests__/converter-fixtures.test.ts` | **byte-equal diff** between `convertX(frozen-input)` and the saved `expected.md`. ANY change to the converter's output trips this — even a one-character punctuation drift. The failure message reports the first divergent character offset for fast diagnosis. |
+| Pure-function fixture tests | `__tests__/post-process-fixtures.test.ts` (47 cases) | input markdown → assert exact output. Same shape as converter-fixture tests but for post-processors. |
+
+**When converter-fixture tests fail:**
+
+1. Read the byte-offset diff in the failure message.
+2. Decide:
+   - **Bug** in the new code → fix the code, do NOT regenerate the fixture.
+   - **Intentional improvement** → regenerate the fixture and commit it ALONGSIDE the code change so the diff is reviewable:
+     ```bash
+     npx tsx tools/__tests__/capture-fixtures.ts <host> <name> <url>
+     ```
+     Always `git diff` the regenerated fixture before committing. Silent fixture regeneration bakes regressions in.
+3. Never `--no-verify` past a fixture test failure.
+
+**Adding a new fixture for an existing converter:**
+
+```bash
+npx tsx tools/__tests__/capture-fixtures.ts weixin <name> <url>
+# or
+npx tsx tools/__tests__/capture-fixtures.ts xhs <name> <url>
+```
+
+Writes `tools/__tests__/fixtures/converters/<host>/<name>.{input.json,expected.md,expected.json}`. The next `npm test` picks it up automatically (the test walks the fixtures directory).
+
+**Adding fixture support for a NEW converter** (when migrating a new host to the target architecture):
+
+1. Add a `case` to `runConverter()` in `__tests__/converter-fixtures.test.ts` covering the new converter's argument shape.
+2. Add a `capture<X>()` function and dispatch in `__tests__/capture-fixtures.ts`.
+3. Capture ≥3 fixtures via `capture-fixtures.ts` covering distinct content shapes (e.g., text-heavy / image-heavy / code-heavy). One fixture only catches the bugs that one URL happens to trigger.
+4. Run `npm test` — the new fixture tests must pass before commit.
+
+**Coverage target per converter: ≥3 fixtures.** A single fixture catches only the bugs its URL happens to exercise. Three diverse shapes give meaningful regression coverage.
+
+**Path-resolution gotcha** (learned the hard way): test files MUST resolve fixture/snapshot paths via `fileURLToPath(import.meta.url)`, not via cwd-relative literals like `"tools/__tests__/snapshots"`. `npm test` runs with cwd=`tools/`, so a literal would resolve to non-existent `tools/tools/__tests__/...` — the suite degrades to a "no fixtures present" sentinel and silently no-ops every assertion. Caught when running tests reported "60 pass" then `npm test` reported "1 pass" for the same file. (See commit `4ca244e` for the fix.)
+
+**Stability check before relying on a green run:** run `npm test` 3 times back-to-back; the count must be identical and `fail = 0` every time. Filesystem-cache jitter is normal in the duration_ms; test count must not vary.
+
 ## 7. Quality flags
 
 `classifyQuality` emits to `source.json.quality_flags`:
@@ -391,9 +442,13 @@ echo "$f:" \
   - `applyPostProcessors` — aggregates `extraFlags` including `intentional-stub`
 - **`tools/__tests__/`**:
   - `post-process-fixtures.test.ts` — fixture pairs for each processor (47 cases)
-  - `per-host-snapshot.test.ts` — per-host snapshot regression suite
-  - `snapshot-helpers.ts` — feature-count helpers + sidecar I/O + CLI for capturing invariants
-  - `snapshots/<host>/<slug>.md` + `<slug>.invariants.json` — per-host snapshots
+  - `per-host-snapshot.test.ts` — per-host snapshot regression suite (sidecar match + hard-rule defects + image-ref existence)
+  - `converter-fixtures.test.ts` — byte-equal regression test for converters (frozen input → frozen `expected.md`). The true gate against silent converter drift; see §6b.
+  - `capture-fixtures.ts` — one-shot script to capture/refresh a converter fixture from a live URL
+  - `snapshot-create.ts` — fetch + bundle images + write snapshot. Refuses to write if hard-rule defects present.
+  - `snapshot-helpers.ts` — `countFeatures` + invariants I/O + CLI for capturing invariants
+  - `snapshots/<host>/<slug>.{md,invariants.json}` + `<slug>-images/` — per-host snapshots
+  - `fixtures/converters/<host>/<name>.{input.json,expected.md,expected.json}` — frozen converter regression fixtures
 
 ## Keeping this file fresh
 
