@@ -245,6 +245,8 @@ A regex that fails because its input shape differs from expectation is usually a
 
 ## 5. New-URL / new-host protocol
 
+> **Direction note (2026-04):** the L1/L2/L3/L4 ladder framing below is the *current* state, not the target. Target architecture is one self-contained module per host under `tools/sites/<host>/{index, fetcher, converter, metadata}.ts` with co-located snapshots, plus a small `tools/sites/_shared/` core (browser, http, markdown, quality, snapshot) — see `~/.claude/plans/parsed-meandering-beaver.md` for the full design + module contract. Migrate in this direction when touching a host; don't double down on the ladder.
+
 ### 5a. Adapter-selection decision tree (preferred path for any new host)
 
 ```
