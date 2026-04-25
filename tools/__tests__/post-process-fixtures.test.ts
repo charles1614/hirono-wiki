@@ -20,8 +20,17 @@ import {
   xhsReformatNoteTable,
   arxivStripTrailingChrome,
   arxivStructureImprove,
+  arxivPdfNote,
+  deepwikiStripNav,
   deepwikiWrapDiagramNodes,
+  enforceSingleH1,
   stripEmptyAnchorLinks,
+  stripDecorativeEmojiImages,
+  stripTrailingTagList,
+  stripShareWidgetLines,
+  blogGoogleCleanup,
+  huggingfaceBlogReformat,
+  redditReformat,
   unescapeBracketsInLinks,
   applyPostProcessors,
 } from "../hirono/shared/post-process.ts";
@@ -428,6 +437,463 @@ test("unescapeBracketsInLinks: does not break on URL containing `)`", () => {
 // ---------------------------------------------------------------------------
 // Pipeline smoke test — processors compose without errors on combined input
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// enforceSingleH1
+// ---------------------------------------------------------------------------
+
+test("enforceSingleH1: demotes body H1s to H2 (fence-aware)", () => {
+  const md = [
+    "# Frontmatter Title",
+    "",
+    "> 原文链接: https://example.com/x",
+    "",
+    "---",
+    "",
+    "# Section A",
+    "",
+    "Body of A.",
+    "",
+    "```python",
+    "# This is a code comment, not a heading",
+    "x = 1",
+    "```",
+    "",
+    "# Section B",
+    "",
+    "Body of B.",
+  ].join("\n");
+  const r = enforceSingleH1.transform(md, "https://example.com/x");
+  // Only the frontmatter H1 should remain at column 0 outside fences.
+  assert.match(r.md, /^# Frontmatter Title$/m);
+  assert.match(r.md, /^## Section A$/m);
+  assert.match(r.md, /^## Section B$/m);
+  // Code-fence comment was preserved as `# This is a code comment`
+  assert.match(r.md, /# This is a code comment/);
+});
+
+test("enforceSingleH1: dedupes consecutive identical demoted H2 pair", () => {
+  // The dedup fires when the BODY contains two consecutive identical H1s
+  // (substack pattern — opening title + repeated subhead). After demoting
+  // both to H2 they collapse to one.
+  const md = [
+    "# Frontmatter",
+    "",
+    "---",
+    "",
+    "# Body Title",
+    "",
+    "# Body Title",
+    "",
+    "Body.",
+  ].join("\n");
+  const r = enforceSingleH1.transform(md, "https://example.com/x");
+  // Two `# Body Title` body H1s → demote to ## → dedup → one H2
+  const h2Count = (r.md.match(/^## Body Title$/gm) || []).length;
+  assert.equal(h2Count, 1);
+});
+
+test("enforceSingleH1: replaces truncated preamble title with full body H1", () => {
+  // When the preamble H1 is a strict prefix of the body H1 ending at a word
+  // boundary (slug-truncation case, e.g. blog.google), promote the body title.
+  const md = [
+    "# Introducing Pathways: A next",
+    "",
+    "> 发布时间: 2021-10-28",
+    "> 原文链接: https://blog.google/foo/",
+    "",
+    "---",
+    "",
+    "# Introducing Pathways: A next-generation AI architecture",
+    "",
+    "Body.",
+  ].join("\n");
+  const r = enforceSingleH1.transform(md, "https://blog.google/foo/");
+  assert.match(r.md, /^# Introducing Pathways: A next-generation AI architecture$/m);
+  // The duplicate body H1 is gone (NOT demoted to H2 — fully removed).
+  const fullCount = (r.md.match(/Introducing Pathways: A next-generation/g) || []).length;
+  assert.equal(fullCount, 1, "full title should appear exactly once (preamble only)");
+});
+
+test("enforceSingleH1: strips orphan content between title and metadata", () => {
+  // Multi-line tweet titles produce orphan paragraphs between the H1 and
+  // the `> 原文链接:` blockquote. Those paragraphs should be stripped.
+  const md = [
+    "# (20) X 上的 Garry Tan: tweet text starts here",
+    "",
+    "It's exactly my OpenClaw setup.",
+    "",
+    'https://t.co/abc" / X',
+    "",
+    "> 发布时间: 2026-04-10",
+    "> 原文链接: https://x.com/garrytan/status/12345",
+    "",
+    "---",
+    "",
+    "Real body.",
+  ].join("\n");
+  const r = enforceSingleH1.transform(md, "https://x.com/garrytan/status/12345");
+  assert.doesNotMatch(r.md, /It's exactly my OpenClaw setup/);
+  assert.doesNotMatch(r.md, /https:\/\/t\.co\/abc/);
+  // H1 and metadata both survive
+  assert.match(r.md, /^# \(20\) X 上的 Garry Tan: tweet text starts here$/m);
+  assert.match(r.md, /^> 原文链接: https:\/\/x\.com/m);
+  assert.match(r.md, /^Real body\./m);
+});
+
+test("enforceSingleH1: no-op when there's no separator", () => {
+  // Files without `\n---\n` (some legacy fetches) should pass through unchanged.
+  const md = "# Just a Title\n\nNo separator here.\n";
+  const r = enforceSingleH1.transform(md, "https://example.com/x");
+  assert.equal(r.md, md);
+});
+
+// ---------------------------------------------------------------------------
+// stripDecorativeEmojiImages
+// ---------------------------------------------------------------------------
+
+test("stripDecorativeEmojiImages: replaces twemoji image refs with shortcode", () => {
+  const md = "Cool ![:high_voltage:](https://linux.do/images/emoji/twemoji/high_voltage.png?v=15) feature.";
+  const r = stripDecorativeEmojiImages.transform(md, "https://linux.do/t/topic/1");
+  assert.match(r.md, /Cool :high_voltage: feature/);
+  assert.doesNotMatch(r.md, /twemoji/);
+});
+
+test("stripDecorativeEmojiImages: leaves real images alone", () => {
+  const md = "![Fig 1: Architecture](images/img_001.png)";
+  const r = stripDecorativeEmojiImages.transform(md, "https://example.com/x");
+  assert.equal(r.md, md);
+});
+
+// ---------------------------------------------------------------------------
+// stripTrailingTagList
+// ---------------------------------------------------------------------------
+
+test("stripTrailingTagList: strips concatenated tag-link footer line", () => {
+  const md = [
+    "Real article body.",
+    "",
+    "Final prose paragraph.",
+    "",
+    "[Developer Platform](/tag/developer-platform/)[AI](/tag/ai/)[Workers](/tag/workers/)",
+  ].join("\n");
+  const r = stripTrailingTagList.transform(md, "https://blog.cloudflare.com/x");
+  assert.doesNotMatch(r.md, /\/tag\//);
+  assert.match(r.md, /Final prose paragraph/);
+});
+
+test("stripTrailingTagList: ignores tag-list NOT at the tail", () => {
+  // Same shape, but with prose AFTER it — only trailing chrome is stripped.
+  const md = [
+    "Intro.",
+    "",
+    "[A](/tag/a/)[B](/tag/b/)",
+    "",
+    "More content here.",
+  ].join("\n");
+  const r = stripTrailingTagList.transform(md, "https://example.com/x");
+  // Should be a no-op since the tag-list isn't at the tail
+  assert.equal(r.md, md);
+});
+
+// ---------------------------------------------------------------------------
+// stripShareWidgetLines
+// ---------------------------------------------------------------------------
+
+test("stripShareWidgetLines: strips bare `Share` / `Copy link` lines in body", () => {
+  const md = [
+    "# Title",
+    "",
+    "> 原文链接: https://example.com/x",
+    "",
+    "---",
+    "",
+    "Article body.",
+    "",
+    "Share",
+    "",
+    "More body.",
+    "",
+    "Copy link",
+    "",
+    "Final.",
+  ].join("\n");
+  const r = stripShareWidgetLines.transform(md, "https://example.com/x");
+  assert.doesNotMatch(r.md, /^Share$/m);
+  assert.doesNotMatch(r.md, /^Copy link$/m);
+  assert.match(r.md, /Article body/);
+  assert.match(r.md, /More body/);
+  assert.match(r.md, /Final/);
+});
+
+test("stripShareWidgetLines: leaves preamble metadata blockquotes alone", () => {
+  // A `> Share: ...` line in preamble should NOT be touched.
+  const md = [
+    "# Title",
+    "",
+    "> Share: https://example.com",
+    "",
+    "---",
+    "",
+    "Body.",
+  ].join("\n");
+  const r = stripShareWidgetLines.transform(md, "https://example.com/x");
+  assert.match(r.md, /^> Share: https:\/\//m);
+});
+
+test("stripShareWidgetLines: leaves prose containing 'Share' alone", () => {
+  // 'Share' as part of a sentence (not a bare line) should survive.
+  const md = [
+    "# Title",
+    "",
+    "---",
+    "",
+    "Click Share to share this article.",
+  ].join("\n");
+  const r = stripShareWidgetLines.transform(md, "https://example.com/x");
+  assert.match(r.md, /Click Share to share/);
+});
+
+// ---------------------------------------------------------------------------
+// blogGoogleCleanup
+// ---------------------------------------------------------------------------
+
+test("blogGoogleCleanup: strips social-share + author block + byline", () => {
+  const md = [
+    "# Title",
+    "",
+    "---",
+    "",
+    "[",
+    "",
+    "x.com",
+    "",
+    "](https://twitter.com/intent/tweet?text=foo)[",
+    "",
+    "Facebook",
+    "",
+    "](https://www.facebook.com/sharer/sharer.php?u=foo)[",
+    "",
+    "LinkedIn",
+    "",
+    "](https://www.linkedin.com/shareArticle?url=foo)[",
+    "",
+    "Mail",
+    "",
+    "](mailto:?subject=foo)",
+    "Copy link",
+    "",
+    "Real article body.",
+    "",
+    "Oct 28, 2021",
+    "",
+    "·",
+    "",
+    "5 min read",
+    "",
+    "More body.",
+  ].join("\n");
+  const r = blogGoogleCleanup.transform(md, "https://blog.google/foo/");
+  assert.doesNotMatch(r.md, /twitter\.com\/intent/);
+  assert.doesNotMatch(r.md, /facebook\.com\/sharer/);
+  assert.doesNotMatch(r.md, /Copy link/);
+  assert.doesNotMatch(r.md, /Oct 28, 2021/);
+  assert.doesNotMatch(r.md, /5 min read/);
+  assert.match(r.md, /Real article body/);
+  assert.match(r.md, /More body/);
+});
+
+test("blogGoogleCleanup: only fires for blog.google", () => {
+  assert.equal(blogGoogleCleanup.match("https://blog.google/foo", "blog.google"), true);
+  assert.equal(blogGoogleCleanup.match("https://example.com/", "example.com"), false);
+});
+
+// ---------------------------------------------------------------------------
+// huggingfaceBlogReformat: 404 stub branch
+// ---------------------------------------------------------------------------
+
+test("huggingfaceBlogReformat: 404 page short-circuits to intentional-stub", () => {
+  const md = [
+    "# 404",
+    "",
+    "This blog post does not exist",
+  ].join("\n");
+  const r = huggingfaceBlogReformat.transform(md, "https://huggingface.co/blog/bogus-slug");
+  assert.match(r.md, /HuggingFace Blog Post \(not found\)/);
+  assert.match(r.md, /\*\*Source:\*\* https:\/\/huggingface\.co\/blog\/bogus-slug/);
+  assert.match(r.md, /\*\*Status:\*\* page-removed/);
+  assert.ok(r.extraFlags?.includes("intentional-stub"));
+});
+
+test("huggingfaceBlogReformat: real blog post does NOT short-circuit", () => {
+  const md = [
+    "# SmolLM3: smol, multilingual, long",
+    "",
+    "Real intro paragraph.",
+  ].join("\n");
+  const r = huggingfaceBlogReformat.transform(md, "https://huggingface.co/blog/smollm3");
+  // Should pass through (no 404 stub)
+  assert.doesNotMatch(r.md, /page-removed/);
+  assert.ok(!r.extraFlags?.includes("intentional-stub"));
+});
+
+// ---------------------------------------------------------------------------
+// redditReformat: deleted / blocked stubs
+// ---------------------------------------------------------------------------
+
+test("redditReformat: [deleted by user] short-circuits to intentional-stub", () => {
+  const md = [
+    "# [deleted by user] : r/ClaudeAI",
+    "",
+    "> 发布时间: 2025-10-07",
+    "",
+    "---",
+    "",
+    "Some chrome.",
+  ].join("\n");
+  const r = redditReformat.transform(md, "https://www.reddit.com/r/ClaudeAI/s/abc");
+  assert.match(r.md, /Reddit post \(deleted or removed\)/);
+  assert.match(r.md, /page-removed/);
+  assert.ok(r.extraFlags?.includes("intentional-stub"));
+});
+
+test("redditReformat: rate-limited (Check Claude service status) → stub", () => {
+  const md = [
+    "# Pro Tip: ... : r/ClaudeAI",
+    "",
+    "---",
+    "",
+    "[Check Claude service status.](http://status.claude.com)",
+  ].join("\n");
+  const r = redditReformat.transform(md, "https://www.reddit.com/r/ClaudeAI/s/xyz");
+  assert.match(r.md, /Reddit post \(unreachable\)/);
+  assert.match(r.md, /fetch-blocked/);
+  assert.ok(r.extraFlags?.includes("intentional-stub"));
+});
+
+test("redditReformat: real long post is NOT stubbed", () => {
+  const md = [
+    "# Some interesting Reddit thread : r/ClaudeAI",
+    "",
+    "---",
+    "",
+    // Long real body
+    "This is a substantive Reddit thread with multiple paragraphs of content. ".repeat(20),
+  ].join("\n");
+  const r = redditReformat.transform(md, "https://www.reddit.com/r/ClaudeAI/comments/abc");
+  assert.doesNotMatch(r.md, /Reddit post \(deleted/);
+  assert.doesNotMatch(r.md, /Reddit post \(unreachable\)/);
+  assert.ok(!r.extraFlags?.includes("intentional-stub"));
+});
+
+// ---------------------------------------------------------------------------
+// arxivPdfNote: thin-fetch stub
+// ---------------------------------------------------------------------------
+
+test("arxivPdfNote: thin PDF fetch (<1500 chars) → stub pointing at abstract", () => {
+  const md = "# untitled\n\nSome very thin PDF text.";
+  const r = arxivPdfNote.transform(md, "https://arxiv.org/pdf/2402.13499");
+  assert.match(r.md, /arXiv Paper \(PDF-only fetch\)/);
+  assert.match(r.md, /\*\*Abstract:\*\* https:\/\/arxiv\.org\/abs\/2402\.13499/);
+  assert.match(r.md, /pdf-extraction-incomplete/);
+  assert.ok(r.extraFlags?.includes("intentional-stub"));
+});
+
+test("arxivPdfNote: substantial PDF fetch keeps body + adds abstract note", () => {
+  const md = "# Paper Title\n\n" + "Real paper body. ".repeat(200);
+  const r = arxivPdfNote.transform(md, "https://arxiv.org/pdf/2402.13499");
+  assert.match(r.md, /Paper Title/);
+  assert.match(r.md, /Note:\*\* This was fetched from a PDF URL/);
+  assert.match(r.md, /\[abstract page\]\(https:\/\/arxiv\.org\/abs\/2402\.13499\)/);
+  assert.ok(!r.extraFlags?.includes("intentional-stub"));
+});
+
+// ---------------------------------------------------------------------------
+// deepwikiStripNav: extended (dup-H1 + trailing chrome)
+// ---------------------------------------------------------------------------
+
+test("deepwikiStripNav: deepwiki.com strips top nav + dup H1 + trailing TOC", () => {
+  const md = [
+    "# aliyun/SimAI",
+    "",
+    "> 原文链接: https://deepwiki.com/aliyun/SimAI/1-overview",
+    "",
+    "---",
+    "Some sidebar nav…",
+    "",
+    "Menu",
+    "",
+    "# SimAI Overview",
+    "",
+    "Relevant source files",
+    "",
+    "-   [README.md](https://github.com/aliyun/SimAI/blob/x/README.md)",
+    "",
+    "## Purpose and Scope",
+    "",
+    "Real body.",
+    "",
+    "Sources: [README.md1-100](...)",
+    "",
+    "Dismiss",
+    "",
+    "Refresh this wiki",
+    "",
+    "### On this page",
+    "",
+    "-   [Purpose and Scope](#purpose-and-scope)",
+    "",
+    "Ask Devin about aliyun/SimAI",
+  ].join("\n");
+  const r = deepwikiStripNav.transform(md, "https://deepwiki.com/aliyun/SimAI/1-overview");
+  // Top sidebar gone
+  assert.doesNotMatch(r.md, /Menu/);
+  // Dup H1 + Relevant source files block gone
+  assert.doesNotMatch(r.md, /^# SimAI Overview$/m);
+  assert.doesNotMatch(r.md, /Relevant source files/);
+  // Trailing chrome gone
+  assert.doesNotMatch(r.md, /Dismiss/);
+  assert.doesNotMatch(r.md, /Refresh this wiki/);
+  assert.doesNotMatch(r.md, /### On this page/);
+  assert.doesNotMatch(r.md, /Ask Devin about/);
+  // Real body survives
+  assert.match(r.md, /## Purpose and Scope/);
+  assert.match(r.md, /Real body/);
+  // Stats note fired
+  assert.match(r.notes.join(""), /nav chrome.*dup H1 block.*trailing chrome/s);
+});
+
+// ---------------------------------------------------------------------------
+// Pipeline composition: applyPostProcessors with the new processors
+// ---------------------------------------------------------------------------
+
+test("applyPostProcessors: blog.google end-to-end (chrome + truncated H1)", () => {
+  const md = [
+    "# Introducing Pathways: A next",
+    "",
+    "> 原文链接: https://blog.google/innovation-and-ai/products/introducing-pathways/",
+    "",
+    "---",
+    "# Introducing Pathways: A next-generation AI architecture",
+    "",
+    "Oct 28, 2021",
+    "",
+    "·",
+    "",
+    "5 min read",
+    "",
+    "Real body content.",
+  ].join("\n");
+  const r = applyPostProcessors(md, "https://blog.google/innovation-and-ai/products/introducing-pathways/");
+  assert.match(r.md, /^# Introducing Pathways: A next-generation AI architecture$/m);
+  // Body H1 dedup'd, byline stripped
+  assert.doesNotMatch(r.md, /^# Introducing Pathways: A next$/m);
+  assert.doesNotMatch(r.md, /Oct 28, 2021/);
+  assert.doesNotMatch(r.md, /5 min read/);
+  assert.match(r.md, /Real body content/);
+  assert.ok(r.appliedNames.includes("blog-google-cleanup"));
+  assert.ok(r.appliedNames.includes("enforce-single-h1"));
+});
 
 test("applyPostProcessors: pipeline runs all processors on substack-like input", () => {
   const md = [

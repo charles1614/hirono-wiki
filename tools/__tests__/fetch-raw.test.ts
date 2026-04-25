@@ -64,9 +64,12 @@ test("lookupDispatch: mp.weixin.qq.com → weixin adapter", () => {
   assert.equal(lookupDispatch("https://mp.weixin.qq.com/s/abc")?.adapter, "weixin");
 });
 
-test("lookupDispatch: other domains return null (falls to web-read)", () => {
-  assert.equal(lookupDispatch("https://newsletter.semianalysis.com/p/foo"), null);
-  assert.equal(lookupDispatch("https://github.com/x/y"), null);
+test("lookupDispatch: unmatched domains return null (falls to web-read)", () => {
+  // Hosts NOT in DISPATCH_RULES get null and fall through to generic web-read.
+  // Pick obscure hosts that we deliberately don't have a friendlyName for.
+  // (newsletter.semianalysis.com / github.com / arxiv.org / etc. are now
+  // explicitly listed in DISPATCH_RULES — see fetch-raw.ts:146.)
+  assert.equal(lookupDispatch("https://example.com/post"), null);
   assert.equal(lookupDispatch("https://gist.github.com/x/y"), null);
   // Guard against host-suffix spoofing (mp.weixin.qq.example.com should NOT match)
   assert.equal(lookupDispatch("https://mp.weixin.qq.example.com/fake"), null);
@@ -99,17 +102,33 @@ test("classifyQuality: short body → flagged", () => {
   assert.ok(r.flags.includes("short-body"));
 });
 
-test("classifyQuality: login-wall keyword → flagged even if body is long enough", () => {
-  const body = "Some content ".repeat(100) + " Open in App to read more";
+test("classifyQuality: login-wall keyword in thin body → flagged", () => {
+  // Short body (<1500 chars) — full body is scanned for login walls.
+  const body = "Open in App to continue reading.";
   const r = classifyQuality(body);
   assert.equal(r.suspicious, true);
   assert.ok(r.flags.includes("login-wall-keyword"));
 });
 
-test("classifyQuality: Chinese 登录 keyword detected", () => {
-  const body = "这是一些内容 ".repeat(100) + " 登录查看全文";
+test("classifyQuality: Chinese 登录 keyword in first 500 chars → flagged", () => {
+  // Long body where 登录 appears near the top (where a real login wall
+  // would intercept) — should still flag.
+  const body = "登录查看全文。" + "这是一些正文内容 ".repeat(500);
   const r = classifyQuality(body);
   assert.ok(r.flags.includes("login-wall-keyword"));
+});
+
+test("classifyQuality: login-wall keyword deep in long prose → NOT flagged", () => {
+  // Long body where the keyword appears only deep in the article — natural
+  // prose mention of 登录 (e.g. tech article describing user login flow),
+  // not a wall. Per the tightened heuristic, only the first 500 chars are
+  // scanned when the body is ≥ 1500 chars. So a deep-only keyword should
+  // NOT trigger the flag — that was the false-positive we were chasing on
+  // mp.weixin Chinese articles.
+  const long = "正文内容 ".repeat(400);  // ~3200 chars, no keyword
+  const body = long + "需要 登录 微信账号。";  // keyword in last 100 chars
+  const r = classifyQuality(body);
+  assert.ok(!r.flags.includes("login-wall-keyword"));
 });
 
 test("LOGIN_WALL_KEYWORDS includes the key domains we care about", () => {

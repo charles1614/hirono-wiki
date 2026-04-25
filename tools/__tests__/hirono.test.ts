@@ -215,9 +215,19 @@ test("githubStripUIChrome: removes known UI chrome lines", () => {
   assert.match(r.notes[0] ?? "", /stripped \d+ UI-chrome lines/);
 });
 
-test("githubStripUIChrome: only runs for github.com", () => {
+test("githubStripUIChrome: only runs for github PR/issue/discussion URLs", () => {
+  // Match was tightened to PR/issue/discussion URL paths only — running the
+  // dup-H1 strip on raw README content (blob/tree/repo) wiped real subtitle
+  // + badges + intro between frontmatter and the first H2. See fetch-raw.ts
+  // augmentGithubPrIssueWithApi for the conversation-style URL shapes that
+  // legitimately have GitHub UI chrome to strip.
   assert.equal(githubStripUIChrome.match("https://example.com/", "example.com"), false);
-  assert.equal(githubStripUIChrome.match("https://github.com/x/y/", "github.com"), true);
+  // Bare repo URL no longer matches — chrome strip would corrupt README content.
+  assert.equal(githubStripUIChrome.match("https://github.com/x/y/", "github.com"), false);
+  // PR / issue / discussion URLs DO match (real conversation-style chrome).
+  assert.equal(githubStripUIChrome.match("https://github.com/x/y/pull/123", "github.com"), true);
+  assert.equal(githubStripUIChrome.match("https://github.com/x/y/issues/45", "github.com"), true);
+  assert.equal(githubStripUIChrome.match("https://github.com/x/y/discussions/9", "github.com"), true);
 });
 
 // ---------------------------------------------------------------------------
@@ -365,28 +375,32 @@ test("buildReport: hostname coverage classification", () => {
     bookmarks: [
       { bookmark_id: 1, title: "xhs", link: "https://www.xiaohongshu.com/discovery/item/x" },
       { bookmark_id: 2, title: "gh", link: "https://github.com/x/y" },
-      { bookmark_id: 3, title: "arxiv", link: "https://arxiv.org/abs/1234.5678" },
+      { bookmark_id: 3, title: "unknown", link: "https://example.com/post/1" },
     ],
   };
   const r = buildReport(cache);
   const byHost = new Map(r.hosts.map((h) => [h.hostname, h]));
+  // xiaohongshu and github both now have explicit DISPATCH_RULES entries.
+  // example.com is the unmatched-falls-through case.
   assert.equal(byHost.get("xiaohongshu.com")?.coverage, "dedicated-adapter");
   assert.equal(byHost.get("xiaohongshu.com")?.adapter, "xiaohongshu");
-  assert.equal(byHost.get("github.com")?.coverage, "web-read-fallback");
-  assert.equal(byHost.get("arxiv.org")?.coverage, "web-read-fallback");
+  assert.equal(byHost.get("github.com")?.coverage, "dedicated-adapter");
+  assert.equal(byHost.get("example.com")?.coverage, "web-read-fallback");
 });
 
-test("buildReport: uncovered_high_frequency surfaces 5+ count domains", () => {
+test("buildReport: uncovered_high_frequency surfaces unmatched domains with count > 1", () => {
   const bookmarks = [];
-  // 6 github bookmarks (uncovered, over threshold)
-  for (let i = 0; i < 6; i++) bookmarks.push({ bookmark_id: i, title: `gh${i}`, link: `https://github.com/x/y${i}` });
-  // 4 arxiv bookmarks (uncovered, under threshold)
-  for (let i = 0; i < 4; i++) bookmarks.push({ bookmark_id: 100 + i, title: `ax${i}`, link: `https://arxiv.org/abs/${i}` });
+  // 6 example.com bookmarks (uncovered, count > 1)
+  for (let i = 0; i < 6; i++) bookmarks.push({ bookmark_id: i, title: `ex${i}`, link: `https://example.com/post/${i}` });
+  // 1 unique-host bookmark (uncovered, but count = 1 — below threshold)
+  bookmarks.push({ bookmark_id: 999, title: "long-tail", link: "https://random-once-only-host.test/page" });
   // 10 xhs (covered, should not show even though count is high)
   for (let i = 0; i < 10; i++) bookmarks.push({ bookmark_id: 200 + i, title: `xhs${i}`, link: `http://xhslink.com/o/${i}` });
   const r = buildReport({ fetched_at: "2026-04-21T00:00:00Z", total: bookmarks.length, bookmarks });
+  // Only example.com appears (count 6 > 1). xhs is dedicated-adapter, the
+  // long-tail host is below the count > 1 threshold.
   assert.equal(r.uncovered_high_frequency.length, 1);
-  assert.equal(r.uncovered_high_frequency[0].hostname, "github.com");
+  assert.equal(r.uncovered_high_frequency[0].hostname, "example.com");
   assert.equal(r.uncovered_high_frequency[0].count, 6);
 });
 
@@ -401,7 +415,8 @@ test("formatReport: output contains expected sections", () => {
   };
   const out = formatReport(buildReport(cache));
   assert.match(out, /Duplicates \(1\)/);
-  assert.match(out, /Uncovered hostnames with ≥5 bookmarks/);
+  // Section heading text was updated when threshold dropped to >1.
+  assert.match(out, /Uncovered hostnames/);
   assert.match(out, /Hostname distribution/);
 });
 
