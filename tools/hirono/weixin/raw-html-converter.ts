@@ -179,26 +179,41 @@ function makeTurndown(): TurndownService {
     filter: (node) => node.nodeType === 8 /* COMMENT_NODE */,
     replacement: (_content, node) => `<!--${(node as unknown as Comment).data}-->`,
   });
-  // <pre><code class="language-X"> → fenced block with language hint.
-  td.addRule("fenced-code-with-language", {
-    filter: (node) => node.nodeName === "PRE" && (node as Element).querySelector("code") !== null,
+  // <pre> → fenced block. Two structural shapes appear in the wild:
+  //
+  //   (A) Single child: `<pre><code class="language-X">multi\nline\ntext</code></pre>`
+  //       — the canonical shape. Lang hint comes from the <code>'s class.
+  //
+  //   (B) Multi child:  `<pre><code>line1</code><code>line2</code>...</pre>`
+  //       — WeChat's mdnice editor emits one <code> per line, with the line
+  //       text inside `<span leaf="">`. Joining the children's textContent
+  //       with `\n` reconstructs the original block. We do NOT trust the
+  //       <pre>'s `data-lang` attribute for this shape because mdnice often
+  //       mislabels (e.g. `data-lang="sql"` for actual YAML).
+  //
+  // Single rule handles both: count <code> children, branch on count.
+  td.addRule("fenced-code", {
+    filter: (node) => node.nodeName === "PRE",
     replacement: (_content, node) => {
-      const codeEl = (node as Element).querySelector("code");
-      const text = codeEl?.textContent ?? "";
-      const cls = codeEl?.getAttribute("class") || "";
-      const langMatch = cls.match(/language-(\S+)/);
-      const lang = langMatch ? langMatch[1] : "";
+      const pre = node as Element;
+      const codes = Array.from(pre.children).filter((c) => c.tagName === "CODE");
+      let text = "";
+      let lang = "";
+      if (codes.length > 1) {
+        // Shape B: one <code> per line.
+        text = codes.map((c) => c.textContent ?? "").join("\n");
+      } else if (codes.length === 1) {
+        // Shape A: single <code>, may have language class.
+        text = codes[0].textContent ?? "";
+        const cls = codes[0].getAttribute("class") || "";
+        const m = cls.match(/language-(\S+)/);
+        if (m) lang = m[1];
+      } else {
+        // Bare <pre> with no <code> wrapper.
+        text = pre.textContent ?? "";
+      }
       const trimmed = text.replace(/\r\n/g, "\n").replace(/^\n+/, "").replace(/\n+$/, "");
       return `\n\n\`\`\`${lang}\n${trimmed}\n\`\`\`\n\n`;
-    },
-  });
-  // Bare <pre> without <code>: still emit fenced block, no language.
-  td.addRule("fenced-code-bare", {
-    filter: (node) => node.nodeName === "PRE" && (node as Element).querySelector("code") === null,
-    replacement: (_content, node) => {
-      const text = (node as Element).textContent ?? "";
-      const trimmed = text.replace(/\r\n/g, "\n").replace(/^\n+/, "").replace(/\n+$/, "");
-      return `\n\n\`\`\`\n${trimmed}\n\`\`\`\n\n`;
     },
   });
   return td;
