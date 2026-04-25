@@ -1,0 +1,26 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_png/zW6S9vt0cSibQFByc0j0dNLg3jgWibzwUAbSNbghObFhGrSFXIJ9iaquBWW9WfwictoSTiaJib6icb7x4G3KjPOFHMbDVTFNiciaPCbYRq2SYFk8eEt8/640?wx_fmt=png&from=appmsg#imgIndex=0",
+      "localFilename": "weixin-img-001.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_png/vI9nYe94fsGxu3P5YibTO899okS0X9WaLmQCtia4U8Eu1xWCz9t8Qtq9PH6T1bTcxibiaCIkGzAxpeRkRFYqibVmwSw/640?wx_fmt=other&wxfrom=5&wx_lazy=1&wx_co=1&tp=webp#imgIndex=2",
+      "localFilename": "weixin-img-002.jpg"
+    }
+  ],
+  "svgFiles": [],
+  "metadata": {
+    "title": "春节加餐：Anthropic首个公开的Skills构建指南来了！",
+    "author": "Datawhale",
+    "publishTime": "2026年2月19日 22:11"
+  },
+  "stats": {
+    "images": 2,
+    "tables": 0,
+    "codeFences": 15,
+    "svgFiles": 0,
+    "svgDropped": 0,
+    "listMarkersCleaned": 0
+  }
+}

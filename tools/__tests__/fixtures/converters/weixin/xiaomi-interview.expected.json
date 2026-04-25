@@ -1,0 +1,78 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/sz_mmbiz_png/nnLrwYqZfyGF22oPicEpiaseUJgaObR1mtnZKW4uVUZcXBaNTPAZ0VHPicTc6CoH6xZSh6zYPIgI7ZVYYM65twQZ2H4JKuaFbW533fmfQicrW3A/640?wx_fmt=png&from=appmsg#imgIndex=0",
+      "localFilename": "weixin-img-001.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_png/nnLrwYqZfyHYodAgC2ImrjuQsvxx3lDH9Oqibhia858go4BgVP6kibePvsS85KED63wTHib7u8ojYpmWJ1unFOxOMqYclhHfvfYsxYZvicROzw0Y/640?wx_fmt=png&from=appmsg#imgIndex=1",
+      "localFilename": "weixin-img-002.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/sz_mmbiz_png/nnLrwYqZfyHCEVC1wASqIaTgECOFuK9ZPrWY8IqK6WK91gzSh5ibLvo2OAUIBiaC4wn9wEQNhNF1O7IkmlD4ybMX8zvVZh6lqduwibfRMX5o6A/640?wx_fmt=png&from=appmsg#imgIndex=2",
+      "localFilename": "weixin-img-003.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/sz_mmbiz_jpg/nnLrwYqZfyFnMs0GnVV7vo5ps1GdquD6QgsMYZHrHsiabdSp10kFRZlqRznGDQr6Y8gqZYPWsIVB4uqIjIe6Qs7Io4p8bKQgcMTrI2UgBTBQ/640?wx_fmt=jpeg&from=appmsg#imgIndex=3",
+      "localFilename": "weixin-img-004.jpg"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_jpg/nnLrwYqZfyFoq1tfmI8FHNiafWL6eMn90b9qZTfJQ8H660JoicXmFTOIn01SCwK368HWFph1BQnz1m1EIYYHUBf34I24M6fufbJ6uSvN65WQE/640?wx_fmt=jpeg&from=appmsg#imgIndex=4",
+      "localFilename": "weixin-img-005.jpg"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/sz_mmbiz_jpg/nnLrwYqZfyGCE1wO5o4WbOjocfwVjbRNDjqqjialCqIo0CgmicUe7fTSxkoX34hnBRoBcyaxuib5De0Z0iatdHjsjHbyV4XurBvJ4dlKGTLMElo/640?wx_fmt=jpeg&from=appmsg#imgIndex=5",
+      "localFilename": "weixin-img-006.jpg"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/sz_mmbiz_jpg/nnLrwYqZfyHVUB7mHbraiaMTsp4QicBPwpW4G0cJCha707m6R4ZVA5K3icygSWr707vRfLE9HXOzicGBt0cZ61iaI6chYEDmsl8Zr9f5uLS4oGzc/640?wx_fmt=jpeg&from=appmsg#imgIndex=6",
+      "localFilename": "weixin-img-007.jpg"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_jpg/nnLrwYqZfyHKZjrKHIiaLCEAVicJ5TCT1SiaXmJbbVqxqt1IfA9PSq36icapa8LpzxkWrqIRQfhQWR1SyCoiaJCul443XuePVB3Vej0j4wsZ0wlo/640?wx_fmt=jpeg&from=appmsg#imgIndex=7",
+      "localFilename": "weixin-img-008.jpg"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_jpg/nnLrwYqZfyHnABhUlyQaAAcOA0rqBiboDticFMA72Axn8ZXWyvnZF2sWfdh9zxaFq9DBGlVawJKzZkibOnnfWo4FAicapibm7qA3OKS1ZDPHYdA8/640?wx_fmt=jpeg&from=appmsg#imgIndex=8",
+      "localFilename": "weixin-img-009.jpg"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_jpg/nnLrwYqZfyEeZ0YHKnABulalax9ptsJq6juUHnLeiazuFntTqmru93DxUQXmNSL3H9kwMJk876iaic1tiaaLrF7ibVicYN4AYo6Q8quZY78ZbrDib4/640?wx_fmt=jpeg&from=appmsg#imgIndex=9",
+      "localFilename": "weixin-img-010.jpg"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_png/5tYJZbh5UzequAoKfeU4icLuShNEIujFhrSQou8my77tB64EnW9APAMRwW42ic0ZptRmicabYvrdE4ictUz4GjJmicQ/640?wx_fmt=png&from=appmsg#imgIndex=10",
+      "localFilename": "weixin-img-011.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_png/5tYJZbh5UzcSE0cAvzSLCshuU9gJ6giaqmA5XxVsLcjRHlFBiaaQH3NVCgmicMAj4rsmWAReOjOqjWrZbzhIBzI6A/640?wx_fmt=png&from=appmsg#imgIndex=11",
+      "localFilename": "weixin-img-012.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_png/MmibAwLXp4hCSNvzZln1icnKRUvZzECuESEGcAzoqeqTfM5ywRme0XyHZN05TzSBy8GCUbV7YKVWa84kA822AgNw/640?wx_fmt=png&from=appmsg#imgIndex=12",
+      "localFilename": "weixin-img-013.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/sz_mmbiz_png/nnLrwYqZfyH3jCKcUw6vXYPkqsahO8HsRlytB8sSIqltLfl4VFvlicfdwuy5gmoeoYssx9sicNgt5aFIqE0gItMCaIIDOMUlILB9bAo7YRuib4/640?wx_fmt=png&from=appmsg#imgIndex=13",
+      "localFilename": "weixin-img-014.png"
+    },
+    {
+      "remoteUrl": "https://mmbiz.qpic.cn/mmbiz_jpg/5tYJZbh5Uzf0MjgqI5dcFFwq2icedHxaPQBn2DJM02OOKPEd2y9tuGprD89tAHCiaAf31JDd0soQVJic2micYwbU6w/640?wx_fmt=jpeg&from=appmsg&tp=wxpic&wxfrom=5&wx_lazy=1&wx_co=1#imgIndex=14",
+      "localFilename": "weixin-img-015.jpg"
+    }
+  ],
+  "svgFiles": [],
+  "metadata": {
+    "title": "见谈｜小米陈龙：把大模型抚养到18岁，再教它如何驾驶",
+    "author": "一见Auto",
+    "publishTime": "2026年4月13日 16:13"
+  },
+  "stats": {
+    "images": 15,
+    "tables": 0,
+    "codeFences": 0,
+    "svgFiles": 0,
+    "svgDropped": 0,
+    "listMarkersCleaned": 0
+  }
+}
