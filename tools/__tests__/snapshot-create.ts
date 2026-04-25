@@ -71,8 +71,15 @@ console.log(`[2/4] sample-validity gate: quality_status=${qStatus} content_lengt
 const flags: string[] = src.quality_flags ?? [];
 const stubFlags = new Set(["intentional-stub", "xhs-text-body-unavailable", "auto-skipped-hf-space"]);
 const isStub = flags.some((f: string) => stubFlags.has(f));
-if (!isStub && (qStatus !== "good" || cLen < 2000)) {
-  console.error(`[gate] sample fails validity (need status=good AND length>2000, OR intentional-stub)`);
+// Per-host minimum content lengths. Micro-post hosts (xhs, x.com) are
+// LEGITIMATELY short — the gate must accept them. Long-form hosts get
+// the standard 2000-char floor.
+const MICRO_POST_HOSTS = new Set([
+  "xhslink.com", "www.xiaohongshu.com", "xiaohongshu.com", "x.com", "twitter.com",
+]);
+const minLen = MICRO_POST_HOSTS.has(host) || MICRO_POST_HOSTS.has(`www.${host}`) ? 500 : 2000;
+if (!isStub && (qStatus !== "good" || cLen < minLen)) {
+  console.error(`[gate] sample fails validity (need status=good AND length>${minLen}, OR intentional-stub)`);
   console.error(`       got status=${qStatus} length=${cLen} flags=${flags.join(",")}`);
   process.exit(1);
 }
