@@ -1872,82 +1872,7 @@ export const substackReformat: PostProcessor = {
 // xhs (xiaohongshu) / xhslink: reformat the opencli `note` table output
 // ---------------------------------------------------------------------------
 
-export const xhsReformatNoteTable: PostProcessor = {
-  name: "xhs-reformat-note-table",
-  match: (_u, h) => /(?:^|\.)xiaohongshu\.com$/i.test(h) || h === "xhslink.com",
-  transform: (md, originUrl) => {
-    const lines = md.split("\n");
-    const kv = new Map<string, string>();
-    let sawTable = false;
-    for (const line of lines) {
-      const m = line.match(/^\|\s*(\w+)\s*\|\s*(.+?)\s*\|\s*$/);
-      if (!m) continue;
-      const k = m[1];
-      const v = m[2];
-      if (k === "field" || k === "---") continue;
-      sawTable = true;
-      kv.set(k, v);
-    }
-    if (!sawTable) return { md, newAbsoluteImageUrls: [], notes: [] };
-
-    const imagesIdx = md.indexOf("## Images");
-    const imagesSection = imagesIdx >= 0 ? md.slice(imagesIdx) : "";
-
-    const reformatContent = (raw: string): string => {
-      if (!raw.trim()) return "";
-      const breakers = [
-        /\s(📌)/g,
-        /\s(👉)/g,
-        /\s(1️⃣|2️⃣|3️⃣|4️⃣|5️⃣|6️⃣|7️⃣|8️⃣|9️⃣|🔟)/g,
-        /\s(✅|❌|⚠️|🔥)/g,
-      ];
-      let out = raw;
-      for (const re of breakers) out = out.replace(re, "\n\n$1");
-      out = out.replace(/ {2,}/g, "\n\n");
-      return out.split("\n").map((l) => l.trim()).filter((l, i, a) =>
-        l !== "" || (a[i - 1] !== undefined && a[i - 1] !== "")
-      ).join("\n").replace(/\n{3,}/g, "\n\n").trim();
-    };
-
-    const result: string[] = [];
-    const title = kv.get("title") || "(Xiaohongshu note)";
-    result.push(`# ${title}`);
-    result.push("");
-    // §2 contract: blockquote frontmatter (`> 原文链接:` + optional metadata).
-    result.push(`> 原文链接: ${originUrl}`);
-    if (kv.get("author")) result.push(`> 作者: ${kv.get("author")}`);
-    const stats: string[] = [];
-    if (kv.get("likes")) stats.push(`${kv.get("likes")} likes`);
-    if (kv.get("collects")) stats.push(`${kv.get("collects")} collects`);
-    if (kv.get("comments")) stats.push(`${kv.get("comments")} comments`);
-    if (stats.length) result.push(`> 互动: ${stats.join(" · ")}`);
-    result.push("", "---", "");
-
-    const contentRaw = kv.get("content") || "";
-    const contentReformatted = reformatContent(contentRaw);
-    if (contentReformatted) {
-      result.push(contentReformatted);
-      result.push("");
-    } else {
-      result.push(`*[Text content unavailable — this may be an image-only post.]*`);
-      result.push("");
-    }
-
-    if (kv.get("tags")) result.push(`**标签 / Tags:** ${kv.get("tags")}`);
-
-    if (imagesSection) {
-      result.push("");
-      result.push(imagesSection.trimEnd());
-    }
-
-    const final = result.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
-    return {
-      md: final,
-      newAbsoluteImageUrls: [],
-      notes: [`xhs: reformatted ${kv.size}-field table to prose layout`],
-    };
-  },
-};
+// xhsReformatNoteTable migrated to tools/hirono/processors/xiaohongshu.ts
 
 // ---------------------------------------------------------------------------
 // DeepWiki: wrap disconnected diagram-node runs in a code block
@@ -3013,9 +2938,17 @@ export const enforceSingleH1: PostProcessor = {
   },
 };
 
+// Per-host processors that have been MIGRATED out of this file into
+// `tools/hirono/processors/<host>.ts`. They run FIRST in the pipeline.
+// Goal: drain shared/post-process.ts to GENERIC processors only over
+// time. See CLAUDE.md §5d.
+import { siteSpecificProcessors } from "../processors/index.ts";
+
 export const PROCESSORS: PostProcessor[] = [
-  // Site-specific content strips FIRST (while we still have site structure
-  // to work with).
+  // Per-host migrated processors first (currently: xhsReformatNoteTable).
+  ...siteSpecificProcessors,
+  // Site-specific content strips that still live in this file (pending
+  // migration to tools/hirono/processors/<host>.ts).
   deepwikiStripNav,
   githubStripUIChrome,
   anthropicStripSvgExplosion,
@@ -3025,9 +2958,6 @@ export const PROCESSORS: PostProcessor[] = [
   // substack (semianalysis, magazine.sebastianraschka): strip dup H1 + paywall + unwrap
   substackReformat,
   // sebastianraschka.com is also Substack; substackReformat handles it
-  // xhs: table → prose reformat (runs before URL resolver so resolver
-  // doesn't touch the rewritten content)
-  xhsReformatNoteTable,
   // deepwiki: wrap diagram-node runs (runs AFTER deepwikiStripNav so the
   // file-navigator chrome is already gone before we look for diagram runs)
   deepwikiWrapDiagramNodes,

@@ -24,12 +24,11 @@
  */
 
 import type { PostProcessor } from "../shared/post-process.ts";
+import { xhsReformatNoteTable } from "./xiaohongshu.ts";
 
-// Per-host processors land here, one import per file:
-//   import { processorForXxx } from "./xxx.ts";
-//
-// Then add to the array below.
+// Per-host processors land here, one import per file. The pipeline runs
+// these in array order BEFORE the cross-site shared processors.
 
 export const siteSpecificProcessors: PostProcessor[] = [
-  // (empty until a per-host file is added)
+  xhsReformatNoteTable,
 ];
