@@ -1,0 +1,82 @@
+{
+  "fetched_at": "2026-04-25T01:03:38.236Z",
+  "origin": "url:https://mp.weixin.qq.com/s/E1v2UpKjEYEEwZPr0A6bEg",
+  "origin_url": "https://mp.weixin.qq.com/s/E1v2UpKjEYEEwZPr0A6bEg",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "802dbfad050574bb892fd9dbb94639609056b2ee4e19a491ca81f8c95de8c2e3",
+  "content_length": 9129,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "images/img_001.png",
+      "remote": "",
+      "bytes": 137267
+    },
+    {
+      "local": "images/img_002.jpeg",
+      "remote": "",
+      "bytes": 43121
+    },
+    {
+      "local": "images/img_003.png",
+      "remote": "",
+      "bytes": 31420
+    },
+    {
+      "local": "images/img_004.png",
+      "remote": "",
+      "bytes": 57255
+    },
+    {
+      "local": "images/img_005.png",
+      "remote": "",
+      "bytes": 52116
+    },
+    {
+      "local": "images/img_006.png",
+      "remote": "",
+      "bytes": 54280
+    },
+    {
+      "local": "images/img_007.png",
+      "remote": "",
+      "bytes": 17882
+    },
+    {
+      "local": "images/img_008.png",
+      "remote": "",
+      "bytes": 53459
+    },
+    {
+      "local": "images/img_009.jpeg",
+      "remote": "",
+      "bytes": 76019
+    },
+    {
+      "local": "images/img_010.jpeg",
+      "remote": "",
+      "bytes": 35100
+    },
+    {
+      "local": "images/img_011.png",
+      "remote": "",
+      "bytes": 95979
+    },
+    {
+      "local": "images/img_012.png",
+      "remote": "",
+      "bytes": 64515
+    },
+    {
+      "local": "images/img_013.png",
+      "remote": "",
+      "bytes": 36693
+    }
+  ],
+  "notes": [
+    "opencli adapter: wechat",
+    "13 images downloaded by adapter"
+  ]
+}

@@ -71,7 +71,10 @@ for (const slug of entries) {
   const chromeSignatures = [
     { name: "share-widget-lines", re: /^\s*(Share|Copy link|Subscribe)\s*$/m },
     { name: "sidebar-nav-heading", re: /^(Menu|## On this page|### On this page|表of contents)\s*$/m },
-    { name: "discourse-emoji-shortcode", re: /:\w{3,20}:/ },
+    // discourse-emoji must be a paragraph that contains ONLY a `:name:`
+    // shortcode token (with optional surrounding whitespace), not a substring
+    // appearing inside a URL like `:dongfengweixiao:`.
+    { name: "discourse-emoji-shortcode", re: /^\s*:\w{3,20}:\s*$/m },
   ];
   for (const { name, re } of chromeSignatures) {
     if (re.test(top30)) problems.push(name);

@@ -402,8 +402,17 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
     if (headingCount === 0) flags.push("no-headings-in-body");
   }
 
+  // Login-wall keywords are very common in Chinese prose ("登录" appears
+  // naturally in any article discussing user auth flows). Only flag when:
+  //   - body is thin (< 1500 chars — likely a real wall page), OR
+  //   - keyword appears in the first 500 chars (above the fold of any
+  //     real article body, where a wall would intercept).
+  // This avoids false positives on technical articles that happen to
+  // mention login mechanics in prose.
+  const loginScanRegion =
+    trimmed.length < 1500 ? trimmed : trimmed.slice(0, 500);
   for (const kw of LOGIN_WALL_KEYWORDS) {
-    if (trimmed.includes(kw)) {
+    if (loginScanRegion.includes(kw)) {
       flags.push("login-wall-keyword");
       break;
     }
