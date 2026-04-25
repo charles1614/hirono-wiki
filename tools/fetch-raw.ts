@@ -47,7 +47,7 @@ import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { acquireBrowserLock, acquireSlugLock } from "./hirono/shared/browser-lock.ts";
 import { deepwikiStripNav } from "./hirono/shared/post-process.ts";
 import { convertWeixinHtml } from "./hirono/weixin/raw-html-converter.ts";
-import { convertXhsHtml } from "./hirono/xhs/raw-html-converter.ts";
+import { routeSite } from "./sites/index.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -526,7 +526,7 @@ export function localNameFor(url: string, index: number): string {
  * never a half-written `destPath` that would pass an existsSync() check
  * and get silently accepted as "downloaded".
  */
-function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 1024): number {
+export function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 1024): number {
   const tmpPath = `${destPath}.part`;
   // curl with max-filesize, connect-timeout, and output to disk. Returns 0 on success.
   const res = spawnSync(
@@ -700,7 +700,7 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
 // opencli native adapters
 // ---------------------------------------------------------------------------
 
-function runOpencli(args: string[], opts: { timeoutMs?: number } = {}): string {
+export function runOpencli(args: string[], opts: { timeoutMs?: number } = {}): string {
   const res = spawnSync("opencli", args, {
     encoding: "utf8",
     timeout: opts.timeoutMs ?? 90_000,
@@ -956,7 +956,7 @@ function tryParseJsonLines(stdout: string): unknown {
  * Returns basenames relative to slugDir (either plain filename if already
  * flat, or empty string for files we moved up).
  */
-function collectXhsAssets(slugDir: string, afterMtime: number): string[] {
+export function collectXhsAssets(slugDir: string, afterMtime: number): string[] {
   const files: string[] = [];
   const imageExt = /\.(jpe?g|png|webp|mp4|mov|gif|avif)$/i;
 
@@ -1006,7 +1006,7 @@ function collectXhsAssets(slugDir: string, afterMtime: number): string[] {
 }
 
 /** Small blocking sleep (we're serial + deliberate here; no Node event-loop concerns). */
-function sleepMs(ms: number): void {
+export function sleepMs(ms: number): void {
   const end = Date.now() + ms;
   // Spin-wait with Atomics to avoid burning CPU needlessly — allowed here.
   const sab = new SharedArrayBuffer(4);
@@ -1072,7 +1072,7 @@ function resolveXhsViaBrowser(url: string): string | null {
 /**
  * Close the opencli browser tab if open. Best-effort — failures are ignored.
  */
-function closeBrowser(): void {
+export function closeBrowser(): void {
   try { spawnSync("opencli", ["browser", "close"], { encoding: "utf8", timeout: browserTimeoutMs("close") }); } catch {}
 }
 
@@ -1324,7 +1324,7 @@ export function extractXhsImageUrlsInOrder(url: string): XhsDomExtractResult {
  * Atomic: curl writes to `<destPath>.part`, size is verified (>1000 bytes
  * to filter out xhs's placeholder-error stubs), then renamed into place.
  */
-function downloadImageToPath(url: string, destPath: string): boolean {
+export function downloadImageToPath(url: string, destPath: string): boolean {
   const tmpPath = `${destPath}.part`;
   const res = spawnSync(
     "curl",
@@ -1387,7 +1387,7 @@ interface XhsReorderResult {
   error?: string;
 }
 
-function reorderXhsImagesByDomPosition(
+export function reorderXhsImagesByDomPosition(
   url: string,
   slugDir: string,
   opencliFiles: string[],
@@ -1456,7 +1456,7 @@ function xhsSearchQuery(title: string): string {
  * Extract note-id from an xhs URL (full or xhslink form). Returns null if
  * the URL doesn't look like an xhs URL we recognize.
  */
-function extractXhsNoteId(url: string): string | null {
+export function extractXhsNoteId(url: string): string | null {
   // Full URL form: /discovery/item/<noteid> or /explore/<noteid> or /search_result/<noteid>
   const m = url.match(/\/(?:discovery\/item|explore|search_result)\/([a-f0-9]+)/i);
   if (m) return m[1];
@@ -1546,188 +1546,6 @@ function findFreshXhsUrl(titleHint: string, originalUrl: string): string | null 
   return null;
 }
 
-function fetchXhsViaAdapter(url: string, slugDir: string, options: { titleHint?: string } = {}): AdapterResult {
-  const beforeMtime = Date.now();
-  mkdirSync(slugDir, { recursive: true });
-
-  // (1) Layer-4 body extraction via opencli browser + own converter.
-  //     Replaces the previous opencli `xiaohongshu note` pipeline whose
-  //     output collapsed paragraph boundaries (`#detail-desc.textContent`
-  //     `\n\t\n` separators were lost in opencli's table-format output).
-  //
-  //     One browser session does it all: fresh-URL resolution + body
-  //     extraction + metadata + image URL list. Fall back to the legacy
-  //     `note`+`download` path if Layer 4 returns no body (image-only
-  //     post or auth/captcha failure).
-  const adapterNotes: string[] = [];
-  const extraFlags: string[] = [];
-  let layer4Markdown = "";
-  let layer4Images: string[] = [];
-  let layer4Succeeded = false;
-
-  const xhsFull = extractXhsFullContent(url);
-  if (xhsFull.error) {
-    adapterNotes.push(`xhs Layer-4 browser extraction failed: ${xhsFull.error.slice(0, 120)}`);
-  } else if (xhsFull.descText.trim().length > 0) {
-    // Body content available — use Layer 4 converter directly. Image
-    // download via curl, naming follows the existing `<noteid>_NN.jpg`
-    // convention so snapshots remain comparable.
-    // Prefer noteid from the post-redirect final URL (xhslink shortlinks
-    // resolve to xiaohongshu.com/discovery/item/<noteid> at runtime).
-    const noteId = extractXhsNoteId(xhsFull.finalUrl || url) || extractXhsNoteId(url) || "xhs";
-    const pad = Math.max(2, String(xhsFull.imageUrls.length).length);
-    for (let i = 0; i < xhsFull.imageUrls.length; i++) {
-      const imgUrl = xhsFull.imageUrls[i];
-      const ext = (imgUrl.match(/\.(jpe?g|png|webp)(?:\?|$)/i)?.[1] ?? "jpg").toLowerCase();
-      const name = `${noteId}_${String(i + 1).padStart(pad, "0")}.${ext === "jpeg" ? "jpg" : ext}`;
-      const dest = join(slugDir, name);
-      if (downloadImageToPath(imgUrl, dest)) layer4Images.push(name);
-    }
-    const conv = convertXhsHtml(
-      xhsFull.descText,
-      {
-        title: xhsFull.title,
-        author: xhsFull.author,
-        likes: xhsFull.likes,
-        collects: xhsFull.collects,
-        comments: xhsFull.comments,
-      },
-      url,
-      layer4Images,
-    );
-    layer4Markdown = conv.markdown;
-    layer4Succeeded = true;
-    adapterNotes.push(
-      `xhs Layer-4: ${conv.stats.paragraphs} paragraph(s), ${conv.stats.tagsExtracted} tag(s), ${layer4Images.length}/${xhsFull.imageUrls.length} image(s) downloaded`,
-    );
-  } else {
-    adapterNotes.push("xhs Layer-4: empty descText (likely image-only post or auth failure); falling back to legacy stub path");
-  }
-
-  if (layer4Succeeded) {
-    return {
-      markdown: layer4Markdown,
-      title: xhsFull.title || undefined,
-      imageFiles: layer4Images,
-      rawMetadata: {
-        source: "xhs-raw-layer4",
-        title: xhsFull.title,
-        author: xhsFull.author,
-        likes: xhsFull.likes,
-        collects: xhsFull.collects,
-        comments: xhsFull.comments,
-      },
-      extraFlags: extraFlags.length > 0 ? extraFlags : undefined,
-      adapterNotes,
-    };
-  }
-
-  // ===== Legacy stub path (image-only posts only) =====
-  // Layer 4 didn't get body text. Use opencli download to recover images
-  // and emit an intentional-stub.
-  let noteSucceeded = false;
-  const noteStdout = ""; // unused on this path
-  extraFlags.push("xhs-text-body-unavailable", "intentional-stub");
-
-  // (2) Download images/videos. Unlike `note`, `download` accepts xhslink
-  //     shortlinks directly — critical for our 68 xhslink bookmarks. Best-
-  //     effort: a failure is L2, not L3. Silent-fail retry logic below.
-  let imageFiles: string[] = [];
-  let downloadCallSucceeded = false;
-  try {
-    runOpencli(
-      ["xiaohongshu", "download", url, "--output", slugDir, "-f", "json"],
-      { timeoutMs: 120_000 },
-    );
-    downloadCallSucceeded = true;
-    imageFiles = collectXhsAssets(slugDir, beforeMtime);
-  } catch {
-    // First attempt errored. Keep going; note content still useful.
-    adapterNotes.push("xhs download errored on first attempt");
-  }
-
-  if (downloadCallSucceeded && imageFiles.length === 0) {
-    // Retry once after 5s — the xhs server occasionally drops repeat downloads
-    // within a session; a short gap clears it.
-    adapterNotes.push("xhs download produced 0 files; retrying once after 5s");
-    sleepMs(5_000);
-    const retryMtime = Date.now();
-    try {
-      runOpencli(
-        ["xiaohongshu", "download", url, "--output", slugDir, "-f", "json"],
-        { timeoutMs: 120_000 },
-      );
-      imageFiles = collectXhsAssets(slugDir, retryMtime);
-    } catch {
-      adapterNotes.push("xhs download retry errored");
-    }
-    if (imageFiles.length === 0) {
-      extraFlags.push("xhs-download-silent-fail");
-      adapterNotes.push("xhs download silently failed twice — accepting note-only content");
-    } else {
-      adapterNotes.push(`xhs download retry recovered ${imageFiles.length} files`);
-    }
-  }
-
-  // (3) Remove any empty subdirectory the download command created
-  for (const e of readdirSync(slugDir, { withFileTypes: true })) {
-    if (!e.isDirectory()) continue;
-    const subdir = join(slugDir, e.name);
-    try {
-      if (readdirSync(subdir).length === 0) rmSync(subdir, { recursive: true, force: true });
-    } catch {}
-  }
-
-  // (3.5) Reorder images to match xhs DOM display order. opencli's `_1.jpg`
-  //       through `_N.jpg` naming is NOT guaranteed to match the author's
-  //       intended display order — we re-fetch in DOM order and overwrite.
-  //       Only runs if we have images to reorder.
-  if (imageFiles.length > 0) {
-    const noteIdMatch = imageFiles[0].match(/^([^_]+)_\d+\./);
-    const noteId = noteIdMatch ? noteIdMatch[1] : null;
-    const { files: reordered, error: reorderError } = reorderXhsImagesByDomPosition(
-      url, slugDir, imageFiles, noteId,
-    );
-    if (reorderError) {
-      // DOM extraction failed — keep opencli's ordering but flag so
-      // downstream (classifyQuality + the end-of-run status report) knows
-      // the image order is unverified.
-      extraFlags.push("xhs-dom-extraction-failed");
-      adapterNotes.push(`xhs: DOM extraction failed (${reorderError.slice(0, 120)}); keeping opencli image order`);
-    }
-    if (reordered !== imageFiles) {
-      adapterNotes.push(`xhs: reordered ${reordered.length} image(s) to match DOM display order`);
-      imageFiles = reordered;
-    }
-  }
-
-  // (4) Assemble final markdown. Three cases:
-  //   a) note succeeded: full markdown (title + content + metadata table) from `note`
-  //   b) note failed + we have title hint: stub with title + image list
-  //   c) note failed + no title: minimal stub with URL only + image list
-  let markdown: string;
-  if (noteSucceeded) {
-    markdown = noteStdout.trim() + "\n";
-  } else {
-    const title = options.titleHint?.trim() || "(Xiaohongshu note — title unavailable)";
-    markdown =
-      `| field | value |\n` +
-      `| --- | --- |\n` +
-      `| title | ${title} |\n` +
-      `| source_url | ${url} |\n` +
-      `| note | Text body unavailable — xhs requires fresh xsec_token, saved bookmarks use stale tokens. Images fetched below where possible. |\n`;
-  }
-  if (imageFiles.length > 0) {
-    markdown += "\n## Images\n\n";
-    // Natural-number sort: xhs filenames like `<id>_1.jpg`, `<id>_2.jpg`, ..., `<id>_11.jpg`.
-    // Default string sort puts `_10` before `_2`; we want numeric order.
-    imageFiles.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
-    for (const f of imageFiles) markdown += `![${f}](${f})\n`;
-    markdown += "\n";
-  }
-
-  return { markdown, imageFiles, rawMetadata: null, extraFlags, adapterNotes };
-}
 
 /** Native zhihu article adapter: zhuanlan.zhihu.com/p/<id> */
 function fetchZhihuArticleViaAdapter(url: string, slugDir: string): AdapterResult {
@@ -3378,7 +3196,26 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
   if (dispatch) extraNotes.push(`opencli adapter: ${dispatch.friendlyName}`);
 
   switch (adapter) {
-    case "xiaohongshu":    result = fetchXhsViaAdapter(opts.url, slugDir, { titleHint: opts.titleHint }); break;
+    case "xiaohongshu": {
+      // Routed through the new sites/ router (xhs is the first per-host
+      // site module migrated to the target architecture). The legacy
+      // `fetchXhsViaAdapter` body now lives in tools/sites/xhs/index.ts.
+      const matchedSite = routeSite(opts.url);
+      if (!matchedSite) {
+        throw makeError("dispatch-mismatch", "L3",
+          `xiaohongshu adapter dispatch did not find matching site for ${opts.url}`);
+      }
+      const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
+      result = {
+        markdown: sr.markdown,
+        title: sr.title,
+        imageFiles: sr.images,
+        rawMetadata: sr.metadata,
+        extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
+        adapterNotes: sr.notes,
+      };
+      break;
+    }
     case "zhihu-article":  result = fetchZhihuArticleViaAdapter(opts.url, slugDir); break;
     case "zhihu-question": result = fetchZhihuQuestionViaAdapter(opts.url); break;
     case "weixin":         result = fetchWechatViaAdapter(opts.url, slugDir); break;
