@@ -245,55 +245,50 @@ A regex that fails because its input shape differs from expectation is usually a
 
 ## 5. New-URL / new-host protocol
 
-> **Direction note (2026-04):** the L1/L2/L3/L4 ladder framing below is the *current* state, not the target. Target architecture is one self-contained module per host under `tools/sites/<host>/{index, fetcher, converter, metadata}.ts` with co-located snapshots, plus a small `tools/sites/_shared/` core (browser, http, markdown, quality, snapshot) — see `~/.claude/plans/parsed-meandering-beaver.md` for the full design + module contract. Migrate in this direction when touching a host; don't double down on the ladder.
+### 5a. The universal pattern (use this for every host)
 
-### 5a. Adapter-selection decision tree (preferred path for any new host)
+**Rule (codified 2026-04-26):** every host gets a self-contained site module under `tools/sites/<host>/`. The module owns the FULL pipeline from URL to clean §2 markdown. opencli is used for browser session + auth ONLY (or not at all if a structured source exists); we never consume opencli's lossy markdown output as the canonical content. References: `tools/sites/weixin/`, `tools/sites/xhs/`.
+
+The wrong way (the legacy "Layer 1/2/3/4" ladder framing) is to take opencli's MD output and patch it with downstream post-processors. That approach repeatedly produced unfixable defects (doubled list markers, lost inline code in tables, paragraph collapse, SVG flattening, activity-event leakage, etc.) because the upstream conversion is opaque. We never do this for new hosts; existing hosts on this path are migrated to the universal pattern when touched.
+
+**Source-of-truth selection** for the site's `fetcher.ts` — pick the cleanest available source for the host:
+
+| Source available | Use it via | Examples |
+|---|---|---|
+| **REST / GraphQL API** that returns structured data | `curl` or `fetch` directly; convert JSON → markdown ourselves | github.com (issue/PR/discussion/release APIs), twitter API |
+| **Raw markdown** in a public repo or CDN | `curl raw URL`; pass through with image localization | github.com/<org>/<repo>/blob/, huggingface.co/blog (mirrors at github.com/huggingface/blog) |
+| **Structured page DOM** (rendered HTML with reliable selectors) | `opencli browser open` + `browser eval` for the relevant outerHTML/textContent; jsdom + turndown + per-site rules | mp.weixin.qq.com (`#js_content`), xhs (`#detail-desc`), zhihu article `#root` |
+| **Rendered page only, no API or stable selectors** | Last resort: opencli `web-read`. Treat its output as INPUT to our own conversion; do not rely on it being clean. | rare; most hosts have one of the above |
+
+The site module dispatches internally by URL pattern when needed — e.g. github routes `/pull/<n>` to PR-API path, `/blob/` to raw-URL path, `/releases/tag/` to release-API path, all within `sites/github/`.
+
+**Steps to add or migrate a host:**
 
 ```
-   ┌─ Step 1: opencli list — does a community/built-in adapter cover this host?
-   │   yes → Layer 1 (use community adapter; record name+version in
-   │         tools/opencli/community-adapter-audit.md)
-   │   no  → Step 2
-   │
-   ├─ Step 2: bookmark count >= 2?
-   │   yes → Layer 2 (custom in-repo adapter at
-   │         tools/opencli/clis/<host>/<name>.js, symlinked into
-   │         ~/.opencli/ via tools/opencli/install-symlinks.sh)
-   │   no  → Layer 3 (web-read + generic post-processors; out of scope
-   │         until the host graduates to count >= 2)
-   │
-   ├─ Step 2b — ESCALATE to Layer 4 (raw-HTML + own converter) when:
-   │   - The Layer-1/2 adapter outputs Markdown only (no raw-HTML option)
-   │   - AND its conversion has structural bugs that post-processing can't
-   │     reach (doubled list markers, lost inline code in tables, SVG
-   │     diagrams flattened, multi-line `<pre>` collapsed, etc.)
-   │   - AND the bugs keep multiplying despite each band-aid
-   │   Then: bypass the adapter's converter; use opencli for browser+auth
-   │   only (`browser open` + `browser eval document.querySelector(...)
-   │   .outerHTML`), then convert ourselves with jsdom + turndown +
-   │   per-site DOM transforms at tools/hirono/<host>/raw-html-converter.ts.
-   │   Reference: tools/hirono/weixin/raw-html-converter.ts (mp.weixin.qq.com).
-   │
-   ├─ Step 3: Wire DISPATCH_RULES in tools/fetch-raw.ts
-   ├─ Step 4: End-to-end fetch + read-through (CLAUDE.md §1 counts
-   │   AND eye-read). Sample-validity gate: quality_status=good +
-   │   content_length > 2000.
-   ├─ Step 5: If adapter output isn't perfect, add a site-specific
-   │   post-processor at tools/hirono/processors/<host>.ts (NOT in
-   │   shared/post-process.ts — that's reserved for cross-site cleanups).
-   │   For Layer-4 hosts, post-processors are usually unnecessary (the
-   │   converter already has full control).
-   ├─ Step 6: Capture per-host snapshot — at LEAST 3 per host, chosen to
-   │   exercise different adapter branches (e.g. text-heavy + image-heavy
-   │   + code/table-heavy). Each adapter is one code path; one snapshot
-   │   only catches the bugs that one URL happens to trigger.
-   │     cp raw/2026/<slug>/content.md tools/__tests__/snapshots/<host>/<slug>.md
-   │     npx tsx tools/__tests__/snapshot-helpers.ts capture <path>
-   │     npx tsx --test tools/__tests__/per-host-snapshot.test.ts  # must pass
-   │   Better: use tools/__tests__/snapshot-create.ts which fetches +
-   │   bundles images + writes invariants in one shot.
-   └─ Step 7: Commit (one host per commit so each is reversible).
+   ├─ Step 1: Pick the source per the table above. opencli's lossy MD
+   │   path is NOT a valid source choice for a new host.
+   ├─ Step 2: Build tools/sites/<host>/:
+   │     index.ts     — { name, match(url), fetch(url, opts) ⇒ Result }
+   │     fetcher.ts   — acquire raw content (HTTP / browser eval / API)
+   │     converter.ts — raw → §2 markdown (pure function, fixture-testable)
+   │     metadata.ts  — title / author / date selectors / API field mapping
+   ├─ Step 3: Register the site in tools/sites/index.ts (router).
+   ├─ Step 4: Wire dispatch — fetch-raw.ts dispatch case calls routeSite()
+   │   for this host. Delete any legacy adapter / post-processor code now
+   │   superseded by the site module.
+   ├─ Step 5: Generate fresh markdown for ≥3 representative URLs. EYE-READ
+   │   each (do not skip). Show to the user for approval before locking.
+   ├─ Step 6 (AFTER user approves md quality): capture converter fixtures
+   │   for byte-equal regression detection (CLAUDE.md §6b workflow):
+   │     npx tsx tools/__tests__/capture-fixtures.ts <host> <name> <url>
+   │   Capture ≥3 fixtures covering distinct content shapes.
+   ├─ Step 7: Capture per-host snapshots for the multi-layer test suite:
+   │     npx tsx tools/__tests__/snapshot-create.ts <url> --slug <slug>
+   │   Refuses on hard-rule defects; eye-read top + tail before commit.
+   └─ Step 8: Run npm test (must be green) + commit (one host per commit).
 ```
+
+**Do NOT** add fixtures or snapshot-tests until the user has eye-read the markdown and approved the quality. Locking in tests around bad output silently bakes regressions in.
 
 ### 5b. Long-tail graduation watchdog
 
@@ -303,12 +298,13 @@ A regex that fails because its input shape differs from expectation is usually a
 
 Don't guess the quality bar — preferences (what's content vs chrome, formatting choices) aren't knowable from markdown alone. Show the user the first sample and iterate.
 
-### 5d. Where preferences live
+### 5d. Where code lives (universal pattern)
 
-- **Site-specific** (chrome to strip, layout quirks unique to one host) → `tools/hirono/processors/<host>.ts`
-- **Cross-site** (truly applies to N+ hosts identically: H1 contract, twemoji shortcode rewrite, image canonicalization) → `tools/hirono/shared/post-process.ts`
-- **Site needs its own CONVERTER (Layer 4)** (the upstream adapter's HTML→Markdown is opaque/lossy and post-processing can't reach the bug) → `tools/hirono/<host>/raw-html-converter.ts` (e.g. `tools/hirono/weixin/raw-html-converter.ts`). Pipeline: opencli browser open + eval HTML → jsdom + turndown + per-site DOM transforms → markdown
-- **Recipes for non-obvious patterns** (auth walls, hidden APIs, multi-step extraction) → §4 of this file
+- **All per-host code** → `tools/sites/<host>/{index,fetcher,converter,metadata}.ts` + co-located `snapshots/`. Every host module owns its full pipeline (fetcher + converter + metadata extraction).
+- **Cross-site primitives** that genuinely apply to N+ hosts → `tools/sites/_shared/{browser,http,markdown,quality,snapshot}.ts`. Kept small; expand only when a second host actually needs the helper.
+- **Recipes for non-obvious patterns** (auth walls, hidden APIs, multi-step extraction) → §4 of this file.
+
+The legacy locations (`tools/hirono/processors/`, `tools/hirono/shared/post-process.ts` for site-specific cleanups) are being drained as their hosts migrate to `tools/sites/<host>/`. Do NOT add new code to the legacy locations.
 
 ## 6. Regression set
 
