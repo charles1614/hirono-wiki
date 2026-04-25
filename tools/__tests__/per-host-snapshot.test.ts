@@ -18,10 +18,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, existsSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { countFeatures, loadInvariants, diffInvariants, invariantsPathFor } from "./snapshot-helpers.ts";
 
-const SNAPSHOTS_DIR = "tools/__tests__/snapshots";
+// Resolve relative to the TEST FILE so this works regardless of cwd
+// (npm test runs from tools/; manual `npx tsx ...` runs from repo root).
+// Previously the cwd-relative literal "tools/__tests__/snapshots" silently
+// resolved to a non-existent path under npm test, and the suite degraded to
+// just the "no snapshots committed yet" sentinel test — meaning the
+// regression suite was effectively a no-op for every npm test invocation.
+const SNAPSHOTS_DIR = join(dirname(fileURLToPath(import.meta.url)), "snapshots");
 
 function listSnapshotPairs(): Array<{ host: string; slug: string; mdPath: string }> {
   if (!existsSync(SNAPSHOTS_DIR)) return [];
