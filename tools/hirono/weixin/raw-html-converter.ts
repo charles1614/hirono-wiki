@@ -61,12 +61,20 @@ export interface ConvertResult {
 }
 
 /**
- * Walk an element's descendant tree and build its text, treating each
- * `<br>` as a `\n`. `Node.textContent` silently collapses `<br>` to "",
- * which destroys multi-line code blocks where mdnice separates lines with
- * `<br>` rather than text-node `\n`s. This helper preserves them.
+ * Walk an element's descendant tree and build text content, preserving
+ * line breaks across the three structural shapes mdnice uses inside `<pre>`:
+ *
+ *   - text-node `\n`s (default — preserved as-is)
+ *   - `<br>` elements (default textContent silently collapses these)
+ *   - `<p>`/`<div>`/`<section>` block siblings, each carrying one line
+ *     of code (mdnice's "fancy" code-card style, where every line is its
+ *     own paragraph for syntax-color spans)
+ *
+ * Output: a single string with line breaks at each `<br>` AND between
+ * each pair of block-level elements.
  */
-function textWithBrAsNewline(el: Element): string {
+function textWithLineBreaks(el: Element): string {
+  const BLOCK_TAGS = new Set(["P", "DIV", "SECTION"]);
   let out = "";
   const walk = (n: Node) => {
     if (n.nodeType === 3 /* TEXT_NODE */) {
@@ -75,11 +83,11 @@ function textWithBrAsNewline(el: Element): string {
     }
     if (n.nodeType !== 1 /* ELEMENT_NODE */) return;
     const e = n as Element;
-    if (e.tagName === "BR") {
-      out += "\n";
-      return;
-    }
+    if (e.tagName === "BR") { out += "\n"; return; }
+    const isBlock = BLOCK_TAGS.has(e.tagName);
+    if (isBlock && out.length > 0 && !out.endsWith("\n")) out += "\n";
     for (const c of e.childNodes) walk(c);
+    if (isBlock && !out.endsWith("\n")) out += "\n";
   };
   for (const c of el.childNodes) walk(c);
   return out;
@@ -296,14 +304,14 @@ function makeTurndown(): TurndownService {
       let text = "";
       let lang = "";
       if (codes.length > 1) {
-        text = codes.map(textWithBrAsNewline).join("\n");
+        text = codes.map(textWithLineBreaks).join("\n");
       } else if (codes.length === 1) {
-        text = textWithBrAsNewline(codes[0]);
+        text = textWithLineBreaks(codes[0]);
         const cls = codes[0].getAttribute("class") || "";
         const m = cls.match(/language-(\S+)/);
         if (m) lang = m[1];
       } else {
-        text = textWithBrAsNewline(pre);
+        text = textWithLineBreaks(pre);
       }
       const trimmed = text.replace(/\r\n/g, "\n").replace(/^\n+/, "").replace(/\n+$/, "");
       return `\n\n\`\`\`${lang}\n${trimmed}\n\`\`\`\n\n`;
@@ -376,6 +384,18 @@ export function convertWeixinHtml(
   const td = makeTurndown();
   let body = td.turndown(root.outerHTML).trim();
   // Collapse 3+ consecutive newlines (turndown can emit them around fences/blockquotes).
+  body = body.replace(/\n{3,}/g, "\n\n");
+  // Strip inline emphasis inside ATX headings — WeChat wraps heading text in
+  // <strong>/<b>, but headings are already visually bold; the surplus `**`
+  // creates `## **title**` noise and breaks downstream styling.
+  body = body.replace(/^(#{1,6}\s+)\*+\s*([^*\n]+?)\s*\*+\s*$/gm, "$1$2");
+  // Drop empty headings (e.g. `## ` with no text). They appear when turndown
+  // picks up a heading whose only child is decorative whitespace.
+  body = body.replace(/^#{1,6}\s*$\n?/gm, "");
+  // Collapse runs of 4+ asterisks (WeChat sometimes nests <b><strong> giving
+  // `****` or `******`) down to a normal bold pair `**`.
+  body = body.replace(/\*{4,}/g, "**");
+  // Re-collapse newlines after the strips above.
   body = body.replace(/\n{3,}/g, "\n\n");
 
   // 5. §2 frontmatter

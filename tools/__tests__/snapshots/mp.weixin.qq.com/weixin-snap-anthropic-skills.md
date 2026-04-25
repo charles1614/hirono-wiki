@@ -6,11 +6,9 @@
 
 ---
 
-## 
-
  Datawhale干货 
 
-******作者：Anthropic团队******
+**作者：Anthropic团队**
 
 最近，Anthropic 发布了一份 32 页的官方指南——《The Complete Guide to Building Skills for Claude》，手把手教你怎么把自己的工作流程、领域知识封装成 AI 能自动执行的"技能包"。
 
@@ -20,10 +18,8 @@
 
 今天把文档的核心干货给你梳理清楚。
 
-## **Skill是什么：避免每次都"重新教"AI**
-
-## **Skill的诞生源于一个问题：**
-
+## Skill是什么：避免每次都"重新教"AI
+## Skill的诞生源于一个问题：
 每次都要“重新教”AI
 
 我们用 AI 的时候，经常会遇到这些麻烦：
@@ -126,7 +122,12 @@ description: Creates sophisticated multi-page documentation systems 
 ✅ 好的 description:
 
 ```
-# 明确功能 + 触发词 description: 分析 Figma 设计文件并生成开发交接文档。当用户上传 .fig 文件、询问"设计规范"、"组件文档"或"设计转代码"时使用。  # 包含具体场景 description: 管理 Linear 项目工作流，包括冲刺规划、任务创建和状态追踪。当用户提到"sprint"、"Linear 任务"或"创建 ticket"时使用。  
+# 明确功能 + 触发词 
+description: 分析 Figma 设计文件并生成开发交接文档。当用户上传 .fig 文件、询问"设计规范"、"组件文档"或"设计转代码"时使用。 
+ 
+# 包含具体场景 
+description: 管理 Linear 项目工作流，包括冲刺规划、任务创建和状态追踪。当用户提到"sprint"、"Linear 任务"或"创建 ticket"时使用。 
+ 
 ```
 
 **为什么 description 这么重要？**
@@ -426,4 +427,4 @@ Phase 4: Slack MCP → 在 #engineering 频道通知团队
 
 ![图片](weixin-snap-anthropic-skills-images/weixin-img-002.jpg)
 
-**一起“**点****赞”****三连**↓**
+**一起“**点**赞”**三连**↓**
