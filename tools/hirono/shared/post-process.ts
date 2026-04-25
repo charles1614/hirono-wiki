@@ -133,6 +133,52 @@ export const stripEmptyAnchorLinks: PostProcessor = {
 };
 
 /**
+ * Strip standalone share-widget chrome lines: bare single-word UI labels
+ * like `Share`, `Copy link`, `Subscribe`, `Comment`, `Like` appearing as
+ * their own paragraph in the body. These are widget labels that bled into
+ * the markdown when the source page rendered share buttons.
+ *
+ * Only fires when:
+ *   - line is the EXACT chrome label (no other text)
+ *   - line is in the body (after `\n---\n`, not in preamble)
+ *   - line is not inside a code fence
+ */
+export const stripShareWidgetLines: PostProcessor = {
+  name: "strip-share-widget-lines",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    const sepIdx = md.indexOf("\n---\n");
+    if (sepIdx < 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    const preamble = md.slice(0, sepIdx + 5);
+    const body = md.slice(sepIdx + 5);
+    const chromeLabels = new Set([
+      "Share", "Copy link", "Subscribe", "Comment", "Like",
+      "Save", "More", "Follow", "订阅", "分享", "复制链接", "评论",
+      "Discuss on Hacker News",  // when bare without a link
+    ]);
+    const lines = body.split("\n");
+    let inFence = false;
+    let stripped = 0;
+    const kept: string[] = [];
+    for (const l of lines) {
+      if (/^```/.test(l.trim())) inFence = !inFence;
+      if (!inFence && chromeLabels.has(l.trim())) {
+        stripped++;
+        continue;
+      }
+      kept.push(l);
+    }
+    if (stripped === 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    const cleaned = kept.join("\n").replace(/\n{3,}/g, "\n\n");
+    return {
+      md: preamble + cleaned,
+      newAbsoluteImageUrls: [],
+      notes: [`stripped ${stripped} share-widget chrome line(s)`],
+    };
+  },
+};
+
+/**
  * Strip trailing tag-list chrome: a single line consisting ONLY of
  * consecutive `[Name](/tag/slug/)` link tokens with no separators, typical
  * of blog footers (blog.cloudflare.com, magazine.sebastianraschka.com, etc.).
@@ -3002,6 +3048,7 @@ export const PROCESSORS: PostProcessor[] = [
   stripEmptyAnchorLinks,
   stripDecorativeEmojiImages,
   stripTrailingTagList,
+  stripShareWidgetLines,
   unescapeBracketsInLinks,
   stripColorTags,
   // LAST: enforce §2 contract (single H1). Demotes every body H1 to H2

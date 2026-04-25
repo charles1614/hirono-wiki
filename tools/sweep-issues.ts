@@ -30,7 +30,15 @@ for (const slug of entries) {
   try { host = new URL(url).hostname; } catch {}
   const status: string = src.quality_status ?? "";
   const flags: string[] = src.quality_flags ?? [];
-  const intentionalStub = flags.includes("intentional-stub");
+  // Treat xhs-text-body-unavailable as a soft stub: the post body is
+  // genuinely auth-gated by xhs and we've emitted a degraded stub message.
+  // Same for other "content unavailable" auth-gating flags.
+  const stubLikeFlags = new Set([
+    "intentional-stub",
+    "xhs-text-body-unavailable",
+    "auto-skipped-hf-space",
+  ]);
+  const intentionalStub = flags.some((f) => stubLikeFlags.has(f));
 
   const r = applyPostProcessors(md, url);
   const final = r.md;
@@ -53,7 +61,9 @@ for (const slug of entries) {
   if (remote > 0) problems.push(`remote-img=${remote}`);
 
   if (!intentionalStub && flags.length > 0) {
-    problems.push(`flags=${flags.join(",")}`);
+    // Filter out stub-like flags from the noise — they're not bugs.
+    const realFlags = flags.filter((f) => !stubLikeFlags.has(f));
+    if (realFlags.length > 0) problems.push(`flags=${realFlags.join(",")}`);
   }
 
   // Look for obvious chrome signatures in top-30 lines (post-processed)

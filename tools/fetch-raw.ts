@@ -1487,7 +1487,12 @@ function fetchXhsViaAdapter(url: string, slugDir: string, options: { titleHint?:
 
   if (!noteSucceeded) {
     adapterNotes.push("xhs note unavailable; falling back to download-only");
-    extraFlags.push("xhs-text-body-unavailable");
+    // Mark as intentional-stub — the body text genuinely isn't available
+    // (image-only post, expired xhs session, captcha, or rate-limit) and
+    // we've produced a sensible stub message. classifyQuality strips
+    // `intentional-stub` and suppresses `xhs-text-body-unavailable` from
+    // dragging the file into the `flagged` bucket.
+    extraFlags.push("xhs-text-body-unavailable", "intentional-stub");
   }
 
   // (2) Download images/videos. Unlike `note`, `download` accepts xhslink
