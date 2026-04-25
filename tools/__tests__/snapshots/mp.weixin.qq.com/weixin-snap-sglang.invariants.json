@@ -4,9 +4,9 @@
   "remote_images": 0,
   "fences": 8,
   "tables": 0,
-  "images": 0,
-  "h2s": 6,
+  "images": 5,
+  "h2s": 7,
   "h3s": 0,
-  "body_chars": 12068,
+  "body_chars": 12361,
   "chrome_denylist_matches": 0
 }

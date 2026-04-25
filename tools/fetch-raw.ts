@@ -1724,7 +1724,161 @@ function fetchZhihuQuestionViaAdapter(url: string): AdapterResult {
   return { markdown: stdout, imageFiles: [], rawMetadata: { question_id: qid } };
 }
 
-/** Native WeChat adapter: mp.weixin.qq.com/s/<id> */
+/**
+ * Browser-eval helper for the weixin DOM augmenter. Returns:
+ *   - imgs: ordered list of `<img>` src URLs in document order
+ *   - pres: ordered list of `<pre>` text content (with newlines preserved)
+ *
+ * Uses the same opencli browser session that other splicers use (deepwiki).
+ * Returns null on browser failure — adapter falls back to opencli's
+ * incomplete output rather than throwing.
+ */
+function extractWeixinDomBlocks(url: string): { imgs: string[]; pres: string[] } | null {
+  let opened = false;
+  try {
+    const openRes = spawnSync("opencli", ["browser", "open", url], { encoding: "utf8", timeout: browserTimeoutMs("open") });
+    if (openRes.status !== 0) return null;
+    opened = true;
+    sleepMs(3_500);
+    const evalScript = `JSON.stringify({
+      imgs: Array.from(document.querySelectorAll("img"))
+        .map(i => i.dataset && i.dataset.src ? i.dataset.src : (i.src || ""))
+        .filter(s => s && /^https?:/.test(s)),
+      pres: Array.from(document.querySelectorAll("pre"))
+        .map(p => p.innerText || "")
+        .filter(t => t.trim().length > 0)
+    })`;
+    const evalRes = spawnSync("opencli", ["browser", "eval", evalScript], {
+      encoding: "utf8",
+      timeout: browserTimeoutMs("eval"),
+      maxBuffer: 16 * 1024 * 1024,
+    });
+    if (evalRes.status !== 0) return null;
+    const out = evalRes.stdout || "";
+    const start = out.indexOf("{");
+    if (start < 0) return null;
+    let depth = 0, end = -1;
+    for (let i = start; i < out.length; i++) {
+      const c = out[i];
+      if (c === "{") depth++;
+      else if (c === "}") { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end < 0) return null;
+    try {
+      const parsed = JSON.parse(out.slice(start, end + 1));
+      return {
+        imgs: Array.isArray(parsed.imgs) ? parsed.imgs.filter((x: unknown): x is string => typeof x === "string") : [],
+        pres: Array.isArray(parsed.pres) ? parsed.pres.filter((x: unknown): x is string => typeof x === "string") : [],
+      };
+    } catch {
+      return null;
+    }
+  } catch {
+    return null;
+  } finally {
+    if (opened) closeBrowser();
+  }
+}
+
+/**
+ * Splice DOM-extracted code-block content back into the markdown.
+ * opencli's weixin export emits each `<pre>` as ```...``` with the entire
+ * content on a single line (newlines stripped). We replace each fence's
+ * inner content with the corresponding `<pre>`'s real text — order-aligned,
+ * since both DOM walk and markdown render preserve document order.
+ *
+ * Returns the spliced markdown + how many fences we successfully replaced.
+ */
+function spliceWeixinPreBlocks(md: string, pres: string[]): { md: string; replaced: number } {
+  if (pres.length === 0) return { md, replaced: 0 };
+  let preIdx = 0;
+  const lines = md.split("\n");
+  const out: string[] = [];
+  let i = 0;
+  let replaced = 0;
+  while (i < lines.length) {
+    if (/^```/.test(lines[i].trim())) {
+      // Collect until matching fence
+      const openLine = lines[i];
+      const inner: string[] = [];
+      i++;
+      while (i < lines.length && !/^```/.test(lines[i].trim())) {
+        inner.push(lines[i]);
+        i++;
+      }
+      // closeLine = lines[i] (or end of file if missing)
+      const closeLine = i < lines.length ? lines[i] : "```";
+      if (i < lines.length) i++;
+      // Replace inner with the i-th DOM <pre>'s content if available
+      if (preIdx < pres.length) {
+        out.push(openLine);
+        const replacement = pres[preIdx].replace(/\r\n/g, "\n").trimEnd();
+        out.push(...replacement.split("\n"));
+        out.push(closeLine);
+        preIdx++;
+        replaced++;
+      } else {
+        out.push(openLine, ...inner, closeLine);
+      }
+    } else {
+      out.push(lines[i]);
+      i++;
+    }
+  }
+  return { md: out.join("\n"), replaced };
+}
+
+/**
+ * Append weixin images that opencli's adapter dropped. Inserts a
+ * `## 配图` (illustrations) section at the end of the body, with each
+ * image downloaded locally + referenced. Image positioning within the
+ * body would require more complex DOM-text correlation; appending all
+ * at the end is V1 — content survives even if exact placement is lost.
+ *
+ * Returns the augmented markdown + the local filenames written.
+ */
+function appendWeixinImages(md: string, imgUrls: string[], slugDir: string): { md: string; files: string[] } {
+  if (imgUrls.length === 0) return { md, files: [] };
+  // Dedupe by canonical URL
+  const seen = new Set<string>();
+  const unique = imgUrls.filter((u) => { if (seen.has(u)) return false; seen.add(u); return true; });
+  const files: string[] = [];
+  const localRefs: string[] = [];
+  unique.forEach((url, idx) => {
+    // weixin image URLs typically end with /N where N indicates format (e.g.
+    // /640?wx_fmt=jpeg). Pick a sensible extension.
+    let ext = "jpg";
+    const fmtMatch = url.match(/wx_fmt=(\w+)/);
+    if (fmtMatch) ext = fmtMatch[1].toLowerCase();
+    else if (/\.png(\?|$)/i.test(url)) ext = "png";
+    else if (/\.gif(\?|$)/i.test(url)) ext = "gif";
+    else if (/\.webp(\?|$)/i.test(url)) ext = "webp";
+    const local = `weixin-img-${String(idx + 1).padStart(3, "0")}.${ext}`;
+    const dest = join(slugDir, local);
+    const bytes = downloadImage(url, dest);
+    if (bytes < 0) return;
+    files.push(local);
+    localRefs.push(`![${local}](${local})`);
+  });
+  if (localRefs.length === 0) return { md, files: [] };
+  const augmented = md.trimEnd() + "\n\n## 配图\n\n" + localRefs.join("\n\n") + "\n";
+  return { md: augmented, files };
+}
+
+/** Native WeChat adapter: mp.weixin.qq.com/s/<id>
+ *
+ * The opencli weixin community adapter has two known issues we work
+ * around here:
+ *   - drops all `<img>` references (writes 0 image refs even when the
+ *     article has dozens of figures)
+ *   - flattens `<pre>` blocks to single lines (loses newlines inside
+ *     code samples / shell transcripts)
+ *
+ * After the opencli download, do an extra browser-eval pass to extract
+ * image URLs + `<pre>` text from the DOM, then splice both back into
+ * the markdown. Image URLs are downloaded locally; code blocks have
+ * their inner content replaced order-aligned with the DOM `<pre>` walk.
+ */
 function fetchWechatViaAdapter(url: string, slugDir: string): AdapterResult {
   const beforeMtime = Date.now();
   mkdirSync(slugDir, { recursive: true });
@@ -1733,12 +1887,45 @@ function fetchWechatViaAdapter(url: string, slugDir: string): AdapterResult {
     { timeoutMs: 120_000 },
   );
   const h = harvestAdapterOutput(slugDir, beforeMtime);
+  let resultMarkdown = h.content;
+  let imageFiles = [...h.images];
+  const adapterNotes: string[] = [];
+  const adapterFlags: string[] = [];
+
+  // Browser-eval augmentation: recover images + multi-line code blocks
+  // that opencli's weixin export drops/flattens.
+  const dom = extractWeixinDomBlocks(url);
+  if (!dom) {
+    adapterNotes.push("weixin: browser-eval augmentation skipped (browser failure)");
+  } else {
+    if (dom.pres.length > 0) {
+      const { md: m1, replaced } = spliceWeixinPreBlocks(resultMarkdown, dom.pres);
+      if (replaced > 0) {
+        resultMarkdown = m1;
+        adapterNotes.push(`weixin: spliced ${replaced}/${dom.pres.length} <pre> block(s) with multi-line content from DOM`);
+      }
+    }
+    if (dom.imgs.length > 0) {
+      const { md: m2, files } = appendWeixinImages(resultMarkdown, dom.imgs, slugDir);
+      if (files.length > 0) {
+        resultMarkdown = m2;
+        imageFiles = [...imageFiles, ...files];
+        adapterNotes.push(`weixin: recovered ${files.length}/${dom.imgs.length} image(s) from DOM (appended as 配图 section)`);
+      }
+    }
+  }
+
+  if (h.errors.length > 0) {
+    adapterFlags.push("adapter-output-partial");
+    for (const e of h.errors) adapterNotes.push(`harvest: ${e}`);
+  }
+
   return {
-    markdown: h.content,
-    imageFiles: h.images,
+    markdown: resultMarkdown,
+    imageFiles,
     rawMetadata: tryParseJsonLines(stdout),
-    extraFlags: h.errors.length > 0 ? ["adapter-output-partial"] : undefined,
-    adapterNotes: h.errors.length > 0 ? h.errors.map((e) => `harvest: ${e}`) : undefined,
+    extraFlags: adapterFlags.length > 0 ? adapterFlags : undefined,
+    adapterNotes: adapterNotes.length > 0 ? adapterNotes : undefined,
   };
 }
 
