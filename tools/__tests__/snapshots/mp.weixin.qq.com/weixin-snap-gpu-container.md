@@ -233,6 +233,8 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 
 掌握从容器启动配置到运行时应用调用的完整链路，是深入理解 GPU 容器化工作机制的关键：
 
+![flowchart-v2](weixin-snap-gpu-container-images/weixin-svg-001.svg)
+
 1.  **准备阶段**：`nvidia-container-runtime` 拦截容器启动，调用 `nvidia-container-cli` 将宿主机的设备文件和驱动库挂载到容器文件系统中。
     
 2.  **应用层**：容器内的应用调用 PyTorch 或 CUDA Runtime API。

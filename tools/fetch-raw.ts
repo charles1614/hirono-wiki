@@ -1844,10 +1844,19 @@ function fetchWechatViaAdapter(url: string, slugDir: string): AdapterResult {
       else imgFailed++;
     }
 
+    // Write SVG files (real inline diagrams — mermaid flowcharts etc.) to
+    // disk alongside images. Each is referenced from the markdown as a
+    // standard `![](weixin-svg-NNN.svg)` so any markdown viewer renders it.
+    for (const svg of result.svgFiles) {
+      const dest = join(slugDir, svg.localFilename);
+      writeFileSync(dest, svg.svg);
+      imageFiles.push(svg.localFilename);
+    }
+
     const adapterNotes: string[] = [
       `weixin: raw-HTML pipeline (turndown + custom rules)`,
-      `weixin: ${result.stats.codeFences} code block(s), ${result.stats.tables} table row(s), ${result.stats.svgPlaceholders} SVG placeholder(s), ${result.stats.listMarkersCleaned} list-marker prefix(es) stripped`,
-      `weixin: downloaded ${imageFiles.length}/${result.imagesToDownload.length} image(s)${imgFailed > 0 ? ` (${imgFailed} failed)` : ""}`,
+      `weixin: ${result.stats.codeFences} code block(s), ${result.stats.tables} table row(s), ${result.stats.svgFiles} SVG diagram(s) preserved (${result.stats.svgDropped} decorative dropped), ${result.stats.listMarkersCleaned} list-marker prefix(es) stripped`,
+      `weixin: downloaded ${imageFiles.length - result.svgFiles.length}/${result.imagesToDownload.length} image(s)${imgFailed > 0 ? ` (${imgFailed} failed)` : ""}`,
     ];
     const extraFlags: string[] = imgFailed > 0 ? ["weixin-image-download-partial"] : [];
 

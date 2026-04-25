@@ -45,6 +45,8 @@ export interface ConvertResult {
   markdown: string;
   /** Images the caller must download (and place into slugDir under the listed names). */
   imagesToDownload: WeixinImageDownload[];
+  /** Inline SVGs the caller must write to disk under the listed names. */
+  svgFiles: WeixinSvgFile[];
   /** Metadata extracted from the page (echoed back for caller convenience). */
   metadata: WeixinMetadata;
   /** Diagnostics: counts of structures we processed (for adapterNotes). */
@@ -52,7 +54,8 @@ export interface ConvertResult {
     images: number;
     tables: number;
     codeFences: number;
-    svgPlaceholders: number;
+    svgFiles: number;
+    svgDropped: number;
     listMarkersCleaned: number;
   };
 }
@@ -103,6 +106,9 @@ function normalizeImages(doc: Document, root: Element): WeixinImageDownload[] {
   const out: WeixinImageDownload[] = [];
   let counter = 0;
   for (const img of imgs) {
+    // Skip placeholders we created in processSvgs — they already point to a
+    // local file and would otherwise be filtered out as "tracking pixels".
+    if (img.hasAttribute("data-local-svg")) continue;
     const src = img.getAttribute("data-src") || img.getAttribute("src") || "";
     if (!/^https?:\/\//i.test(src)) {
       // Drop tracking pixels / inline data URIs / non-resolvable refs.
@@ -135,31 +141,56 @@ function normalizeImages(doc: Document, root: Element): WeixinImageDownload[] {
   return out;
 }
 
+export interface WeixinSvgFile {
+  /** Filename to save the SVG as inside slugDir, e.g. "weixin-svg-001.svg". */
+  localFilename: string;
+  /** Full SVG outerHTML — the caller writes it to disk. */
+  svg: string;
+}
+
 /**
- * Replace each `<svg>` with a clean HTML-comment placeholder.
+ * Process inline `<svg>` elements:
+ *   - REAL diagrams (mermaid flowcharts, architecture pictures, etc.) are
+ *     extracted as standalone `.svg` files and replaced with a markdown
+ *     image reference. Most viewers (GitHub, Lark/Feishu) render `.svg`
+ *     image refs natively.
+ *   - DECORATIVE SVGs (mdnice's tiny colored-dot section markers, ~500
+ *     bytes, no text/labels) are dropped to avoid clutter.
  *
- * WeChat editors embed inline SVG for flow charts. Without a placeholder,
- * turndown walks the SVG `<text>` children and emits one short paragraph
- * per label, producing a vertical run of disconnected words that look like
- * garbage. A `<!-- diagram-omitted -->` comment renders as nothing in markdown
- * viewers but preserves enough breadcrumb to debug.
+ * Heuristic for "real": outerHTML ≥ 2000 bytes OR has aria-roledescription
+ * containing "flowchart"/"sequence"/"diagram"/"graph". The decorative dots
+ * are typically 450-650 bytes with just 3 `<ellipse>` children. Real
+ * mermaid SVGs run well into the tens of KB.
  */
-function placeholderForSvgs(doc: Document, root: Element): number {
+function processSvgs(doc: Document, root: Element): { files: WeixinSvgFile[]; dropped: number } {
   const svgs = root.querySelectorAll("svg");
-  let placed = 0;
+  const files: WeixinSvgFile[] = [];
+  let dropped = 0;
+  let realCounter = 0;
   for (const svg of svgs) {
-    // Capture a hint of what the diagram contained: first text label + count.
-    const labels = Array.from(svg.querySelectorAll("text"))
-      .map((t) => (t.textContent || "").trim())
-      .filter((t) => t.length > 0);
-    const first = labels[0] ? labels[0].slice(0, 40) : "";
-    const placeholder = doc.createComment(
-      ` diagram-omitted: SVG (${labels.length} labels${first ? `, first: "${first}"` : ""}) `,
-    );
-    svg.parentNode?.replaceChild(placeholder, svg);
-    placed++;
+    const html = svg.outerHTML;
+    const ariaRole = (svg.getAttribute("aria-roledescription") || "").toLowerCase();
+    const isReal = html.length >= 2000
+      || /flowchart|sequence|diagram|graph|state-diagram|class-diagram/.test(ariaRole);
+    if (!isReal) {
+      svg.remove();
+      dropped++;
+      continue;
+    }
+    realCounter++;
+    const localFilename = `weixin-svg-${String(realCounter).padStart(3, "0")}.svg`;
+    files.push({ localFilename, svg: html });
+    // Replace with an <img>-equivalent so turndown emits ![](filename).
+    // Tag with data-local-svg="1" so normalizeImages skips it (otherwise
+    // its filter for http-only src would treat the relative ref as a
+    // tracking pixel and remove the placeholder).
+    const img = doc.createElement("img");
+    img.setAttribute("src", localFilename);
+    img.setAttribute("alt", ariaRole || "diagram");
+    img.setAttribute("data-local-svg", "1");
+    svg.parentNode?.replaceChild(img, svg);
   }
-  return placed;
+  return { files, dropped };
 }
 
 /** Build a turndown service preconfigured for weixin output. */
@@ -262,9 +293,10 @@ export function convertWeixinHtml(
   // Find the root: the wrapper we just put the contentHtml inside.
   const root = doc.body.firstElementChild ?? doc.body;
 
-  // 1. SVG → comment placeholder (BEFORE list-marker / image walks so we don't
-  //    accidentally count SVG-internal <text> as list markers etc.)
-  const svgPlaceholders = placeholderForSvgs(doc, root);
+  // 1. SVGs: real diagrams → standalone .svg files + ![](ref); decorative
+  //    section-marker dots → drop. Runs BEFORE list-marker / image walks so
+  //    we don't process SVG-internal nodes as list markers.
+  const svgResult = processSvgs(doc, root);
 
   // 2. <li> mdnice prefix strip
   const listMarkersCleaned = stripListMarkerPrefixes(doc);
@@ -289,12 +321,14 @@ export function convertWeixinHtml(
   return {
     markdown,
     imagesToDownload,
+    svgFiles: svgResult.files,
     metadata,
     stats: {
       images: imagesToDownload.length,
       tables: counts.tables,
       codeFences: counts.codeFences,
-      svgPlaceholders,
+      svgFiles: svgResult.files.length,
+      svgDropped: svgResult.dropped,
       listMarkersCleaned,
     },
   };
