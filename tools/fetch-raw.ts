@@ -1150,9 +1150,17 @@ export function extractXhsFullContent(url: string): XhsFullContent {
         else if (par.className.indexOf("chat") >= 0) stats.comments = txt;
         else stats.likes = txt;
       });
-      // Images — same carousel-dedup as extractXhsImageUrlsInOrder
+      // Images — same carousel-dedup as extractXhsImageUrlsInOrder, plus
+      // exclusion of any image inside a comment container (xhs comments
+      // can include attached images that match our width/CDN filters but
+      // are not part of the note body).
       const items = Array.from(document.querySelectorAll("img"))
-        .filter(i => { const w = i.naturalWidth || i.width; return w >= 400 && i.src.indexOf("xhscdn") > 0; })
+        .filter(i => {
+          const w = i.naturalWidth || i.width;
+          if (!(w >= 400 && i.src.indexOf("xhscdn") > 0)) return false;
+          if (i.closest(".parent-comment, .comment-item, .reply-container, .comment-content")) return false;
+          return true;
+        })
         .map(i => ({ src: i.src, left: Math.round(i.getBoundingClientRect().left) }))
         .filter(it => typeof it.left === "number" && it.left >= 0)
         .sort((a, b) => a.left - b.left);
@@ -1234,8 +1242,14 @@ export function extractXhsImageUrlsInOrder(url: string): XhsDomExtractResult {
     // DOM order alone puts that wrap-around copy FIRST, which is wrong.
     // Sorting by `left` (ascending), filtering out negative-left wrap-arounds,
     // and deduping by image ID gives the author's actual display order.
+    // Filter: width >=400, xhscdn URL, AND not inside a comment container
+    // (xhs comments can have attached images that match the size+CDN
+    // filters but aren't part of the note body).
     const js = "JSON.stringify(Array.from(document.querySelectorAll('img'))"
-      + ".filter(function(i){var w=i.naturalWidth||i.width;return w>=400 && i.src.indexOf('xhscdn')>0})"
+      + ".filter(function(i){var w=i.naturalWidth||i.width;"
+      + "if(!(w>=400 && i.src.indexOf('xhscdn')>0))return false;"
+      + "if(i.closest('.parent-comment, .comment-item, .reply-container, .comment-content'))return false;"
+      + "return true;})"
       + ".map(function(i){return {src:i.src, left:Math.round(i.getBoundingClientRect().left)}}))";
     const res = spawnSync("opencli", ["browser", "eval", js], {
       encoding: "utf8",

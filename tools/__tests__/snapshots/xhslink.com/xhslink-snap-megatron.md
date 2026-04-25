@@ -16,4 +16,3 @@ how to scale your model https://jax-ml.github.io/scaling-book/index
 ## Images
 
 ![69dfbf6d000000001b022c90_01.jpg](xhslink-snap-megatron-images/69dfbf6d000000001b022c90_01.jpg)
-![69dfbf6d000000001b022c90_02.jpg](xhslink-snap-megatron-images/69dfbf6d000000001b022c90_02.jpg)
