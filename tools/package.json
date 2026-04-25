@@ -10,7 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "gray-matter": "^4.0.3"
+    "@joplin/turndown-plugin-gfm": "^1.0.64",
+    "@types/jsdom": "^28.0.1",
+    "@types/turndown": "^5.0.6",
+    "gray-matter": "^4.0.3",
+    "jsdom": "^29.0.2",
+    "turndown": "^7.2.4"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

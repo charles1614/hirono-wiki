@@ -86,4 +86,20 @@ for (const { host, slug, mdPath } of pairs) {
     assert.equal(c.remote_images, 0, `${host}/${slug}: ${c.remote_images} remote-image refs (must be 0; per CLAUDE.md §3)`);
     assert.equal(c.chrome_denylist_matches, 0, `${host}/${slug}: ${c.chrome_denylist_matches} bare chrome lines from denylist`);
   });
+
+  test(`snapshot[${host}/${slug}]: every image ref resolves to a real file`, () => {
+    const md = readFileSync(mdPath, "utf8");
+    const snapDir = join(SNAPSHOTS_DIR, host);
+    const dangling: string[] = [];
+    for (const m of md.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+      const ref = m[1];
+      if (/^https?:\/\//i.test(ref)) continue;
+      const abs = join(snapDir, ref);
+      if (!existsSync(abs)) dangling.push(ref);
+    }
+    assert.equal(
+      dangling.length, 0,
+      `${host}/${slug}: ${dangling.length} dangling image refs (file not found on disk):\n  ${dangling.slice(0, 5).join("\n  ")}\nRe-snapshot with:\n  npx tsx tools/__tests__/snapshot-create.ts <url> --slug ${slug}`,
+    );
+  });
 }

@@ -224,4 +224,4 @@ nsys stop --session=10345602
 
 我当时的答案是：无论是用perfetto还是nsight system，都可以把关键行pin住(pin row)。之后可以在放缩整个可视化图中方便比较。当然不知道有没有更好的办法，欢迎大佬批评指正。
 
-![](images/img_001.jpg)
+![](zhihu-snap-sglang-profile-images/img_001.jpg)

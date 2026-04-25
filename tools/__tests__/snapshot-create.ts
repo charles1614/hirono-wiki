@@ -19,7 +19,7 @@
 // images, chrome denylist matches), exits non-zero.
 
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync, copyFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { applyPostProcessors } from "../hirono/shared/post-process.ts";
 import { countFeatures, writeInvariants } from "./snapshot-helpers.ts";
@@ -95,8 +95,54 @@ writeFileSync(snapPath, r.md);
 const inv = countFeatures(r.md);
 writeInvariants(snapPath, inv);
 
+// Copy raw images alongside snapshot so referenced files exist on disk.
+// Snapshot becomes self-contained: <slug>.md, <slug>.invariants.json,
+// <slug>-images/*. Walks every local image ref in the markdown, resolves
+// it against raw/<slug>/, copies into <slug>-images/, and rewrites the ref
+// to point at the bundled copy. Handles both `images/foo.jpg` (weixin,
+// zhihu pattern) and bare `foo.jpg` (xhs/xiaohongshu pattern).
+const snapImageDir = `${snapDir}/${slug}-images`;
+const refsToRewrite = new Map<string, string>(); // raw ref → new ref
+let copiedImages = 0;
+let totalBytes = 0;
+const missingRefs: string[] = [];
+const localRefs = new Set<string>();
+for (const m of r.md.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+  const ref = m[1];
+  if (/^https?:\/\//i.test(ref)) continue;
+  localRefs.add(ref);
+}
+if (localRefs.size > 0) {
+  rmSync(snapImageDir, { recursive: true, force: true });
+  mkdirSync(snapImageDir, { recursive: true });
+  for (const ref of localRefs) {
+    const src = join(slugDir, ref);
+    if (!existsSync(src)) { missingRefs.push(ref); continue; }
+    const baseName = ref.split("/").pop()!;
+    const dst = join(snapImageDir, baseName);
+    copyFileSync(src, dst);
+    totalBytes += statSync(dst).size;
+    copiedImages++;
+    refsToRewrite.set(ref, `${slug}-images/${baseName}`);
+  }
+}
+if (refsToRewrite.size > 0) {
+  let rewritten = r.md;
+  // Sort longest-first so partial-prefix refs don't collide.
+  const sortedRefs = [...refsToRewrite.keys()].sort((a, b) => b.length - a.length);
+  for (const ref of sortedRefs) {
+    const newRef = refsToRewrite.get(ref)!;
+    const escaped = ref.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    rewritten = rewritten.replace(new RegExp(`!\\[([^\\]]*)\\]\\(${escaped}\\)`, "g"), `![$1](${newRef})`);
+  }
+  writeFileSync(snapPath, rewritten);
+}
+
 console.log(`[4/4] snapshot → ${snapPath}`);
 console.log(`     invariants: ${JSON.stringify(inv)}`);
+if (copiedImages > 0) {
+  console.log(`     images: ${copiedImages} files, ${(totalBytes / 1024).toFixed(0)}KB → ${snapImageDir}/`);
+}
 console.log("");
 console.log("--- TOP 30 ---");
 console.log(r.md.split("\n").slice(0, 30).join("\n"));
@@ -109,6 +155,23 @@ if (inv.h1 !== 1) fail.push(`h1=${inv.h1} (expected 1)`);
 if (!inv.frontmatter_present) fail.push(`'> 原文链接:' not in first 10 lines`);
 if (inv.remote_images > 0) fail.push(`remote-image refs = ${inv.remote_images} (expected 0)`);
 if (inv.chrome_denylist_matches > 0) fail.push(`chrome denylist matches = ${inv.chrome_denylist_matches} (expected 0)`);
+
+if (missingRefs.length > 0) {
+  fail.push(`${missingRefs.length} image refs in markdown that aren't in raw/: ${missingRefs.slice(0, 3).join(", ")}${missingRefs.length > 3 ? "..." : ""} (adapter bug: emits ref but doesn't download file)`);
+}
+
+// Verify every image reference in the snapshot resolves to a real file.
+const finalMd = readFileSync(snapPath, "utf8");
+const danglingImages: string[] = [];
+for (const m of finalMd.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+  const ref = m[1];
+  if (/^https?:\/\//i.test(ref)) continue;
+  const abs = join(snapDir, ref);
+  if (!existsSync(abs)) danglingImages.push(ref);
+}
+if (danglingImages.length > 0) {
+  fail.push(`${danglingImages.length} dangling image refs in snapshot: ${danglingImages.slice(0, 3).join(", ")}${danglingImages.length > 3 ? "..." : ""}`);
+}
 
 // Cleanup raw fetch dir — we keep snapshots, not ad-hoc fetches
 try { rmSync(slugDir, { recursive: true, force: true }); } catch {}

@@ -2,11 +2,11 @@
   "h1": 1,
   "frontmatter_present": true,
   "remote_images": 0,
-  "fences": 8,
+  "fences": 0,
   "tables": 0,
-  "images": 5,
-  "h2s": 7,
+  "images": 4,
+  "h2s": 1,
   "h3s": 0,
-  "body_chars": 12361,
+  "body_chars": 1150,
   "chrome_denylist_matches": 0
 }
