@@ -61,6 +61,31 @@ export interface ConvertResult {
 }
 
 /**
+ * Walk an element's descendant tree and build its text, treating each
+ * `<br>` as a `\n`. `Node.textContent` silently collapses `<br>` to "",
+ * which destroys multi-line code blocks where mdnice separates lines with
+ * `<br>` rather than text-node `\n`s. This helper preserves them.
+ */
+function textWithBrAsNewline(el: Element): string {
+  let out = "";
+  const walk = (n: Node) => {
+    if (n.nodeType === 3 /* TEXT_NODE */) {
+      out += n.textContent || "";
+      return;
+    }
+    if (n.nodeType !== 1 /* ELEMENT_NODE */) return;
+    const e = n as Element;
+    if (e.tagName === "BR") {
+      out += "\n";
+      return;
+    }
+    for (const c of e.childNodes) walk(c);
+  };
+  for (const c of el.childNodes) walk(c);
+  return out;
+}
+
+/**
  * Strip mdnice's pre-rendered list-marker prefix from each `<li>`.
  *
  * WeChat's editor (mdnice) injects the visual bullet/number AS A TEXT NODE
@@ -251,19 +276,18 @@ function makeTurndown(): TurndownService {
     filter: (node) => node.nodeType === 8 /* COMMENT_NODE */,
     replacement: (_content, node) => `<!--${(node as unknown as Comment).data}-->`,
   });
-  // <pre> → fenced block. Two structural shapes appear in the wild:
+  // <pre> → fenced block. Three structural shapes appear in WeChat output:
   //
-  //   (A) Single child: `<pre><code class="language-X">multi\nline\ntext</code></pre>`
-  //       — the canonical shape. Lang hint comes from the <code>'s class.
+  //   (A1) Single <code>, lines separated by `\n` text nodes. Canonical.
+  //   (A2) Single <code>, lines separated by <br> elements wrapped in
+  //        decorative spans. textContent silently collapses <br> to "",
+  //        so we must walk the tree and emit `\n` for each <br>.
+  //   (B)  Multi-<code>: one <code> per line, each line in <span leaf="">.
+  //        Join children's per-element text (also <br>-aware) with \n.
   //
-  //   (B) Multi child:  `<pre><code>line1</code><code>line2</code>...</pre>`
-  //       — WeChat's mdnice editor emits one <code> per line, with the line
-  //       text inside `<span leaf="">`. Joining the children's textContent
-  //       with `\n` reconstructs the original block. We do NOT trust the
-  //       <pre>'s `data-lang` attribute for this shape because mdnice often
-  //       mislabels (e.g. `data-lang="sql"` for actual YAML).
-  //
-  // Single rule handles both: count <code> children, branch on count.
+  // We do NOT trust `data-lang` on multi-child shape because mdnice often
+  // mislabels (e.g. `data-lang="sql"` for actual YAML). For single-child
+  // shape, the `<code>`'s `class="language-X"` attr is reliable.
   td.addRule("fenced-code", {
     filter: (node) => node.nodeName === "PRE",
     replacement: (_content, node) => {
@@ -272,17 +296,14 @@ function makeTurndown(): TurndownService {
       let text = "";
       let lang = "";
       if (codes.length > 1) {
-        // Shape B: one <code> per line.
-        text = codes.map((c) => c.textContent ?? "").join("\n");
+        text = codes.map(textWithBrAsNewline).join("\n");
       } else if (codes.length === 1) {
-        // Shape A: single <code>, may have language class.
-        text = codes[0].textContent ?? "";
+        text = textWithBrAsNewline(codes[0]);
         const cls = codes[0].getAttribute("class") || "";
         const m = cls.match(/language-(\S+)/);
         if (m) lang = m[1];
       } else {
-        // Bare <pre> with no <code> wrapper.
-        text = pre.textContent ?? "";
+        text = textWithBrAsNewline(pre);
       }
       const trimmed = text.replace(/\r\n/g, "\n").replace(/^\n+/, "").replace(/\n+$/, "");
       return `\n\n\`\`\`${lang}\n${trimmed}\n\`\`\`\n\n`;

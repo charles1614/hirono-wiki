@@ -27,19 +27,28 @@ NVIDIA GPU Driver 是管理物理 GPU 的核心组件，提供内核态与用户
 -   **内核模块（Kernel Modules）：**
     
     ```
-    # 核心驱动模块nvidia.ko# 统一内存管理模块nvidia_uvm.ko# 显示模式设置模块nvidia_modeset.ko
+    # 核心驱动模块
+    nvidia.ko
+    # 统一内存管理模块
+    nvidia_uvm.ko
+    # 显示模式设置模块
+    nvidia_modeset.ko
     ```
     
 -   **用户态库（User-space Libraries）：**
     
     ```
-    # CUDA 驱动库libcuda.so# NVIDIA 管理库（用于 nvidia-smi 等）libnvidia-ml.so
+    # CUDA 驱动库
+    libcuda.so
+    # NVIDIA 管理库（用于 nvidia-smi 等）
+    libnvidia-ml.so
     ```
     
 -   **管理工具：**
     
     ```
-    # GPU 状态监控工具nvidia-smi
+    # GPU 状态监控工具
+    nvidia-smi
     ```
     
 
@@ -183,7 +192,9 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 最简单的验证命令，用于检查容器是否能识别 GPU。
 
 ```
-# 使用所有 GPU# 注：nvidia-smi 二进制文件由 NVIDIA Container Runtime 从宿主机动态注入，基础镜像本身无需包含此工具docker run --rm --gpus all nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
+# 使用所有 GPU
+# 注：nvidia-smi 二进制文件由 NVIDIA Container Runtime 从宿主机动态注入，基础镜像本身无需包含此工具
+docker run --rm --gpus all nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
 ```
 
 ### 4.2 指定特定 GPU
@@ -191,7 +202,8 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 当主机有多张卡时，可以指定容器只使用其中的一部分。
 
 ```
-# 仅使用 0 号和 2 号 GPUdocker run --rm --gpus '"device=0,2"' nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
+# 仅使用 0 号和 2 号 GPU
+docker run --rm --gpus '"device=0,2"' nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
 ```
 
 ### 4.3 环境变量控制 (推荐调试用)
@@ -199,7 +211,8 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 除了 `--gpus` 参数，也可以通过环境变量 `NVIDIA_VISIBLE_DEVICES` 控制（需配合 `--runtime=nvidia` 或默认配置）。
 
 ```
-# 效果等同于 --gpus '"device=0"'docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=0 nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
+# 效果等同于 --gpus '"device=0"'
+docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=0 nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
 ```
 
 ### 4.4 检查驱动能力 (Capabilities)
@@ -207,7 +220,8 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 有些场景（如只需图形渲染或只需计算）可以指定驱动能力，减少注入的内容。
 
 ```
-# 仅注入计算和工具相关的库（通常用于 AI 任务）docker run --rm --gpus 'all,"capabilities=compute,utility"' nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
+# 仅注入计算和工具相关的库（通常用于 AI 任务）
+docker run --rm --gpus 'all,"capabilities=compute,utility"' nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi
 ```
 
 * * *
