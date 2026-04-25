@@ -161,18 +161,19 @@ export function formatReport(r: CheckReport): string {
   }
   lines.push(``);
 
-  // Full hostname table (top 30)
-  lines.push(`## Hostname distribution (top 30)`);
+  // Full hostname distribution: every host with >1 bookmark, sorted by count.
+  // Single-bookmark hosts are summarized in a single tail row.
+  const multi = r.hosts.filter((h) => h.count > 1);
+  const single = r.hosts.filter((h) => h.count === 1);
+  lines.push(`## Hostname distribution (${multi.length} hosts with >1 bookmark)`);
   lines.push(``);
   lines.push(`| hostname | count | coverage | adapter |`);
   lines.push(`|---|---|---|---|`);
-  for (const h of r.hosts.slice(0, 30)) {
+  for (const h of multi) {
     lines.push(`| ${h.hostname} | ${h.count} | ${h.coverage} | ${h.adapter ?? "—"} |`);
   }
-  if (r.hosts.length > 30) {
-    const tailCount = r.hosts.slice(30).reduce((s, h) => s + h.count, 0);
-    const tailHosts = r.hosts.length - 30;
-    lines.push(`| (${tailHosts} more hostnames) | ${tailCount} | | |`);
+  if (single.length > 0) {
+    lines.push(`| (${single.length} long-tail hosts × 1 bookmark) | ${single.length} | | |`);
   }
 
   return lines.join("\n") + "\n";
