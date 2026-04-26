@@ -7,6 +7,7 @@
 
 import { spawnSync } from "node:child_process";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
+import { extractJsonFromEvalStdout } from "../_shared/browser-eval-json.ts";
 
 export interface NvidianewsContent {
   title: string;
@@ -61,53 +62,35 @@ export function extractNvidianewsContent(url: string): NvidianewsContent {
       };
     }
 
-    const stdout = evalRes.stdout || "";
-    const start = stdout.indexOf("{");
-    if (start < 0) {
+    const parsed = extractJsonFromEvalStdout(evalRes.stdout || "") as {
+      title?: string;
+      subtitle?: string;
+      date?: string;
+      bodyHtml?: string;
+      heroImageUrl?: string;
+      finalUrl?: string;
+      error?: string;
+    } | null;
+    if (!parsed) {
       return {
         title: "", subtitle: "", date: "", bodyHtml: "", heroImageUrl: "",
         error: "no JSON object in eval output",
       };
     }
-    let depth = 0, end = -1, inStr = false, esc = false;
-    for (let i = start; i < stdout.length; i++) {
-      const c = stdout[i];
-      if (esc) { esc = false; continue; }
-      if (c === "\\") { esc = true; continue; }
-      if (c === "\"") { inStr = !inStr; continue; }
-      if (inStr) continue;
-      if (c === "{") depth++;
-      else if (c === "}") { depth--; if (depth === 0) { end = i; break; } }
-    }
-    if (end < 0) {
+    if (parsed.error) {
       return {
         title: "", subtitle: "", date: "", bodyHtml: "", heroImageUrl: "",
-        error: "unterminated JSON",
+        error: parsed.error,
       };
     }
-
-    try {
-      const parsed = JSON.parse(stdout.slice(start, end + 1));
-      if (parsed.error) {
-        return {
-          title: "", subtitle: "", date: "", bodyHtml: "", heroImageUrl: "",
-          error: parsed.error,
-        };
-      }
-      return {
-        title: parsed.title || "",
-        subtitle: parsed.subtitle || "",
-        date: parsed.date || "",
-        bodyHtml: parsed.bodyHtml || "",
-        heroImageUrl: parsed.heroImageUrl || "",
-        finalUrl: parsed.finalUrl || undefined,
-      };
-    } catch (e) {
-      return {
-        title: "", subtitle: "", date: "", bodyHtml: "", heroImageUrl: "",
-        error: `JSON parse failed: ${e instanceof Error ? e.message : e}`,
-      };
-    }
+    return {
+      title: parsed.title || "",
+      subtitle: parsed.subtitle || "",
+      date: parsed.date || "",
+      bodyHtml: parsed.bodyHtml || "",
+      heroImageUrl: parsed.heroImageUrl || "",
+      finalUrl: parsed.finalUrl || undefined,
+    };
   } catch (e) {
     return {
       title: "", subtitle: "", date: "", bodyHtml: "", heroImageUrl: "",

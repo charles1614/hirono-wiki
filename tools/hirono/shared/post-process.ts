@@ -907,6 +907,58 @@ export const substackReformat: PostProcessor = {
       },
     );
 
+    // -- Step 7: avatar leakage at top of body (Substack profile thumbnails) --
+    // The web-fetch path emits `![User's avatar](images/img_001.jpeg)` and
+    // `![<Author>'s avatar](images/img_002.jpeg)` right after the `---`
+    // separator. They're decorative profile chrome, not article content.
+    {
+      const beforeAvatarStrip = out;
+      out = out.replace(
+        /!\[(?:[^\]]*?\s)?[Aa]vatar(?:[^\]]*)\]\([^)]+\)\s*\n?/g,
+        "",
+      );
+      if (out !== beforeAvatarStrip) notes.push("substack: stripped avatar image refs");
+    }
+
+    // -- Step 8: bare-anchor prefix on headings ----------------------------
+    // Substack renders `<h2 id="..."><a href="#..."></a>Heading text</h2>`.
+    // Turndown emits this as `## [](#slug "Heading text")**Heading text**`.
+    // Strip the anchor + bold so headings are plain markdown.
+    {
+      const beforeAnchorStrip = out;
+      out = out.replace(
+        /^(#{1,6})\s*\[\]\(#[^)]*\)\s*\*\*(.+?)\*\*\s*$/gm,
+        "$1 $2",
+      );
+      out = out.replace(
+        /^(#{1,6})\s*\[\]\(#[^)]*\)\s*(.+?)\s*$/gm,
+        "$1 $2",
+      );
+      if (out !== beforeAnchorStrip) notes.push("substack: stripped heading anchor prefixes");
+    }
+
+    // -- Step 9: turndown over-escapes literal periods in running text -----
+    // Patterns like `1\. Background` should be `1. Background`. Substack
+    // articles with auto-numbered lists trigger this on every list item.
+    // Restrict to prose contexts (inside backticks ` ` / fenced code we
+    // leave alone — handled by fence-aware skip).
+    {
+      const beforePeriodFix = out;
+      const fenceAwareLines: string[] = [];
+      let inFence = false;
+      for (const line of out.split("\n")) {
+        if (/^```/.test(line.trim())) { inFence = !inFence; fenceAwareLines.push(line); continue; }
+        if (inFence) { fenceAwareLines.push(line); continue; }
+        // Restore escaped numeric-list periods like `1\.` → `1.`.
+        // Also handles `\.` after letters where a period is structural
+        // (e.g., `nn\.Module` → `nn.Module`) — but only when followed by
+        // a word char or whitespace, never inside URLs.
+        fenceAwareLines.push(line.replace(/(\w)\\\.(?=\s|\w)/g, "$1."));
+      }
+      out = fenceAwareLines.join("\n");
+      if (out !== beforePeriodFix) notes.push("substack: unescaped over-escaped periods");
+    }
+
     return {
       md: out.replace(/\n{3,}/g, "\n\n").trimEnd() + "\n",
       newAbsoluteImageUrls: [],

@@ -47,6 +47,8 @@ import { createHash } from "node:crypto";
 import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { acquireBrowserLock, acquireSlugLock } from "./hirono/shared/browser-lock.ts";
 import { routeSite } from "./sites/index.ts";
+import { extractJsonFromEvalStdout } from "./sites/_shared/browser-eval-json.ts";
+import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -1658,64 +1660,164 @@ function fetchZhihuQuestionViaAdapter(url: string): AdapterResult {
 
 
 /**
- * Generic `opencli web read` — works for any URL the user can read in their
- * logged-in Chrome. `--wait` is bumped to 10s (vs the default 3) so
- * client-rendered SPAs (DeepWiki, Vercel docs, Notion pages) have time to
- * hydrate before content is scraped. Adds ~7s per fetch — tolerable at v1
- * scale, and we auto-retry with 60s on short-body / loading-skeleton flags
- * (empirically: DeepWiki needs ~60s for its article body to fully render).
+ * Generic web fetch — works for any URL the user can read in their
+ * logged-in Chrome. Replaces the old `opencli web read` flow whose
+ * built-in HTML-to-markdown converter destroyed `<table>` (flattened to
+ * one-line-per-cell text) and `<pre><code>` (rendered as numbered lists).
  *
- * Note: wiki.litenext.digital + deepwiki.com USED to special-case here
- * with mermaid + table splicers on top of opencli's lossy output. They
- * are now handled by tools/sites/deepwiki/ (universal pattern) and never
- * reach this function — the dispatch in case "web-read" routes through
- * routeSite() first. The historical DeepWiki branch in this function was
- * deleted along with its helpers.
+ * New flow:
+ *   1. opencli browser open <url>
+ *   2. sleepMs(waitSeconds * 1000)  — let SPA hydrate (DeepWiki, Vercel, Notion)
+ *   3. opencli browser eval <selector cascade> — extracts main-content outerHTML
+ *   4. jsdom + turndown + GFM  — produces proper `|`-delimited tables + fenced code
+ *   5. download images via downloadImage()
+ *   6. compose §2 frontmatter
+ *
+ * Retry-on-short-body and HuggingFace GitHub-fallback logic stay below
+ * unchanged — they just see better input now.
+ *
+ * Note: wiki.litenext.digital + deepwiki.com are handled by
+ * tools/sites/deepwiki-{litenext,com}/ and never reach this function
+ * (the case "web-read" dispatch routes through routeSite() first).
  */
 function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: boolean, waitSeconds = 10): AdapterResult {
-  const beforeMtime = Date.now();
   mkdirSync(slugDir, { recursive: true });
-  const stdout = runOpencli(
-    [
-      "web", "read",
-      "--url", url,
-      "--output", slugDir,
-      "--download-images", downloadImages ? "true" : "false",
-      "--wait", String(waitSeconds),
-      "-f", "json",
-    ],
-    { timeoutMs: 120_000 + waitSeconds * 1000 },
-  );
-  const h = harvestAdapterOutput(slugDir, beforeMtime);
-  let resultMarkdown = h.content;
   const adapterNotesLocal: string[] = [];
   const adapterFlagsLocal: string[] = [];
 
-  // Propagate any filesystem-level harvest issues (failed renames, stat
-  // errors) as quality flags. Content is still usable — but the user
-  // should know some assets may have been dropped.
-  if (h.errors.length > 0) {
-    adapterFlagsLocal.push("adapter-output-partial");
-    for (const e of h.errors) adapterNotesLocal.push(`harvest: ${e}`);
-  }
+  let resultMarkdown = "";
+  const imageFiles: string[] = [];
+  let pageTitle = "";
+  let finalUrl: string | undefined;
 
-  // DeepWiki: after web-read, do an extra browser pass to extract BOTH
-  // mermaid diagrams AND tables from the rendered DOM (which opencli's
-  // DOM-to-markdown converter frequently drops). One browser session
-  // serves both extractions to halve the navigation cost.
-  // (deepwiki special-case retired — wiki.litenext.digital and deepwiki.com
-  // are now handled by tools/sites/deepwiki/ which extracts the .prose
-  // container's outerHTML directly + the mermaid sources in a single
-  // browser session. The legacy splicer pipeline that operated on top of
-  // opencli web-read's lossy markdown — extractDeepwikiMermaidSources,
-  // extractDeepwikiTables, spliceDeepwikiMermaid, spliceDeepwikiTables,
-  // deepwikiStripNav, deepwikiWrapDiagramNodes — has no callers now and
-  // was deleted along with this branch.)
+  let browserOpened = false;
+  try {
+    const openRes = spawnSync(
+      "opencli",
+      ["browser", "open", url],
+      { encoding: "utf8", timeout: browserTimeoutMs("open") },
+    );
+    if (openRes.status !== 0) {
+      adapterFlagsLocal.push("web-fetch-browser-open-failed");
+      adapterNotesLocal.push(`web-fetch: browser open failed (${(openRes.stderr || "").slice(0, 160)})`);
+    } else {
+      browserOpened = true;
+      sleepMs(Math.max(1, waitSeconds) * 1000);
+
+      // Selector cascade: prefer semantic article containers, fall back to
+      // common blog/docs class names, then `document.body`. Within each
+      // selector we pick the matched element with the longest textContent —
+      // beats picking the first match when a page has nested matches (e.g.
+      // a small <article> inside a larger <main>).
+      const evalScript = `(() => {
+        // Evaluate ALL candidate selectors and pick the matched element
+        // with the longest textContent. Earlier impl broke out on the
+        // first selector that had ANY match, which on some sites (01.me)
+        // resolved to a tiny .markdown-body decorative element while a
+        // later selector (.content) held the real article.
+        const SELECTORS = [
+          'article',
+          'main',
+          '[role="main"]',
+          '.post-content',
+          '.article-body',
+          '.entry-content',
+          '.post-body',
+          '.content-body',
+          '.markdown-body',
+          '#content',
+          '.content',
+          '.post',
+          '.entry'
+        ];
+        let best = null;
+        let bestLen = 0;
+        for (const sel of SELECTORS) {
+          for (const el of document.querySelectorAll(sel)) {
+            const len = (el.textContent || '').length;
+            if (len > bestLen) { best = el; bestLen = len; }
+          }
+        }
+        // Sanity floor: a winning selector should hold a meaningful chunk
+        // of the page. Below 500 chars we assume the cascade picked a
+        // decorative shell and fall back to <body>.
+        if (!best || bestLen < 500) best = document.body;
+        return JSON.stringify({
+          contentHtml: best ? best.outerHTML : '',
+          title: (document.title || '').replace(/\\s+\\|\\s+[^|]*$/, '').trim(),
+          finalUrl: window.location.href
+        });
+      })()`;
+
+      const evalRes = spawnSync(
+        "opencli",
+        ["browser", "eval", evalScript],
+        { encoding: "utf8", timeout: browserTimeoutMs("eval"), maxBuffer: 64 * 1024 * 1024 },
+      );
+      if (evalRes.status !== 0) {
+        adapterFlagsLocal.push("web-fetch-eval-failed");
+        adapterNotesLocal.push(`web-fetch: browser eval failed (${(evalRes.stderr || "").slice(0, 160)})`);
+      } else {
+        const parsed = extractJsonFromEvalStdout(evalRes.stdout || "") as {
+          contentHtml?: string;
+          title?: string;
+          finalUrl?: string;
+        } | null;
+        if (!parsed || !parsed.contentHtml) {
+          adapterFlagsLocal.push("web-fetch-empty-content");
+          adapterNotesLocal.push("web-fetch: eval returned no content HTML");
+        } else {
+          pageTitle = (parsed.title || "").trim();
+          finalUrl = parsed.finalUrl;
+          // Filename prefix derived from hostname so per-host image files
+          // don't collide when multiple slugs share a slugDir during sweep.
+          const host = hostnameOf(finalUrl || url) || "webread";
+          const imagePrefix = host.replace(/[^a-z0-9]+/gi, "-").toLowerCase().replace(/^-+|-+$/g, "");
+          const conv = convertGenericHtml({
+            html: parsed.contentHtml,
+            url: finalUrl || url,
+            imagePrefix: imagePrefix || "webread",
+          });
+
+          if (downloadImages) {
+            for (const img of conv.imagesToDownload) {
+              const dest = join(slugDir, img.localFilename);
+              const bytes = downloadImage(img.remoteUrl, dest);
+              if (bytes > 0) imageFiles.push(img.localFilename);
+            }
+          }
+
+          // Compose §2-contract frontmatter. Caller can later inject
+          // additional metadata (author, date) via post-processors.
+          const titleLine = pageTitle ? pageTitle : `Page: ${url}`;
+          resultMarkdown =
+            `# ${titleLine}\n\n` +
+            `> 原文链接: ${url}\n\n` +
+            `---\n\n` +
+            (conv.body ? conv.body + "\n" : "");
+
+          adapterNotesLocal.push(
+            `web-fetch: own jsdom+turndown — ${conv.stats.tables} table line(s), ` +
+            `${conv.stats.codeFences} code fence(s), ` +
+            `${imageFiles.length}/${conv.imagesToDownload.length} image(s) downloaded`,
+          );
+        }
+      }
+    }
+  } catch (e) {
+    adapterFlagsLocal.push("web-fetch-threw");
+    adapterNotesLocal.push(`web-fetch: ${e instanceof Error ? e.message : String(e)}`);
+  } finally {
+    if (browserOpened) {
+      try { closeBrowser(); } catch { /* best-effort */ }
+    }
+  }
 
   const result: AdapterResult = {
     markdown: resultMarkdown,
-    imageFiles: h.images,
-    rawMetadata: tryParseJsonLines(stdout),
+    title: pageTitle || undefined,
+    imageFiles,
+    rawMetadata: { source: "web-fetch-own-turndown", finalUrl },
     adapterNotes: adapterNotesLocal.length > 0 ? adapterNotesLocal : undefined,
     extraFlags: adapterFlagsLocal.length > 0 ? adapterFlagsLocal : undefined,
   };

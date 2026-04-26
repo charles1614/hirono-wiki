@@ -11,6 +11,7 @@
 
 import { spawnSync } from "node:child_process";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
+import { extractJsonFromEvalStdout } from "../_shared/browser-eval-json.ts";
 
 export interface DeepwikiComContent {
   /** outerHTML of `.prose` — empty on failure (and `error` will be set). */
@@ -113,39 +114,21 @@ export function extractDeepwikiComContent(url: string): DeepwikiComContent {
       };
     }
 
-    const stdout = evalRes.stdout || "";
-    const start = stdout.indexOf("{");
-    if (start < 0) {
+    const parsed = extractJsonFromEvalStdout(evalRes.stdout || "") as {
+      contentHtml?: string;
+      mermaidSources?: string[];
+      title?: string;
+      finalUrl?: string;
+    } | null;
+    if (!parsed) {
       return { contentHtml: "", mermaidSources: [], title: "", error: "no JSON object in eval output" };
     }
-    let depth = 0, end = -1, inStr = false, esc = false;
-    for (let i = start; i < stdout.length; i++) {
-      const c = stdout[i];
-      if (esc) { esc = false; continue; }
-      if (c === "\\") { esc = true; continue; }
-      if (c === "\"") { inStr = !inStr; continue; }
-      if (inStr) continue;
-      if (c === "{") depth++;
-      else if (c === "}") { depth--; if (depth === 0) { end = i; break; } }
-    }
-    if (end < 0) {
-      return { contentHtml: "", mermaidSources: [], title: "", error: "unterminated JSON" };
-    }
-
-    try {
-      const parsed = JSON.parse(stdout.slice(start, end + 1));
-      return {
-        contentHtml: parsed.contentHtml || "",
-        mermaidSources: Array.isArray(parsed.mermaidSources) ? parsed.mermaidSources : [],
-        title: parsed.title || "",
-        finalUrl: parsed.finalUrl || undefined,
-      };
-    } catch (e) {
-      return {
-        contentHtml: "", mermaidSources: [], title: "",
-        error: `JSON parse failed: ${e instanceof Error ? e.message : e}`,
-      };
-    }
+    return {
+      contentHtml: parsed.contentHtml || "",
+      mermaidSources: Array.isArray(parsed.mermaidSources) ? parsed.mermaidSources : [],
+      title: parsed.title || "",
+      finalUrl: parsed.finalUrl || undefined,
+    };
   } catch (e) {
     return {
       contentHtml: "", mermaidSources: [], title: "",
