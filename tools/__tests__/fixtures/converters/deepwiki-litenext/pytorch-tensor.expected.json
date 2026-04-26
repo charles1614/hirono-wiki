@@ -1,0 +1,14 @@
+{
+  "imagesToDownload": [],
+  "metadata": {
+    "title": "PyTorch Architecture Documentation"
+  },
+  "stats": {
+    "mermaidExpected": 2,
+    "mermaidPlaced": 2,
+    "tables": 28,
+    "codeFences": 3,
+    "images": 0,
+    "chromeStripped": 0
+  }
+}
