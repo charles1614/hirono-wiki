@@ -43,6 +43,8 @@ import {
 import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
 import { convertDeepwikiLitenextHtml } from "../sites/deepwiki-litenext/converter.ts";
 import { convertDeepwikiComHtml } from "../sites/deepwiki-com/converter.ts";
+import { convertLinuxDoTopic } from "../sites/linux-do/converter.ts";
+import type { LinuxDoTopic } from "../sites/linux-do/fetcher.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
 // (npm test runs from tools/; manual `npx tsx ...` runs from repo root).
@@ -77,7 +79,7 @@ function listFixtures(): Fixture[] {
 }
 
 interface InputDoc {
-  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml";
+  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml" | "convertLinuxDoTopic";
   args: unknown[];
 }
 
@@ -129,6 +131,12 @@ function runConverter(input: InputDoc): { markdown: string; rest: Record<string,
   if (input.fn === "convertDeepwikiComHtml") {
     const [contentHtml, mermaidSources, opts] = input.args as [string, string[], { title: string; url: string }];
     const r = convertDeepwikiComHtml(contentHtml, mermaidSources, opts);
+    const { markdown, ...rest } = r;
+    return { markdown, rest: rest as Record<string, unknown> };
+  }
+  if (input.fn === "convertLinuxDoTopic") {
+    const [topic] = input.args as [LinuxDoTopic];
+    const r = convertLinuxDoTopic(topic);
     const { markdown, ...rest } = r;
     return { markdown, rest: rest as Record<string, unknown> };
   }

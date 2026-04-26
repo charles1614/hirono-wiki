@@ -1,0 +1,43 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/optimized/4X/e/1/e/e1e2ecf9eaed5567520f07ae65299bb8cbd803af_2_460x375.jpeg",
+      "localFilename": "linuxdo-img-001.jpg"
+    },
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/optimized/4X/1/7/7/1770151fc0ba4705180242027c4fd374154573b5_2_690x413.png",
+      "localFilename": "linuxdo-img-002.png"
+    },
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/original/4X/5/c/3/5c3977e21a148a5af0735364bca7e06fc284e5dc.png",
+      "localFilename": "linuxdo-img-003.png"
+    },
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/original/4X/9/5/d/95d9cfb77300856833c874958893955608007114.png",
+      "localFilename": "linuxdo-img-004.png"
+    },
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/original/4X/d/2/7/d27fd2c44b73da81d1268b528bf64c4b9bbf8875.png",
+      "localFilename": "linuxdo-img-005.png"
+    }
+  ],
+  "metadata": {
+    "title": "[开源] 写了个 Clash 批量IP检测节点重命名工具： IP 纯净度 + Bot 比例 + IP属性来源",
+    "topic_id": 1305514,
+    "posts_count": 41,
+    "posts_included": 41,
+    "views": 1475,
+    "like_count": 93,
+    "tags": [
+      "软件开发",
+      "配置优化"
+    ]
+  },
+  "stats": {
+    "posts": 41,
+    "images": 5,
+    "oneboxes": 3,
+    "quotes": 2,
+    "codeFences": 0
+  }
+}

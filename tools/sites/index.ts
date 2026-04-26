@@ -16,18 +16,19 @@ import { site as zhihuArticle } from "./zhihu/index.ts";
 import { site as weixin } from "./weixin/index.ts";
 import { site as deepwikiLitenext } from "./deepwiki-litenext/index.ts";
 import { site as deepwikiCom } from "./deepwiki-com/index.ts";
+import { site as linuxDo } from "./linux-do/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
   github,
   zhihuArticle,
   weixin,
-  // deepwiki-litenext + deepwiki-com share the engine code in
-  // _shared/deepwiki-engine/ but are registered as two separate Site
-  // entries — they are distinct operators of the same software, not
-  // hostname aliases of one site.
+  // deepwiki-litenext + deepwiki-com are independent operators of the
+  // same DeepWiki software — registered as two separate Site entries
+  // with their own copies of converter+fetcher (no shared code).
   deepwikiLitenext,
   deepwikiCom,
+  linuxDo,
 ];
 
 export function routeSite(url: string): Site | null {

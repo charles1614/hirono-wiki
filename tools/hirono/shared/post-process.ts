@@ -1505,53 +1505,10 @@ export const articleCleanup: PostProcessor = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// linux.do (Discourse): reformat thread into OP + replies structure
-// ---------------------------------------------------------------------------
-
-export const linuxDoReformat: PostProcessor = {
-  name: "linux-do-reformat",
-  match: (_u, h) => h === "linux.do",
-  transform: (md, _originUrl) => {
-    const lines = md.split("\n");
-    const notes: string[] = [];
-
-    // Strip Discourse UI chrome lines
-    const discourseChrome: RegExp[] = [
-      /^(Home|首页|Categories|Latest|Top|New|Unread)\s*$/i,
-      /^(Log In|Sign Up|登录|注册)\s*$/i,
-      /^(Reply|回复|Like|点赞|Share|分享|Bookmark|Flag|More)\s*$/i,
-      /^\d+\s*(Likes?|Replies?|Views?|回复|浏览)\s*$/i,
-      /^(Jump to|Skip to)\s+/i,
-      /^Created\s+\d/i,
-      /^Last reply\s+/i,
-      /^Suggested Topics?\s*$/i,
-      /^Back to top\s*$/i,
-      /^(←|→|‹|›)\s*(Back|Forward|Previous|Next)/i,
-    ];
-
-    const kept: string[] = [];
-    let stripped = 0;
-    for (const line of lines) {
-      const t = line.trim();
-      if (discourseChrome.some((re) => re.test(t))) { stripped++; continue; }
-      kept.push(line);
-    }
-    if (stripped > 0) notes.push(`linux.do: stripped ${stripped} Discourse chrome lines`);
-
-    let joined = kept.join("\n");
-
-    // Strip trailing engagement block: "1.5k views N likes N links N users" + avatar list
-    joined = joined.replace(
-      /\n+\d[\d.,]*[km]?\s+views[\s\S]*$/i,
-      "\n",
-    );
-
-    // Collapse runs of blank lines
-    const cleaned = joined.replace(/\n{3,}/g, "\n\n");
-    return { md: cleaned, newAbsoluteImageUrls: [], notes };
-  },
-};
+// (linuxDoReformat retired — linux.do migrated to tools/sites/linux-do/
+//  which fetches the Discourse JSON API directly, so the chrome-stripping
+//  + engagement-block heuristics this processor applied to opencli's
+//  rendered-page output never see the input anymore.)
 
 // ---------------------------------------------------------------------------
 // reddit.com: clean thread output, handle share-URL redirect note
@@ -1933,8 +1890,7 @@ export const PROCESSORS: PostProcessor[] = [
   // substack (semianalysis, magazine.sebastianraschka): strip dup H1 + paywall + unwrap
   substackReformat,
   // sebastianraschka.com is also Substack; substackReformat handles it
-  // Forum cleanups
-  linuxDoReformat,
+  // Forum cleanups (linuxDoReformat retired — linux.do uses tools/sites/linux-do/)
   redditReformat,
   // Auth-gated stubs (run before URL resolver — stub has no image refs)
   xMetadataStub,

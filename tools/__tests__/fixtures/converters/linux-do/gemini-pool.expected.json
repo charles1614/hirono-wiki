@@ -1,0 +1,35 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/original/4X/a/5/b/a5b9e590d0fb8eea855fd85a2ff937493116c5ae.png",
+      "localFilename": "linuxdo-img-001.png"
+    },
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/original/4X/5/b/b/5bb7317d4cc9aa6a8549ebd6c96f662cb2b725ea.png",
+      "localFilename": "linuxdo-img-002.png"
+    },
+    {
+      "remoteUrl": "https://cdn3.ldstatic.com/original/4X/6/3/f/63f41c0cc7b03b194f7f6ded15bf04e0189f7d42.png",
+      "localFilename": "linuxdo-img-003.png"
+    }
+  ],
+  "metadata": {
+    "title": "稳定快速 Google Gemini 公益站 2.0",
+    "topic_id": 698408,
+    "posts_count": 406,
+    "posts_included": 50,
+    "views": 23172,
+    "like_count": 781,
+    "tags": [
+      "人工智能",
+      "Gemini"
+    ]
+  },
+  "stats": {
+    "posts": 50,
+    "images": 3,
+    "oneboxes": 0,
+    "quotes": 2,
+    "codeFences": 0
+  }
+}

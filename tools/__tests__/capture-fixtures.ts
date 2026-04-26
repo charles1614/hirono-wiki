@@ -44,6 +44,8 @@ import { convertDeepwikiLitenextHtml } from "../sites/deepwiki-litenext/converte
 import { extractDeepwikiLitenextContent } from "../sites/deepwiki-litenext/fetcher.ts";
 import { convertDeepwikiComHtml } from "../sites/deepwiki-com/converter.ts";
 import { extractDeepwikiComContent } from "../sites/deepwiki-com/fetcher.ts";
+import { convertLinuxDoTopic } from "../sites/linux-do/converter.ts";
+import { fetchLinuxDoTopic } from "../sites/linux-do/fetcher.ts";
 import { extractXhsFullContent, sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
 import { spawnSync } from "node:child_process";
 
@@ -309,10 +311,31 @@ function captureDeepwikiCom(name: string, url: string): void {
   console.log(`[capture deepwiki-com] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.mermaidPlaced}/${result.stats.mermaidExpected} mermaid block(s)`);
 }
 
+function captureLinuxDo(name: string, url: string): void {
+  console.log(`[capture linux-do] ${url}`);
+  const topic = fetchLinuxDoTopic(url);
+  if (topic.error) throw new Error(`linux-do fetch failed: ${topic.error}`);
+  if (topic.posts.length === 0) throw new Error(`linux-do topic has 0 posts`);
+  const args: [typeof topic] = [topic];
+  const result = convertLinuxDoTopic(args[0]);
+
+  const dir = join(FIXTURES_ROOT, "linux-do");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}.input.json`), JSON.stringify({
+    fn: "convertLinuxDoTopic",
+    args,
+  }, null, 2) + "\n");
+  writeFileSync(join(dir, `${name}.expected.md`), result.markdown);
+  const { markdown: _md, ...rest } = result;
+  writeFileSync(join(dir, `${name}.expected.json`), JSON.stringify(rest, null, 2) + "\n");
+  console.log(`[capture linux-do] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
+  console.log(`[capture linux-do] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.posts} post(s)`);
+}
+
 const [host, name, url] = process.argv.slice(2);
 if (!host || !name || !url) {
   console.error("usage: capture-fixtures.ts <host> <name> <url>");
-  console.error("  host = weixin | xhs | github | zhihu | deepwiki-litenext | deepwiki-com");
+  console.error("  host = weixin | xhs | github | zhihu | deepwiki-litenext | deepwiki-com | linux-do");
   console.error("  name = identifier for the fixture (e.g. gpu-container)");
   console.error("  url  = the URL to fetch");
   process.exit(2);
@@ -324,4 +347,5 @@ else if (host === "github") captureGithub(name, url);
 else if (host === "zhihu") captureZhihu(name, url);
 else if (host === "deepwiki-litenext") captureDeepwikiLitenext(name, url);
 else if (host === "deepwiki-com") captureDeepwikiCom(name, url);
+else if (host === "linux-do") captureLinuxDo(name, url);
 else { console.error(`unknown host: ${host}`); process.exit(2); }
