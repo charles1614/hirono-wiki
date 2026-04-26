@@ -26,19 +26,19 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types published for this package
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
-export interface DeepwikiImageDownload {
+export interface DeepwikiComImageDownload {
   remoteUrl: string;
   localFilename: string;
 }
 
-export interface DeepwikiMetadata {
+export interface DeepwikiComMetadata {
   title: string;
 }
 
-export interface DeepwikiConvertResult {
+export interface DeepwikiComConvertResult {
   markdown: string;
-  imagesToDownload: DeepwikiImageDownload[];
-  metadata: DeepwikiMetadata;
+  imagesToDownload: DeepwikiComImageDownload[];
+  metadata: DeepwikiComMetadata;
   stats: {
     mermaidExpected: number;
     mermaidPlaced: number;
@@ -74,11 +74,11 @@ function isNavChromePara(text: string): boolean {
   return NAV_CHROME_PATTERNS.some((re) => re.test(t));
 }
 
-export function convertDeepwikiHtml(
+export function convertDeepwikiComHtml(
   contentHtml: string,
   mermaidSources: string[],
   opts: ConvertOpts,
-): DeepwikiConvertResult {
+): DeepwikiComConvertResult {
   const dom = new JSDOM(`<!doctype html><html><body>${contentHtml}</body></html>`);
   const doc = dom.window.document;
   const root = doc.body.firstElementChild as Element | null;
@@ -163,7 +163,7 @@ export function convertDeepwikiHtml(
   trimEdgeHrs(inner);
 
   // 4. Localize images. Drop tiny / data: images defensively.
-  const imagesToDownload: DeepwikiImageDownload[] = [];
+  const imagesToDownload: DeepwikiComImageDownload[] = [];
   let imgCounter = 0;
   for (const img of Array.from(root.querySelectorAll("img"))) {
     const src = img.getAttribute("src") || img.getAttribute("data-src") || "";
@@ -229,7 +229,7 @@ export function convertDeepwikiHtml(
   };
 }
 
-function emptyResult(opts: ConvertOpts, reason: string): DeepwikiConvertResult {
+function emptyResult(opts: ConvertOpts, reason: string): DeepwikiComConvertResult {
   const md =
     `# ${opts.title || "DeepWiki page"}\n\n` +
     `> 原文链接: ${opts.url}\n\n` +
@@ -260,7 +260,7 @@ function makeTurndown(): TurndownService {
 
   // <pre> → fenced code, language from <code class="language-X">. Used both
   // for normal code blocks and for the mermaid replacements (we set
-  // class="language-mermaid" on those inside `convertDeepwikiHtml`).
+  // class="language-mermaid" on those inside `convertDeepwikiComHtml`).
   td.addRule("fenced-code", {
     filter: (node) => node.nodeName === "PRE",
     replacement: (_content, node) => {

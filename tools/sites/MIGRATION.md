@@ -172,35 +172,39 @@ broad `match()` is the right shape. Example: `xhs` matches both
 `xhslink.com` (short-link that redirects) and `xiaohongshu.com` (direct
 article URL); they're the same site under one operator, so one module.
 
-When two hostnames **share a content engine but are run by different
-operators**, register them as **two separate Site entries** that import
-shared extraction code from `tools/sites/_shared/<engine>/`. Example:
-`wiki.litenext.digital` (self-hosted DeepWiki deployment) and
-`deepwiki.com` (Devin's hosted service) both run the DeepWiki engine,
-so the layout is:
+When two hostnames are **independent sites** (different operators —
+different uptime, different failure modes, possibly diverging markup
+over time, possibly the same software / engine but no operational
+relationship), register them as **fully separate sites with their own
+copies of `converter.ts` + `fetcher.ts`**. No shared code. Example:
+`wiki.litenext.digital` (a self-hosted deployment) and `deepwiki.com`
+(Devin's hosted service) both happen to run DeepWiki software, but
+they have no operational relationship — so the layout is:
 
 ```
 tools/sites/
-├── _shared/deepwiki-engine/
-│   ├── converter.ts            ← shared HTML→MD logic
-│   └── fetcher.ts              ← shared browser extraction (handles both
-│                                  data-original-text and hydration-script
-│                                  mermaid strategies based on what the
-│                                  page exposes)
-├── deepwiki-litenext/index.ts  ← name: "deepwiki-litenext", match: wiki.litenext.digital only
-└── deepwiki-com/index.ts       ← name: "deepwiki-com",      match: deepwiki.com only
+├── deepwiki-litenext/
+│   ├── index.ts            ← name: "deepwiki-litenext", match: wiki.litenext.digital only
+│   ├── fetcher.ts          ← extractDeepwikiLitenextContent
+│   └── converter.ts        ← convertDeepwikiLitenextHtml
+└── deepwiki-com/
+    ├── index.ts            ← name: "deepwiki-com", match: deepwiki.com only
+    ├── fetcher.ts          ← extractDeepwikiComContent
+    └── converter.ts        ← convertDeepwikiComHtml
 ```
 
-The dispatch report renders these as `site:deepwiki-litenext` /
-`site:deepwiki-com` so per-operator issues stay visible (different
-operators = different uptime, failure modes, possibly diverging markup
-over time).
+The dispatch report renders these as `site:deepwiki-litenext` and
+`site:deepwiki-com` — separate rows so per-operator issues stay
+visible. Each module has its own fixture directory under
+`__tests__/fixtures/converters/<module-name>/` and its own snapshot
+directory under `__tests__/snapshots/<hostname>/`.
 
-3-fixture/3-snapshot coverage in this case applies to the **shared
-engine** (one fixture set under `__tests__/fixtures/converters/deepwiki/`),
-distributed proportionally to bookmark counts across the operators
-(litenext 19 → 2 fixtures + 2 snapshots; deepwiki.com 2 → 1 fixture +
-1 snapshot, all available).
+The duplication is intentional. Fighting it with shared code couples
+two operators that have no actual relationship and makes future
+divergence painful. Treat any temptation to extract a `_shared/` engine
+as a yellow flag — only do it when you know the two callers have a
+contractual relationship (same vendor, documented compatibility), not
+just incidental similarity.
 
 If `capture-fixtures.ts` doesn't have a case for your host yet, add one (see CLAUDE.md §6b "Adding fixture support for a NEW converter").
 

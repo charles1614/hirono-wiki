@@ -40,8 +40,10 @@ import {
 } from "../sites/github/fetcher.ts";
 import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
 import { extractZhihuArticleContent } from "../sites/zhihu/fetcher.ts";
-import { convertDeepwikiHtml } from "../sites/_shared/deepwiki-engine/converter.ts";
-import { extractDeepwikiContent } from "../sites/_shared/deepwiki-engine/fetcher.ts";
+import { convertDeepwikiLitenextHtml } from "../sites/deepwiki-litenext/converter.ts";
+import { extractDeepwikiLitenextContent } from "../sites/deepwiki-litenext/fetcher.ts";
+import { convertDeepwikiComHtml } from "../sites/deepwiki-com/converter.ts";
+import { extractDeepwikiComContent } from "../sites/deepwiki-com/fetcher.ts";
 import { extractXhsFullContent, sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
 import { spawnSync } from "node:child_process";
 
@@ -253,37 +255,64 @@ function captureZhihu(name: string, url: string): void {
   console.log(`[capture zhihu] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.zhidaLinksUnwrapped} zhida-link(s) unwrapped`);
 }
 
-function captureDeepwiki(name: string, url: string): void {
-  console.log(`[capture deepwiki] ${url}`);
-  const x = extractDeepwikiContent(url);
-  if (x.error) throw new Error(`deepwiki extraction failed: ${x.error}`);
+function captureDeepwikiLitenext(name: string, url: string): void {
+  console.log(`[capture deepwiki-litenext] ${url}`);
+  const x = extractDeepwikiLitenextContent(url);
+  if (x.error) throw new Error(`deepwiki-litenext extraction failed: ${x.error}`);
   if (!x.contentHtml || x.contentHtml.length < 200) {
-    throw new Error(`deepwiki .prose container empty (${x.contentHtml.length} chars)`);
+    throw new Error(`deepwiki-litenext .prose container empty (${x.contentHtml.length} chars)`);
   }
   const args: [string, string[], { title: string; url: string }] = [
     x.contentHtml,
     x.mermaidSources,
     { title: x.title, url },
   ];
-  const result = convertDeepwikiHtml(args[0], args[1], args[2]);
+  const result = convertDeepwikiLitenextHtml(args[0], args[1], args[2]);
 
-  const dir = join(FIXTURES_ROOT, "deepwiki");
+  const dir = join(FIXTURES_ROOT, "deepwiki-litenext");
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, `${name}.input.json`), JSON.stringify({
-    fn: "convertDeepwikiHtml",
+    fn: "convertDeepwikiLitenextHtml",
     args,
   }, null, 2) + "\n");
   writeFileSync(join(dir, `${name}.expected.md`), result.markdown);
   const { markdown: _md, ...rest } = result;
   writeFileSync(join(dir, `${name}.expected.json`), JSON.stringify(rest, null, 2) + "\n");
-  console.log(`[capture deepwiki] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
-  console.log(`[capture deepwiki] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.mermaidPlaced}/${result.stats.mermaidExpected} mermaid block(s)`);
+  console.log(`[capture deepwiki-litenext] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
+  console.log(`[capture deepwiki-litenext] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.mermaidPlaced}/${result.stats.mermaidExpected} mermaid block(s)`);
+}
+
+function captureDeepwikiCom(name: string, url: string): void {
+  console.log(`[capture deepwiki-com] ${url}`);
+  const x = extractDeepwikiComContent(url);
+  if (x.error) throw new Error(`deepwiki-com extraction failed: ${x.error}`);
+  if (!x.contentHtml || x.contentHtml.length < 200) {
+    throw new Error(`deepwiki-com .prose container empty (${x.contentHtml.length} chars)`);
+  }
+  const args: [string, string[], { title: string; url: string }] = [
+    x.contentHtml,
+    x.mermaidSources,
+    { title: x.title, url },
+  ];
+  const result = convertDeepwikiComHtml(args[0], args[1], args[2]);
+
+  const dir = join(FIXTURES_ROOT, "deepwiki-com");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}.input.json`), JSON.stringify({
+    fn: "convertDeepwikiComHtml",
+    args,
+  }, null, 2) + "\n");
+  writeFileSync(join(dir, `${name}.expected.md`), result.markdown);
+  const { markdown: _md, ...rest } = result;
+  writeFileSync(join(dir, `${name}.expected.json`), JSON.stringify(rest, null, 2) + "\n");
+  console.log(`[capture deepwiki-com] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
+  console.log(`[capture deepwiki-com] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.mermaidPlaced}/${result.stats.mermaidExpected} mermaid block(s)`);
 }
 
 const [host, name, url] = process.argv.slice(2);
 if (!host || !name || !url) {
   console.error("usage: capture-fixtures.ts <host> <name> <url>");
-  console.error("  host = weixin | xhs | github | zhihu | deepwiki");
+  console.error("  host = weixin | xhs | github | zhihu | deepwiki-litenext | deepwiki-com");
   console.error("  name = identifier for the fixture (e.g. gpu-container)");
   console.error("  url  = the URL to fetch");
   process.exit(2);
@@ -293,5 +322,6 @@ if (host === "weixin") captureWeixin(name, url);
 else if (host === "xhs") captureXhs(name, url);
 else if (host === "github") captureGithub(name, url);
 else if (host === "zhihu") captureZhihu(name, url);
-else if (host === "deepwiki") captureDeepwiki(name, url);
+else if (host === "deepwiki-litenext") captureDeepwikiLitenext(name, url);
+else if (host === "deepwiki-com") captureDeepwikiCom(name, url);
 else { console.error(`unknown host: ${host}`); process.exit(2); }

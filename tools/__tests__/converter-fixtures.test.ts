@@ -41,7 +41,8 @@ import {
   convertGithubRaw,
 } from "../sites/github/converter.ts";
 import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
-import { convertDeepwikiHtml } from "../sites/_shared/deepwiki-engine/converter.ts";
+import { convertDeepwikiLitenextHtml } from "../sites/deepwiki-litenext/converter.ts";
+import { convertDeepwikiComHtml } from "../sites/deepwiki-com/converter.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
 // (npm test runs from tools/; manual `npx tsx ...` runs from repo root).
@@ -76,7 +77,7 @@ function listFixtures(): Fixture[] {
 }
 
 interface InputDoc {
-  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiHtml";
+  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml";
   args: unknown[];
 }
 
@@ -119,9 +120,15 @@ function runConverter(input: InputDoc): { markdown: string; rest: Record<string,
     const { markdown, ...rest } = r;
     return { markdown, rest: rest as Record<string, unknown> };
   }
-  if (input.fn === "convertDeepwikiHtml") {
+  if (input.fn === "convertDeepwikiLitenextHtml") {
     const [contentHtml, mermaidSources, opts] = input.args as [string, string[], { title: string; url: string }];
-    const r = convertDeepwikiHtml(contentHtml, mermaidSources, opts);
+    const r = convertDeepwikiLitenextHtml(contentHtml, mermaidSources, opts);
+    const { markdown, ...rest } = r;
+    return { markdown, rest: rest as Record<string, unknown> };
+  }
+  if (input.fn === "convertDeepwikiComHtml") {
+    const [contentHtml, mermaidSources, opts] = input.args as [string, string[], { title: string; url: string }];
+    const r = convertDeepwikiComHtml(contentHtml, mermaidSources, opts);
     const { markdown, ...rest } = r;
     return { markdown, rest: rest as Record<string, unknown> };
   }

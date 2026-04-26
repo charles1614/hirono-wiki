@@ -10,9 +10,9 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../../../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
 
-export interface DeepwikiContent {
+export interface DeepwikiComContent {
   /** outerHTML of `.prose` — empty on failure (and `error` will be set). */
   contentHtml: string;
   /** mermaid sources in document order, ready to embed as code blocks. */
@@ -25,7 +25,7 @@ export interface DeepwikiContent {
   error?: string;
 }
 
-export function extractDeepwikiContent(url: string): DeepwikiContent {
+export function extractDeepwikiComContent(url: string): DeepwikiComContent {
   let browserOpened = false;
   try {
     const openRes = spawnSync(
@@ -149,7 +149,7 @@ export function extractDeepwikiContent(url: string): DeepwikiContent {
   } catch (e) {
     return {
       contentHtml: "", mermaidSources: [], title: "",
-      error: `extractDeepwikiContent threw: ${e instanceof Error ? e.message : e}`,
+      error: `extractDeepwikiComContent threw: ${e instanceof Error ? e.message : e}`,
     };
   } finally {
     if (browserOpened) closeBrowser();

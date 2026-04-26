@@ -1,28 +1,18 @@
 /**
- * wiki.litenext.digital — a self-hosted DeepWiki deployment.
+ * wiki.litenext.digital — a self-hosted deployment of DeepWiki software.
  *
- * Different operator from `deepwiki.com`, but the two run the SAME
- * DeepWiki engine — same `.prose` container layout, same `.mermaid`
- * rendering, same selectors. Both modules import the shared
- * extraction + conversion code from `tools/sites/_shared/deepwiki-engine/`;
- * the only per-operator differences (mermaid extraction strategy:
- * `data-original-text` attribute on litenext vs hydration-script
- * regex on deepwiki.com) are handled inside the shared fetcher
- * automatically based on what the page actually exposes.
- *
- * Why two modules instead of one with a `match` for both hostnames:
- * they are operationally distinct sites — separate operators, separate
- * uptime, separate failure modes. The dispatch report
- * (`hirono raindrop check`) labels them separately so per-operator
- * issues stay visible.
+ * Independent of `deepwiki.com` — different operator, separate uptime,
+ * separate failure modes, no shared code. The `hirono raindrop check`
+ * dispatch report labels them separately so per-operator issues stay
+ * visible.
  */
 
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 
 import type { Site } from "../_shared/types.ts";
-import { extractDeepwikiContent } from "../_shared/deepwiki-engine/fetcher.ts";
-import { convertDeepwikiHtml } from "../_shared/deepwiki-engine/converter.ts";
+import { extractDeepwikiLitenextContent } from "./fetcher.ts";
+import { convertDeepwikiLitenextHtml } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 
 function hostOf(url: string): string {
@@ -39,7 +29,7 @@ export const site: Site = {
 function fetchDeepwiki(url: string, opts: { slugDir: string; titleHint?: string }) {
   mkdirSync(opts.slugDir, { recursive: true });
 
-  const x = extractDeepwikiContent(url);
+  const x = extractDeepwikiLitenextContent(url);
   if (x.error) {
     return stubResult(url, `deepwiki browser extraction failed: ${x.error.slice(0, 160)}`);
   }
@@ -47,7 +37,7 @@ function fetchDeepwiki(url: string, opts: { slugDir: string; titleHint?: string 
     return stubResult(url, `deepwiki .prose container empty or too small (${x.contentHtml.length} chars)`);
   }
 
-  const conv = convertDeepwikiHtml(x.contentHtml, x.mermaidSources, {
+  const conv = convertDeepwikiLitenextHtml(x.contentHtml, x.mermaidSources, {
     title: x.title,
     url,
   });
