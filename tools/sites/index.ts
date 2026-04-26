@@ -14,12 +14,14 @@ import { site as xhs } from "./xhs/index.ts";
 import { site as github } from "./github/index.ts";
 import { site as zhihuArticle } from "./zhihu/index.ts";
 import { site as weixin } from "./weixin/index.ts";
+import { site as deepwiki } from "./deepwiki/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
   github,
   zhihuArticle,
   weixin,
+  deepwiki,
 ];
 
 export function routeSite(url: string): Site | null {

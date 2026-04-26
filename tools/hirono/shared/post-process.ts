@@ -514,121 +514,14 @@ export const resolveRelativeImageUrls: PostProcessor = {
   },
 };
 
-// ---------------------------------------------------------------------------
-// DeepWiki (wiki.litenext.digital): strip the file-navigator chrome
-// ---------------------------------------------------------------------------
-
-/**
- * DeepWiki pages all start with a "Files" file-navigator sidebar. Pattern is:
- *
- *   ### Files
- *
- *   ← Back
- *
- *   -   01-overview
- *
- *   -   02-system-architecture
- *   ... (all sibling files)
- *
- *   # <repo-name>
- *
- *   Viewing: <filename>
- *
- *   Edit
- *
- *   # <actual-article-title>
- *
- * We strip from `### Files` through the "Edit\n" line, inclusive, and keep
- * the article content that follows. If the pattern doesn't match cleanly,
- * we return the input unchanged (fail-closed).
- */
-export const deepwikiStripNav: PostProcessor = {
-  name: "deepwiki-strip-file-nav",
-  match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com",
-  transform: (md, _originUrl) => {
-    const notes: string[] = [];
-
-    // wiki.litenext.digital pattern: "### Files" ... "Edit\n"
-    const filesIdx = md.indexOf("### Files");
-    if (filesIdx >= 0) {
-      const afterFiles = md.slice(filesIdx);
-      const editMatch = afterFiles.match(/\nEdit\n/);
-      if (editMatch && editMatch.index !== undefined) {
-        const editEnd = filesIdx + editMatch.index + editMatch[0].length;
-        const cleaned = md.slice(0, filesIdx) + md.slice(editEnd);
-        notes.push(`deepwiki: stripped file-navigator chrome (${editEnd - filesIdx} chars)`);
-        return {
-          md: cleaned.replace(/\n{3,}/g, "\n\n").trimStart(),
-          newAbsoluteImageUrls: [],
-          notes,
-        };
-      }
-    }
-
-    // deepwiki.com pattern: nav + TOC links until a lone "Menu\n" line, then "# Article"
-    // Strip from start of doc (after the preamble header) through the "Menu" line.
-    const menuMatch = md.match(/\nMenu\n/);
-    if (menuMatch && menuMatch.index !== undefined) {
-      // Find first H1 after "Menu"
-      const afterMenu = md.slice(menuMatch.index + menuMatch[0].length);
-      const h1Match = afterMenu.match(/^#+\s+/m);
-      if (h1Match && h1Match.index !== undefined) {
-        // Preserve the preamble block (title + source line + ---) before the nav
-        const preambleEnd = md.indexOf("\n---\n");
-        const preamble = preambleEnd >= 0 ? md.slice(0, preambleEnd + 5) : "";
-        const articleStart = menuMatch.index + menuMatch[0].length + h1Match.index;
-        const strippedLeading = articleStart - (preambleEnd >= 0 ? preambleEnd + 5 : 0);
-        let cleaned = preamble + "\n" + md.slice(articleStart);
-
-        // Strip deepwiki.com's second-H1 "page title" block that sits
-        // between the preamble and the first real H2. The shape is:
-        //   # <Page Title>\n\nRelevant source files\n\n-   [link](...)\n\n## First real heading
-        // We demote the H1 away entirely (the preamble H1 already carries
-        // the canonical title) and also drop the "Relevant source files" line.
-        const dupH1Re = /\n#\s+[^\n]+\n\nRelevant source files\n\n(?:-\s+\[[^\]]+\]\([^)]+\)[^\n]*\n\n)+(?=##\s)/;
-        const before = cleaned.length;
-        cleaned = cleaned.replace(dupH1Re, "\n");
-        const dupBytes = before - cleaned.length;
-
-        // Strip deepwiki.com trailing chrome. Appears at the very end:
-        //   Dismiss / Refresh this wiki / Enter email to refresh /
-        //   ### On this page + TOC list / Ask Devin about X / Fast
-        // Cut from the earliest marker through end-of-doc.
-        const trailAnchors = [
-          /\nDismiss\s*\n/,
-          /\n### On this page\s*\n/,
-          /\nAsk Devin about [^\n]+\n/,
-        ];
-        let trailStart = cleaned.length;
-        for (const re of trailAnchors) {
-          const m = cleaned.match(re);
-          if (m && m.index !== undefined && m.index < trailStart) trailStart = m.index;
-        }
-        let trailBytes = 0;
-        if (trailStart < cleaned.length) {
-          trailBytes = cleaned.length - trailStart;
-          cleaned = cleaned.slice(0, trailStart).replace(/\s+$/, "") + "\n";
-        }
-
-        const parts: string[] = [`nav chrome (${strippedLeading} chars)`];
-        if (dupBytes > 0) parts.push(`dup H1 block (${dupBytes} chars)`);
-        if (trailBytes > 0) parts.push(`trailing chrome (${trailBytes} chars)`);
-        notes.push(`deepwiki: stripped ${parts.join(", ")}`);
-        return {
-          md: cleaned.replace(/\n{3,}/g, "\n\n"),
-          newAbsoluteImageUrls: [],
-          notes,
-        };
-      }
-    }
-
-    return { md, newAbsoluteImageUrls: [], notes: [] };
-  },
-};
-
 // (githubStripUIChrome retired — github migrated to tools/sites/github/
 //  which uses REST API + raw URLs, never opencli web-read. The 845-line
 //  strip processor that handled web-read's UI chrome has no callers now.)
+
+// (deepwikiStripNav retired — wiki.litenext.digital + deepwiki.com migrated
+//  to tools/sites/deepwiki/ which extracts the .prose container directly
+//  (no opencli web-read), so the file-navigator chrome never enters the
+//  pipeline in the first place.)
 
 // ---------------------------------------------------------------------------
 // Anthropic: SVG text-explosion cleanup
@@ -1028,80 +921,10 @@ export const substackReformat: PostProcessor = {
 
 // xhsReformatNoteTable migrated to tools/hirono/processors/xiaohongshu.ts
 
-// ---------------------------------------------------------------------------
-// DeepWiki: wrap disconnected diagram-node runs in a code block
-// ---------------------------------------------------------------------------
-
-export const deepwikiWrapDiagramNodes: PostProcessor = {
-  name: "deepwiki-wrap-diagram-nodes",
-  match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com",
-  transform: (md, _originUrl) => {
-    const lines = md.split("\n");
-    const out: string[] = [];
-    let i = 0;
-    let wraps = 0;
-    let inCodeFence = false;
-    const isDiagramNode = (t: string): boolean => {
-      if (t.length === 0) return false;
-      if (t.length > 40) return false;
-      if (t.split(/\s+/).length > 5) return false;
-      if (/^[#\-*>![|`]/.test(t)) return false;
-      if (/^\d+\./.test(t)) return false;
-      if (/^(?:image|img)\//i.test(t)) return false;
-      if (/^https?:\/\//.test(t)) return false;
-      return true;
-    };
-    while (i < lines.length) {
-      // Pass through everything inside code fences verbatim — including
-      // already-spliced mermaid blocks from the deepwiki-mermaid extractor.
-      if (/^```/.test(lines[i].trim())) {
-        out.push(lines[i]);
-        i++;
-        inCodeFence = !inCodeFence;
-        continue;
-      }
-      if (inCodeFence) {
-        out.push(lines[i]);
-        i++;
-        continue;
-      }
-      const runStart = i;
-      const collected: string[] = [];
-      // Scan forward while we're still in a diagram-node-run context.
-      while (i < lines.length) {
-        const t = lines[i].trim();
-        if (/^```/.test(t)) break;  // don't consume into a fence
-        if (t === "") { i++; continue; }
-        if (isDiagramNode(t)) { collected.push(t); i++; continue; }
-        break;
-      }
-      if (collected.length >= 6) {
-        out.push("```text");
-        out.push(`# Diagram (mermaid nodes — see source for rendered graph)`);
-        out.push(...collected);
-        out.push("```");
-        out.push("");
-        wraps++;
-      } else {
-        // Not a diagram run. Emit [runStart, i) EXCLUSIVE so if i landed on
-        // a fence line, the outer loop re-processes it and toggles
-        // inCodeFence. If the scan didn't advance, force-advance to guarantee
-        // progress.
-        for (let j = runStart; j < i && j < lines.length; j++) out.push(lines[j]);
-        if (i === runStart) {
-          out.push(lines[i]);
-          i++;
-        }
-      }
-    }
-    const cleaned = out.join("\n").replace(/\n{3,}/g, "\n\n");
-    return {
-      md: cleaned,
-      newAbsoluteImageUrls: [],
-      notes: wraps > 0 ? [`deepwiki: wrapped ${wraps} diagram-node run(s) in code blocks`] : [],
-    };
-  },
-};
+// (deepwikiWrapDiagramNodes retired — wiki.litenext.digital + deepwiki.com
+//  now extract mermaid sources directly via tools/sites/deepwiki/, so the
+//  exploded-node-list runs that this processor wrapped never appear in the
+//  pipeline anymore.)
 
 // ---------------------------------------------------------------------------
 // Generic: strip HTML color tags (Feishu-tenant artifact)
@@ -2103,7 +1926,6 @@ export const PROCESSORS: PostProcessor[] = [
   ...siteSpecificProcessors,
   // Site-specific content strips that still live in this file (pending
   // migration to tools/hirono/processors/<host>.ts).
-  deepwikiStripNav,
   anthropicStripSvgExplosion,
   arxivStripTrailingChrome,
   arxivStructureImprove,
@@ -2111,9 +1933,6 @@ export const PROCESSORS: PostProcessor[] = [
   // substack (semianalysis, magazine.sebastianraschka): strip dup H1 + paywall + unwrap
   substackReformat,
   // sebastianraschka.com is also Substack; substackReformat handles it
-  // deepwiki: wrap diagram-node runs (runs AFTER deepwikiStripNav so the
-  // file-navigator chrome is already gone before we look for diagram runs)
-  deepwikiWrapDiagramNodes,
   // Forum cleanups
   linuxDoReformat,
   redditReformat,

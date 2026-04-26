@@ -9,7 +9,6 @@
  *   - substackReformat (4 cases)
  *   - xhsReformatNoteTable (3 cases)
  *   - arxivStripTrailingChrome + arxivStructureImprove (2 cases each)
- *   - deepwikiWrapDiagramNodes (1 case)
  *   - stripEmptyAnchorLinks (2 cases)
  *   - unescapeBracketsInLinks (2 cases)
  */
@@ -21,8 +20,6 @@ import {
   arxivStripTrailingChrome,
   arxivStructureImprove,
   arxivPdfNote,
-  deepwikiStripNav,
-  deepwikiWrapDiagramNodes,
   enforceSingleH1,
   stripEmptyAnchorLinks,
   stripDecorativeEmojiImages,
@@ -322,63 +319,10 @@ test("arxivStructureImprove: collapses >10 authors", () => {
   assert.ok(r.notes.some((n) => /collapsed 15-author/.test(n)));
 });
 
-// ---------------------------------------------------------------------------
-// deepwikiWrapDiagramNodes
-// ---------------------------------------------------------------------------
-
-test("deepwikiWrapDiagramNodes: wraps 6+ diagram-node run in ```text block", () => {
-  const md = [
-    "# Overview",
-    "",
-    "Some prose paragraph.",
-    "",
-    "User",
-    "Client",
-    "API",
-    "Server",
-    "Database",
-    "Cache",
-    "Queue",
-    "",
-    "More prose after.",
-  ].join("\n");
-  const r = deepwikiWrapDiagramNodes.transform(md, "https://wiki.litenext.digital/foo");
-  assert.match(r.md, /```text[\s\S]*Diagram \(mermaid nodes[\s\S]*User[\s\S]*```/);
-  assert.match(r.md, /Some prose paragraph/);
-  assert.match(r.md, /More prose after/);
-  assert.ok(r.notes.some((n) => /wrapped.*diagram-node/i.test(n)));
-});
-
-test("deepwikiWrapDiagramNodes: does NOT wrap <6 short lines", () => {
-  const md = "# Title\n\nFoo\nBar\nBaz\n\nMore prose.";
-  const r = deepwikiWrapDiagramNodes.transform(md, "https://wiki.litenext.digital/x");
-  assert.doesNotMatch(r.md, /```text/);
-  assert.equal(r.notes.length, 0);
-});
-
-test("deepwikiWrapDiagramNodes: does not re-wrap existing code-fenced block", () => {
-  const md = [
-    "# X",
-    "",
-    "```mermaid",
-    "flowchart TD",
-    "  A[One] --> B[Two]",
-    "  B --> C[Three]",
-    "  C --> D[Four]",
-    "  D --> E[Five]",
-    "  E --> F[Six]",
-    "  F --> G[Seven]",
-    "```",
-  ].join("\n");
-  const r = deepwikiWrapDiagramNodes.transform(md, "https://wiki.litenext.digital/y");
-  // Our wrapper uses ```text, not ```mermaid. Count ```text occurrences.
-  const textFences = (r.md.match(/```text/g) || []).length;
-  assert.equal(textFences, 0, "existing mermaid fence should not trigger a nested ```text wrap");
-});
-
-test("deepwikiWrapDiagramNodes: only runs for wiki.litenext.digital", () => {
-  assert.equal(deepwikiWrapDiagramNodes.match("https://github.com/x", "github.com"), false);
-});
+// (deepwikiWrapDiagramNodes retired — wiki.litenext.digital + deepwiki.com
+//  migrated to tools/sites/deepwiki/ which extracts mermaid sources directly,
+//  so the exploded-node-list runs this processor wrapped never appear in the
+//  pipeline. The 4 tests for it were deleted along with the code.)
 
 // ---------------------------------------------------------------------------
 // stripEmptyAnchorLinks
@@ -808,60 +752,10 @@ test("arxivPdfNote: substantial PDF fetch keeps body + adds abstract note", () =
   assert.ok(!r.extraFlags?.includes("intentional-stub"));
 });
 
-// ---------------------------------------------------------------------------
-// deepwikiStripNav: extended (dup-H1 + trailing chrome)
-// ---------------------------------------------------------------------------
-
-test("deepwikiStripNav: deepwiki.com strips top nav + dup H1 + trailing TOC", () => {
-  const md = [
-    "# aliyun/SimAI",
-    "",
-    "> 原文链接: https://deepwiki.com/aliyun/SimAI/1-overview",
-    "",
-    "---",
-    "Some sidebar nav…",
-    "",
-    "Menu",
-    "",
-    "# SimAI Overview",
-    "",
-    "Relevant source files",
-    "",
-    "-   [README.md](https://github.com/aliyun/SimAI/blob/x/README.md)",
-    "",
-    "## Purpose and Scope",
-    "",
-    "Real body.",
-    "",
-    "Sources: [README.md1-100](...)",
-    "",
-    "Dismiss",
-    "",
-    "Refresh this wiki",
-    "",
-    "### On this page",
-    "",
-    "-   [Purpose and Scope](#purpose-and-scope)",
-    "",
-    "Ask Devin about aliyun/SimAI",
-  ].join("\n");
-  const r = deepwikiStripNav.transform(md, "https://deepwiki.com/aliyun/SimAI/1-overview");
-  // Top sidebar gone
-  assert.doesNotMatch(r.md, /Menu/);
-  // Dup H1 + Relevant source files block gone
-  assert.doesNotMatch(r.md, /^# SimAI Overview$/m);
-  assert.doesNotMatch(r.md, /Relevant source files/);
-  // Trailing chrome gone
-  assert.doesNotMatch(r.md, /Dismiss/);
-  assert.doesNotMatch(r.md, /Refresh this wiki/);
-  assert.doesNotMatch(r.md, /### On this page/);
-  assert.doesNotMatch(r.md, /Ask Devin about/);
-  // Real body survives
-  assert.match(r.md, /## Purpose and Scope/);
-  assert.match(r.md, /Real body/);
-  // Stats note fired
-  assert.match(r.notes.join(""), /nav chrome.*dup H1 block.*trailing chrome/s);
-});
+// (deepwikiStripNav extended-test retired together with the processor —
+//  see the deepwiki migration commit. The `.prose`-direct extraction in
+//  tools/sites/deepwiki/ never includes the sidebar nav / dup H1 / trailing
+//  TOC, so the post-processor stripping them is no longer needed.)
 
 // ---------------------------------------------------------------------------
 // Pipeline composition: applyPostProcessors with the new processors

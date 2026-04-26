@@ -40,6 +40,8 @@ import {
 } from "../sites/github/fetcher.ts";
 import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
 import { extractZhihuArticleContent } from "../sites/zhihu/fetcher.ts";
+import { convertDeepwikiHtml } from "../sites/deepwiki/converter.ts";
+import { extractDeepwikiContent } from "../sites/deepwiki/fetcher.ts";
 import { extractXhsFullContent, sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
 import { spawnSync } from "node:child_process";
 
@@ -251,10 +253,37 @@ function captureZhihu(name: string, url: string): void {
   console.log(`[capture zhihu] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.zhidaLinksUnwrapped} zhida-link(s) unwrapped`);
 }
 
+function captureDeepwiki(name: string, url: string): void {
+  console.log(`[capture deepwiki] ${url}`);
+  const x = extractDeepwikiContent(url);
+  if (x.error) throw new Error(`deepwiki extraction failed: ${x.error}`);
+  if (!x.contentHtml || x.contentHtml.length < 200) {
+    throw new Error(`deepwiki .prose container empty (${x.contentHtml.length} chars)`);
+  }
+  const args: [string, string[], { title: string; url: string }] = [
+    x.contentHtml,
+    x.mermaidSources,
+    { title: x.title, url },
+  ];
+  const result = convertDeepwikiHtml(args[0], args[1], args[2]);
+
+  const dir = join(FIXTURES_ROOT, "deepwiki");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}.input.json`), JSON.stringify({
+    fn: "convertDeepwikiHtml",
+    args,
+  }, null, 2) + "\n");
+  writeFileSync(join(dir, `${name}.expected.md`), result.markdown);
+  const { markdown: _md, ...rest } = result;
+  writeFileSync(join(dir, `${name}.expected.json`), JSON.stringify(rest, null, 2) + "\n");
+  console.log(`[capture deepwiki] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
+  console.log(`[capture deepwiki] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.mermaidPlaced}/${result.stats.mermaidExpected} mermaid block(s)`);
+}
+
 const [host, name, url] = process.argv.slice(2);
 if (!host || !name || !url) {
   console.error("usage: capture-fixtures.ts <host> <name> <url>");
-  console.error("  host = weixin | xhs | github | zhihu");
+  console.error("  host = weixin | xhs | github | zhihu | deepwiki");
   console.error("  name = identifier for the fixture (e.g. gpu-container)");
   console.error("  url  = the URL to fetch");
   process.exit(2);
@@ -264,4 +293,5 @@ if (host === "weixin") captureWeixin(name, url);
 else if (host === "xhs") captureXhs(name, url);
 else if (host === "github") captureGithub(name, url);
 else if (host === "zhihu") captureZhihu(name, url);
+else if (host === "deepwiki") captureDeepwiki(name, url);
 else { console.error(`unknown host: ${host}`); process.exit(2); }

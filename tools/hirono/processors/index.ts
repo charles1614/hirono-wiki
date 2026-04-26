@@ -17,10 +17,10 @@
  * pipeline.
  *
  * As of the initial scaffold, NO per-host files have been migrated here yet.
- * The 11 legacy site-specific processors still live in `post-process.ts`
- * itself (substackReformat, deepwikiStripNav, etc.).
- * They will be retired or migrated into this directory one-by-one as their
- * hosts move to community-adapter coverage.
+ * The remaining legacy site-specific processors still live in `post-process.ts`
+ * itself (substackReformat, etc.). They will be retired or migrated into
+ * this directory one-by-one as their hosts move to per-host site modules
+ * under `tools/sites/<host>/`.
  */
 
 import type { PostProcessor } from "../shared/post-process.ts";

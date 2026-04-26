@@ -1,0 +1,14 @@
+{
+  "imagesToDownload": [],
+  "metadata": {
+    "title": "SimAI Overview"
+  },
+  "stats": {
+    "mermaidExpected": 3,
+    "mermaidPlaced": 3,
+    "tables": 21,
+    "codeFences": 3,
+    "images": 0,
+    "chromeStripped": 0
+  }
+}

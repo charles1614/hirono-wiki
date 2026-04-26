@@ -1,0 +1,14 @@
+{
+  "imagesToDownload": [],
+  "metadata": {
+    "title": "1. Overview: What is JAX?"
+  },
+  "stats": {
+    "mermaidExpected": 1,
+    "mermaidPlaced": 1,
+    "tables": 32,
+    "codeFences": 6,
+    "images": 0,
+    "chromeStripped": 2
+  }
+}

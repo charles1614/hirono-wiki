@@ -41,6 +41,7 @@ import {
   convertGithubRaw,
 } from "../sites/github/converter.ts";
 import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
+import { convertDeepwikiHtml } from "../sites/deepwiki/converter.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
 // (npm test runs from tools/; manual `npx tsx ...` runs from repo root).
@@ -75,7 +76,7 @@ function listFixtures(): Fixture[] {
 }
 
 interface InputDoc {
-  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml";
+  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiHtml";
   args: unknown[];
 }
 
@@ -115,6 +116,12 @@ function runConverter(input: InputDoc): { markdown: string; rest: Record<string,
     const [contentHtml, rawMetadata, originUrl] = input.args as [string, unknown, string];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const r = convertZhihuArticleHtml(contentHtml, rawMetadata as any, originUrl);
+    const { markdown, ...rest } = r;
+    return { markdown, rest: rest as Record<string, unknown> };
+  }
+  if (input.fn === "convertDeepwikiHtml") {
+    const [contentHtml, mermaidSources, opts] = input.args as [string, string[], { title: string; url: string }];
+    const r = convertDeepwikiHtml(contentHtml, mermaidSources, opts);
     const { markdown, ...rest } = r;
     return { markdown, rest: rest as Record<string, unknown> };
   }

@@ -16,7 +16,6 @@ import { tmpdir } from "node:os";
 
 import {
   resolveRelativeImageUrls,
-  deepwikiStripNav,
   anthropicStripSvgExplosion,
   stripColorTags,
   extractRelativeImageRefs,
@@ -131,55 +130,10 @@ test("resolveRelativeImageUrls: no-op when all URLs absolute", () => {
   assert.equal(r.md, md);
 });
 
-// ---------------------------------------------------------------------------
-// deepwikiStripNav
-// ---------------------------------------------------------------------------
-
-test("deepwikiStripNav: strips file-navigator chrome up through Edit", () => {
-  const md = [
-    "# DeepWiki",
-    "",
-    "> 原文链接: https://wiki.litenext.digital/wiki/slime?file=01-overview",
-    "",
-    "---",
-    "### Files",
-    "",
-    "← Back",
-    "",
-    "-   01-overview",
-    "",
-    "-   02-system-architecture",
-    "",
-    "# slime",
-    "",
-    "Viewing: 01-overview",
-    "",
-    "Edit",
-    "",
-    "# Overview and Core Concepts",
-    "",
-    "Real article body starts here.",
-  ].join("\n");
-  const r = deepwikiStripNav.transform(md, "https://wiki.litenext.digital/wiki/slime?file=01-overview");
-  assert.ok(!r.md.includes("### Files"));
-  assert.ok(!r.md.includes("← Back"));
-  assert.ok(!r.md.includes("Viewing: 01-overview"));
-  assert.ok(r.md.includes("# Overview and Core Concepts"));
-  assert.ok(r.md.includes("Real article body starts here."));
-  assert.ok(r.notes[0]?.startsWith("deepwiki: stripped"));
-});
-
-test("deepwikiStripNav: no-op when pattern absent", () => {
-  const md = "# Regular article\n\nBody.";
-  const r = deepwikiStripNav.transform(md, "https://wiki.litenext.digital/x");
-  assert.equal(r.md, md);
-  assert.deepEqual(r.notes, []);
-});
-
-test("deepwikiStripNav: only runs for wiki.litenext.digital", () => {
-  assert.equal(deepwikiStripNav.match("https://example.com/", "example.com"), false);
-  assert.equal(deepwikiStripNav.match("https://wiki.litenext.digital/x", "wiki.litenext.digital"), true);
-});
+// (deepwikiStripNav retired — wiki.litenext.digital + deepwiki.com migrated
+//  to tools/sites/deepwiki/ which extracts the .prose container directly,
+//  so the file-navigator chrome the processor stripped never enters the
+//  pipeline anymore. The 3 tests for it were deleted along with the code.)
 
 // (githubStripUIChrome retired — github migrated to tools/sites/github/
 //  in commit ad97f75; the strip processor and its 2 tests have no
@@ -257,28 +211,10 @@ test("stripColorTags: no-op on clean markdown", () => {
 // applyPostProcessors pipeline
 // ---------------------------------------------------------------------------
 
-test("applyPostProcessors: composes DeepWiki strip + generic resolver", () => {
-  const md = [
-    "### Files",
-    "",
-    "← Back",
-    "",
-    "-   01-overview",
-    "",
-    "# repo",
-    "",
-    "Viewing: 01",
-    "",
-    "Edit",
-    "",
-    "# Article",
-    "",
-    "Body with ![diag](/assets/d.png).",
-  ].join("\n");
+test("applyPostProcessors: relative-image resolver fires for any host", () => {
+  const md = "# Article\n\nBody with ![diag](/assets/d.png).";
   const r = applyPostProcessors(md, "https://wiki.litenext.digital/wiki/repo?file=01");
-  assert.ok(!r.md.includes("### Files"));
   assert.ok(r.md.includes("https://wiki.litenext.digital/assets/d.png"));
-  assert.ok(r.appliedNames.includes("deepwiki-strip-file-nav"));
   assert.ok(r.appliedNames.includes("resolve-relative-image-urls"));
   assert.equal(r.newAbsoluteImageUrls.length, 1);
 });
@@ -286,19 +222,15 @@ test("applyPostProcessors: composes DeepWiki strip + generic resolver", () => {
 test("applyPostProcessors: runs match-filtered processors only", () => {
   const md = `![](/img.png)`;
   const r = applyPostProcessors(md, "https://example.com/");
-  // deepwiki + github + anthropic processors should be skipped; resolver + color-tags should run
-  assert.ok(!r.appliedNames.includes("deepwiki-strip-file-nav"));
-  assert.ok(!r.appliedNames.includes("github-strip-ui-chrome"));
+  // anthropic processor should be skipped; resolver + color-tags should run
   assert.ok(!r.appliedNames.includes("anthropic-strip-svg-explosion"));
+  assert.ok(r.appliedNames.includes("resolve-relative-image-urls"));
 });
 
-test("PROCESSORS pipeline order: site-specific strips come before generic resolver", () => {
-  const dwIdx = PROCESSORS.findIndex((p) => p.name === "deepwiki-strip-file-nav");
-  const ghIdx = PROCESSORS.findIndex((p) => p.name === "github-strip-ui-chrome");
+test("PROCESSORS pipeline order: URL resolver runs before color-tag strip", () => {
   const resolveIdx = PROCESSORS.findIndex((p) => p.name === "resolve-relative-image-urls");
   const colorIdx = PROCESSORS.findIndex((p) => p.name === "strip-color-tags");
-  assert.ok(dwIdx < resolveIdx, "deepwiki strip should run before URL resolver");
-  assert.ok(ghIdx < resolveIdx, "github strip should run before URL resolver");
+  assert.ok(resolveIdx >= 0 && colorIdx >= 0);
   assert.ok(resolveIdx < colorIdx, "URL resolver should run before color-tag strip");
 });
 
