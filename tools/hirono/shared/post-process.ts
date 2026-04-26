@@ -1406,6 +1406,201 @@ const ARTICLE_CLEANUP_HOSTS = new Set([
   "www.sohu.com",
 ]);
 
+// ---------------------------------------------------------------------------
+// intuitionlabs.ai: strip top nav chrome + duplicate H1-as-H2
+// ---------------------------------------------------------------------------
+
+/**
+ * intuitionlabs.ai pages render with a top nav bar that web-read picks up:
+ *   [Back to Articles](/articles)
+ *   |Updated on DD/MM/YYYY|N min read|[Next Article]...|
+ *   Download PDFPDF
+ *   ## <Title>           ← duplicates the H1 we already emit
+ *
+ * Strip those four patterns and the dup heading. Body content is otherwise
+ * clean.
+ */
+export const intuitionlabsCleanup: PostProcessor = {
+  name: "intuitionlabs-cleanup",
+  match: (_u, h) => h === "intuitionlabs.ai",
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    // First pass: find the H1 (we'll dedupe the matching H2 later).
+    let h1Title = "";
+    for (const l of lines) {
+      const m = l.match(/^#\s+(.+?)\s*$/);
+      if (m) { h1Title = m[1].trim(); break; }
+    }
+    // Drop a duplicate of the title that appears LATER in the body. We match
+    // both H1 and H2 forms because enforceSingleH1 (which runs after this
+    // processor) demotes the duplicate H1 to H2 — but the dup may already be
+    // either form when our cleanup runs.
+    const escTitle = h1Title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const dropDup = h1Title ? new RegExp(`^#{1,2}\\s+${escTitle}\\s*$`) : null;
+    // Recognize the standalone tag-chain line that intuitionlabs puts
+    // right after the article hero image. Pattern: only `[name](/articles/tags/slug)`
+    // tokens, end-to-end, with no other text. Strip ONLY when the entire
+    // trimmed line matches this shape (so we don't kill in-prose tag refs).
+    const tagChainOnly = /^(?:\[[^\]\n]+\]\(\/articles\/tags\/[^)]+\))+\s*$/;
+
+    const out: string[] = [];
+    let stripped = 0;
+    let h1Seen = false;
+    for (const l of lines) {
+      const t = l.trim();
+      if (/^\[Back to Articles\]\(/.test(t)) { stripped++; continue; }
+      if (/^\|Updated on\s+\d/.test(t) && /\|.*min read\|/.test(t)) { stripped++; continue; }
+      if (/^Download PDFPDF\s*$/.test(t)) { stripped++; continue; }
+      if (tagChainOnly.test(t)) { stripped++; continue; }
+      if (dropDup && dropDup.test(t)) {
+        if (h1Seen) { stripped++; continue; }
+        h1Seen = true;
+      }
+      out.push(l);
+    }
+    let assembled = out.join("\n");
+
+    // Truncate trailing footer chrome: every intuitionlabs page ends with
+    // CTA + "How We Can Help" / "Related Articles" sections. Cut at the
+    // FIRST footer marker. We deliberately do NOT match tag-chain lines
+    // here because intuitionlabs also renders a tag chain near the TOP
+    // of every article (right after the title), and matching it would
+    // erase the entire body.
+    const footerMarkers: RegExp[] = [
+      /\n###\s+Get a Free AI Cost Estimate\b/,
+      /\n###\s+Ready to implement AI at scale\?/,
+      /\n##\s+How We Can Help\b/,
+      /\n##\s+Related Articles\b/,
+      /\n##\s+DISCLAIMER\b/,
+    ];
+    let cutAt = -1;
+    for (const re of footerMarkers) {
+      const m = re.exec(assembled);
+      if (m && (cutAt < 0 || m.index < cutAt)) cutAt = m.index;
+    }
+    if (cutAt > 0) {
+      assembled = assembled.slice(0, cutAt).replace(/\n+$/, "") + "\n";
+      stripped++;
+    }
+
+    return {
+      md: assembled.replace(/\n{3,}/g, "\n\n"),
+      newAbsoluteImageUrls: [],
+      notes: stripped > 0 ? [`intuitionlabs: stripped ${stripped} chrome line(s) / footer section`] : [],
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// lmsys.org: dedupe duplicated `[‹ Back to Blog]` lines
+// ---------------------------------------------------------------------------
+
+/**
+ * lmsys.org renders the back-to-blog link in two places (top nav + breadcrumb),
+ * both of which web-read picks up. Strip them both — they're chrome.
+ */
+export const lmsysCleanup: PostProcessor = {
+  name: "lmsys-cleanup",
+  match: (_u, h) => h === "lmsys.org",
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    const out: string[] = [];
+    let stripped = 0;
+    for (const l of lines) {
+      const t = l.trim();
+      if (/^\[‹\s*Back to Blog\]\(/.test(t)) { stripped++; continue; }
+      out.push(l);
+    }
+    return {
+      md: out.join("\n").replace(/\n{3,}/g, "\n\n"),
+      newAbsoluteImageUrls: [],
+      notes: stripped > 0 ? [`lmsys: stripped ${stripped} chrome line(s)`] : [],
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// sebastianraschka.com (architecture-gallery): strip trailing modal artifact
+// ---------------------------------------------------------------------------
+
+/**
+ * sebastianraschka.com/llm-architecture-gallery/ has a JS lightbox modal
+ * whose markup ends up in the rendered DOM. After turndown the tail looks
+ * like:
+ *
+ *   [View in article](#) ×
+ *   ![Architecture preview](data:image/gif;base64,…)
+ *
+ * Strip both. The `data:` placeholder image is also handled by
+ * `stripDecorativeEmojiImages` for one-character alts, but the
+ * "Architecture preview" alt slips past it — handle here explicitly.
+ */
+export const sebastianraschkaCleanup: PostProcessor = {
+  name: "sebastianraschka-gallery-cleanup",
+  match: (_u, h) => h === "sebastianraschka.com",
+  transform: (md, _originUrl) => {
+    let out = md;
+    let stripped = 0;
+    out = out.replace(/\[View in article\]\(#\)\s*×?/g, () => { stripped++; return ""; });
+    out = out.replace(/!\[[^\]]*\]\(data:image\/[^)]+\)/g, () => { stripped++; return ""; });
+
+    // Truncate trailing modal scaffolding. The page ends with a
+    // share-widget block + "Architecture preview" lightbox shell that has
+    // no useful text content — cut at whichever marker comes first.
+    const tailMarkers: RegExp[] = [
+      /\nSuggested Share Text\b/,
+      /\n###\s+Architecture preview\b/,
+    ];
+    let cutAt = -1;
+    for (const re of tailMarkers) {
+      const m = re.exec(out);
+      if (m && (cutAt < 0 || m.index < cutAt)) cutAt = m.index;
+    }
+    if (cutAt > 0) {
+      out = out.slice(0, cutAt).replace(/\n+$/, "") + "\n";
+      stripped++;
+    }
+
+    out = out.replace(/\n{3,}/g, "\n\n");
+    return {
+      md: out,
+      newAbsoluteImageUrls: [],
+      notes: stripped > 0 ? [`sebastianraschka: stripped ${stripped} modal/placeholder artifact(s)`] : [],
+    };
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Sphinx-rendered docs (docs.nvidia.com): strip `[#](#anchor "Link to this heading")`
+// ---------------------------------------------------------------------------
+
+/**
+ * Sphinx-built documentation sites (docs.nvidia.com, many readthedocs hosts)
+ * decorate every heading with a self-link button:
+ *
+ *   ## Overview[#](#overview "Link to this heading")
+ *
+ * The `[#](#…)` is pure chrome. Strip it from heading lines without touching
+ * heading text or in-prose links.
+ */
+export const sphinxHeadingAnchorCleanup: PostProcessor = {
+  name: "sphinx-heading-anchor-cleanup",
+  match: (_u, h) => h === "docs.nvidia.com" || /\.readthedocs\.(io|org)$/.test(h),
+  transform: (md, _originUrl) => {
+    let stripped = 0;
+    const out = md.split("\n").map((l) => {
+      const m = l.match(/^(#{1,6}\s+.*?)\[#\]\([^)]*\)\s*$/);
+      if (m) { stripped++; return m[1].trimEnd(); }
+      return l;
+    }).join("\n");
+    return {
+      md: out,
+      newAbsoluteImageUrls: [],
+      notes: stripped > 0 ? [`sphinx: stripped ${stripped} heading-anchor link(s)`] : [],
+    };
+  },
+};
+
 export const articleCleanup: PostProcessor = {
   name: "article-cleanup",
   match: (_u, h) => ARTICLE_CLEANUP_HOSTS.has(h),
@@ -1514,6 +1709,22 @@ export const articleCleanup: PostProcessor = {
 // reddit.com: clean thread output, handle share-URL redirect note
 // ---------------------------------------------------------------------------
 
+/**
+ * reddit.com handling has two cases:
+ *
+ *   1. POST STILL LIVE — clean the thread output (strip nav chrome,
+ *      collapse engagement counters, etc.).
+ *
+ *   2. POST DELETED — emit a clear "page-removed" stub. This is the
+ *      RIGHT outcome: when a Reddit submission is deleted by its author
+ *      or moderators, the original content is gone from public Reddit.
+ *      No amount of authed scraping recovers it. The stub records the
+ *      URL + the fact of deletion so the bookmark isn't silently empty.
+ *
+ * Treat a `page-removed` reddit stub as "passes by design" in dispatch
+ * reports — it's not a fetch failure, it's an accurate capture of the
+ * source's current state.
+ */
 export const redditReformat: PostProcessor = {
   name: "reddit-reformat",
   match: (_u, h) => h === "reddit.com" || h === "www.reddit.com",
@@ -1601,6 +1812,19 @@ export const redditReformat: PostProcessor = {
 // x.com (Twitter): auth-gated stub
 // ---------------------------------------------------------------------------
 
+/**
+ * x.com requires login for full thread reads and aggressively rate-limits
+ * the read-only oembed/render endpoints. Without a logged-in browser
+ * session AND a sustained low request rate, scraping returns either a
+ * "log in to view" wall or sparse metadata.
+ *
+ * Acceptance: this stub is the BEST output achievable for an unauthed
+ * x.com sweep. It captures the tweet's visible metadata + first image
+ * via web-read's pre-login skim. Trying harder (browser-eval into the
+ * authed session, scrolling for replies, etc.) is not cost-effective
+ * for the corpus's 5 x.com bookmarks. Treat `xMetadataStub` output as
+ * "passes by design" in dispatch reports.
+ */
 export const xMetadataStub: PostProcessor = {
   name: "x-metadata-stub",
   match: (_u, h) => h === "x.com" || h === "twitter.com",
@@ -1897,6 +2121,12 @@ export const PROCESSORS: PostProcessor[] = [
   feishuWikiCleaner,
   // HuggingFace blog: fix KaTeX triple-math + engagement chrome (before articleCleanup)
   huggingfaceBlogReformat,
+  // Per-host chrome strips for hosts where web-read leaves nav/modal
+  // artifacts. Each is scoped to one hostname.
+  intuitionlabsCleanup,
+  lmsysCleanup,
+  sebastianraschkaCleanup,
+  sphinxHeadingAnchorCleanup,
   // Generic article/blog sites cleanup
   blogGoogleCleanup,
   articleCleanup,

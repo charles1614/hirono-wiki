@@ -17,6 +17,7 @@ import { site as weixin } from "./weixin/index.ts";
 import { site as deepwikiLitenext } from "./deepwiki-litenext/index.ts";
 import { site as deepwikiCom } from "./deepwiki-com/index.ts";
 import { site as linuxDo } from "./linux-do/index.ts";
+import { site as nvidianews } from "./nvidianews/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
@@ -29,6 +30,7 @@ export const SITES: readonly Site[] = [
   deepwikiLitenext,
   deepwikiCom,
   linuxDo,
+  nvidianews,
 ];
 
 export function routeSite(url: string): Site | null {

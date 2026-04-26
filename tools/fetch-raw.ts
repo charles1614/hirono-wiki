@@ -1588,11 +1588,71 @@ function fetchZhihuQuestionViaAdapter(url: string): AdapterResult {
   const m = url.match(/\/question\/(\d+)/);
   if (!m) throw makeError("parse-failure", "L3", `could not extract zhihu question id from ${url}`);
   const qid = m[1];
-  const stdout = runOpencli(
+
+  // The opencli zhihu adapter ONLY returns the answers table — no question
+  // title, no §2 frontmatter. Run an extra browser pass to grab the title
+  // (`.QuestionHeader-title`) so the wrapped output satisfies §2 with a
+  // real H1 instead of "question id <N>".
+  let questionTitle = "";
+  let browserOpened = false;
+  try {
+    // Always navigate to the canonical question URL (strip any /answer/<aid>
+    // suffix and tracking params) — the title selector loads faster on the
+    // bare question page than on a deep-linked answer view.
+    const titleUrl = `https://www.zhihu.com/question/${qid}`;
+    const openRes = spawnSync("opencli", ["browser", "open", titleUrl], {
+      encoding: "utf8",
+      timeout: browserTimeoutMs("open"),
+    });
+    if (openRes.status === 0) {
+      browserOpened = true;
+      // 5s — empirically the threshold for `.QuestionHeader-title` to be
+      // populated; less leaves it unattached and the eval returns the
+      // fallback "Zhihu question <qid>" title.
+      sleepMs(5000);
+      const evalRes = spawnSync(
+        "opencli",
+        ["browser", "eval", `(() => JSON.stringify((document.querySelector('.QuestionHeader-title, h1.QuestionHeader-title, h1')?.textContent || '').trim()))()`],
+        { encoding: "utf8", timeout: browserTimeoutMs("eval"), maxBuffer: 4 * 1024 * 1024 },
+      );
+      if (evalRes.status === 0) {
+        // The eval wraps the title in JSON quotes for safe parsing across
+        // CJK + opencli's stdout decoration.
+        const out = evalRes.stdout || "";
+        const match = out.match(/"((?:[^"\\]|\\.)*)"/);
+        if (match) {
+          try { questionTitle = JSON.parse('"' + match[1] + '"'); } catch { questionTitle = match[1]; }
+        }
+      }
+    }
+  } catch { /* fall through to no-title path */ }
+  finally {
+    if (browserOpened) {
+      try { closeBrowser(); } catch { /* best-effort */ }
+    }
+  }
+
+  const tableMd = runOpencli(
     ["zhihu", "question", qid, "-f", "md", "--limit", "10"],
     { timeoutMs: 120_000 },
   );
-  return { markdown: stdout, imageFiles: [], rawMetadata: { question_id: qid } };
+
+  const h1 = questionTitle || `Zhihu question ${qid}`;
+  const wrappedMd =
+    `# ${h1}\n\n` +
+    `> 原文链接: ${url}\n\n` +
+    `---\n\n` +
+    `*下表为该问题排名前 10 的回答（按点赞数排序）。每行一个回答，content 列已合并自原文段落。*\n\n` +
+    tableMd.trim() + "\n";
+
+  return {
+    markdown: wrappedMd,
+    imageFiles: [],
+    rawMetadata: {
+      question_id: qid,
+      question_title: questionTitle || null,
+    },
+  };
 }
 
 
