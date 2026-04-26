@@ -268,13 +268,13 @@ test("buildReport: hostname coverage classification", () => {
   const r = buildReport(cache);
   const byHost = new Map(r.hosts.map((h) => [h.hostname, h]));
   // xiaohongshu and github are both routed through tools/sites/<host>/, so
-  // classifyCoverage reports the site-module name (`xhs`, `github`) — not
-  // the legacy DISPATCH_RULES adapter string. example.com is the
-  // unmatched-falls-through case.
+  // classifyCoverage reports the prefixed site-module handler (`site:xhs`,
+  // `site:github`) — not the legacy DISPATCH_RULES adapter string.
+  // example.com is the unmatched-falls-through case.
   assert.equal(byHost.get("xiaohongshu.com")?.coverage, "dedicated-adapter");
-  assert.equal(byHost.get("xiaohongshu.com")?.adapter, "xhs");
+  assert.equal(byHost.get("xiaohongshu.com")?.handler, "site:xhs");
   assert.equal(byHost.get("github.com")?.coverage, "dedicated-adapter");
-  assert.equal(byHost.get("github.com")?.adapter, "github");
+  assert.equal(byHost.get("github.com")?.handler, "site:github");
   assert.equal(byHost.get("example.com")?.coverage, "web-read-fallback");
 });
 

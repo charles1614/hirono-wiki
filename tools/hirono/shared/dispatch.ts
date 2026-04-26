@@ -28,25 +28,34 @@ export {
 export type CoverageLabel = "dedicated-adapter" | "web-read-fallback" | "unknown";
 
 /**
- * Classify a URL's coverage. Consults the universal site router FIRST
- * (`tools/sites/index.ts → routeSite()`); if a per-host site module
- * matches, that's where the URL actually gets fetched, so the adapter
- * column reports the site-module name (e.g. `deepwiki`, `github`,
- * `weixin`) rather than the legacy adapter string the dispatch rule
- * still carries (which is often `web-read` for migrated hosts).
+ * Classify a URL's routing handler. Three real categories under the
+ * universal pattern (CLAUDE.md §5a):
  *
- * Falls back to DISPATCH_RULES for hosts not yet migrated to a site
- * module. Returns "unknown" for URLs that fail to parse at all.
+ *   - `site:<name>`   — routed through `tools/sites/<name>/`. The site
+ *                       module owns the full pipeline; opencli is just
+ *                       the browser session (or not used at all).
+ *   - `opencli:<adapter>` — falls through to a dedicated legacy opencli
+ *                       adapter (currently only `opencli:zhihu-question`
+ *                       still exists).
+ *   - `web-read`      — falls through to opencli's generic web reader
+ *                       (the catch-all for unmigrated hosts).
+ *
+ * `routeSite()` is consulted FIRST so a migrated host always reports
+ * `site:<name>` regardless of what the legacy DISPATCH_RULES entry
+ * still carries. Returns "unknown" for URLs that fail to parse at all.
  */
 export function classifyCoverage(url: string): {
   label: CoverageLabel;
-  adapter?: string;
+  handler?: string;
 } {
   const host = _hostnameOf(url);
   if (!host) return { label: "unknown" };
   const site = routeSite(url);
-  if (site) return { label: "dedicated-adapter", adapter: site.name };
+  if (site) return { label: "dedicated-adapter", handler: `site:${site.name}` };
   const r = _lookupDispatch(url);
-  if (r) return { label: "dedicated-adapter", adapter: r.adapter };
+  if (r) {
+    if (r.adapter === "web-read") return { label: "dedicated-adapter", handler: "web-read" };
+    return { label: "dedicated-adapter", handler: `opencli:${r.adapter}` };
+  }
   return { label: "web-read-fallback" };
 }

@@ -58,7 +58,13 @@ export interface HostRow {
   hostname: string;
   count: number;
   coverage: "dedicated-adapter" | "web-read-fallback" | "unknown";
-  adapter?: string;
+  /**
+   * Routing handler with explicit prefix:
+   *   `site:<name>`     — routed through tools/sites/<name>/ (universal pattern)
+   *   `opencli:<name>`  — legacy opencli adapter (only zhihu-question remains)
+   *   `web-read`        — opencli's generic web reader (catch-all fallback)
+   */
+  handler?: string;
 }
 
 export interface CheckReport {
@@ -158,7 +164,7 @@ export function buildReport(cache: Cache): CheckReport {
         hostname: host,
         count: 1,
         coverage: c.label,
-        adapter: c.adapter,
+        handler: c.handler,
       });
     }
   }
@@ -259,10 +265,10 @@ export function formatReport(r: CheckReport): string {
   const single = r.hosts.filter((h) => h.count === 1);
   lines.push(`## Hostname distribution (${multi.length} hosts with >1 bookmark)`);
   lines.push(``);
-  lines.push(`| hostname | count | coverage | adapter |`);
+  lines.push(`| hostname | count | coverage | handler |`);
   lines.push(`|---|---|---|---|`);
   for (const h of multi) {
-    lines.push(`| ${h.hostname} | ${h.count} | ${h.coverage} | ${h.adapter ?? "—"} |`);
+    lines.push(`| ${h.hostname} | ${h.count} | ${h.coverage} | ${h.handler ?? "—"} |`);
   }
   if (single.length > 0) {
     lines.push(`| (${single.length} long-tail hosts × 1 bookmark) | ${single.length} | | |`);
