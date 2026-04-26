@@ -14,14 +14,20 @@ import { site as xhs } from "./xhs/index.ts";
 import { site as github } from "./github/index.ts";
 import { site as zhihuArticle } from "./zhihu/index.ts";
 import { site as weixin } from "./weixin/index.ts";
-import { site as deepwiki } from "./deepwiki/index.ts";
+import { site as deepwikiLitenext } from "./deepwiki-litenext/index.ts";
+import { site as deepwikiCom } from "./deepwiki-com/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
   github,
   zhihuArticle,
   weixin,
-  deepwiki,
+  // deepwiki-litenext + deepwiki-com share the engine code in
+  // _shared/deepwiki-engine/ but are registered as two separate Site
+  // entries — they are distinct operators of the same software, not
+  // hostname aliases of one site.
+  deepwikiLitenext,
+  deepwikiCom,
 ];
 
 export function routeSite(url: string): Site | null {

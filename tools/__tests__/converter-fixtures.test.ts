@@ -41,7 +41,7 @@ import {
   convertGithubRaw,
 } from "../sites/github/converter.ts";
 import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
-import { convertDeepwikiHtml } from "../sites/deepwiki/converter.ts";
+import { convertDeepwikiHtml } from "../sites/_shared/deepwiki-engine/converter.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
 // (npm test runs from tools/; manual `npx tsx ...` runs from repo root).

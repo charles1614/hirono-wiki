@@ -10,7 +10,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../../../fetch-raw.ts";
 
 export interface DeepwikiContent {
   /** outerHTML of `.prose` — empty on failure (and `error` will be set). */

@@ -166,15 +166,41 @@ npx tsx tools/__tests__/snapshot-create.ts <url> --slug <slug>
 # Refuses on hard-rule defects; eye-read top + tail before commit.
 ```
 
-When a single site module covers multiple hostnames sharing one content
-engine (e.g. `wiki.litenext.digital` + `deepwiki.com` both run on the
-DeepWiki article generator), the **3-fixture/3-snapshot target applies
-to the module as a whole, not per-hostname**. Distribute coverage
-proportionally to the bookmark counts (the deepwiki module landed 2
-litenext + 1 deepwiki.com snapshots — 19 vs 2 bookmarks). The xhs case
-is the exception: xhslink.com (link shortener that redirects) and
-xiaohongshu.com (direct article URL) each exercise distinct entry-path
-behavior even though they share a converter, so each got its own 3.
+When two hostnames are **the same logical site** (one is an alias /
+shortlink for the other — same operator), one site module with a
+broad `match()` is the right shape. Example: `xhs` matches both
+`xhslink.com` (short-link that redirects) and `xiaohongshu.com` (direct
+article URL); they're the same site under one operator, so one module.
+
+When two hostnames **share a content engine but are run by different
+operators**, register them as **two separate Site entries** that import
+shared extraction code from `tools/sites/_shared/<engine>/`. Example:
+`wiki.litenext.digital` (self-hosted DeepWiki deployment) and
+`deepwiki.com` (Devin's hosted service) both run the DeepWiki engine,
+so the layout is:
+
+```
+tools/sites/
+├── _shared/deepwiki-engine/
+│   ├── converter.ts            ← shared HTML→MD logic
+│   └── fetcher.ts              ← shared browser extraction (handles both
+│                                  data-original-text and hydration-script
+│                                  mermaid strategies based on what the
+│                                  page exposes)
+├── deepwiki-litenext/index.ts  ← name: "deepwiki-litenext", match: wiki.litenext.digital only
+└── deepwiki-com/index.ts       ← name: "deepwiki-com",      match: deepwiki.com only
+```
+
+The dispatch report renders these as `site:deepwiki-litenext` /
+`site:deepwiki-com` so per-operator issues stay visible (different
+operators = different uptime, failure modes, possibly diverging markup
+over time).
+
+3-fixture/3-snapshot coverage in this case applies to the **shared
+engine** (one fixture set under `__tests__/fixtures/converters/deepwiki/`),
+distributed proportionally to bookmark counts across the operators
+(litenext 19 → 2 fixtures + 2 snapshots; deepwiki.com 2 → 1 fixture +
+1 snapshot, all available).
 
 If `capture-fixtures.ts` doesn't have a case for your host yet, add one (see CLAUDE.md §6b "Adding fixture support for a NEW converter").
 

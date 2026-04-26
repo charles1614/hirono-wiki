@@ -40,8 +40,8 @@ import {
 } from "../sites/github/fetcher.ts";
 import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
 import { extractZhihuArticleContent } from "../sites/zhihu/fetcher.ts";
-import { convertDeepwikiHtml } from "../sites/deepwiki/converter.ts";
-import { extractDeepwikiContent } from "../sites/deepwiki/fetcher.ts";
+import { convertDeepwikiHtml } from "../sites/_shared/deepwiki-engine/converter.ts";
+import { extractDeepwikiContent } from "../sites/_shared/deepwiki-engine/fetcher.ts";
 import { extractXhsFullContent, sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
 import { spawnSync } from "node:child_process";
 
