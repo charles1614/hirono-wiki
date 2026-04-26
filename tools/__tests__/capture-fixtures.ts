@@ -38,6 +38,8 @@ import {
   fetchTreeReadme,
   fetchRepoReadme,
 } from "../sites/github/fetcher.ts";
+import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
+import { extractZhihuArticleContent } from "../sites/zhihu/fetcher.ts";
 import { extractXhsFullContent, sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
 import { spawnSync } from "node:child_process";
 
@@ -222,10 +224,37 @@ function captureGithub(name: string, url: string): void {
   console.log(`[capture github] markdown ${markdown.length} chars (kind=${parsed.kind})`);
 }
 
+function captureZhihu(name: string, url: string): void {
+  console.log(`[capture zhihu] ${url}`);
+  const z = extractZhihuArticleContent(url);
+  if (z.error) throw new Error(`zhihu extraction failed: ${z.error}`);
+  if (!z.contentHtml || z.contentHtml.length < 200) {
+    throw new Error(`zhihu .Post-RichTextContainer empty (${z.contentHtml.length} chars) — login expired?`);
+  }
+  const args: [string, { title: string; author: string; date: string }, string] = [
+    z.contentHtml,
+    { title: z.title, author: z.author, date: z.date },
+    url,
+  ];
+  const result = convertZhihuArticleHtml(args[0], args[1], args[2]);
+
+  const dir = join(FIXTURES_ROOT, "zhihu");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}.input.json`), JSON.stringify({
+    fn: "convertZhihuArticleHtml",
+    args,
+  }, null, 2) + "\n");
+  writeFileSync(join(dir, `${name}.expected.md`), result.markdown);
+  const { markdown: _md, ...rest } = result;
+  writeFileSync(join(dir, `${name}.expected.json`), JSON.stringify(rest, null, 2) + "\n");
+  console.log(`[capture zhihu] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
+  console.log(`[capture zhihu] markdown ${result.markdown.length} chars, ${result.imagesToDownload.length} image(s), ${result.stats.zhidaLinksUnwrapped} zhida-link(s) unwrapped`);
+}
+
 const [host, name, url] = process.argv.slice(2);
 if (!host || !name || !url) {
   console.error("usage: capture-fixtures.ts <host> <name> <url>");
-  console.error("  host = weixin | xhs | github");
+  console.error("  host = weixin | xhs | github | zhihu");
   console.error("  name = identifier for the fixture (e.g. gpu-container)");
   console.error("  url  = the URL to fetch");
   process.exit(2);
@@ -234,4 +263,5 @@ if (!host || !name || !url) {
 if (host === "weixin") captureWeixin(name, url);
 else if (host === "xhs") captureXhs(name, url);
 else if (host === "github") captureGithub(name, url);
+else if (host === "zhihu") captureZhihu(name, url);
 else { console.error(`unknown host: ${host}`); process.exit(2); }

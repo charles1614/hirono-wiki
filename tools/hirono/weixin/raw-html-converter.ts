@@ -519,6 +519,10 @@ export function convertWeixinHtml(
   // Drop empty headings (e.g. `## ` with no text). They appear when turndown
   // picks up a heading whose only child is decorative whitespace.
   body = body.replace(/^#{1,6}\s*$\n?/gm, "");
+  // Move trailing colon out of bold spans — mdnice authors type `**效果：**`
+  // where the colon is a separator, not part of the bold term. Read better
+  // as `**效果**：` and renders identically.
+  body = body.replace(/\*\*([^*\n]+?)([:：])\*\*/g, "**$1**$2");
   // Re-collapse newlines after the strips above.
   body = body.replace(/\n{3,}/g, "\n\n");
 

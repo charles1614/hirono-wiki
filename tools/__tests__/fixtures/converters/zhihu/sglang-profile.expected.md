@@ -8,7 +8,7 @@
 
 参考：
 
-> [https://docs.sglang.io/developer_guide/benchmark_and_profiling.html](https://docs.sglang.io/developer_guide/benchmark_and_profiling.html)  
+> [https://docs.sglang.io/developer\_guide/benchmark\_and\_profiling.html](https://docs.sglang.io/developer_guide/benchmark_and_profiling.html)  
 > [https://github.com/sgl-project/sglang/issues/9638](https://github.com/sgl-project/sglang/issues/9638)  
 > [记录下SGLang 开发，编译和Profile的几个小技巧](https://zhuanlan.zhihu.com/p/1939041055208112436)
 
@@ -229,4 +229,4 @@ nsys stop --session=10345602
 
 我当时的答案是：无论是用perfetto还是nsight system，都可以把关键行pin住(pin row)。之后可以在放缩整个可视化图中方便比较。当然不知道有没有更好的办法，欢迎大佬批评指正。
 
-![](zhihu-snap-sglang-profile-images/zhihu-img-001.jpg)
+![](zhihu-img-001.jpg)

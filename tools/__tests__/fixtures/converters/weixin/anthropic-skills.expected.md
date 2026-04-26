@@ -49,7 +49,7 @@ Skill 的核心设计思想叫**渐进式披露**（Progressive Disclosure）。
 
 **第一层：YAML frontmatter（）100 tokens**
 
-**这一层始终驻留在 Claude 的系统提示里。只包含两个字段：**`name` 和 `description`。
+**这一层始终驻留在 Claude 的系统提示里。只包含两个字段**：`name` 和 `description`。
 
 作用是告诉 Claude：“这个 Skill 是干什么的，什么时候该用。”
 
@@ -86,7 +86,7 @@ Skill的官方构建指南
 
 这是 Skill 的“身份证”，始终驻留在 Claude 的系统提示里。
 
-**最简格式：**
+**最简格式**：
 
 ```
 --- 
@@ -95,7 +95,7 @@ description: What it does. Use when user asks to [specific phrases]. 
 --- 
 ```
 
-**关键规则：**
+**关键规则**：
 
 1.  **name 必须用 kebab-case**：`notion-project-setup` ✅，`Notion Project Setup` ❌
     
@@ -107,7 +107,7 @@ description: What it does. Use when user asks to [specific phrases]. 
 -   什么时候用它？
     
 
-**好坏对比：**
+**好坏对比**：
 
 ❌ 不好的 description:
 
@@ -136,7 +136,7 @@ Anthropic 给的目标是：90% 的相关查询应该自动触发 Skill。
 
 如果你的 Skill 触发不准，90% 的问题都出在 description 上。
 
-**关键技巧：**
+**关键技巧**：
 
 -   包含用户会说的具体短语（“冲刺规划”“创建任务”“设计规范”）
     
@@ -179,7 +179,7 @@ python scripts/fetch_data.py --project-id PROJECT_ID 
 （根据需要添加更多错误案例） 
 ```
 
-**写指令的三个黄金原则：**
+**写指令的三个黄金原则**：
 
 **1\. 具体且可执行**
 
@@ -238,7 +238,7 @@ your-skill-name/ 
     └── report-template.md 
 ```
 
-**关键规则：**
+**关键规则**：
 
 -   **文件必须叫 `SKILL.md`（大小写敏感）**
     

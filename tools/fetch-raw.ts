@@ -1585,114 +1585,6 @@ function findFreshXhsUrl(titleHint: string, originalUrl: string): string | null 
 }
 
 
-/** Native zhihu article adapter: zhuanlan.zhihu.com/p/<id> */
-function fetchZhihuArticleViaAdapter(url: string, slugDir: string): AdapterResult {
-  const beforeMtime = Date.now();
-  mkdirSync(slugDir, { recursive: true });
-  const stdout = runOpencli(
-    ["zhihu", "download", "--url", url, "--output", slugDir, "--download-images", "true", "-f", "json"],
-    { timeoutMs: 120_000 },
-  );
-  const h = harvestAdapterOutput(slugDir, beforeMtime);
-  let resultMarkdown = h.content;
-  const adapterNotes: string[] = [];
-  const adapterFlags: string[] = [];
-
-  // Rewrite remote zhimg.com image URLs to the local `images/img_NNN.*`
-  // paths. opencli's zhihu download saves the images but leaves the
-  // markdown pointing at pic*.zhimg.com. CLAUDE.md §3 requires all
-  // image refs to be local. Strategy: match remote refs in document
-  // order with local files in numeric-sorted order — zhihu downloads
-  // images in the same order they appear in the markdown.
-  if (h.images.length > 0) {
-    const remoteRefRe = /!\[([^\]]*)\]\(https?:\/\/(?:pic\d*|pica|picx)\.zhimg\.com\/[^)]+\)/g;
-    const remoteMatches = resultMarkdown.match(remoteRefRe) || [];
-    if (remoteMatches.length > 0) {
-      const localImages = [...h.images].sort();
-      if (remoteMatches.length === localImages.length) {
-        let idx = 0;
-        resultMarkdown = resultMarkdown.replace(remoteRefRe, (_m, alt) => {
-          // h.images entries may already include the "images/" prefix
-          // depending on the adapter's harvest layout; strip any leading
-          // "images/" to canonicalize.
-          const local = localImages[idx++].replace(/^images\//, "");
-          return `![${alt}](images/${local})`;
-        });
-        adapterNotes.push(`zhihu: rewrote ${remoteMatches.length} remote image URL(s) → local paths`);
-      } else {
-        adapterFlags.push("zhihu-image-count-mismatch");
-        adapterNotes.push(`zhihu: WARNING — ${remoteMatches.length} remote image refs but ${localImages.length} local files; skipping rewrite`);
-      }
-    }
-  }
-
-  // opencli's zhihu-download converts <table> elements to a sequence of
-  // per-cell paragraphs (one cell per paragraph, blank-line separated).
-  // Recover proper markdown tables via a browser-DOM extraction pass,
-  // then replace each flattened cell-run with its rendered pipe-table.
-  // Zhihu tables don't have clean preceding headings (they sit inside
-  // prose paragraphs), so we splice by cell-run match rather than by
-  // heading anchor.
-  if (resultMarkdown.length > 0) {
-    const tablesResult = extractDeepwikiTables(url);
-    if (tablesResult.error) {
-      adapterFlags.push("zhihu-table-extraction-failed");
-      adapterNotes.push(`zhihu: table extraction failed (${tablesResult.error.slice(0, 120)})`);
-    } else if (tablesResult.tables.length > 0) {
-      const { md, matched, skipped } = spliceTablesByCellRun(resultMarkdown, tablesResult.tables);
-      if (md !== resultMarkdown) {
-        resultMarkdown = md;
-        adapterNotes.push(`zhihu: spliced ${matched}/${tablesResult.tables.length} table(s) from rendered DOM`);
-      }
-      if (skipped > 0) {
-        adapterFlags.push("zhihu-table-splice-incomplete");
-        adapterNotes.push(`zhihu: WARNING — ${skipped}/${tablesResult.tables.length} table(s) could not be spliced (no matching cell-run found)`);
-      }
-    }
-  }
-
-  if (h.errors.length > 0) {
-    adapterFlags.push("adapter-output-partial");
-    for (const e of h.errors) adapterNotes.push(`harvest: ${e}`);
-  }
-
-  return {
-    markdown: resultMarkdown,
-    imageFiles: h.images,
-    rawMetadata: tryParseJsonLines(stdout),
-    extraFlags: adapterFlags.length > 0 ? adapterFlags : undefined,
-    adapterNotes: adapterNotes.length > 0 ? adapterNotes : undefined,
-  };
-}
-
-/**
- * Splice tables into a markdown body by finding each table's flattened
- * cell-run anywhere in the document (not bounded by a heading). For each
- * extracted table, search the whole markdown for a paragraph run whose
- * cells match the table's cells (≥70% fidelity via `findPlainTextCellRunSpan`)
- * and replace that span with the rendered pipe-table.
- *
- * Used by zhihu-article (tables don't have a reliable preceding heading).
- */
-function spliceTablesByCellRun(md: string, tables: DeepwikiTable[]): { md: string; matched: number; skipped: number } {
-  if (tables.length === 0) return { md, matched: 0, skipped: 0 };
-  let current = md;
-  let matched = 0;
-  let skipped = 0;
-  for (const t of tables) {
-    if (t.rows.length === 0 || (t.rows[0]?.length ?? 0) === 0) { skipped++; continue; }
-    const span = findPlainTextCellRunSpan(current, 0, current.length, t.rows);
-    if (!span) { skipped++; continue; }
-    const tableMd = renderMarkdownTable(t.rows);
-    // Replace the cell-run span with the rendered table, padded with
-    // blank lines so it sits as its own paragraph block.
-    const insertion = "\n" + tableMd + "\n\n";
-    current = current.slice(0, span.start) + insertion + current.slice(span.end);
-    matched++;
-  }
-  return { md: current.replace(/\n{3,}/g, "\n\n"), matched, skipped };
-}
-
 /** Native zhihu question adapter: www.zhihu.com/question/<id> — prints structured answers to stdout. */
 function fetchZhihuQuestionViaAdapter(url: string): AdapterResult {
   const m = url.match(/\/question\/(\d+)/);
@@ -2827,7 +2719,26 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
       };
       break;
     }
-    case "zhihu-article":  result = fetchZhihuArticleViaAdapter(opts.url, slugDir); break;
+    case "zhihu-article": {
+      // Routed through sites/zhihu/ (universal pattern — opencli for browser
+      // session only, conversion owned by us). Replaces the previous
+      // fetchZhihuArticleViaAdapter which consumed opencli's lossy MD.
+      const matchedSite = routeSite(opts.url);
+      if (!matchedSite) {
+        throw makeError("dispatch-mismatch", "L3",
+          `zhihu-article adapter dispatch did not find matching site for ${opts.url}`);
+      }
+      const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
+      result = {
+        markdown: sr.markdown,
+        title: sr.title,
+        imageFiles: sr.images,
+        rawMetadata: sr.metadata,
+        extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
+        adapterNotes: sr.notes,
+      };
+      break;
+    }
     case "zhihu-question": result = fetchZhihuQuestionViaAdapter(opts.url); break;
     case "weixin":         result = fetchWechatViaAdapter(opts.url, slugDir); break;
     case "web-read": {

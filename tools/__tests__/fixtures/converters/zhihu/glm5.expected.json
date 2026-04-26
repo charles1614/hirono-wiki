@@ -1,0 +1,38 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://pic4.zhimg.com/v2-bdb48aa685185e4e8c5a0586b34d30a1_r.jpg",
+      "localFilename": "zhihu-img-001.jpg"
+    },
+    {
+      "remoteUrl": "https://pic3.zhimg.com/v2-ff221d4cd5a6ace509667497533ada74_r.jpg",
+      "localFilename": "zhihu-img-002.jpg"
+    },
+    {
+      "remoteUrl": "https://pic2.zhimg.com/v2-40b1cb4da723faeb763624f516d385ed_r.jpg",
+      "localFilename": "zhihu-img-003.jpg"
+    },
+    {
+      "remoteUrl": "https://pic4.zhimg.com/v2-1d91653517c749ed8f6fcc1ade6d98f9_r.jpg",
+      "localFilename": "zhihu-img-004.jpg"
+    },
+    {
+      "remoteUrl": "https://pic4.zhimg.com/v2-52a16ab239d3f3e18b7b4d5d30d1940d_r.jpg",
+      "localFilename": "zhihu-img-005.jpg"
+    },
+    {
+      "remoteUrl": "https://picx.zhimg.com/v2-c184b34fd6e0ca0c4ec520b26a88699f_r.jpg",
+      "localFilename": "zhihu-img-006.jpg"
+    }
+  ],
+  "metadata": {
+    "title": "2026大模型架构概览（二）：GLM 5 & DSV3.2",
+    "author": "kaiyuan",
+    "publishedAt": "2026-04-15 10:48・中国香港"
+  },
+  "stats": {
+    "images": 6,
+    "codeFences": 4,
+    "zhidaLinksUnwrapped": 9
+  }
+}

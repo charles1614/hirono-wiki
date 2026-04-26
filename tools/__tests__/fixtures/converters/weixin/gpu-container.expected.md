@@ -22,9 +22,9 @@ NVIDIA GPU Driver 是管理物理 GPU 的核心组件，提供内核态与用户
 
 该组件**只能安装在宿主机**，容器中不可也不应安装。
 
-**主要包含内容：**
+**主要包含内容**：
 
--   **内核模块（Kernel Modules）：**
+-   **内核模块（Kernel Modules）**：
     
     ```
     # 核心驱动模块
@@ -35,7 +35,7 @@ NVIDIA GPU Driver 是管理物理 GPU 的核心组件，提供内核态与用户
     nvidia_modeset.ko
     ```
     
--   **用户态库（User-space Libraries）：**
+-   **用户态库（User-space Libraries）**：
     
     ```
     # CUDA 驱动库
@@ -44,7 +44,7 @@ NVIDIA GPU Driver 是管理物理 GPU 的核心组件，提供内核态与用户
     libnvidia-ml.so
     ```
     
--   **管理工具：**
+-   **管理工具**：
     
     ```
     # GPU 状态监控工具
@@ -56,7 +56,7 @@ NVIDIA GPU Driver 是管理物理 GPU 的核心组件，提供内核态与用户
 
 NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nvidia-docker`）。它提供了一个 OCI 兼容的运行时包装器，用于在容器启动前自动配置 GPU 环境。
 
-**核心组件与架构：**
+**核心组件与架构**：
 
 1.  **nvidia-container-runtime**: 一个轻量级的 Wrapper，它包裹了系统的原生运行时（如 runC）。它并不直接运行容器，而是拦截容器启动请求，注入 `prestart hook`。
     
@@ -67,7 +67,7 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 4.  **libnvidia-container / nvidia-container-cli**: 核心执行组件。它负责与操作系统内核交互，执行具体的设备挂载和库文件注入。
     
 
-**NVIDIA Container Runtime 的具体职责（Under the Hood）：**
+**NVIDIA Container Runtime 的具体职责（Under the Hood）**：
 
 当你在 Docker 中执行命令启动 GPU 容器时，Runtime 实际上在幕后完成了以下动作：
 
@@ -125,7 +125,7 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 
 通常基于 NVIDIA 官方提供的 CUDA 基础镜像构建：`nvidia/cuda:<version>-<variant>-<os>`。
 
-**Variant 版本选择指南：**
+**Variant 版本选择指南**：
 
 | Variant | 包含内容 | 典型使用场景 |
 | --- | --- | --- |
@@ -137,13 +137,13 @@ NVIDIA Container Toolkit 是实现容器使用 GPU 的关键组件（旧称 `nv
 
 根据业务需求，在容器内安装相应的框架和库：
 
--   **深度学习框架：** PyTorch, TensorFlow 等
+-   **深度学习框架**： PyTorch, TensorFlow 等
     
--   **推理引擎：** TensorRT, ONNX Runtime 等
+-   **推理引擎**： TensorRT, ONNX Runtime 等
     
--   **通信库：** NCCL (通常集成在框架中)
+-   **通信库**： NCCL (通常集成在框架中)
     
--   **服务框架：** Triton Inference Server Client 等
+-   **服务框架**： Triton Inference Server Client 等
     
 
 **所有这些上层应用库必须安装在容器内。**
