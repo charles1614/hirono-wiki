@@ -17,7 +17,6 @@ import { tmpdir } from "node:os";
 import {
   resolveRelativeImageUrls,
   deepwikiStripNav,
-  githubStripUIChrome,
   anthropicStripSvgExplosion,
   stripColorTags,
   extractRelativeImageRefs,
@@ -182,53 +181,9 @@ test("deepwikiStripNav: only runs for wiki.litenext.digital", () => {
   assert.equal(deepwikiStripNav.match("https://wiki.litenext.digital/x", "wiki.litenext.digital"), true);
 });
 
-// ---------------------------------------------------------------------------
-// githubStripUIChrome
-// ---------------------------------------------------------------------------
-
-test("githubStripUIChrome: removes known UI chrome lines", () => {
-  const md = [
-    "# PR title",
-    "",
-    "## Pull Request Toolbar",
-    "",
-    "Expand file treeCollapse file tree",
-    "",
-    "0 / 3 viewed",
-    "",
-    "Submit commentsComments",
-    "",
-    "Real diff content.",
-    "",
-    "+12Lines changed: 12 additions & 0 deletions",
-    "",
-    "Actual review comment.",
-  ].join("\n");
-  const r = githubStripUIChrome.transform(md, "https://github.com/x/y/pull/1");
-  assert.ok(!r.md.includes("Pull Request Toolbar"));
-  assert.ok(!r.md.includes("Expand file tree"));
-  assert.ok(!r.md.includes("0 / 3 viewed"));
-  assert.ok(!r.md.includes("Submit commentsComments"));
-  assert.ok(!r.md.includes("Lines changed: 12"));
-  assert.ok(r.md.includes("Real diff content."));
-  assert.ok(r.md.includes("Actual review comment."));
-  assert.match(r.notes[0] ?? "", /stripped \d+ UI-chrome lines/);
-});
-
-test("githubStripUIChrome: only runs for github PR/issue/discussion URLs", () => {
-  // Match was tightened to PR/issue/discussion URL paths only — running the
-  // dup-H1 strip on raw README content (blob/tree/repo) wiped real subtitle
-  // + badges + intro between frontmatter and the first H2. See fetch-raw.ts
-  // augmentGithubPrIssueWithApi for the conversation-style URL shapes that
-  // legitimately have GitHub UI chrome to strip.
-  assert.equal(githubStripUIChrome.match("https://example.com/", "example.com"), false);
-  // Bare repo URL no longer matches — chrome strip would corrupt README content.
-  assert.equal(githubStripUIChrome.match("https://github.com/x/y/", "github.com"), false);
-  // PR / issue / discussion URLs DO match (real conversation-style chrome).
-  assert.equal(githubStripUIChrome.match("https://github.com/x/y/pull/123", "github.com"), true);
-  assert.equal(githubStripUIChrome.match("https://github.com/x/y/issues/45", "github.com"), true);
-  assert.equal(githubStripUIChrome.match("https://github.com/x/y/discussions/9", "github.com"), true);
-});
+// (githubStripUIChrome retired — github migrated to tools/sites/github/
+//  in commit ad97f75; the strip processor and its 2 tests have no
+//  callers and were deleted.)
 
 // ---------------------------------------------------------------------------
 // anthropicStripSvgExplosion
