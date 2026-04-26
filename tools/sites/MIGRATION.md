@@ -116,7 +116,7 @@ fetch URL #1 → eye-read content.md → spot defect → fix converter → re-fe
 
 Don't capture fixtures yet. Fixtures freeze whatever output exists; if you freeze defects, you bake regressions into the test gate.
 
-Self-iteration target before user eye-review: 3 representative URLs covering distinct content shapes (text-heavy, image-heavy, code-heavy, table-heavy — pick what the host emits). For each:
+Self-iteration target before user eye-review: 3 representative URLs covering distinct content shapes (text-heavy, image-heavy, code-heavy, table-heavy — pick what the host emits). If the host has fewer than 3 bookmarks in the corpus (e.g., `deepwiki.com` has only 2), use **all available URLs** for that host — don't invent synthetic ones. For each:
 
 - H1 present and accurate
 - `> 原文链接:` line in first 10 lines
@@ -157,12 +157,24 @@ Two layers of test coverage to add:
 ```bash
 # Byte-equal converter fixtures (per CLAUDE.md §6b workflow):
 npx tsx tools/__tests__/capture-fixtures.ts <host> <name> <url>
-# Capture ≥3 fixtures covering distinct content shapes.
+# Capture ≥3 fixtures covering distinct content shapes — OR every available
+# URL if the host has fewer than 3 bookmarks in the corpus (deepwiki.com is
+# the prior example: 2 bookmarks total → 2 fixtures, not 3 with a synthetic).
 
 # Per-host snapshot:
 npx tsx tools/__tests__/snapshot-create.ts <url> --slug <slug>
 # Refuses on hard-rule defects; eye-read top + tail before commit.
 ```
+
+When a single site module covers multiple hostnames sharing one content
+engine (e.g. `wiki.litenext.digital` + `deepwiki.com` both run on the
+DeepWiki article generator), the **3-fixture/3-snapshot target applies
+to the module as a whole, not per-hostname**. Distribute coverage
+proportionally to the bookmark counts (the deepwiki module landed 2
+litenext + 1 deepwiki.com snapshots — 19 vs 2 bookmarks). The xhs case
+is the exception: xhslink.com (link shortener that redirects) and
+xiaohongshu.com (direct article URL) each exercise distinct entry-path
+behavior even though they share a converter, so each got its own 3.
 
 If `capture-fixtures.ts` doesn't have a case for your host yet, add one (see CLAUDE.md §6b "Adding fixture support for a NEW converter").
 

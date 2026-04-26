@@ -267,11 +267,14 @@ test("buildReport: hostname coverage classification", () => {
   };
   const r = buildReport(cache);
   const byHost = new Map(r.hosts.map((h) => [h.hostname, h]));
-  // xiaohongshu and github both now have explicit DISPATCH_RULES entries.
-  // example.com is the unmatched-falls-through case.
+  // xiaohongshu and github are both routed through tools/sites/<host>/, so
+  // classifyCoverage reports the site-module name (`xhs`, `github`) — not
+  // the legacy DISPATCH_RULES adapter string. example.com is the
+  // unmatched-falls-through case.
   assert.equal(byHost.get("xiaohongshu.com")?.coverage, "dedicated-adapter");
-  assert.equal(byHost.get("xiaohongshu.com")?.adapter, "xiaohongshu");
+  assert.equal(byHost.get("xiaohongshu.com")?.adapter, "xhs");
   assert.equal(byHost.get("github.com")?.coverage, "dedicated-adapter");
+  assert.equal(byHost.get("github.com")?.adapter, "github");
   assert.equal(byHost.get("example.com")?.coverage, "web-read-fallback");
 });
 

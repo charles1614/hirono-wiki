@@ -8,6 +8,7 @@ import {
   lookupDispatch as _lookupDispatch,
   hostnameOf as _hostnameOf,
 } from "../../fetch-raw.ts";
+import { routeSite } from "../../sites/index.ts";
 
 export {
   DISPATCH_RULES,
@@ -27,9 +28,15 @@ export {
 export type CoverageLabel = "dedicated-adapter" | "web-read-fallback" | "unknown";
 
 /**
- * Classify a URL's coverage based on DISPATCH_RULES. "unknown" is reserved
- * for URLs that fail to parse at all; anything that parses will be one of
- * the first two.
+ * Classify a URL's coverage. Consults the universal site router FIRST
+ * (`tools/sites/index.ts → routeSite()`); if a per-host site module
+ * matches, that's where the URL actually gets fetched, so the adapter
+ * column reports the site-module name (e.g. `deepwiki`, `github`,
+ * `weixin`) rather than the legacy adapter string the dispatch rule
+ * still carries (which is often `web-read` for migrated hosts).
+ *
+ * Falls back to DISPATCH_RULES for hosts not yet migrated to a site
+ * module. Returns "unknown" for URLs that fail to parse at all.
  */
 export function classifyCoverage(url: string): {
   label: CoverageLabel;
@@ -37,6 +44,8 @@ export function classifyCoverage(url: string): {
 } {
   const host = _hostnameOf(url);
   if (!host) return { label: "unknown" };
+  const site = routeSite(url);
+  if (site) return { label: "dedicated-adapter", adapter: site.name };
   const r = _lookupDispatch(url);
   if (r) return { label: "dedicated-adapter", adapter: r.adapter };
   return { label: "web-read-fallback" };
