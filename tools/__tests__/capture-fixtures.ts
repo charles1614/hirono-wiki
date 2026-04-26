@@ -23,7 +23,7 @@ import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { convertWeixinHtml } from "../hirono/weixin/raw-html-converter.ts";
+import { convertWeixinHtml } from "../sites/weixin/converter.ts";
 import { convertXhsHtml } from "../sites/xhs/converter.ts";
 import {
   convertGithubPrIssue,

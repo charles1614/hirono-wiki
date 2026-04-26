@@ -45,7 +45,7 @@ export interface SnapshotInvariants {
   chrome_denylist_matches: number;
   /** Runs of 3+ asterisks `\*{3,}` outside code fences (must be 0; signals
    *  unbalanced bold from nested-emphasis HTML — see `normalizeEmphasis` in
-   *  `tools/hirono/weixin/raw-html-converter.ts`). */
+   *  `tools/sites/weixin/converter.ts`). */
   unbalanced_bold_runs: number;
   /** Empty-text headings like `## ` with no content (must be 0; signals
    *  H1-demotion artifact when the source's H1 first child was decorative

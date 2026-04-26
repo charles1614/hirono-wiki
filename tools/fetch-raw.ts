@@ -47,7 +47,6 @@ import { createHash } from "node:crypto";
 import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { acquireBrowserLock, acquireSlugLock } from "./hirono/shared/browser-lock.ts";
 import { deepwikiStripNav } from "./hirono/shared/post-process.ts";
-import { convertWeixinHtml } from "./hirono/weixin/raw-html-converter.ts";
 import { routeSite } from "./sites/index.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -271,7 +270,7 @@ export function isArticleLikeUrl(url: string): boolean {
 // error helpers
 // ---------------------------------------------------------------------------
 
-function makeError(code: string, level: ErrorLevel, message: string, extras: Partial<FetchError> = {}): FetchError {
+export function makeError(code: string, level: ErrorLevel, message: string, extras: Partial<FetchError> = {}): FetchError {
   const err = Object.assign(new Error(message), { code, level, ...extras }) as FetchError;
   return err;
 }
@@ -1597,159 +1596,6 @@ function fetchZhihuQuestionViaAdapter(url: string): AdapterResult {
   return { markdown: stdout, imageFiles: [], rawMetadata: { question_id: qid } };
 }
 
-/**
- * Native WeChat fetcher: mp.weixin.qq.com/s/<id>
- *
- * Pipeline (Track B — replaces opencli weixin adapter):
- *   1. Open the page in opencli's headless browser (auth + JS hydration)
- *   2. Eval to extract `#js_content` outerHTML + page metadata as JSON
- *   3. Close browser
- *   4. Convert HTML → markdown via our own jsdom + turndown converter
- *      (handles lists, tables, inline code, SVG, images deterministically)
- *   5. Download each image via curl into slugDir
- *   6. Return AdapterResult with §2 frontmatter + body
- *
- * Failure modes are explicit: if any browser step fails or returns empty,
- * we throw a structured error rather than fall back to the broken legacy
- * pipeline (which is gone).
- */
-function fetchWechatViaAdapter(url: string, slugDir: string): AdapterResult {
-  mkdirSync(slugDir, { recursive: true });
-
-  let browserOpened = false;
-  try {
-    const openRes = spawnSync(
-      "opencli",
-      ["browser", "open", url],
-      { encoding: "utf8", timeout: browserTimeoutMs("open") },
-    );
-    if (openRes.status !== 0) {
-      throw makeError(
-        "browser-open-failed",
-        "L3",
-        `opencli browser open failed for weixin URL: ${(openRes.stderr || "").slice(0, 200)}`,
-      );
-    }
-    browserOpened = true;
-    sleepMs(3500);
-
-    // One eval call returns both the article HTML and metadata so we
-    // don't pay for two round trips.
-    const evalScript = `(() => {
-      const root = document.querySelector("#js_content");
-      const html = root ? root.outerHTML : "";
-      const titleEl = document.querySelector("#activity-name");
-      const authorEl = document.querySelector("#js_name") || document.querySelector("#profileBt #js_name");
-      const timeEl = document.querySelector("#publish_time") || document.querySelector("em#publish_time");
-      return JSON.stringify({
-        html,
-        title: titleEl ? (titleEl.textContent || "").trim().replace(/\\s+/g, " ") : "",
-        author: authorEl ? (authorEl.textContent || "").trim() : "",
-        publishTime: timeEl ? (timeEl.textContent || "").trim() : "",
-      });
-    })()`;
-    const evalRes = spawnSync("opencli", ["browser", "eval", evalScript], {
-      encoding: "utf8",
-      timeout: browserTimeoutMs("eval"),
-      maxBuffer: 32 * 1024 * 1024,
-    });
-    if (evalRes.status !== 0) {
-      throw makeError(
-        "browser-eval-failed",
-        "L3",
-        `opencli browser eval failed for weixin URL: ${(evalRes.stderr || "").slice(0, 200)}`,
-      );
-    }
-    // opencli prints the eval result + a trailing version-notice block on stderr.
-    // The result is whatever the JS returned — our JSON.stringify output, but
-    // opencli wraps it in its own JSON.stringify pass. Locate the inner JSON
-    // by scanning for the first `{` and matching braces.
-    const stdout = evalRes.stdout || "";
-    const jsonStart = stdout.indexOf("{");
-    if (jsonStart < 0) {
-      throw makeError("browser-eval-empty", "L3", "weixin eval returned no JSON object");
-    }
-    let depth = 0;
-    let jsonEnd = -1;
-    let inStr = false;
-    let escape = false;
-    for (let i = jsonStart; i < stdout.length; i++) {
-      const c = stdout[i];
-      if (escape) { escape = false; continue; }
-      if (c === "\\") { escape = true; continue; }
-      if (c === "\"") { inStr = !inStr; continue; }
-      if (inStr) continue;
-      if (c === "{") depth++;
-      else if (c === "}") { depth--; if (depth === 0) { jsonEnd = i; break; } }
-    }
-    if (jsonEnd < 0) {
-      throw makeError("browser-eval-malformed", "L3", "weixin eval JSON object not terminated");
-    }
-    const payload = JSON.parse(stdout.slice(jsonStart, jsonEnd + 1)) as {
-      html: string;
-      title: string;
-      author: string;
-      publishTime: string;
-    };
-    if (!payload.html || payload.html.length < 200) {
-      throw makeError(
-        "weixin-empty-content",
-        "L3",
-        `weixin #js_content missing or too small (${payload.html?.length ?? 0} chars) — login expired or wrong page?`,
-      );
-    }
-
-    const result = convertWeixinHtml(
-      payload.html,
-      { title: payload.title, author: payload.author, publishTime: payload.publishTime },
-      url,
-    );
-
-    // Download images. Failures are tolerated individually (one bad CDN URL
-    // shouldn't abort the whole fetch); we log a count for visibility.
-    const imageFiles: string[] = [];
-    let imgFailed = 0;
-    for (const dl of result.imagesToDownload) {
-      const dest = join(slugDir, dl.localFilename);
-      const bytes = downloadImage(dl.remoteUrl, dest);
-      if (bytes > 0) imageFiles.push(dl.localFilename);
-      else imgFailed++;
-    }
-
-    // Write SVG files (real inline diagrams — mermaid flowcharts etc.) to
-    // disk alongside images. Each is referenced from the markdown as a
-    // standard `![](weixin-svg-NNN.svg)` so any markdown viewer renders it.
-    for (const svg of result.svgFiles) {
-      const dest = join(slugDir, svg.localFilename);
-      writeFileSync(dest, svg.svg);
-      imageFiles.push(svg.localFilename);
-    }
-
-    const adapterNotes: string[] = [
-      `weixin: raw-HTML pipeline (turndown + custom rules)`,
-      `weixin: ${result.stats.codeFences} code block(s), ${result.stats.tables} table row(s), ${result.stats.svgFiles} SVG diagram(s) preserved (${result.stats.svgDropped} decorative dropped), ${result.stats.listMarkersCleaned} list-marker prefix(es) stripped`,
-      `weixin: downloaded ${imageFiles.length - result.svgFiles.length}/${result.imagesToDownload.length} image(s)${imgFailed > 0 ? ` (${imgFailed} failed)` : ""}`,
-    ];
-    const extraFlags: string[] = imgFailed > 0 ? ["weixin-image-download-partial"] : [];
-
-    return {
-      markdown: result.markdown,
-      title: result.metadata.title,
-      imageFiles,
-      rawMetadata: {
-        source: "weixin-raw-html",
-        title: result.metadata.title,
-        author: result.metadata.author,
-        publish_time: result.metadata.publishTime,
-        stats: result.stats,
-      },
-      extraFlags: extraFlags.length > 0 ? extraFlags : undefined,
-      adapterNotes,
-    };
-  } finally {
-    if (browserOpened) closeBrowser();
-  }
-}
 
 /**
  * DeepWiki renders mermaid diagrams client-side. The `<div class="mermaid">`
@@ -2740,7 +2586,25 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
       break;
     }
     case "zhihu-question": result = fetchZhihuQuestionViaAdapter(opts.url); break;
-    case "weixin":         result = fetchWechatViaAdapter(opts.url, slugDir); break;
+    case "weixin": {
+      // Routed through sites/weixin/ (universal pattern). The legacy
+      // fetchWechatViaAdapter body now lives in tools/sites/weixin/index.ts.
+      const matchedSite = routeSite(opts.url);
+      if (!matchedSite) {
+        throw makeError("dispatch-mismatch", "L3",
+          `weixin adapter dispatch did not find matching site for ${opts.url}`);
+      }
+      const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
+      result = {
+        markdown: sr.markdown,
+        title: sr.title,
+        imageFiles: sr.images,
+        rawMetadata: sr.metadata,
+        extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
+        adapterNotes: sr.notes,
+      };
+      break;
+    }
     case "web-read": {
       if (skipLegacyDispatch && matchedSite) {
         // Site router matched (e.g. github.com). Use it instead of web-read.
