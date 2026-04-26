@@ -653,9 +653,21 @@ export const substackReformat: PostProcessor = {
       const scanEnd = Math.min(sepIdx + 30, lines.length);
       // Find second H1 (any title after the `---`). First H1 is line 1 (our
       // synthesized title); second H1 is the article's own H1.
+      // Fall back to the first author-link line `[Name](https://substack.com/@...)`
+      // if no second H1 is present (the new web-fetch path doesn't always
+      // surface the article's own H1 — the page H1 is captured as our
+      // synthesized title and the body starts directly with the chrome).
       let articleH1Idx = -1;
       for (let i = sepIdx + 1; i < scanEnd; i++) {
         if (/^#\s+/.test(lines[i])) { articleH1Idx = i; break; }
+      }
+      if (articleH1Idx < 0) {
+        for (let i = sepIdx + 1; i < scanEnd; i++) {
+          if (/^\[[^\]]+\]\(https:\/\/substack\.com\/@[^)]+\)/.test(lines[i])) {
+            articleH1Idx = i;
+            break;
+          }
+        }
       }
       if (articleH1Idx >= 0) {
         const toDrop: number[] = [];
@@ -688,7 +700,7 @@ export const substackReformat: PostProcessor = {
           const t = lines[cursor].trim();
           if (
             t === "∙ Paid" || t === "Paid" ||
-            /^\d{1,6}$/.test(t) ||
+            /^[\d,]{1,10}$/.test(t) ||  // allow `1,909` style with comma separators
             t === "Share" || t === "Comment" ||
             t === ""
           ) {
@@ -907,17 +919,60 @@ export const substackReformat: PostProcessor = {
       },
     );
 
-    // -- Step 7: avatar leakage at top of body (Substack profile thumbnails) --
-    // The web-fetch path emits `![User's avatar](images/img_001.jpeg)` and
-    // `![<Author>'s avatar](images/img_002.jpeg)` right after the `---`
-    // separator. They're decorative profile chrome, not article content.
+    // -- Step 7: unified body-top chrome strip ---------------------------
+    //
+    // The web-fetch path produces the Substack post header as a sequence
+    // of body lines right after the `---` separator. The legacy chrome
+    // detector above (Step 1) tries to find the article H1 then strip
+    // forward, but that path can fail-soft when the body shape differs
+    // (no second H1 to anchor on, avatars between separator and author
+    // link, etc.).
+    //
+    // This step is a defense-in-depth strip that walks the lines from
+    // just-after-the-separator and removes ANY combination of:
+    //   - avatar image refs `![...avatar...](url)`
+    //   - small decorative images
+    //   - author profile links `[Name](https://substack.com/@handle)`
+    //   - date lines `Mon DD, YYYY`
+    //   - blank-spaced bare integer counters (likes/shares/etc.)
+    //   - bare "Share" / "Comment" / "∙ Paid" labels
+    // Stops at the first non-chrome line.
     {
-      const beforeAvatarStrip = out;
-      out = out.replace(
-        /!\[(?:[^\]]*?\s)?[Aa]vatar(?:[^\]]*)\]\([^)]+\)\s*\n?/g,
-        "",
-      );
-      if (out !== beforeAvatarStrip) notes.push("substack: stripped avatar image refs");
+      const lines = out.split("\n");
+      const sep = lines.findIndex((l) => l.trim() === "---");
+      if (sep >= 0) {
+        const isAvatar = (l: string) => /!\[(?:[^\]]*?\s)?[Aa]vatar[^\]]*\]\([^)]+\)/.test(l);
+        const isAuthor = (l: string) => /^\[[^\]]+\]\(https:\/\/substack\.com\/@[^)]+\)\s*$/.test(l);
+        const isDate = (l: string) => /^[A-Z][a-z]{2,8} \d{1,2}, \d{4}\s*$/.test(l);
+        const isCounter = (l: string) => /^[\d,]{1,10}$/.test(l);
+        const isLabel = (l: string) => l === "∙ Paid" || l === "Paid" || l === "Share" || l === "Comment";
+        const dropMask = new Array(lines.length).fill(false);
+        let removed = 0;
+        let i = sep + 1;
+        while (i < lines.length && i < sep + 40) {
+          const t = lines[i].trim();
+          if (t === "") { i++; continue; }
+          if (isAvatar(t) || isAuthor(t) || isDate(t) || isCounter(t) || isLabel(t)) {
+            dropMask[i] = true;
+            removed++;
+            i++;
+            continue;
+          }
+          break;  // first content line — stop
+        }
+        if (removed > 0) {
+          // Drop the chrome lines AND any blank lines immediately preceding
+          // the first kept content line so the body doesn't start with
+          // dangling whitespace.
+          let firstKept = sep + 1;
+          while (firstKept < lines.length && (dropMask[firstKept] || lines[firstKept].trim() === "")) {
+            if (!dropMask[firstKept]) dropMask[firstKept] = true;
+            firstKept++;
+          }
+          out = lines.filter((_, idx) => !dropMask[idx]).join("\n");
+          notes.push(`substack: stripped ${removed} body-top chrome line(s)`);
+        }
+      }
     }
 
     // -- Step 8: bare-anchor prefix on headings ----------------------------
@@ -1546,6 +1601,62 @@ export const intuitionlabsCleanup: PostProcessor = {
 // ---------------------------------------------------------------------------
 // lmsys.org: dedupe duplicated `[‹ Back to Blog]` lines
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// sspai.com: strip author bio chrome at the top of every article
+// ---------------------------------------------------------------------------
+
+/**
+ * sspai.com renders 主作者 / 联合作者 / 关注 author bio cards above every
+ * article body. The cards are repeated up to 3 times per article (once per
+ * coauthor, plus duplicated rendering of the same card). Pattern between
+ * `---` and the first `## ` heading:
+ *
+ *   <title duplicated as plain text>
+ *   主作者                       (or 联合作者)
+ *   [![avatar](url)](/u/...) [![](url)](/u/...) 关注
+ *   <author handle>
+ *   少数派作者
+ *   个人博客：<url>
+ *   ... (repeats)
+ *   <date>
+ *   ## <real article H2>
+ *
+ * Strip everything between `---` and the first `## ` heading IF that span
+ * looks like author chrome (no full prose paragraphs).
+ */
+export const sspaiCleanup: PostProcessor = {
+  name: "sspai-cleanup",
+  match: (_u, h) => h === "sspai.com",
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    const sep = lines.findIndex((l) => l.trim() === "---");
+    if (sep < 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    // Find the first H2 within a reasonable distance after `---`.
+    let firstH2 = -1;
+    for (let i = sep + 1; i < Math.min(sep + 100, lines.length); i++) {
+      if (/^##\s+\S/.test(lines[i])) { firstH2 = i; break; }
+    }
+    if (firstH2 < 0 || firstH2 - sep < 4) {
+      return { md, newAbsoluteImageUrls: [], notes: [] };
+    }
+    // Heuristic: if NONE of the lines between sep and firstH2 are long-form
+    // prose (>120 chars + sentence punctuation), treat them all as chrome.
+    let proseLines = 0;
+    for (let i = sep + 1; i < firstH2; i++) {
+      const t = lines[i].trim();
+      if (t.length > 120 && /[。！？.?!]/.test(t)) proseLines++;
+    }
+    if (proseLines > 0) return { md, newAbsoluteImageUrls: [], notes: [] };
+    const stripped = firstH2 - sep - 1;
+    const out = [...lines.slice(0, sep + 1), "", ...lines.slice(firstH2)].join("\n");
+    return {
+      md: out,
+      newAbsoluteImageUrls: [],
+      notes: [`sspai: stripped ${stripped} author-bio chrome line(s) above first H2`],
+    };
+  },
+};
 
 /**
  * lmsys.org renders the back-to-blog link in two places (top nav + breadcrumb),
@@ -2177,6 +2288,7 @@ export const PROCESSORS: PostProcessor[] = [
   // artifacts. Each is scoped to one hostname.
   intuitionlabsCleanup,
   lmsysCleanup,
+  sspaiCleanup,
   sebastianraschkaCleanup,
   sphinxHeadingAnchorCleanup,
   // Generic article/blog sites cleanup

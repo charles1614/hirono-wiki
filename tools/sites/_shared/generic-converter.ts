@@ -52,7 +52,7 @@ export interface GenericConvertOpts {
  * even when the cascade picks the right container (especially when the
  * fallback hits `document.body`).
  */
-const DROP_TAGS = ["nav", "header", "footer", "aside", "script", "style", "noscript", "form", "iframe"];
+const DROP_TAGS = ["nav", "header", "footer", "aside", "script", "style", "noscript", "form", "iframe", "select", "button"];
 
 export function convertGenericHtml(opts: GenericConvertOpts): GenericConvertResult {
   const prefix = opts.imagePrefix ?? "webread";
@@ -143,6 +143,23 @@ export function convertGenericHtml(opts: GenericConvertOpts): GenericConvertResu
   body = body.replace(/\*\*([^*\n]+?)([:：])\*\*/g, "**$1**$2");
   // Drop empty heading lines (`## ` with no text — H1-demotion artifact).
   body = body.split("\n").filter((l) => !/^#{1,6}\s*$/.test(l)).join("\n");
+  // Turndown escapes `[N]` to `\[N\]` (or `\[N]`, depending on whether the
+  // closing `]` is followed by `[` or `(`) when N is digits, thinking it
+  // might be a reference-style link. For numbered footnote references this
+  // looks ugly. Unescape both forms back to `[N]`. Fence-aware so we don't
+  // touch literal `\[` inside fenced code blocks.
+  {
+    const lines = body.split("\n");
+    let inFence = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^```/.test(lines[i].trim())) { inFence = !inFence; continue; }
+      if (inFence) continue;
+      lines[i] = lines[i]
+        .replace(/\\\[(\d+)\\\]/g, "[$1]")
+        .replace(/\\\[(\d+)\]/g, "[$1]");
+    }
+    body = lines.join("\n");
+  }
 
   const features = countFeatures(body);
 
