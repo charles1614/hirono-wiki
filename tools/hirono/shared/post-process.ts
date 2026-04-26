@@ -1223,8 +1223,12 @@ export const huggingfaceBlogReformat: PostProcessor = {
     //   ](/user)
     // Multi-author pages have N of these back-to-back; we collapse all into a
     // single line: `> **Authors:** [A](/a) (@a), [B](/b) (@b), ...`
+    // The "Follow" line was previously inside the block but is now
+    // stripped at the DOM level (it's a <button>, which generic-converter
+    // drops). Match WITH OR WITHOUT the Follow line so the regex still
+    // catches the block in the new pipeline.
     const authorBlockRe =
-      /\[!\[([^\]]*?)(?:'s avatar)?\]\([^)]+\)\]\(\/([^)]+)\)\s*\n+\[([^\n]+)\n+([^\n]+)\n+Follow\s*\n+\]\(\/[^)]+\)/g;
+      /\[!\[([^\]]*?)(?:'s avatar)?\]\([^)]+\)\]\(\/([^)]+)\)\s*\n+\[([^\n]+)\n+([^\n]+)\n+(?:Follow\s*\n+)?\]\(\/[^)]+\)/g;
     const authors: Array<{ name: string; handle: string }> = [];
     let scanMatch: RegExpExecArray | null;
     while ((scanMatch = authorBlockRe.exec(out)) !== null) {
@@ -2146,6 +2150,49 @@ export const blogGoogleCleanup: PostProcessor = {
     if (bylineRe.test(out)) {
       out = out.replace(bylineRe, "\n\n");
       notes.push("blog.google: collapsed fragmented date/read-time byline");
+    }
+
+    // Strip trailing related-article cards. After the article body,
+    // blog.google renders 4–6 cards in a "Related stories" rail. Each
+    // card's HTML translates to a `[\n\n![](image.webp)\n\nTYPE\n\n#### Title\n\nBy <author>\n\n<date>\n\n](url)` block. Cut at the FIRST such card
+    // marker (`[\n\n![](images/...webp)` followed within ~12 lines by
+    // `#### ` and `](url)`).
+    {
+      const lines = out.split("\n");
+      let cutAt = -1;
+      for (let i = 0; i < lines.length - 12; i++) {
+        if (lines[i].trim() !== "[") continue;
+        // Find next non-blank
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim() === "") j++;
+        if (j >= lines.length) continue;
+        if (!/^!\[[^\]]*\]\(blog-google-img-[^)]+\)\s*$/.test(lines[j].trim())) continue;
+        // Confirm this is a related-card (not a fenced image figure):
+        // look forward up to 15 lines for an `#### ` heading + `](url)` close.
+        const scanEnd = Math.min(i + 18, lines.length);
+        let hasH4 = false, hasClose = false;
+        for (let k = j + 1; k < scanEnd; k++) {
+          if (/^####\s+/.test(lines[k])) hasH4 = true;
+          if (/^\]\(https?:\/\/blog\.google\/[^)]+\)\s*$/.test(lines[k])) hasClose = true;
+        }
+        if (hasH4 && hasClose) { cutAt = i; break; }
+      }
+      if (cutAt > 0) {
+        const before = out.length;
+        // Walk backwards from cutAt over any orphan "Related stories" / "Related"
+        // header line + blank lines so we don't leave a dangling section header.
+        let trimEnd = cutAt;
+        while (trimEnd > 0) {
+          const t = lines[trimEnd - 1].trim();
+          if (t === "" || /^Related(?:\s+stories)?$/i.test(t) || /^More from/i.test(t)) {
+            trimEnd--;
+            continue;
+          }
+          break;
+        }
+        out = lines.slice(0, trimEnd).join("\n").replace(/\n+$/, "") + "\n";
+        notes.push(`blog.google: truncated at trailing related-stories block (-${before - out.length} chars)`);
+      }
     }
 
     return { md: out, newAbsoluteImageUrls: [], notes };

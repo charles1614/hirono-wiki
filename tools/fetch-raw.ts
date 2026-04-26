@@ -527,22 +527,22 @@ export function localNameFor(url: string, index: number): string {
  * never a half-written `destPath` that would pass an existsSync() check
  * and get silently accepted as "downloaded".
  */
-export function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 1024): number {
+export function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 1024, referer?: string): number {
   const tmpPath = `${destPath}.part`;
   // curl with max-filesize, connect-timeout, and output to disk. Returns 0 on success.
-  const res = spawnSync(
-    "curl",
-    [
-      "-fsSL",
-      "--max-filesize", String(maxBytes),
-      "--connect-timeout", "10",
-      "--max-time", "30",
-      "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-      "-o", tmpPath,
-      url,
-    ],
-    { encoding: "utf8", timeout: 40_000 },
-  );
+  // Some CDNs (sspai's cdnfile.sspai.com, weixin's mmbiz, etc.) reject
+  // requests without a Referer matching the article's origin — pass `referer`
+  // to satisfy hotlink protection.
+  const args = [
+    "-fsSL",
+    "--max-filesize", String(maxBytes),
+    "--connect-timeout", "10",
+    "--max-time", "30",
+    "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+  ];
+  if (referer) args.push("-e", referer);
+  args.push("-o", tmpPath, url);
+  const res = spawnSync("curl", args, { encoding: "utf8", timeout: 40_000 });
   if (res.status !== 0) {
     try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
     return -1;
@@ -1779,22 +1779,36 @@ function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: bo
             imagePrefix: imagePrefix || "webread",
           });
 
+          // Track which local refs got real bytes vs. failed downloads, so
+          // we can rewrite the markdown to point failed refs back at the
+          // remote URL (graceful degradation: image still renders if read
+          // online, even though we couldn't archive it).
+          const failedLocalToRemote = new Map<string, string>();
           if (downloadImages) {
             for (const img of conv.imagesToDownload) {
               const dest = join(slugDir, img.localFilename);
-              const bytes = downloadImage(img.remoteUrl, dest);
+              const bytes = downloadImage(img.remoteUrl, dest, undefined, finalUrl || url);
               if (bytes > 0) imageFiles.push(img.localFilename);
+              else failedLocalToRemote.set(img.localFilename, img.remoteUrl);
             }
           }
 
           // Compose §2-contract frontmatter. Caller can later inject
           // additional metadata (author, date) via post-processors.
           const titleLine = pageTitle ? pageTitle : `Page: ${url}`;
+          let body = conv.body || "";
+          if (failedLocalToRemote.size > 0) {
+            // Replace each failed local ref with the original remote URL.
+            for (const [local, remote] of failedLocalToRemote) {
+              const escaped = local.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              body = body.replace(new RegExp(`\\(${escaped}\\)`, "g"), `(${remote})`);
+            }
+          }
           resultMarkdown =
             `# ${titleLine}\n\n` +
             `> 原文链接: ${url}\n\n` +
             `---\n\n` +
-            (conv.body ? conv.body + "\n" : "");
+            (body ? body + "\n" : "");
 
           adapterNotesLocal.push(
             `web-fetch: own jsdom+turndown — ${conv.stats.tables} table line(s), ` +
