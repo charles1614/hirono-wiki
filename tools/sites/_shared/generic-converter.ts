@@ -102,6 +102,48 @@ export function convertGenericHtml(opts: GenericConvertOpts): GenericConvertResu
     el.removeAttribute("id");
   }
 
+  // 4a. Hexo / Pygments / Rouge syntax-highlighter unwrap.
+  //
+  // Static-site generators (Hexo, Jekyll w/ Rouge, some Sphinx themes)
+  // render fenced code as:
+  //   <figure class="highlight <lang>">
+  //     <table><tbody><tr>
+  //       <td class="gutter"><pre>1<br>2<br>3<br></pre></td>
+  //       <td class="code"><pre>line1<br>line2<br>line3<br></pre></td>
+  //     </tr></tbody></table>
+  //   </figure>
+  // Naively converting this gives a 2-column markdown table with `<br>1 /`
+  // style cells — which is what 01.me's user-flagged output had. Detect
+  // the pattern and replace the entire `<figure>` with a single
+  // `<pre><code class="language-<lang>">…</code></pre>` BEFORE turndown
+  // sees it.
+  for (const fig of Array.from(root.querySelectorAll("figure.highlight, div.highlight, figure.code, div.code"))) {
+    const codeTd = fig.querySelector("td.code, td:nth-child(2)");
+    const codePre = codeTd ? codeTd.querySelector("pre") : fig.querySelector("pre");
+    if (!codePre) continue;
+    // Reconstruct each line: <span class="line">text</span><br>...
+    const lines: string[] = [];
+    const lineNodes = codePre.querySelectorAll("span.line, .line");
+    if (lineNodes.length > 0) {
+      for (const ln of Array.from(lineNodes)) lines.push(ln.textContent || "");
+    } else {
+      // Fallback: take pre.textContent and split on what looks like line breaks.
+      lines.push(...((codePre.textContent || "").split(/\r?\n/)));
+    }
+    // Language: figure.highlight.<lang> or div.highlight pre.language-<lang>
+    let lang = "";
+    const cls = fig.getAttribute("class") || "";
+    const langMatch = cls.match(/highlight\s+(\S+)|language-(\S+)/);
+    if (langMatch) lang = (langMatch[1] || langMatch[2] || "").trim();
+    if (lang === "plaintext" || lang === "text") lang = "";
+    const newPre = doc.createElement("pre");
+    const newCode = doc.createElement("code");
+    if (lang) newCode.setAttribute("class", `language-${lang}`);
+    newCode.textContent = lines.join("\n");
+    newPre.appendChild(newCode);
+    fig.replaceWith(newPre);
+  }
+
   // 4. Pre-process table cells: turndown's GFM table rule bails when cells
   // contain block-level children (the developer.nvidia.com page wraps every
   // `<td>` content in `<div>`, and uses `<h3>` inside `<th>`). Flatten the

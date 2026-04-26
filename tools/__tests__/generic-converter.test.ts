@@ -154,6 +154,54 @@ test("convertGenericHtml: drops empty heading lines", () => {
   assert.match(r.body, /^## Real$/m);
 });
 
+test("convertGenericHtml: unwraps Hexo `<figure class='highlight'>` syntax-highlighter into fenced code", () => {
+  // Mimics 01.me / Jekyll-Rouge / Hexo: the code lives inside a 2-col table
+  // (line numbers in the gutter, code in the second cell), each line is a
+  // <span class="line"> separated by <br>.
+  const html = `<main>
+    <figure class="highlight python">
+      <table>
+        <tbody>
+          <tr>
+            <td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td>
+            <td class="code"><pre><span class="line">def hello():</span><br><span class="line">    print("hi")</span><br></pre></td>
+          </tr>
+        </tbody>
+      </table>
+    </figure>
+  </main>`;
+  const r = convertGenericHtml({ html, url: "https://example.com/" });
+  // Should be a fenced python code block, not a markdown table.
+  assert.match(r.body, /```python\n/);
+  assert.match(r.body, /def hello\(\):/);
+  assert.match(r.body, /print\("hi"\)/);
+  assert.equal(r.stats.codeFences, 1);
+  // No table at all (no `|` lines from the gutter+code 2-col layout).
+  assert.equal(r.stats.tables, 0);
+  // No leftover line-number `1 / 2` pollution either.
+  assert.doesNotMatch(r.body, /<br>/);
+  assert.doesNotMatch(r.body, /^1 \/ 2/m);
+});
+
+test("convertGenericHtml: Hexo `plaintext` highlight → fenced code with no language", () => {
+  const html = `<main>
+    <figure class="highlight plaintext">
+      <table>
+        <tbody>
+          <tr>
+            <td class="gutter"><pre><span class="line">1</span><br></pre></td>
+            <td class="code"><pre><span class="line">just text</span><br></pre></td>
+          </tr>
+        </tbody>
+      </table>
+    </figure>
+  </main>`;
+  const r = convertGenericHtml({ html, url: "https://example.com/" });
+  // "plaintext" is normalized to no language hint.
+  assert.match(r.body, /```\njust text\n```/);
+  assert.equal(r.stats.codeFences, 1);
+});
+
 test("convertGenericHtml: flattens <div>/<h*> children in <td>/<th> for table conversion", () => {
   // Mimics developer.nvidia.com: <table> inside .joplin-table-wrapper,
   // <th> with <h3> children, <td> with <div> children, <br> for cell breaks.
