@@ -1,0 +1,187 @@
+{
+  "fetched_at": "2026-04-27T12:21:45.759Z",
+  "origin": "url:https://qwen.ai/blog?id=qwen3.5",
+  "origin_url": "https://qwen.ai/blog?id=qwen3.5",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "c7b99125fd8632588f3e72e434050f8707e8bdd72bb5ac5b6d0e1d385e64a521",
+  "content_length": 106315,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "qwen-ai-img-001.png",
+      "remote": "",
+      "bytes": 1585038
+    },
+    {
+      "local": "qwen-ai-img-002.png",
+      "remote": "",
+      "bytes": 2390876
+    },
+    {
+      "local": "qwen-ai-img-003.png",
+      "remote": "",
+      "bytes": 189081
+    },
+    {
+      "local": "qwen-ai-img-004.png",
+      "remote": "",
+      "bytes": 786399
+    },
+    {
+      "local": "qwen-ai-img-005.jpg",
+      "remote": "",
+      "bytes": 343151
+    },
+    {
+      "local": "qwen-ai-img-006.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-007.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-008.jpg",
+      "remote": "",
+      "bytes": 486134
+    },
+    {
+      "local": "qwen-ai-img-009.jpg",
+      "remote": "",
+      "bytes": 478893
+    },
+    {
+      "local": "qwen-ai-img-010.jpg",
+      "remote": "",
+      "bytes": 478558
+    },
+    {
+      "local": "qwen-ai-img-011.jpg",
+      "remote": "",
+      "bytes": 487838
+    },
+    {
+      "local": "qwen-ai-img-012.jpg",
+      "remote": "",
+      "bytes": 466097
+    },
+    {
+      "local": "qwen-ai-img-013.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-014.png",
+      "remote": "",
+      "bytes": 5238612
+    },
+    {
+      "local": "qwen-ai-img-015.png",
+      "remote": "",
+      "bytes": 5238612
+    },
+    {
+      "local": "qwen-ai-img-016.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-017.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-018.png",
+      "remote": "",
+      "bytes": 5234334
+    },
+    {
+      "local": "qwen-ai-img-019.jpg",
+      "remote": "",
+      "bytes": 51118
+    },
+    {
+      "local": "qwen-ai-img-020.jpg",
+      "remote": "",
+      "bytes": 51118
+    },
+    {
+      "local": "qwen-ai-img-021.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-022.png",
+      "remote": "",
+      "bytes": 84688
+    },
+    {
+      "local": "qwen-ai-img-024.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-025.png",
+      "remote": "",
+      "bytes": 82092
+    },
+    {
+      "local": "qwen-ai-img-027.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-028.png",
+      "remote": "",
+      "bytes": 269765
+    },
+    {
+      "local": "qwen-ai-img-029.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "qwen-ai-img-030.png",
+      "remote": "",
+      "bytes": 269765
+    },
+    {
+      "local": "qwen-ai-img-031.jpg",
+      "remote": "",
+      "bytes": 66042
+    },
+    {
+      "local": "qwen-ai-img-032.jpg",
+      "remote": "",
+      "bytes": 66042
+    },
+    {
+      "local": "qwen-ai-img-033.png",
+      "remote": "",
+      "bytes": 5786
+    },
+    {
+      "local": "01-0e5fa726-72e2-4b96-9709-6aa7270a9983.png",
+      "remote": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/0e5fa726-72e2-4b96-9709-6aa7270a9983.png",
+      "bytes": 84688
+    },
+    {
+      "local": "02-a2529aad-b91c-4992-bfe5-0903d2b4ef33.png",
+      "remote": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/a2529aad-b91c-4992-bfe5-0903d2b4ef33.png",
+      "bytes": 82092
+    }
+  ],
+  "notes": [
+    "opencli adapter: qwen-blog",
+    "web-read: used domain-override wait=20s",
+    "web-fetch: own jsdom+turndown — 140 table line(s), 5 code fence(s), 31/33 image(s) downloaded",
+    "hirono post-processors: article-cleanup, unescape-brackets-in-links",
+    "un-escaped brackets in link text",
+    "31 images downloaded by adapter",
+    "2 images downloaded by post-processor"
+  ]
+}

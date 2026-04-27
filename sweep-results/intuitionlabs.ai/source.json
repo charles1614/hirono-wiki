@@ -1,0 +1,41 @@
+{
+  "fetched_at": "2026-04-27T12:15:14.155Z",
+  "origin": "url:https://intuitionlabs.ai/articles/oracle-openai-300b-deal-analysis",
+  "origin_url": "https://intuitionlabs.ai/articles/oracle-openai-300b-deal-analysis",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "6558559e72b4f3165fe240508bca023498216162e677f09b9fe7b31a7247c48d",
+  "content_length": 159915,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "intuitionlabs-ai-img-001.jpg",
+      "remote": "",
+      "bytes": 96565
+    },
+    {
+      "local": "intuitionlabs-ai-img-002.jpg",
+      "remote": "",
+      "bytes": 92380
+    },
+    {
+      "local": "intuitionlabs-ai-img-003.jpg",
+      "remote": "",
+      "bytes": 35670
+    },
+    {
+      "local": "intuitionlabs-ai-img-004.jpg",
+      "remote": "",
+      "bytes": 47330
+    }
+  ],
+  "notes": [
+    "opencli adapter: intuitionlabs-blog",
+    "web-fetch: own jsdom+turndown — 49 table line(s), 0 code fence(s), 4/4 image(s) downloaded",
+    "hirono post-processors: intuitionlabs-cleanup, enforce-single-h1",
+    "intuitionlabs: stripped 5 chrome line(s) / footer section",
+    "enforce-single-h1: demoted 11 body H1(s) to H2",
+    "4 images downloaded by adapter"
+  ]
+}

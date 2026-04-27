@@ -140,6 +140,37 @@ test("convertGenericHtml: bold-colon normalization", () => {
   assert.match(r.body, /\*\*Result\*\*[:：]/);
 });
 
+test("convertGenericHtml: escapes `$<digit>` currency to prevent downstream KaTeX confusion", () => {
+  // Currency patterns like `$60 billion` and `$122 billion` would otherwise
+  // pair up as inline math `$60 billion ... $122 billion` and trip KaTeX
+  // renderers (e.g. lark-hirono's Feishu upload).
+  const html = `<article>
+    <p>OpenAI must aggressively raise funds to cover its $60 billion per year cloud-compute bill, while securing $122 billion in funding for $852 billion valuation.</p>
+  </article>`;
+  const r = convertGenericHtml({ html, url: "https://example.com/" });
+  // Each currency $ should be escaped.
+  assert.match(r.body, /\\\$60 billion/);
+  assert.match(r.body, /\\\$122 billion/);
+  assert.match(r.body, /\\\$852 billion/);
+});
+
+test("convertGenericHtml: leaves real math `$<letter>` alone", () => {
+  const html = `<p>Let $x$ be a vector and $y$ be a scalar.</p>`;
+  const r = convertGenericHtml({ html, url: "https://example.com/" });
+  assert.doesNotMatch(r.body, /\\\$x/);
+  assert.doesNotMatch(r.body, /\\\$y/);
+  // The original $x$ form is preserved.
+  assert.match(r.body, /\$x\$/);
+});
+
+test("convertGenericHtml: leaves `$<digit>` inside inline-code spans alone", () => {
+  const html = `<p>Set the env var <code>$1</code> to your token.</p>`;
+  const r = convertGenericHtml({ html, url: "https://example.com/" });
+  // Inside backticks: should NOT be escaped.
+  assert.match(r.body, /`\$1`/);
+  assert.doesNotMatch(r.body, /`\\\$1`/);
+});
+
 test("convertGenericHtml: drops empty heading lines", () => {
   // Sometimes turndown emits a bare `## ` for a heading element with only
   // decorative children (an anchor link we already stripped).

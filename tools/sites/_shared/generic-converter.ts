@@ -190,15 +190,33 @@ export function convertGenericHtml(opts: GenericConvertOpts): GenericConvertResu
   // might be a reference-style link. For numbered footnote references this
   // looks ugly. Unescape both forms back to `[N]`. Fence-aware so we don't
   // touch literal `\[` inside fenced code blocks.
+  //
+  // Also escape currency `$<digit>` → `\$<digit>` so downstream KaTeX
+  // renderers (e.g. lark-hirono's Feishu upload pipeline) don't try to
+  // interpret `$60 billion ... $122 billion` as inline math. Real LaTeX
+  // math typically uses `$<letter>` (variables) — those stay unescaped.
+  // Inline-code spans and fenced code are skipped.
   {
     const lines = body.split("\n");
     let inFence = false;
     for (let i = 0; i < lines.length; i++) {
       if (/^```/.test(lines[i].trim())) { inFence = !inFence; continue; }
       if (inFence) continue;
-      lines[i] = lines[i]
+      let l = lines[i]
         .replace(/\\\[(\d+)\\\]/g, "[$1]")
         .replace(/\\\[(\d+)\]/g, "[$1]");
+      // Escape unescaped `$` directly followed by a digit (currency).
+      // Negative lookbehind `(?<!\\)` guards already-escaped `\$`.
+      // Stripping inline-code spans first so `$50` inside a `code` span
+      // (e.g., a shell variable) is left alone.
+      const codeSpans: string[] = [];
+      l = l.replace(/(`+)([^\n]*?)\1/g, (m) => {
+        codeSpans.push(m);
+        return `CODE${codeSpans.length - 1}`;
+      });
+      l = l.replace(/(?<!\\)\$(?=\d)/g, "\\$");
+      l = l.replace(/CODE(\d+)/g, (_m, idx) => codeSpans[Number(idx)]);
+      lines[i] = l;
     }
     body = lines.join("\n");
   }

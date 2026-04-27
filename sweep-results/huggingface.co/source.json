@@ -1,0 +1,222 @@
+{
+  "fetched_at": "2026-04-26T15:55:24.526Z",
+  "origin": "url:https://huggingface.co/blog/train_memory",
+  "origin_url": "https://huggingface.co/blog/train_memory",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "9c6de01e40322d79568ed0ebc32fe1253f7d09a0202dbd36ebbc9cf03b6bf8a3",
+  "content_length": 13968,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "huggingface-co-img-001.jpg",
+      "remote": "",
+      "bytes": 11806
+    },
+    {
+      "local": "huggingface-co-img-002.jpg",
+      "remote": "",
+      "bytes": 20826
+    },
+    {
+      "local": "huggingface-co-img-003.png",
+      "remote": "",
+      "bytes": 6178
+    },
+    {
+      "local": "huggingface-co-img-004.svg",
+      "remote": "",
+      "bytes": 397
+    },
+    {
+      "local": "huggingface-co-img-005.jpg",
+      "remote": "",
+      "bytes": 6046
+    },
+    {
+      "local": "huggingface-co-img-006.jpg",
+      "remote": "",
+      "bytes": 6656
+    },
+    {
+      "local": "huggingface-co-img-007.jpg",
+      "remote": "",
+      "bytes": 8780
+    },
+    {
+      "local": "huggingface-co-img-008.png",
+      "remote": "",
+      "bytes": 152218
+    },
+    {
+      "local": "huggingface-co-img-009.png",
+      "remote": "",
+      "bytes": 139821
+    },
+    {
+      "local": "huggingface-co-img-010.png",
+      "remote": "",
+      "bytes": 114871
+    },
+    {
+      "local": "huggingface-co-img-011.png",
+      "remote": "",
+      "bytes": 285804
+    },
+    {
+      "local": "huggingface-co-img-012.png",
+      "remote": "",
+      "bytes": 269916
+    },
+    {
+      "local": "huggingface-co-img-013.png",
+      "remote": "",
+      "bytes": 12406
+    },
+    {
+      "local": "huggingface-co-img-014.png",
+      "remote": "",
+      "bytes": 293653
+    },
+    {
+      "local": "huggingface-co-img-015.jpg",
+      "remote": "",
+      "bytes": 9028
+    },
+    {
+      "local": "huggingface-co-img-016.jpg",
+      "remote": "",
+      "bytes": 17020
+    },
+    {
+      "local": "huggingface-co-img-017.png",
+      "remote": "",
+      "bytes": 24660
+    },
+    {
+      "local": "huggingface-co-img-018.png",
+      "remote": "",
+      "bytes": 84093
+    },
+    {
+      "local": "huggingface-co-img-019.jpg",
+      "remote": "",
+      "bytes": 9712
+    },
+    {
+      "local": "huggingface-co-img-020.jpg",
+      "remote": "",
+      "bytes": 3442
+    },
+    {
+      "local": "huggingface-co-img-021.jpg",
+      "remote": "",
+      "bytes": 21134
+    },
+    {
+      "local": "huggingface-co-img-022.jpg",
+      "remote": "",
+      "bytes": 9492
+    },
+    {
+      "local": "huggingface-co-img-023.svg",
+      "remote": "",
+      "bytes": 1283
+    },
+    {
+      "local": "huggingface-co-img-024.svg",
+      "remote": "",
+      "bytes": 397
+    },
+    {
+      "local": "huggingface-co-img-025.jpg",
+      "remote": "",
+      "bytes": 9852
+    },
+    {
+      "local": "huggingface-co-img-026.jpg",
+      "remote": "",
+      "bytes": 9852
+    },
+    {
+      "local": "huggingface-co-img-027.jpg",
+      "remote": "",
+      "bytes": 9852
+    },
+    {
+      "local": "huggingface-co-img-028.jpg",
+      "remote": "",
+      "bytes": 11806
+    },
+    {
+      "local": "huggingface-co-img-029.jpg",
+      "remote": "",
+      "bytes": 20826
+    },
+    {
+      "local": "huggingface-co-img-030.png",
+      "remote": "",
+      "bytes": 6178
+    },
+    {
+      "local": "huggingface-co-img-031.svg",
+      "remote": "",
+      "bytes": 397
+    },
+    {
+      "local": "huggingface-co-img-032.jpg",
+      "remote": "",
+      "bytes": 6046
+    },
+    {
+      "local": "huggingface-co-img-033.jpg",
+      "remote": "",
+      "bytes": 6656
+    },
+    {
+      "local": "huggingface-co-img-034.jpg",
+      "remote": "",
+      "bytes": 4784
+    },
+    {
+      "local": "huggingface-co-img-035.jpg",
+      "remote": "",
+      "bytes": 9334
+    },
+    {
+      "local": "huggingface-co-img-036.svg",
+      "remote": "",
+      "bytes": 397
+    },
+    {
+      "local": "huggingface-co-img-037.png",
+      "remote": "",
+      "bytes": 12028
+    },
+    {
+      "local": "huggingface-co-img-038.jpg",
+      "remote": "",
+      "bytes": 9004
+    },
+    {
+      "local": "huggingface-co-img-039.jpg",
+      "remote": "",
+      "bytes": 15954
+    }
+  ],
+  "notes": [
+    "opencli adapter: huggingface-web",
+    "web-fetch: own jsdom+turndown — 0 table line(s), 5 code fence(s), 39/39 image(s) downloaded",
+    "hirono post-processors: huggingface-blog-reformat, unescape-brackets-in-links",
+    "hf: stripped Back-to-Articles nav",
+    "hf: stripped 12 heading anchor prefix(es)",
+    "hf: stripped duplicate-H1 + Published + Update-on-GitHub header",
+    "hf: reformatted 1 author block(s)",
+    "hf: collapsed 19 triple-rendered math line(s)",
+    "hf: collapsed single-variable triplets (e.g. `N N N` → `$N$`)",
+    "hf: truncated at trailing section (More-Articles / mentioned-in-article shells)",
+    "un-escaped brackets in link text",
+    "39 images downloaded by adapter"
+  ]
+}

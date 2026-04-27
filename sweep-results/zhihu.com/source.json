@@ -1,0 +1,15 @@
+{
+  "fetched_at": "2026-04-26T15:45:19.692Z",
+  "origin": "url:https://www.zhihu.com/question/1927140506573435010/answer/1927892108636849910?share_code=t5Nk5rz1rMPE&utm_psn=1928367309795361809",
+  "origin_url": "https://www.zhihu.com/question/1927140506573435010/answer/1927892108636849910?share_code=t5Nk5rz1rMPE&utm_psn=1928367309795361809",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "4bde68dfd598253b3eb2de4e3cb6bedf7dea624845fc21621b76d2c1f0029ab2",
+  "content_length": 2520,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "opencli adapter: zhihu-question"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "fetched_at": "2026-04-26T15:40:01.678Z",
+  "origin": "url:https://lmsys.org/blog/2026-01-21-novita-glm4/",
+  "origin_url": "https://lmsys.org/blog/2026-01-21-novita-glm4/",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "daf367b275462c10ca208807ccf74d21e2b37b1231aee404bf83d4b7b58f8291",
+  "content_length": 10127,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "www-lmsys-org-img-001.png",
+      "remote": "",
+      "bytes": 283968
+    },
+    {
+      "local": "www-lmsys-org-img-002.png",
+      "remote": "",
+      "bytes": 147633
+    },
+    {
+      "local": "www-lmsys-org-img-003.png",
+      "remote": "",
+      "bytes": 50554
+    },
+    {
+      "local": "www-lmsys-org-img-004.png",
+      "remote": "",
+      "bytes": 36688
+    },
+    {
+      "local": "www-lmsys-org-img-005.png",
+      "remote": "",
+      "bytes": 83112
+    },
+    {
+      "local": "www-lmsys-org-img-006.png",
+      "remote": "",
+      "bytes": 71183
+    },
+    {
+      "local": "www-lmsys-org-img-007.png",
+      "remote": "",
+      "bytes": 154475
+    }
+  ],
+  "notes": [
+    "opencli adapter: lmsys-blog",
+    "web-fetch: own jsdom+turndown — 10 table line(s), 3 code fence(s), 7/7 image(s) downloaded",
+    "hirono post-processors: lmsys-cleanup, unescape-brackets-in-links, enforce-single-h1",
+    "lmsys: stripped 2 chrome line(s)",
+    "un-escaped brackets in link text",
+    "enforce-single-h1: demoted 1 body H1(s) to H2",
+    "7 images downloaded by adapter"
+  ]
+}

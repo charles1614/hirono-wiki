@@ -1,0 +1,41 @@
+{
+  "fetched_at": "2026-04-26T15:37:42.140Z",
+  "origin": "url:https://sebastianraschka.com/llm-architecture-gallery/",
+  "origin_url": "https://sebastianraschka.com/llm-architecture-gallery/",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "dd12a3090c384bc2b0573f9162702ef8aa2f9dc0797b93c0668319087a65d399",
+  "content_length": 69236,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "sebastianraschka-com-img-001.webp",
+      "remote": "",
+      "bytes": 153068
+    },
+    {
+      "local": "sebastianraschka-com-img-002.jpg",
+      "remote": "",
+      "bytes": 269433
+    },
+    {
+      "local": "sebastianraschka-com-img-003.jpg",
+      "remote": "",
+      "bytes": 85831
+    },
+    {
+      "local": "sebastianraschka-com-img-004.webp",
+      "remote": "",
+      "bytes": 122460
+    }
+  ],
+  "notes": [
+    "opencli adapter: sebastianraschka-blog",
+    "web-fetch: own jsdom+turndown — 0 table line(s), 1 code fence(s), 4/4 image(s) downloaded",
+    "hirono post-processors: substack-reformat, sebastianraschka-gallery-cleanup",
+    "substack: unwrapped click-to-enlarge image links",
+    "sebastianraschka: stripped 2 modal/placeholder artifact(s)",
+    "4 images downloaded by adapter"
+  ]
+}

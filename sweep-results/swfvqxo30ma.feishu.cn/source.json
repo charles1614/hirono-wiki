@@ -1,0 +1,39 @@
+{
+  "fetched_at": "2026-04-27T12:22:08.506Z",
+  "origin": "url:https://swfvqxo30ma.feishu.cn/wiki/J4CQwxPruisyFXk599AcIdDInPh",
+  "origin_url": "https://swfvqxo30ma.feishu.cn/wiki/J4CQwxPruisyFXk599AcIdDInPh",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "8aa78cf66920b4686be1722b291977bf778e6f554952b3842af63e8ab1037cfb",
+  "content_length": 2802,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "my-feishu-cn-img-001.png",
+      "remote": "",
+      "bytes": 10489
+    },
+    {
+      "local": "my-feishu-cn-img-002.jpg",
+      "remote": "",
+      "bytes": 122013
+    },
+    {
+      "local": "my-feishu-cn-img-003.jpg",
+      "remote": "",
+      "bytes": 2537
+    }
+  ],
+  "notes": [
+    "opencli adapter: feishu-wiki",
+    "web-fetch: own jsdom+turndown — 0 table line(s), 0 code fence(s), 3/5 image(s) downloaded",
+    "hirono post-processors: feishu-wiki-cleaner, enforce-single-h1",
+    "feishu: stripped 4 UI-chrome lines",
+    "feishu: cleaned public wiki chrome",
+    "enforce-single-h1: demoted 1 body H1(s) to H2",
+    "image download failed: https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/v2/cover/EbPybaNLbos015xGtyyc6sMwn1d/?fallback_source=1&height=1280&mount_node_token=doxcnVDeiaeGTkYIxpXF1gyFXCd&mount_point=docx_image&policy=equal&width=1280",
+    "image download failed: https://internal-api-drive-stream.feishu.cn/space/api/box/stream/download/v2/cover/TPAUbnnF3oRGzdxsHNrcg8I4nnh/?fallback_source=1&height=1280&mount_node_token=doxcnyIqUFiBMRZxYg9P6wdcLjf&mount_point=docx_image&policy=equal&width=1280",
+    "3 images downloaded by adapter"
+  ]
+}

@@ -1,0 +1,229 @@
+{
+  "fetched_at": "2026-04-26T15:51:11.985Z",
+  "origin": "url:https://sspai.com/post/90170",
+  "origin_url": "https://sspai.com/post/90170",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "12e69f4a6692d117f8c62c755e93a455eaf5bc09ce0073229498dec000d2777f",
+  "content_length": 9588,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "sspai-com-img-001.jpg",
+      "remote": "",
+      "bytes": 2114
+    },
+    {
+      "local": "sspai-com-img-002.jpg",
+      "remote": "",
+      "bytes": 2964
+    },
+    {
+      "local": "sspai-com-img-003.jpg",
+      "remote": "",
+      "bytes": 2964
+    },
+    {
+      "local": "sspai-com-img-004.jpg",
+      "remote": "",
+      "bytes": 2114
+    },
+    {
+      "local": "sspai-com-img-005.jpg",
+      "remote": "",
+      "bytes": 2964
+    },
+    {
+      "local": "sspai-com-img-006.jpg",
+      "remote": "",
+      "bytes": 2964
+    },
+    {
+      "local": "sspai-com-img-007.jpg",
+      "remote": "",
+      "bytes": 22500
+    },
+    {
+      "local": "sspai-com-img-008.png",
+      "remote": "",
+      "bytes": 33760
+    },
+    {
+      "local": "sspai-com-img-009.png",
+      "remote": "",
+      "bytes": 22124
+    },
+    {
+      "local": "sspai-com-img-010.png",
+      "remote": "",
+      "bytes": 48918
+    },
+    {
+      "local": "sspai-com-img-011.png",
+      "remote": "",
+      "bytes": 29252
+    },
+    {
+      "local": "sspai-com-img-012.png",
+      "remote": "",
+      "bytes": 42602
+    },
+    {
+      "local": "sspai-com-img-013.png",
+      "remote": "",
+      "bytes": 23608
+    },
+    {
+      "local": "sspai-com-img-014.png",
+      "remote": "",
+      "bytes": 18164
+    },
+    {
+      "local": "sspai-com-img-015.png",
+      "remote": "",
+      "bytes": 18848
+    },
+    {
+      "local": "sspai-com-img-016.png",
+      "remote": "",
+      "bytes": 29170
+    },
+    {
+      "local": "sspai-com-img-017.png",
+      "remote": "",
+      "bytes": 17172
+    },
+    {
+      "local": "sspai-com-img-018.png",
+      "remote": "",
+      "bytes": 22522
+    },
+    {
+      "local": "sspai-com-img-019.png",
+      "remote": "",
+      "bytes": 25560
+    },
+    {
+      "local": "sspai-com-img-020.png",
+      "remote": "",
+      "bytes": 20674
+    },
+    {
+      "local": "sspai-com-img-021.png",
+      "remote": "",
+      "bytes": 40876
+    },
+    {
+      "local": "sspai-com-img-022.png",
+      "remote": "",
+      "bytes": 39912
+    },
+    {
+      "local": "sspai-com-img-023.png",
+      "remote": "",
+      "bytes": 35114
+    },
+    {
+      "local": "sspai-com-img-024.png",
+      "remote": "",
+      "bytes": 31926
+    },
+    {
+      "local": "sspai-com-img-025.png",
+      "remote": "",
+      "bytes": 39978
+    },
+    {
+      "local": "sspai-com-img-026.png",
+      "remote": "",
+      "bytes": 36564
+    },
+    {
+      "local": "sspai-com-img-027.png",
+      "remote": "",
+      "bytes": 30246
+    },
+    {
+      "local": "sspai-com-img-028.png",
+      "remote": "",
+      "bytes": 64506
+    },
+    {
+      "local": "sspai-com-img-029.png",
+      "remote": "",
+      "bytes": 22688
+    },
+    {
+      "local": "sspai-com-img-030.png",
+      "remote": "",
+      "bytes": 41862
+    },
+    {
+      "local": "sspai-com-img-031.png",
+      "remote": "",
+      "bytes": 59302
+    },
+    {
+      "local": "sspai-com-img-032.png",
+      "remote": "",
+      "bytes": 38430
+    },
+    {
+      "local": "sspai-com-img-033.png",
+      "remote": "",
+      "bytes": 37596
+    },
+    {
+      "local": "sspai-com-img-034.png",
+      "remote": "",
+      "bytes": 49744
+    },
+    {
+      "local": "sspai-com-img-035.png",
+      "remote": "",
+      "bytes": 50582
+    },
+    {
+      "local": "sspai-com-img-036.png",
+      "remote": "",
+      "bytes": 182
+    },
+    {
+      "local": "sspai-com-img-037.jpg",
+      "remote": "",
+      "bytes": 5432
+    },
+    {
+      "local": "sspai-com-img-038.png",
+      "remote": "",
+      "bytes": 580
+    },
+    {
+      "local": "sspai-com-img-039.jpg",
+      "remote": "",
+      "bytes": 460
+    },
+    {
+      "local": "sspai-com-img-040.jpg",
+      "remote": "",
+      "bytes": 308
+    },
+    {
+      "local": "sspai-com-img-041.jpg",
+      "remote": "",
+      "bytes": 2462
+    }
+  ],
+  "notes": [
+    "opencli adapter: sspai-blog",
+    "web-fetch: own jsdom+turndown — 0 table line(s), 0 code fence(s), 41/41 image(s) downloaded",
+    "hirono post-processors: sspai-cleanup, article-cleanup, strip-empty-anchor-links, unescape-brackets-in-links",
+    "sspai: stripped 69 author-bio chrome line(s) above first H2",
+    "article-cleanup: truncated at trailing chrome (\"讨论\")",
+    "article-cleanup: stripped 1 chrome lines",
+    "stripped 2 empty-text anchor link(s)",
+    "un-escaped brackets in link text",
+    "41 images downloaded by adapter"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "fetched_at": "2026-04-26T15:45:36.848Z",
+  "origin": "url:http://www.sohu.com/a/165596586_657253",
+  "origin_url": "http://www.sohu.com/a/165596586_657253",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "4312643134c44dd8711dd9bcd7367fefa64e5217eee042332af93ebfddcac0e6",
+  "content_length": 1363,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "www-sohu-com-img-001.jpg",
+      "remote": "",
+      "bytes": 45412
+    },
+    {
+      "local": "www-sohu-com-img-002.jpg",
+      "remote": "",
+      "bytes": 21723
+    }
+  ],
+  "notes": [
+    "opencli adapter: sohu-news",
+    "web-fetch: own jsdom+turndown — 0 table line(s), 0 code fence(s), 2/2 image(s) downloaded",
+    "hirono post-processors: article-cleanup",
+    "article-cleanup: truncated at trailing chrome (\"评分：3分\")",
+    "2 images downloaded by adapter"
+  ]
+}

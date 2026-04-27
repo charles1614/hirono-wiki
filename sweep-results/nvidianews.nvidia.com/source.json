@@ -1,0 +1,23 @@
+{
+  "fetched_at": "2026-04-26T15:37:53.731Z",
+  "origin": "url:https://nvidianews.nvidia.com/news/nvidia-launches-vera-cpu-purpose-built-for-agentic-ai",
+  "origin_url": "https://nvidianews.nvidia.com/news/nvidia-launches-vera-cpu-purpose-built-for-agentic-ai",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "091bc3a066ca11c4cecc2159f03762497554e6b37d3dc2e8cee85d6c537d9719",
+  "content_length": 8608,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "nvidianews-img-001.png",
+      "remote": "",
+      "bytes": 291357
+    }
+  ],
+  "notes": [
+    "opencli adapter: nvidia-news",
+    "nvidianews: 23 paragraph(s), 0 code fence(s), 1/1 image(s) downloaded",
+    "1 images downloaded by adapter"
+  ]
+}

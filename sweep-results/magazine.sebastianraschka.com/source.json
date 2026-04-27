@@ -1,0 +1,462 @@
+{
+  "fetched_at": "2026-04-26T15:39:43.345Z",
+  "origin": "url:https://magazine.sebastianraschka.com/p/the-big-llm-architecture-comparison",
+  "origin_url": "https://magazine.sebastianraschka.com/p/the-big-llm-architecture-comparison",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "6df94897cf3a65648c6359878089d5736bb23c69668af9777357454df40c1daf",
+  "content_length": 105754,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "magazine-sebastianraschka-com-img-001.jpg",
+      "remote": "",
+      "bytes": 2302
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-002.jpg",
+      "remote": "",
+      "bytes": 1444
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-003.png",
+      "remote": "",
+      "bytes": 375095
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-004.png",
+      "remote": "",
+      "bytes": 4691
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-005.png",
+      "remote": "",
+      "bytes": 52932
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-006.png",
+      "remote": "",
+      "bytes": 171729
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-007.png",
+      "remote": "",
+      "bytes": 127315
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-008.png",
+      "remote": "",
+      "bytes": 176327
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-009.png",
+      "remote": "",
+      "bytes": 79063
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-010.png",
+      "remote": "",
+      "bytes": 215653
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-011.png",
+      "remote": "",
+      "bytes": 139688
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-012.png",
+      "remote": "",
+      "bytes": 48628
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-013.png",
+      "remote": "",
+      "bytes": 132369
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-014.png",
+      "remote": "",
+      "bytes": 22527
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-015.png",
+      "remote": "",
+      "bytes": 216835
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-016.png",
+      "remote": "",
+      "bytes": 216855
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-017.png",
+      "remote": "",
+      "bytes": 110183
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-018.png",
+      "remote": "",
+      "bytes": 93122
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-019.png",
+      "remote": "",
+      "bytes": 155169
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-020.png",
+      "remote": "",
+      "bytes": 292877
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-021.png",
+      "remote": "",
+      "bytes": 227146
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-022.png",
+      "remote": "",
+      "bytes": 265316
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-023.png",
+      "remote": "",
+      "bytes": 55424
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-024.png",
+      "remote": "",
+      "bytes": 151605
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-025.png",
+      "remote": "",
+      "bytes": 70319
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-026.png",
+      "remote": "",
+      "bytes": 125957
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-027.png",
+      "remote": "",
+      "bytes": 125201
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-028.png",
+      "remote": "",
+      "bytes": 317740
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-029.jpg",
+      "remote": "",
+      "bytes": 209265
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-030.png",
+      "remote": "",
+      "bytes": 12029
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-031.png",
+      "remote": "",
+      "bytes": 243122
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-032.png",
+      "remote": "",
+      "bytes": 288259
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-033.png",
+      "remote": "",
+      "bytes": 78993
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-034.png",
+      "remote": "",
+      "bytes": 129011
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-035.png",
+      "remote": "",
+      "bytes": 8247
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-036.png",
+      "remote": "",
+      "bytes": 93210
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-037.png",
+      "remote": "",
+      "bytes": 12029
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-038.png",
+      "remote": "",
+      "bytes": 228618
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-039.jpg",
+      "remote": "",
+      "bytes": 267701
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-040.png",
+      "remote": "",
+      "bytes": 282508
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-041.png",
+      "remote": "",
+      "bytes": 279243
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-042.png",
+      "remote": "",
+      "bytes": 301628
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-043.png",
+      "remote": "",
+      "bytes": 89354
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-044.png",
+      "remote": "",
+      "bytes": 123641
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-045.png",
+      "remote": "",
+      "bytes": 299557
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-046.png",
+      "remote": "",
+      "bytes": 3032
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-047.png",
+      "remote": "",
+      "bytes": 66533
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-048.png",
+      "remote": "",
+      "bytes": 56849
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-049.png",
+      "remote": "",
+      "bytes": 170064
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-050.png",
+      "remote": "",
+      "bytes": 38944
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-051.png",
+      "remote": "",
+      "bytes": 209109
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-052.png",
+      "remote": "",
+      "bytes": 219941
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-053.png",
+      "remote": "",
+      "bytes": 324888
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-054.png",
+      "remote": "",
+      "bytes": 59615
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-055.png",
+      "remote": "",
+      "bytes": 222149
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-056.png",
+      "remote": "",
+      "bytes": 5146
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-057.png",
+      "remote": "",
+      "bytes": 188956
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-058.png",
+      "remote": "",
+      "bytes": 300640
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-059.png",
+      "remote": "",
+      "bytes": 326676
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-060.jpg",
+      "remote": "",
+      "bytes": 14867
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-061.png",
+      "remote": "",
+      "bytes": 306989
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-062.png",
+      "remote": "",
+      "bytes": 163525
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-063.png",
+      "remote": "",
+      "bytes": 104530
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-064.png",
+      "remote": "",
+      "bytes": 306296
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-065.png",
+      "remote": "",
+      "bytes": 416260
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-066.png",
+      "remote": "",
+      "bytes": 275620
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-067.png",
+      "remote": "",
+      "bytes": 121497
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-068.png",
+      "remote": "",
+      "bytes": 275136
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-069.png",
+      "remote": "",
+      "bytes": 226828
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-070.png",
+      "remote": "",
+      "bytes": 71407
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-071.png",
+      "remote": "",
+      "bytes": 228208
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-072.png",
+      "remote": "",
+      "bytes": 5591
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-073.png",
+      "remote": "",
+      "bytes": 162230
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-074.png",
+      "remote": "",
+      "bytes": 136704
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-075.png",
+      "remote": "",
+      "bytes": 155131
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-076.webp",
+      "remote": "",
+      "bytes": 307173
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-077.webp",
+      "remote": "",
+      "bytes": 104982
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-078.jpg",
+      "remote": "",
+      "bytes": 1303
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-079.jpg",
+      "remote": "",
+      "bytes": 1116
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-080.png",
+      "remote": "",
+      "bytes": 1885
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-081.png",
+      "remote": "",
+      "bytes": 1164
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-082.jpg",
+      "remote": "",
+      "bytes": 1255
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-083.png",
+      "remote": "",
+      "bytes": 1311
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-084.jpg",
+      "remote": "",
+      "bytes": 1128
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-085.png",
+      "remote": "",
+      "bytes": 11553
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-086.png",
+      "remote": "",
+      "bytes": 6542
+    },
+    {
+      "local": "magazine-sebastianraschka-com-img-087.png",
+      "remote": "",
+      "bytes": 8936
+    }
+  ],
+  "notes": [
+    "opencli adapter: substack-sebastianraschka",
+    "web-fetch: own jsdom+turndown — 0 table line(s), 3 code fence(s), 87/87 image(s) downloaded",
+    "hirono post-processors: substack-reformat, strip-empty-anchor-links, strip-share-widget-lines, enforce-single-h1",
+    "substack: stripped 4 header-chrome line(s)",
+    "substack: collapsed 6 embedded post card(s)",
+    "substack: unwrapped click-to-enlarge image links",
+    "substack: stripped 4 body-top chrome line(s)",
+    "substack: unescaped over-escaped periods",
+    "stripped 7 empty-text anchor link(s)",
+    "stripped 2 share-widget chrome line(s)",
+    "enforce-single-h1: demoted 23 body H1(s) to H2",
+    "87 images downloaded by adapter"
+  ]
+}

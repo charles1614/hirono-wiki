@@ -1,0 +1,100 @@
+{
+  "fetched_at": "2026-04-26T15:37:21.944Z",
+  "origin": "url:https://www.reddit.com/r/ClaudeAI/s/UgkMOt8PZn",
+  "origin_url": "https://www.reddit.com/r/ClaudeAI/s/UgkMOt8PZn",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "2c96419949681acae8d98e6f5e4aab8a0e98c0e12061b94c884f076f60775110",
+  "content_length": 266,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "www-reddit-com-img-001.png",
+      "remote": "",
+      "bytes": 2757
+    },
+    {
+      "local": "www-reddit-com-img-002.jpg",
+      "remote": "",
+      "bytes": 1540
+    },
+    {
+      "local": "www-reddit-com-img-003.png",
+      "remote": "",
+      "bytes": 7180
+    },
+    {
+      "local": "www-reddit-com-img-004.png",
+      "remote": "",
+      "bytes": 7180
+    },
+    {
+      "local": "www-reddit-com-img-005.png",
+      "remote": "",
+      "bytes": 8109
+    },
+    {
+      "local": "www-reddit-com-img-006.png",
+      "remote": "",
+      "bytes": 8061
+    },
+    {
+      "local": "www-reddit-com-img-007.jpg",
+      "remote": "",
+      "bytes": 1540
+    },
+    {
+      "local": "www-reddit-com-img-008.png",
+      "remote": "",
+      "bytes": 8061
+    },
+    {
+      "local": "www-reddit-com-img-009.png",
+      "remote": "",
+      "bytes": 2434
+    },
+    {
+      "local": "www-reddit-com-img-010.png",
+      "remote": "",
+      "bytes": 7180
+    },
+    {
+      "local": "www-reddit-com-img-011.png",
+      "remote": "",
+      "bytes": 7180
+    },
+    {
+      "local": "www-reddit-com-img-012.png",
+      "remote": "",
+      "bytes": 7180
+    },
+    {
+      "local": "www-reddit-com-img-013.png",
+      "remote": "",
+      "bytes": 7823
+    },
+    {
+      "local": "www-reddit-com-img-014.png",
+      "remote": "",
+      "bytes": 4050
+    },
+    {
+      "local": "www-reddit-com-img-015.png",
+      "remote": "",
+      "bytes": 4050
+    },
+    {
+      "local": "www-reddit-com-img-016.png",
+      "remote": "",
+      "bytes": 8109
+    }
+  ],
+  "notes": [
+    "opencli adapter: reddit-web",
+    "web-fetch: own jsdom+turndown — 0 table line(s), 0 code fence(s), 16/16 image(s) downloaded",
+    "hirono post-processors: reddit-reformat",
+    "reddit: deleted/removed — produced stub",
+    "16 images downloaded by adapter"
+  ]
+}
