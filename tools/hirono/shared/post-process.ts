@@ -437,7 +437,13 @@ export const arxivStructureImprove: PostProcessor = {
 
     // Build fresh markdown with title + metadata + abstract ONLY.
     const result: string[] = [];
-    if (title) result.push(`# ${title}`);
+    // Strip the `[NNNN.NNNNN]` arxiv-id prefix that arxiv puts in <title>.
+    // The arxiv ID appears explicitly in the metadata block below, so the
+    // prefix is redundant in the H1.
+    if (title) {
+      const cleanTitle = title.replace(/^\[\d{4}\.\d{4,6}(?:v\d+)?\]\s+/, "").trim();
+      result.push(`# ${cleanTitle}`);
+    }
     if (rawSourceLine) { result.push("", rawSourceLine); }
     result.push("", "---", "");
 
@@ -1012,6 +1018,37 @@ export const substackReformat: PostProcessor = {
       }
       out = fenceAwareLines.join("\n");
       if (out !== beforePeriodFix) notes.push("substack: unescaped over-escaped periods");
+    }
+
+    // -- Step 10: trailing post-article footer block ----------------------
+    //
+    // Substack appends a multi-section footer below every post body:
+    //   #### Subscribe to <Newsletter Name>
+    //   ...subscriber CTA + facepile + likes/restacks counters...
+    //   #### Discussion about this post
+    //   ...comments...
+    //   ### Ready for more?
+    //   [Subscribe to ...]
+    //
+    // Truncate at the FIRST of these markers so the archived article ends
+    // at its actual closing paragraph, not at the comment thread.
+    {
+      const footerMarkers: RegExp[] = [
+        /\n#{2,4}\s+Subscribe to\s+\S/,
+        /\n#{2,4}\s+Discussion about this post\b/,
+        /\n#{2,4}\s+Ready for more\?/,
+        /\n#{2,4}\s+No posts\b/,
+      ];
+      let cutAt = -1;
+      for (const re of footerMarkers) {
+        const m = re.exec(out);
+        if (m && (cutAt < 0 || m.index < cutAt)) cutAt = m.index;
+      }
+      if (cutAt > 0) {
+        const before = out.length;
+        out = out.slice(0, cutAt).replace(/\n+$/, "") + "\n";
+        notes.push(`substack: truncated at trailing footer block (-${before - out.length} chars)`);
+      }
     }
 
     return {

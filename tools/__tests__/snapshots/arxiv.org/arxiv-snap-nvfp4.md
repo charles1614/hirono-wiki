@@ -1,4 +1,4 @@
-# [2509.25149] Pretraining Large Language Models with NVFP4
+# Pretraining Large Language Models with NVFP4
 
 > 原文链接: https://arxiv.org/abs/2509.25149
 

@@ -1,37 +1,18 @@
 {
-  "fetched_at": "2026-04-26T15:40:35.123Z",
+  "fetched_at": "2026-04-27T15:21:11.164Z",
   "origin": "url:https://epoch.ai/data/machine-learning-hardware#explore-the-data",
   "origin_url": "https://epoch.ai/data/machine-learning-hardware#explore-the-data",
   "fetcher": "opencli",
   "fetcher_reason": "domain-override",
-  "content_sha": "a3221600dc4c45c549a6bf30df619c2c8c03488a9e22cb4b58067d7c0b756e15",
-  "content_length": 7594,
+  "content_sha": "327f91bcbd3184b5c08adb9d85d57d827749d255ccb9caaf7c709590285072e4",
+  "content_length": 3662,
   "quality_flags": [],
   "quality_status": "good",
-  "images": [
-    {
-      "local": "epoch-ai-img-001.png",
-      "remote": "",
-      "bytes": 233933
-    },
-    {
-      "local": "epoch-ai-img-002.png",
-      "remote": "",
-      "bytes": 61912
-    },
-    {
-      "local": "epoch-ai-img-003.png",
-      "remote": "",
-      "bytes": 63216
-    }
-  ],
+  "images": [],
   "notes": [
     "opencli adapter: epoch-research",
-    "web-read: used domain-override wait=20s",
-    "web-fetch: own jsdom+turndown — 0 table line(s), 0 code fence(s), 3/3 image(s) downloaded",
-    "hirono post-processors: unescape-brackets-in-links, enforce-single-h1",
-    "un-escaped brackets in link text",
-    "enforce-single-h1: demoted 2 body H1(s) to H2",
-    "3 images downloaded by adapter"
+    "epoch-ai: intro 299 chars, CSV 175 rows × 39 cols (top 30 embedded as markdown table)",
+    "hirono post-processors: enforce-single-h1",
+    "enforce-single-h1: demoted 1 body H1(s) to H2"
   ]
 }

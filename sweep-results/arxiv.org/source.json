@@ -1,11 +1,11 @@
 {
-  "fetched_at": "2026-04-26T15:34:36.590Z",
+  "fetched_at": "2026-04-27T15:21:26.820Z",
   "origin": "url:https://arxiv.org/abs/2509.25149",
   "origin_url": "https://arxiv.org/abs/2509.25149",
   "fetcher": "opencli",
   "fetcher_reason": "domain-override",
-  "content_sha": "baaa9ea14012b4bc75fc293bb198f4f1412f577bdbf045958c676138a323bcd4",
-  "content_length": 2398,
+  "content_sha": "feed68ec88209680d0f5b98202e74bd2b4d34e24188d4b7b9675d7a927f08078",
+  "content_length": 2385,
   "quality_flags": [],
   "quality_status": "good",
   "images": [

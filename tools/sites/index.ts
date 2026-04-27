@@ -18,6 +18,7 @@ import { site as deepwikiLitenext } from "./deepwiki-litenext/index.ts";
 import { site as deepwikiCom } from "./deepwiki-com/index.ts";
 import { site as linuxDo } from "./linux-do/index.ts";
 import { site as nvidianews } from "./nvidianews/index.ts";
+import { site as epochAi } from "./epoch-ai/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
@@ -31,6 +32,9 @@ export const SITES: readonly Site[] = [
   deepwikiCom,
   linuxDo,
   nvidianews,
+  // epoch.ai: data lives in CSV, not HTML — fetcher curls the dataset
+  // and converter embeds top N rows as a markdown table.
+  epochAi,
 ];
 
 export function routeSite(url: string): Site | null {

@@ -48,6 +48,8 @@ import { convertLinuxDoTopic } from "../sites/linux-do/converter.ts";
 import { fetchLinuxDoTopic } from "../sites/linux-do/fetcher.ts";
 import { convertGenericHtml } from "../sites/_shared/generic-converter.ts";
 import { extractJsonFromEvalStdout } from "../sites/_shared/browser-eval-json.ts";
+import { convertEpochAiContent } from "../sites/epoch-ai/converter.ts";
+import { extractEpochAiContent } from "../sites/epoch-ai/fetcher.ts";
 import { extractXhsFullContent, sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
 import { spawnSync } from "node:child_process";
 
@@ -416,6 +418,29 @@ if (!host || !name || !url) {
   process.exit(2);
 }
 
+function captureEpochAi(name: string, url: string): void {
+  console.log(`[capture epoch-ai] ${url}`);
+  const x = extractEpochAiContent(url);
+  if (x.error) throw new Error(`epoch-ai extraction failed: ${x.error}`);
+  if (!x.csvText) throw new Error(`epoch-ai produced no CSV (CSV unavailable?)`);
+  const args: [{ introHtml: string; csvUrl: string; csvText: string; url: string }] = [
+    { introHtml: x.introHtml, csvUrl: x.csvUrl, csvText: x.csvText, url },
+  ];
+  const result = convertEpochAiContent(args[0]);
+
+  const dir = join(FIXTURES_ROOT, "epoch-ai");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}.input.json`), JSON.stringify({
+    fn: "convertEpochAiContent",
+    args,
+  }, null, 2) + "\n");
+  writeFileSync(join(dir, `${name}.expected.md`), result.body);
+  const { body: _b, ...rest } = result;
+  writeFileSync(join(dir, `${name}.expected.json`), JSON.stringify(rest, null, 2) + "\n");
+  console.log(`[capture epoch-ai] wrote 3 files to ${dir}/${name}.{input.json,expected.md,expected.json}`);
+  console.log(`[capture epoch-ai] body ${result.body.length} chars, ${result.stats.csvRows} CSV rows × ${result.stats.csvCols} cols (top ${result.stats.embeddedRows} embedded)`);
+}
+
 if (host === "weixin") captureWeixin(name, url);
 else if (host === "xhs") captureXhs(name, url);
 else if (host === "github") captureGithub(name, url);
@@ -423,5 +448,6 @@ else if (host === "zhihu") captureZhihu(name, url);
 else if (host === "deepwiki-litenext") captureDeepwikiLitenext(name, url);
 else if (host === "deepwiki-com") captureDeepwikiCom(name, url);
 else if (host === "linux-do") captureLinuxDo(name, url);
+else if (host === "epoch-ai") captureEpochAi(name, url);
 else if (host.startsWith("web-fetch:")) captureWebFetch(host.slice("web-fetch:".length), name, url);
 else { console.error(`unknown host: ${host}`); process.exit(2); }

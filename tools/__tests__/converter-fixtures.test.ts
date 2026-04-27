@@ -45,6 +45,7 @@ import { convertDeepwikiLitenextHtml } from "../sites/deepwiki-litenext/converte
 import { convertDeepwikiComHtml } from "../sites/deepwiki-com/converter.ts";
 import { convertLinuxDoTopic } from "../sites/linux-do/converter.ts";
 import { convertGenericHtml } from "../sites/_shared/generic-converter.ts";
+import { convertEpochAiContent } from "../sites/epoch-ai/converter.ts";
 import type { LinuxDoTopic } from "../sites/linux-do/fetcher.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
@@ -80,7 +81,7 @@ function listFixtures(): Fixture[] {
 }
 
 interface InputDoc {
-  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml" | "convertLinuxDoTopic" | "convertGenericHtml";
+  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml" | "convertLinuxDoTopic" | "convertGenericHtml" | "convertEpochAiContent";
   args: unknown[];
 }
 
@@ -147,6 +148,12 @@ function runConverter(input: InputDoc): { markdown: string; rest: Record<string,
     // We map `body` → `markdown` for the byte-equal assertion infra to reuse.
     const [opts] = input.args as [{ html: string; url: string; imagePrefix?: string }];
     const r = convertGenericHtml(opts);
+    const { body, ...rest } = r;
+    return { markdown: body, rest: rest as Record<string, unknown> };
+  }
+  if (input.fn === "convertEpochAiContent") {
+    const [opts] = input.args as [{ introHtml: string; csvUrl: string; csvText: string; url: string; maxRows?: number }];
+    const r = convertEpochAiContent(opts);
     const { body, ...rest } = r;
     return { markdown: body, rest: rest as Record<string, unknown> };
   }
