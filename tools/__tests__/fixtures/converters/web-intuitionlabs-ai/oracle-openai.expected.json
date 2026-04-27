@@ -1,0 +1,25 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://intuitionlabs.ai/_next/image?url=%2Fimages%2Farticles%2Foracle-openai-300b-deal-analysis.avif&w=2048&q=75",
+      "localFilename": "intuitionlabs-ai-img-001.jpg"
+    },
+    {
+      "remoteUrl": "https://intuitionlabs.ai/_next/image?url=%2Fimages%2Farticles%2Fchatgpt-deep-research-guide-ai-agents-rag.avif&w=2048&q=75",
+      "localFilename": "intuitionlabs-ai-img-002.jpg"
+    },
+    {
+      "remoteUrl": "https://intuitionlabs.ai/_next/image?url=%2Fimages%2Farticles%2Fprompt-engineering-business-guide.avif&w=2048&q=75",
+      "localFilename": "intuitionlabs-ai-img-003.jpg"
+    },
+    {
+      "remoteUrl": "https://intuitionlabs.ai/_next/image?url=%2Fimages%2Farticles%2Fclaude-vs-chatgpt-vs-copilot-vs-gemini-enterprise-comparison.avif&w=2048&q=75",
+      "localFilename": "intuitionlabs-ai-img-004.jpg"
+    }
+  ],
+  "stats": {
+    "tables": 49,
+    "codeFences": 0,
+    "images": 4
+  }
+}

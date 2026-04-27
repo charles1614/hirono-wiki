@@ -101,9 +101,21 @@ for (const { host, slug, mdPath } of pairs) {
     const md = readFileSync(mdPath, "utf8");
     const snapDir = join(SNAPSHOTS_DIR, host);
     const dangling: string[] = [];
-    for (const m of md.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+    // Strip code spans + fenced blocks before scanning so doc examples like
+    // `` `![$fileName]($url)` `` don't false-positive as real refs. Parse
+    // optional `(ref "title")` properly so refs with title attribute resolve.
+    const lines = md.split("\n");
+    let inFence = false;
+    const scrubbed: string[] = [];
+    for (const line of lines) {
+      if (/^```/.test(line.trim())) { inFence = !inFence; scrubbed.push(""); continue; }
+      if (inFence) { scrubbed.push(""); continue; }
+      scrubbed.push(line.replace(/`[^`\n]+`/g, ""));
+    }
+    for (const m of scrubbed.join("\n").matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
       const ref = m[1];
       if (/^https?:\/\//i.test(ref)) continue;
+      if (ref.startsWith("data:")) continue;
       const abs = join(snapDir, ref);
       if (!existsSync(abs)) dangling.push(ref);
     }

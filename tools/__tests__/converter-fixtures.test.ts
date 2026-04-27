@@ -44,6 +44,7 @@ import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
 import { convertDeepwikiLitenextHtml } from "../sites/deepwiki-litenext/converter.ts";
 import { convertDeepwikiComHtml } from "../sites/deepwiki-com/converter.ts";
 import { convertLinuxDoTopic } from "../sites/linux-do/converter.ts";
+import { convertGenericHtml } from "../sites/_shared/generic-converter.ts";
 import type { LinuxDoTopic } from "../sites/linux-do/fetcher.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
@@ -79,7 +80,7 @@ function listFixtures(): Fixture[] {
 }
 
 interface InputDoc {
-  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml" | "convertLinuxDoTopic";
+  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml" | "convertLinuxDoTopic" | "convertGenericHtml";
   args: unknown[];
 }
 
@@ -139,6 +140,15 @@ function runConverter(input: InputDoc): { markdown: string; rest: Record<string,
     const r = convertLinuxDoTopic(topic);
     const { markdown, ...rest } = r;
     return { markdown, rest: rest as Record<string, unknown> };
+  }
+  if (input.fn === "convertGenericHtml") {
+    // The generic web-fetch converter returns `{ body, imagesToDownload, stats }`
+    // (no `markdown` key — the caller composes §2 frontmatter separately).
+    // We map `body` → `markdown` for the byte-equal assertion infra to reuse.
+    const [opts] = input.args as [{ html: string; url: string; imagePrefix?: string }];
+    const r = convertGenericHtml(opts);
+    const { body, ...rest } = r;
+    return { markdown: body, rest: rest as Record<string, unknown> };
   }
   throw new Error(`unknown converter fn: ${(input as InputDoc).fn}`);
 }

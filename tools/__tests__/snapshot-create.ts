@@ -113,9 +113,14 @@ let copiedImages = 0;
 let totalBytes = 0;
 const missingRefs: string[] = [];
 const localRefs = new Set<string>();
-for (const m of r.md.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+// Strip inline-code spans + fenced code blocks BEFORE scanning, so literal
+// markdown-syntax examples (e.g. sspai's `![$fileName]($url)` config docs)
+// don't false-positive as real image refs.
+const scrubbed = scrubCodeForImageScan(r.md);
+for (const m of scrubbed.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
   const ref = m[1];
   if (/^https?:\/\//i.test(ref)) continue;
+  if (ref.startsWith("data:")) continue;
   localRefs.add(ref);
 }
 if (localRefs.size > 0) {
@@ -139,7 +144,11 @@ if (refsToRewrite.size > 0) {
   for (const ref of sortedRefs) {
     const newRef = refsToRewrite.get(ref)!;
     const escaped = ref.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    rewritten = rewritten.replace(new RegExp(`!\\[([^\\]]*)\\]\\(${escaped}\\)`, "g"), `![$1](${newRef})`);
+    // Match `(ref)` and `(ref "title")` — keep title attribute when rewriting.
+    rewritten = rewritten.replace(
+      new RegExp(`!\\[([^\\]]*)\\]\\(${escaped}(\\s+"[^"]*")?\\)`, "g"),
+      (_full, alt: string, title: string | undefined) => `![${alt}](${newRef}${title || ""})`,
+    );
   }
   writeFileSync(snapPath, rewritten);
 }
@@ -176,11 +185,28 @@ if (missingRefs.length > 0) {
 // Verify every image reference in the snapshot resolves to a real file.
 const finalMd = readFileSync(snapPath, "utf8");
 const danglingImages: string[] = [];
-for (const m of finalMd.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+const scrubbedFinal = scrubCodeForImageScan(finalMd);
+for (const m of scrubbedFinal.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
   const ref = m[1];
   if (/^https?:\/\//i.test(ref)) continue;
+  if (ref.startsWith("data:")) continue;
   const abs = join(snapDir, ref);
   if (!existsSync(abs)) danglingImages.push(ref);
+}
+
+/** Strip fenced code blocks + inline code spans before scanning for
+ *  image refs — markdown-syntax examples (`![$fileName]($url)`)
+ *  inside code spans aren't real image refs. */
+function scrubCodeForImageScan(md: string): string {
+  const lines = md.split("\n");
+  const out: string[] = [];
+  let inFence = false;
+  for (const line of lines) {
+    if (/^```/.test(line.trim())) { inFence = !inFence; out.push(""); continue; }
+    if (inFence) { out.push(""); continue; }
+    out.push(line.replace(/`[^`\n]+`/g, ""));
+  }
+  return out.join("\n");
 }
 if (danglingImages.length > 0) {
   fail.push(`${danglingImages.length} dangling image refs in snapshot: ${danglingImages.slice(0, 3).join(", ")}${danglingImages.length > 3 ? "..." : ""}`);
