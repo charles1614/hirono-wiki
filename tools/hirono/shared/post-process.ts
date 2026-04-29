@@ -1157,7 +1157,12 @@ export const arxivPdfNote: PostProcessor = {
 
 export const sebastianraschkaBlogCleanup: PostProcessor = {
   name: "sebastianraschka-blog-cleanup",
-  match: (_u, h) => h === "sebastianraschka.com",
+  // Scoped 2026-04-28: the `/llm-architecture-gallery/` path is owned
+  // by `tools/sites/sebastianraschka-gallery/`, which produces clean
+  // structured output that doesn't need this generic blog chrome strip.
+  // Other paths (regular blog posts) still use the legacy web-fetch
+  // pipeline and benefit from this cleanup.
+  match: (u, h) => h === "sebastianraschka.com" && !/\/llm-architecture-gallery\//.test(u),
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     const chromePatterns: RegExp[] = [
@@ -1733,57 +1738,6 @@ export const lmsysCleanup: PostProcessor = {
       md: out.join("\n").replace(/\n{3,}/g, "\n\n"),
       newAbsoluteImageUrls: [],
       notes: stripped > 0 ? [`lmsys: stripped ${stripped} chrome line(s)`] : [],
-    };
-  },
-};
-
-// ---------------------------------------------------------------------------
-// sebastianraschka.com (architecture-gallery): strip trailing modal artifact
-// ---------------------------------------------------------------------------
-
-/**
- * sebastianraschka.com/llm-architecture-gallery/ has a JS lightbox modal
- * whose markup ends up in the rendered DOM. After turndown the tail looks
- * like:
- *
- *   [View in article](#) ×
- *   ![Architecture preview](data:image/gif;base64,…)
- *
- * Strip both. The `data:` placeholder image is also handled by
- * `stripDecorativeEmojiImages` for one-character alts, but the
- * "Architecture preview" alt slips past it — handle here explicitly.
- */
-export const sebastianraschkaCleanup: PostProcessor = {
-  name: "sebastianraschka-gallery-cleanup",
-  match: (_u, h) => h === "sebastianraschka.com",
-  transform: (md, _originUrl) => {
-    let out = md;
-    let stripped = 0;
-    out = out.replace(/\[View in article\]\(#\)\s*×?/g, () => { stripped++; return ""; });
-    out = out.replace(/!\[[^\]]*\]\(data:image\/[^)]+\)/g, () => { stripped++; return ""; });
-
-    // Truncate trailing modal scaffolding. The page ends with a
-    // share-widget block + "Architecture preview" lightbox shell that has
-    // no useful text content — cut at whichever marker comes first.
-    const tailMarkers: RegExp[] = [
-      /\nSuggested Share Text\b/,
-      /\n###\s+Architecture preview\b/,
-    ];
-    let cutAt = -1;
-    for (const re of tailMarkers) {
-      const m = re.exec(out);
-      if (m && (cutAt < 0 || m.index < cutAt)) cutAt = m.index;
-    }
-    if (cutAt > 0) {
-      out = out.slice(0, cutAt).replace(/\n+$/, "") + "\n";
-      stripped++;
-    }
-
-    out = out.replace(/\n{3,}/g, "\n\n");
-    return {
-      md: out,
-      newAbsoluteImageUrls: [],
-      notes: stripped > 0 ? [`sebastianraschka: stripped ${stripped} modal/placeholder artifact(s)`] : [],
     };
   },
 };
@@ -2513,7 +2467,9 @@ export const PROCESSORS: PostProcessor[] = [
   intuitionlabsCleanup,
   lmsysCleanup,
   sspaiCleanup,
-  sebastianraschkaCleanup,
+  // sebastianraschkaCleanup retired 2026-04-28 — gallery handled by
+  // tools/sites/sebastianraschka-gallery/; the "View in article" /
+  // "Architecture preview" lightbox artifacts no longer appear.
   sphinxHeadingAnchorCleanup,
   // Generic article/blog sites cleanup
   blogGoogleCleanup,

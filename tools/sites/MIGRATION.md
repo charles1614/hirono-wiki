@@ -238,6 +238,29 @@ When the new site module ships, the old code paths it replaces become dead code:
 
 Delete them in the same commit as the migration. Carrying them as "just in case" is technical debt that grows.
 
+### CRITICAL: post-processor retirement is not optional
+
+**This is the failure mode that bit substack and arxiv migrations.** When a host gains a site module, every post-processor with `match: h === "<host>"` MUST be either retired or scoped to non-migrated URL paths. Otherwise the snapshot pipeline will run them on the new clean output and mangle it — `arxivStructureImprove` aggressively re-formatted my new clean abstract output into an 8-line skeleton (lost the abstract body entirely) before it was scoped.
+
+Audit checklist before committing the migration:
+
+```bash
+# Find all post-processors that match the migrated host:
+grep -nE 'match:.*=== "<host>"|match:.*"<host>"' tools/hirono/shared/post-process.ts
+```
+
+For each match, choose:
+
+| Situation | Action |
+|---|---|
+| The site module covers ALL paths on the host | Retire: `match: () => false` (with a comment dating the retirement and pointing at the site module) |
+| The site module covers a path prefix (e.g. arxiv `/abs/`, sebastianraschka-gallery `/llm-architecture-gallery/`) | Scope: `match: (u, h) => h === "<host>" && !/\/<migrated-prefix>\//.test(u)` |
+| The post-processor is a cross-host generic (e.g. `enforceSingleH1`) | Leave — these are designed to be idempotent across all hosts |
+
+Verify after retirement: capture a snapshot via `approve.ts`, then `diff` the snapshot against the corresponding fixture. They should be byte-identical except for §2 frontmatter wrap and image-ref rewrites. If the snapshot is shorter or structurally different, a post-processor is still firing on the new output.
+
+**Why the test suite doesn't catch this automatically:** the `converter-fixtures.test.ts` byte-equal test only checks the converter's pure output, NOT the post-processor pipeline. The `per-host-snapshot.test.ts` checks the snapshot's invariants (count-based) and structural rules — but those pass on partial output (8 lines is still a valid h1=1, frontmatter-present markdown). The bug surfaces only when you eye-read the snapshot or diff against the fixture. Make the diff part of your migration verification.
+
 ## 9. Commit shape
 
 One host per commit. Title: `sites: <host> migrated to per-host module (<source>, no web-read)`. Body lists what landed and what got deleted. Reference the prior migration commit when retiring the legacy processor.

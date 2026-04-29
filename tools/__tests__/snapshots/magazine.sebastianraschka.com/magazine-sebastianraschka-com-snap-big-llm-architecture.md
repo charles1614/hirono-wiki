@@ -40,7 +40,15 @@ If you are interested in the training of DeepSeek R1 specifically, you may also 
 
 ![Understanding Reasoning LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-002.png)
 
-> 🔗 **Related:** [Understanding Reasoning LLMs](https://magazine.sebastianraschka.com/p/understanding-reasoning-llms) — Sebastian Raschka, PhD · February 5, 2025
+[#### Understanding Reasoning LLMs](https://magazine.sebastianraschka.com/p/understanding-reasoning-llms)
+
+[](https://magazine.sebastianraschka.com/p/understanding-reasoning-llms)[Sebastian Raschka, PhD](https://substack.com/profile/27393275-sebastian-raschka-phd)
+
+·
+
+February 5, 2025
+
+[Read full story](https://magazine.sebastianraschka.com/p/understanding-reasoning-llms)
 
 In this section, I’ll focus on two key architectural techniques introduced in DeepSeek V3 that improved its computational efficiency and distinguish it from many other LLMs:
 
@@ -473,7 +481,15 @@ OpenAI’s [released](https://openai.com/index/introducing-gpt-oss/) gpt-oss-120
 
 ![From GPT-2 to gpt-oss: Analyzing the Architectural Advances](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-028.png)
 
-> 🔗 **Related:** [From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the) — Sebastian Raschka, PhD · August 9, 2025
+[#### From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the)
+
+[](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the)[Sebastian Raschka, PhD](https://substack.com/profile/27393275-sebastian-raschka-phd)
+
+·
+
+August 9, 2025
+
+[Read full story](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the)
 
 Before summarizing the interesting tidbits, let's start with an overview of the two models, gpt-oss-20b and gpt-oss-120b, as shown in Figure 26 below.
 
@@ -547,7 +563,15 @@ For more information about gpt-oss, and how it compares to GPT-2, please see my 
 
 ![From GPT-2 to gpt-oss: Analyzing the Architectural Advances](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-035.png)
 
-> 🔗 **Related:** [From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the) — Sebastian Raschka, PhD · August 9, 2025
+[#### From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the)
+
+[](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the)[Sebastian Raschka, PhD](https://substack.com/profile/27393275-sebastian-raschka-phd)
+
+·
+
+August 9, 2025
+
+[Read full story](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the)
 
 ## 10. Grok 2.5
 
@@ -872,7 +896,15 @@ I originally planned to write a short section about DeepSeek V3.2 for this artic
 
 ![A Technical Tour of the DeepSeek Models from V3 to V3.2](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-054.png)
 
-> 🔗 **Related:** [A Technical Tour of the DeepSeek Models from V3 to V3.2](https://magazine.sebastianraschka.com/p/technical-deepseek) — Sebastian Raschka, PhD · December 3, 2025
+[#### A Technical Tour of the DeepSeek Models from V3 to V3.2](https://magazine.sebastianraschka.com/p/technical-deepseek)
+
+[](https://magazine.sebastianraschka.com/p/technical-deepseek)[Sebastian Raschka, PhD](https://substack.com/profile/27393275-sebastian-raschka-phd)
+
+·
+
+December 3, 2025
+
+[Read full story](https://magazine.sebastianraschka.com/p/technical-deepseek)
 
 ## 17. Mistral 3
 
@@ -950,7 +982,15 @@ The Mamba-2 layers would take a whole article itself to explain (perhaps a topic
 
 ![Beyond Standard LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-058.jpg)
 
-> 🔗 **Related:** [Beyond Standard LLMs](https://magazine.sebastianraschka.com/p/beyond-standard-llms) — Sebastian Raschka, PhD · November 4, 2025
+[#### Beyond Standard LLMs](https://magazine.sebastianraschka.com/p/beyond-standard-llms)
+
+[](https://magazine.sebastianraschka.com/p/beyond-standard-llms)[Sebastian Raschka, PhD](https://substack.com/profile/27393275-sebastian-raschka-phd)
+
+·
+
+November 4, 2025
+
+[Read full story](https://magazine.sebastianraschka.com/p/beyond-standard-llms)
 
 The similarity between Gated DeltaNet and Mamba-2 layers is that both replace standard attention with a gated-state-space update. The idea behind this state-space-style module is that it maintains a running hidden state and mixes new inputs via learned gates. In contrast to attention, it scales linearly instead of quadratically with the input sequence length.
 
@@ -1116,7 +1156,15 @@ But let’s not be fooled by the lack of big(ger) architectural changes. Looking
 
 ![Understanding the 4 Main Approaches to LLM Evaluation (From Scratch)](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-069.png)
 
-> 🔗 **Related:** [Understanding the 4 Main Approaches to LLM Evaluation (From Scratch)](https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches) — Sebastian Raschka, PhD · October 5, 2025
+[#### Understanding the 4 Main Approaches to LLM Evaluation (From Scratch)](https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches)
+
+[](https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches)[Sebastian Raschka, PhD](https://substack.com/profile/27393275-sebastian-raschka-phd)
+
+·
+
+October 5, 2025
+
+[Read full story](https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches)
 
 However, if we look at some other common benchmarks, which I plotted below, we can see that it’s indeed a very clear leap over Gemma 3 and ranks on par with Qwen3.5 27B.
 

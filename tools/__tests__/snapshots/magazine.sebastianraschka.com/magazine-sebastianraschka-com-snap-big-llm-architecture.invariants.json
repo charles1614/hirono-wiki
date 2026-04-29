@@ -7,9 +7,10 @@
   "images": 74,
   "h2s": 23,
   "h3s": 27,
-  "body_chars": 104084,
+  "body_chars": 105346,
   "chrome_denylist_matches": 0,
   "unbalanced_bold_runs": 0,
   "empty_headings": 0,
-  "splicer_appendix_markers": 0
+  "splicer_appendix_markers": 0,
+  "source_url": "https://magazine.sebastianraschka.com/p/the-big-llm-architecture-comparison"
 }
