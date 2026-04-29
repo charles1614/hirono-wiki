@@ -293,7 +293,13 @@ export const unescapeBracketsInLinks: PostProcessor = {
  */
 export const arxivStripTrailingChrome: PostProcessor = {
   name: "arxiv-strip-trailing-chrome",
-  match: (_u, h) => h === "arxiv.org",
+  // RETIRED 2026-04-28 for `/abs/` URLs: arxiv abstract pages now flow
+  // through `tools/sites/arxiv/` which owns the full pipeline (curl +
+  // selector-based extraction; no chrome to strip). This post-processor
+  // was designed for the legacy web-fetch output that included BibSonomy/
+  // Reddit social bookmarks etc. Match restricted to non-`/abs/` paths
+  // (e.g., `/pdf/` which still uses opencli's PDF reader).
+  match: (u, h) => h === "arxiv.org" && !/\/abs\//.test(u),
   transform: (md, _originUrl) => {
     const chromeMarkers = [
       // Post-abstract chrome (appears right after Abstract in typical layout)
@@ -346,7 +352,12 @@ export const arxivStripTrailingChrome: PostProcessor = {
  */
 export const arxivStructureImprove: PostProcessor = {
   name: "arxiv-structure-improve",
-  match: (_u, h) => h === "arxiv.org",
+  // RETIRED 2026-04-28 for `/abs/` URLs: same reason as
+  // arxivStripTrailingChrome above — `tools/sites/arxiv/` produces
+  // already-structured §2 markdown (Title / metadata callout / Abstract /
+  // Comments / Links). Running this aggressive reformatter on top of
+  // already-clean output strips the abstract body entirely.
+  match: (u, h) => h === "arxiv.org" && !/\/abs\//.test(u),
   transform: (md, originUrl) => {
     // Parse + extract everything we care about in one pass, then rebuild
     // the markdown from scratch. Dropping the append-leftovers approach

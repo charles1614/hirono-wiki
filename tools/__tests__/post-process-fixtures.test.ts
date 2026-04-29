@@ -288,9 +288,13 @@ test("arxivStripTrailingChrome: no-op when no chrome markers", () => {
   assert.equal(r.notes.length, 0);
 });
 
-test("arxivStripTrailingChrome: only runs for arxiv.org", () => {
+test("arxivStripTrailingChrome: only runs for non-/abs/ arxiv URLs (abstract pages handled by tools/sites/arxiv/)", () => {
   assert.equal(arxivStripTrailingChrome.match("https://notarxiv.com/x", "notarxiv.com"), false);
-  assert.equal(arxivStripTrailingChrome.match("https://arxiv.org/abs/x", "arxiv.org"), true);
+  // /abs/ URLs are now handled by the arxiv site module; the legacy
+  // chrome-strip post-processor must NOT fire on them.
+  assert.equal(arxivStripTrailingChrome.match("https://arxiv.org/abs/x", "arxiv.org"), false);
+  // Other arxiv paths (e.g. /pdf/) still go through the legacy path.
+  assert.equal(arxivStripTrailingChrome.match("https://arxiv.org/pdf/x", "arxiv.org"), true);
 });
 
 // ---------------------------------------------------------------------------
