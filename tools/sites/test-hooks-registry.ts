@@ -29,6 +29,8 @@ import { testHooks as epochAiHooks } from "./epoch-ai/test-hooks.ts";
 import { testHooks as raschkaGalleryHooks } from "./sebastianraschka-gallery/test-hooks.ts";
 import { testHooks as substackHooks } from "./substack/test-hooks.ts";
 import { testHooks as arxivHooks } from "./arxiv/test-hooks.ts";
+import { testHooks as intuitionlabsHooks } from "./intuitionlabs/test-hooks.ts";
+import { testHooks as sspaiHooks } from "./sspai/test-hooks.ts";
 
 export const TEST_HOOKS: readonly SiteTestHooks[] = [
   xhsHooks,
@@ -43,6 +45,8 @@ export const TEST_HOOKS: readonly SiteTestHooks[] = [
   raschkaGalleryHooks,
   substackHooks,
   arxivHooks,
+  intuitionlabsHooks,
+  sspaiHooks,
 ];
 
 /**

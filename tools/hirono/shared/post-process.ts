@@ -1589,7 +1589,11 @@ const ARTICLE_CLEANUP_HOSTS = new Set([
  */
 export const intuitionlabsCleanup: PostProcessor = {
   name: "intuitionlabs-cleanup",
-  match: (_u, h) => h === "intuitionlabs.ai",
+  // RETIRED 2026-04-28: intuitionlabs.ai is now handled by
+  // tools/sites/intuitionlabs/ which extracts the `<div class="prose">`
+  // body container directly — bypassing the nav chrome / tag chain /
+  // image-card metadata this post-processor was designed to strip.
+  match: () => false,
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     // First pass: find the H1 (we'll dedupe the matching H2 later).
@@ -1687,7 +1691,11 @@ export const intuitionlabsCleanup: PostProcessor = {
  */
 export const sspaiCleanup: PostProcessor = {
   name: "sspai-cleanup",
-  match: (_u, h) => h === "sspai.com",
+  // RETIRED 2026-04-28: sspai.com is now handled by tools/sites/sspai/
+  // which extracts `<div class="article__main__content">` directly,
+  // bypassing the author-card chrome / action bar / sidebar this
+  // post-processor was designed to strip.
+  match: () => false,
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     const sep = lines.findIndex((l) => l.trim() === "---");

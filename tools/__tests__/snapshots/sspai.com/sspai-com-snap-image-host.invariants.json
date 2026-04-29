@@ -3,14 +3,14 @@
   "frontmatter_present": true,
   "remote_images": 0,
   "fences": 0,
-  "tables": 48,
-  "images": 0,
-  "h2s": 10,
-  "h3s": 18,
-  "body_chars": 130004,
+  "tables": 0,
+  "images": 30,
+  "h2s": 4,
+  "h3s": 7,
+  "body_chars": 9356,
   "chrome_denylist_matches": 0,
   "unbalanced_bold_runs": 0,
   "empty_headings": 0,
   "splicer_appendix_markers": 0,
-  "source_url": "https://intuitionlabs.ai/articles/oracle-openai-300b-deal-analysis"
+  "source_url": "https://sspai.com/post/90170"
 }

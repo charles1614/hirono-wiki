@@ -1,16 +1,12 @@
-[Back to Articles](/articles)
+# Oracle & OpenAI's $300B Deal: AI Infrastructure Analysis
 
-|Updated on 12/04/2026|50 min read|[Next Article](/articles/ai-impact-graduate-jobs-2025 "AI's Impact on Graduate Jobs: A 2025 Data Analysis")
+> 原文链接: https://intuitionlabs.ai/articles/oracle-openai-300b-deal-analysis
+> An in-depth analysis of the $300B Oracle-OpenAI cloud computing deal, updated through April 2026. Covers the operational Abilene flagship, $122B OpenAI funding round, Oracle's $523B backlog, Stargate expansion to 7 GW, and IPO preparations.
 
-# Oracle & OpenAI's \$300B Deal: AI Infrastructure Analysis
-
-![Oracle & OpenAI's \$300B Deal: AI Infrastructure Analysis](intuitionlabs-ai-img-001.jpg)
-
-[openai](/articles/tags/openai)[oracle cloud infrastructure](/articles/tags/oracle-cloud-infrastructure)[ai infrastructure](/articles/tags/ai-infrastructure)[cloud computing](/articles/tags/cloud-computing)[data centers](/articles/tags/data-centers)[stargate project](/articles/tags/stargate-project)[generative ai](/articles/tags/generative-ai)[large language models](/articles/tags/large-language-models)[financial analysis](/articles/tags/financial-analysis)[nvidia](/articles/tags/nvidia)[ai](/articles/tags/ai)
-
+---
 **\[Revised April 11, 2026\]**
 
-# Executive Summary
+## Executive Summary
 
 In September 2025, **Oracle and OpenAI** announced a landmark **\$300 billion, five-year cloud computing contract**, beginning in 2027, to supply OpenAI with vast amounts of computing power ([[1]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=OpenAI%20has%20reportedly%20agreed%20to,cloud%20computing%20contracts%20in%20history "Highlights: OpenAI has reportedly agreed to,cloud computing contracts in history")) ([[2]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=OpenAI%20has%20committed%20to%20a,energy%20demands%20of%20AI%20development "Highlights: OpenAI has committed to a,energy demands of AI development")). This deal is part of a much larger AI infrastructure campaign (often referred to as the **“Stargate”** project) involving OpenAI, Oracle, and partners like SoftBank, which collectively aims to build up to ~30 gigawatts (GW) of AI computing capacity in the U.S. at a total investment on the order of half a trillion to a trillion dollars ([[3]](https://www.reuters.com/technology/artificial-intelligence/openai-softbank-oracle-invest-500-bln-ai-trump-says-2025-01-21/#:~:text=On%20January%2021%2C%202025%2C%20President,push%20to%20expand%20AI%20capabilities "Highlights: On January 21, 2025, President,push to expand AI capabilities")) ([[4]](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=OpenAI%20CEO%20Sam%20Altman%20is,to%201%20gigawatt%20per%20week "Highlights: OpenAI CEO Sam Altman is,to 1 gigawatt per week")). The Oracle–OpenAI agreement alone covers roughly **4.5 GW** of data center capacity per year, enough power to supply millions of homes ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies")) ([[2]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=OpenAI%20has%20committed%20to%20a,energy%20demands%20of%20AI%20development "Highlights: OpenAI has committed to a,energy demands of AI development")). It represents one of the largest commercial cloud contracts ever signed.
 
@@ -20,21 +16,21 @@ As of early 2026, **implementation has progressed significantly**. The flagship 
 
 This report provides a comprehensive deep dive into the Oracle–OpenAI partnership and **”300B” project**, originally written in December 2025 and updated through April 2026. We chronicle the origins and context of this deal, analyze its financial and strategic implications, review progress and bottlenecks in infrastructure rollout, compare it to other mega-deals in cloud/AI, and consider future scenarios. All claims are backed by recent reporting and data sources including news agencies and technical studies.
 
-# Introduction and Background
+## Introduction and Background
 
-## The AI Computing Arms Race
+### The AI Computing Arms Race
 
 The past three years have seen **explosive growth in [generative AI](https://intuitionlabs.ai/articles/gemini-3-healthcare-applications)**, led by OpenAI’s ChatGPT. Surging demand for [large language models (LLMs)](https://intuitionlabs.ai/articles/kimi-k2-technical-deep-dive) like GPT-3 and GPT-4 has placed unprecedented pressure on data center infrastructure. Training GPT-3 in 2020 alone consumed an estimated **1,300 megawatt-hours (MWh)** of electricity ([[15]](https://arxiv.org/abs/2505.05794#:~:text=Large%20language%20models%20,These%20demands%20motivate%20exploration "Highlights: Large language models ,These demands motivate exploration")), and future models may require **gigawatt-scale** continuous power budgets ([[15]](https://arxiv.org/abs/2505.05794#:~:text=Large%20language%20models%20,These%20demands%20motivate%20exploration "Highlights: Large language models ,These demands motivate exploration")). Energy consumption and computational cost are now among the central constraints on AI advancement. Studies warn that AI [model training](https://intuitionlabs.ai/articles/claude-opus-4-5-healthcare-pharma-ai) and inference are driving “unprecedented increase(s) in the electricity demand of AI data centers” ([[16]](https://arxiv.org/abs/2509.07218#:~:text=The%20rapid%20growth%20of%20artificial,operation%20and%20sustainable%20AI%20development "Highlights: The rapid growth of artificial,operation and sustainable AI development")), posing challenges for grid capacity and sustainability planning.
 
 To put numbers into perspective, large language models are consuming power on the order of dozens of *nuclear reactors*. For example, Oracle – when announcing the OpenAI contract – noted it involves **4.5 GW** of data center capacity annually, “equivalent to what four million homes use” ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies")) ([[17]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=OpenAI%20has%20committed%20to%20a,million%20homes%E2%80%94highlighting%20the%20immense%20energy "Highlights: OpenAI has committed to a,million homes—highlighting the immense energy")). Such scales are comparable to the largest conventional power plants. Recent academic work underlines that AI’s hunger for compute is **exponential**. One analysis projected that state-of-the-art LLMs may soon demand *city-scale* power (gigawatt levels) for training ([[15]](https://arxiv.org/abs/2505.05794#:~:text=Large%20language%20models%20,These%20demands%20motivate%20exploration "Highlights: Large language models ,These demands motivate exploration")). Another found that an 8-GPU system based on Nvidia’s H100 accelerator still consumes tens of kilowatts under load and emphasized that current estimates of AI energy usage incorporate considerable uncertainty ([[18]](https://arxiv.org/abs/2506.14551#:~:text=As%20AI%27s%20energy%20demand%20continues,GPU%20H100%20systems%20with "Highlights: As AI's energy demand continues,GPU H100 systems with")). Taken together, experts emphasize that **AI’s infrastructure needs are skyrocketing**, fueling demand for massive computing and data center investments.
 
-## OpenAI’s Growth and Funding
+### OpenAI’s Growth and Funding
 
 Since releasing [ChatGPT](https://intuitionlabs.ai/articles/chatgpt-plans-comparison) in late 2022, OpenAI has seen stunning growth in user uptake and revenue. By mid-2025, Reuters reported OpenAI had reached **\$10–12 billion** in annualized recurring revenue ([[19]](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=As%20of%20June%202025%2C%20OpenAI%27s,subscription%20services%20and%20a%20massive "Highlights: As of June 2025, OpenAI's,subscription services and a massive")) ([[20]](https://www.reuters.com/business/openai-hits-12-billion-annualized-revenue-information-reports-2025-07-31/#:~:text=OpenAI%20has%20reportedly%20reached%20%2412,backed%20firm%20has "Highlights: OpenAI has reportedly reached \$12,backed firm has")). This includes both consumer subscriptions and commercial API sales. By July 2025, ChatGPT boasted around **700 million weekly active users**, doubling its user base earlier in the year ([[20]](https://www.reuters.com/business/openai-hits-12-billion-annualized-revenue-information-reports-2025-07-31/#:~:text=OpenAI%20has%20reportedly%20reached%20%2412,backed%20firm%20has "Highlights: OpenAI has reportedly reached \$12,backed firm has")). Despite this scale, less than 10% of its users were paid subscribers ([[21]](https://www.reuters.com/commentary/breakingviews/openais-valuation-is-tech-booms-key-man-risk-2025-08-07/#:~:text=growth%20since%20launching%20ChatGPT%20in,centers%20to%20reduce%20these%20costs "Highlights: growth since launching ChatGPT in,centers to reduce these costs")), leaving the company with significant free-usage burdens on its servers. In 2024, OpenAI reportedly lost \$5 billion on revenues of about \$6 billion ([[22]](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=sector%2C%20especially%20when%20compared%20to,at%20a%20%24300%20billion%20valuation "Highlights: sector, especially when compared to,at a \$300 billion valuation")), reflecting the high fixed costs of the GPU clusters it runs and the rapid scaling of its service. Revenue growth has continued at a staggering pace: OpenAI CFO Sarah Friar confirmed \$20 billion in 2025 revenue, and by February 2026, the company had reached **\$25 billion ARR** — generating approximately **\$2 billion per month** ([[7]](https://openai.com/index/a-business-that-scales-with-the-value-of-intelligence/)). OpenAI now counts over **9 million paying business users** and has launched an advertising pilot that already topped \$100 million in annualized revenue within its first two months ([[6]](https://www.cnbc.com/2026/03/26/openai-ads-pilot-tops-100-million-in-arr-in-under-2-months.html)), with projections of \$2.5 billion in ad revenue for 2026 and a target of \$100 billion by 2030 ([[23]](https://www.investing.com/news/company-news/openai-projects-25-billion-in-ad-revenue-for-2026-93CH-4605384)).
 
 OpenAI’s valuation has correspondingly soared. A SoftBank-led funding round in mid-2025 valued the company at ~\$300 billion ([[22]](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=sector%2C%20especially%20when%20compared%20to,at%20a%20%24300%20billion%20valuation "Highlights: sector, especially when compared to,at a \$300 billion valuation")), and by autumn, SoftBank had helped drive a ~20% increase to a \$500 billion valuation ([[24]](https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:text=OpenAI%27s%20valuation%20has%20risen%20significantly,billion%20and%20issued%20bonds%20in "Highlights: OpenAI's valuation has risen significantly,billion and issued bonds in")). Then in March 2026, OpenAI closed a record-shattering **\$122 billion funding round** at an **\$852 billion valuation** ([[8]](https://www.cnbc.com/2026/03/31/openai-funding-round-ipo.html)) ([[25]](https://techcrunch.com/2026/03/31/openai-not-yet-public-raises-3b-from-retail-investors-in-monster-122b-fund-raise/)). Key investors included Amazon (\$50 billion, with \$35 billion contingent on IPO or AGI milestones), Nvidia (\$30 billion), SoftBank (\$30 billion), alongside Andreessen Horowitz, Microsoft, and others. The company also completed its long-anticipated **restructuring into a Public Benefit Corporation (PBC)**, with a nonprofit Foundation holding a \$130 billion stake and Microsoft retaining ~27% ownership ([[26]](https://openai.com/index/evolving-our-structure/)). An IPO is reportedly being targeted for Q4 2026, with a potential \$1 trillion valuation goal ([[27]](https://www.indexbox.io/blog/openai-targets-q4-2026-ipo-with-1-trillion-valuation-goal/)). However, OpenAI is still not profitable—the company is projected to lose approximately **\$14 billion in 2026** ([[28]](https://finance.yahoo.com/news/reported-openai-ipo-later-test-165344346.html)), with cumulative long-term spending projections of ~\$115 billion through 2029. OpenAI CEO Sam Altman has publicly warned that continuing this growth requires **”trillions”** in infrastructure spending ([[29]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=Oracle%20at%20a%20cost%20of,on%20infrastructure "Highlights: Oracle at a cost of,on infrastructure")) ([[4]](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=OpenAI%20CEO%20Sam%20Altman%20is,to%201%20gigawatt%20per%20week "Highlights: OpenAI CEO Sam Altman is,to 1 gigawatt per week")).
 
-## Oracle’s AI Strategy
+### Oracle’s AI Strategy
 
 Oracle Corporation historically built its business on database and enterprise software. In recent years it has tried to expand its cloud infrastructure presence (Oracle Cloud Infrastructure, or OCI) to compete with the likes of Amazon Web Services (AWS), Microsoft Azure, and Google Cloud. Oracle’s CEO Larry Ellison has been particularly bullish on AI, pledging that “AI is the next frontier” for Oracle ([[30]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=In%20July%2C%20OpenAI%20announced%20,on%20infrastructure "Highlights: In July, OpenAI announced ,on infrastructure")). The company’s stock jumped 40+% on news of the OpenAI deal ([[31]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=Oracle%20disclosed%20%24317%20billion%20in,part%2C%20must%20invest%20heavily%20in "Highlights: Oracle disclosed \$317 billion in,part, must invest heavily in")) ([[32]](https://www.pcgamer.com/hardware/oracles-usd300-billion-deal-with-openai-briefly-knocked-elon-musk-off-the-worlds-richest-person-spot-replaced-instead-by-the-companys-head-honcho-larry-ellison/#:~:text=computing%20services%20over%20the%20next,returning%20Musk%20to%20the%20top "Highlights: computing services over the next,returning Musk to the top")), underscoring investor enthusiasm for Oracle’s pivot to high-growth AI infrastructure (even as analysts warn of execution risk). Oracle’s quarterly filings show remaining performance obligations (future revenue under signed contracts) have surged to an extraordinary **\$523 billion** as of Q3 FY2026, up 438% year-over-year ([[10]](https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Fiscal-Year-2026-Third-Quarter-Financial-Results/default.aspx)). Q3 FY2026 was Oracle’s strongest organic quarter in over 15 years: total revenue rose 22% to \$17.2 billion, while cloud revenue jumped 44% to \$8.9 billion, with Cloud Infrastructure (IaaS) alone surging 68% ([[33]](https://www.cnbc.com/2026/03/10/oracle-orcl-q3-earnings-report-2026.html)). However, Moody’s maintains a **negative outlook** on Oracle’s Baa2 rating, warning that debt could surge to 4× its earnings given these massive AI commitments ([[34]](https://www.reuters.com/business/moodys-flags-risk-oracles-300-billion-recently-signed-ai-contracts-2025-09-17/#:~:text=The%20contracts%20underscore%20the%20potential,grade "Highlights: The contracts underscore the potential,grade")). Oracle’s FY2026 capex guidance was raised by \$15 billion to **\$50 billion total**, and the company raised \$30 billion in debt and equity financing in early 2026 to fund the buildout ([[10]](https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Fiscal-Year-2026-Third-Quarter-Financial-Results/default.aspx)). Barclays downgraded Oracle’s debt to Underweight in late 2025, citing a 500% debt-to-equity ratio and warning it could approach BBB- (the lowest investment-grade rating). Despite these financial pressures, Oracle’s stock rose 10% on Q3 FY2026 earnings, though shares are down roughly 24% year-to-date in 2026 amid broader AI bubble concerns ([[35]](https://www.fool.com/investing/2026/04/06/oracle-shares-are-down-24-so-far-in-2026-amid-ai/)).
 
@@ -55,11 +51,11 @@ Between them, Microsoft (the longtime OpenAI cloud partner) and Oracle represent
 
 *Notes:* The Oracle–OpenAI deal dwarfs these other contracts (“one of the largest cloud computing deals in history” ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies"))). Terms, exact start dates, and deliverables vary by agreement.
 
-# Oracle–OpenAI \$300B Contract Details
+## Oracle–OpenAI \$300B Contract Details
 
 On **September 10, 2025**, *The Wall Street Journal* first reported that OpenAI had entered a **\$300 billion, five-year contract** with Oracle to “procure computing power” ([[44]](https://www.reuters.com/technology/openai-oracle-sign-300-billion-computing-deal-wsj-reports-2025-09-10/#:~:text=OpenAI%20has%20entered%20into%20a,development%20of%20advanced%20AI%20technologies "Highlights: OpenAI has entered into a,development of advanced AI technologies")). This was quickly confirmed by multiple outlets (e.g. \*States and Tom’s Hardware ([[1]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=OpenAI%20has%20reportedly%20agreed%20to,cloud%20computing%20contracts%20in%20history "Highlights: OpenAI has reportedly agreed to,cloud computing contracts in history")) ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies"))). The agreement is commonly phrased as “ \[OpenAI\] agreed to buy \$300 billion in computing power over five years from Oracle” ([[1]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=OpenAI%20has%20reportedly%20agreed%20to,cloud%20computing%20contracts%20in%20history "Highlights: OpenAI has reportedly agreed to,cloud computing contracts in history")). The deal is slated to **begin in 2027** and run through roughly 2031/2032 ([[1]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=OpenAI%20has%20reportedly%20agreed%20to,cloud%20computing%20contracts%20in%20history "Highlights: OpenAI has reportedly agreed to,cloud computing contracts in history")) ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies")).
 
-### Scope and Deliverables
+#### Scope and Deliverables
 
 While the exact details (e.g. how many machines or what services) are proprietary, public reports provide key figures:
 
@@ -86,7 +82,7 @@ Table 2 summarizes these contract parameters:
 
 This deal is **unprecedented in scale**. By comparison, in late 2025 Microsoft and OpenAI were reportedly renegotiating Azure commitments rumored in the tens of billions ([[53]](https://www.reuters.com/business/retail-consumer/amazons-38-bln-openai-deal-shows-it-is-no-longer-an-ai-laggard-2025-11-04/#:~:text=However%2C%20the%20company%20is%20now,in%20Q4 "Highlights: However, the company is now,in Q4")), and Amazon closed a smaller ~\$38B OpenAI cloud deal ([[42]](https://www.reuters.com/business/retail-consumer/amazons-38-bln-openai-deal-shows-it-is-no-longer-an-ai-laggard-2025-11-04/#:~:text=Amazon%27s%20%2438%20billion%20cloud%20computing,integrated%20cloud%20platforms "Highlights: Amazon's \$38 billion cloud computing,integrated cloud platforms")). Oracle’s contract exceeds these by orders of magnitude. It is “one of the largest cloud contracts in history” ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies")) ([[31]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=Oracle%20disclosed%20%24317%20billion%20in,part%2C%20must%20invest%20heavily%20in "Highlights: Oracle disclosed \$317 billion in,part, must invest heavily in")) and would alone quadruple Oracle’s cloud revenue if fully realized.
 
-## Strategic Rationale
+### Strategic Rationale
 
 The deal addresses **both companies’ strategic needs**:
 
@@ -110,15 +106,15 @@ The deal addresses **both companies’ strategic needs**:
 
 Each of these commitments interlocks. The Oracle–OpenAI deal is essentially the “payback” arrangement for the compute provided by the Stargate centers: Oracle builds and equips the centers (with Crusoe, Nvidia, etc.), then leases that capacity to OpenAI under the \$300B contract. Meanwhile, OpenAI is also pursuing chip-level solutions (Broadcom, AMD) to control costs.
 
-# Financial Analysis and Implications
+## Financial Analysis and Implications
 
-### Evaluating AI for your business?
+#### Evaluating AI for your business?
 
 Our team helps companies navigate AI strategy, model selection, and implementation.
 
 [Get a Free Strategy Call](/about/contact)
 
-## OpenAI’s Projected Costs vs. Revenues
+### OpenAI’s Projected Costs vs. Revenues
 
 The \$300B commitment by OpenAI represents a **dramatic escalation in its spending**. Even after its rapid revenue growth, OpenAI’s financial outlook was stretched. As of mid-2025, OpenAI’s annualized revenue was roughly \$10–12 B ([[19]](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=As%20of%20June%202025%2C%20OpenAI%27s,subscription%20services%20and%20a%20massive "Highlights: As of June 2025, OpenAI's,subscription services and a massive")) ([[20]](https://www.reuters.com/business/openai-hits-12-billion-annualized-revenue-information-reports-2025-07-31/#:~:text=OpenAI%20has%20reportedly%20reached%20%2412,backed%20firm%20has "Highlights: OpenAI has reportedly reached \$12,backed firm has")). By year-end, company targets projected around \$20 B in 2025 ([[59]](https://www.reuters.com/commentary/breakingviews/openais-valuation-is-tech-booms-key-man-risk-2025-08-07/#:~:text=OpenAI%27s%20soaring%20valuation%20is%20becoming,Despite%20dominating%20enterprise%20AI "Highlights: OpenAI's soaring valuation is becoming,Despite dominating enterprise AI")), thanks to growing subscription and API sales. But none of this is profit; OpenAI lost ~\$5 B in 2024 ([[22]](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=sector%2C%20especially%20when%20compared%20to,at%20a%20%24300%20billion%20valuation "Highlights: sector, especially when compared to,at a \$300 billion valuation")) as it scaled up servers. Assuming similar growth rates, OpenAI’s expenses (capex + opex) on compute could easily match or exceed its gross revenues in the short term.
 
@@ -149,7 +145,7 @@ Proposed strategies include:
 
 Thus, barring other cash inflows, OpenAI would need **massive external funding** each year to sustain operations. In practice, SoftBank (Vision Fund), Microsoft, and others have filled the gap. SoftBank’s investment rounds (mid-2025) raised up to \$40B ([[22]](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=sector%2C%20especially%20when%20compared%20to,at%20a%20%24300%20billion%20valuation "Highlights: sector, especially when compared to,at a \$300 billion valuation")). In Q3 2025, SoftBank in fact realized part of its AI strategy: it boosted OpenAI’s valuation from \$300B to \$500B and took profits from earlier chip investments ([[65]](https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:text=OpenAI%27s%20valuation%20has%20risen%20significantly,history%20of%20bold%20tech%20investments%E2%80%94some "Highlights: OpenAI's valuation has risen significantly,history of bold tech investments—some")) ([[63]](https://www.reuters.com/business/media-telecom/softbanks-58-billion-nvidia-stake-sale-stirs-fresh-ai-bubble-fears-2025-11-11/#:~:text=SoftBank%20Group%27s%20sale%20of%20its,speculation%20that%20AI%20stock%20valuations "Highlights: SoftBank Group's sale of its,speculation that AI stock valuations")). Microsoft’s recent recapitalization deal (late Oct 2025) also relaxed financial constraints on OpenAI ([[4]](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=OpenAI%20CEO%20Sam%20Altman%20is,to%201%20gigawatt%20per%20week "Highlights: OpenAI CEO Sam Altman is,to 1 gigawatt per week")). Cumulatively, these moves aim to align OpenAI’s war chest with its trillion-dollar ambitions.
 
-## Oracle’s Financial Impact
+### Oracle’s Financial Impact
 
 For Oracle, the \$300B contract is a windfall—if delivered—but also demands onerous upfront investment. Oracle’s reported **remaining performance obligations (RPO)** have grown rapidly, from \$455B in Q1 FY2026 to an extraordinary **\$523 billion** by Q3 FY2026 (up 438% year-over-year) ([[10]](https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Fiscal-Year-2026-Third-Quarter-Financial-Results/default.aspx)), reflecting new long-term contracts (including OpenAI’s). Oracle Q3 FY2026 was the company’s best organic quarter in 15+ years, with total revenue up 22% to \$17.2 billion and cloud revenue soaring 44% to \$8.9 billion ([[33]](https://www.cnbc.com/2026/03/10/oracle-orcl-q3-earnings-report-2026.html)). Cloud Infrastructure (IaaS) was the standout, surging 68% year-over-year to \$4.1 billion. Oracle guided for Q4 cloud revenue growth of 44–50% in USD.
 
@@ -159,11 +155,11 @@ In absolute terms, Oracle expects to earn something like **\$30–\$60 B per yea
 
 Ultimately, Oracle’s return on this investment depends on OpenAI and others using that capacity (OpenAI is reportedly a major tenant in these sites ([[69]](https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:text=The%20data%20center%20campus%20is,major%20tenant%20at%20the%20facility "Highlights: The data center campus is,major tenant at the facility"))). Moody’s vs. Oracle’s leadership differ on risk / reward: Oracle bets on outsized growth in AI demand (and has said it will soak up excess chip supply ([[69]](https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:text=The%20data%20center%20campus%20is,major%20tenant%20at%20the%20facility "Highlights: The data center campus is,major tenant at the facility"))), while raters caution about the leverage and execution risk. Oracle is still executing on earlier plans (like RI Aau forging to integrate Oracle Cloud with AWS/Google/IBM to attract more workloads ([[70]](https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:text=its%20AI,dramatically%20increased%20Oracle%27s%20cloud%20revenue "Highlights: its AI,dramatically increased Oracle's cloud revenue"))), but its fortunes are now tightly coupled to OpenAI’s success.
 
-# Progress and Implementation (to Dec 2025)
+## Progress and Implementation (to Dec 2025)
 
 By the end of 2025, **key elements of the Oracle–OpenAI “300B” project have moved from plan toward realization**, though full deployment is years away. We examine the state of play on infrastructure buildout, chip supply, financing, and any emerging bottlenecks.
 
-## Data Center Construction
+### Data Center Construction
 
 OpenAI’s 2025 announcements centered on building physical data centers under the “Stargate” umbrella (OpenAI/Oracle/SoftBank alliance). Originally unveiled in January 2025 as a plan for \$500B of infrastructure, **the focus has sharpened to meet immediate needs**. Notably:
 
@@ -179,7 +175,7 @@ OpenAI’s 2025 announcements centered on building physical data centers under t
 
 The takeaway is that **construction is now well underway across multiple states**. The Abilene flagship is live and operational, additional sites are in active construction, and the Stargate program has expanded from an initial \$500 billion commitment to over \$400 billion in near-term investment alone, with OpenAI stating these are just the first set of site selections with additional locations to come ([[12]](https://openai.com/index/five-new-stargate-sites/)).
 
-## Chip Supply and Technology Partnerships
+### Chip Supply and Technology Partnerships
 
 In parallel with data center construction, OpenAI and Oracle have lined up chip suppliers and innovators:
 
@@ -193,7 +189,7 @@ In parallel with data center construction, OpenAI and Oracle have lined up chip 
 
 In sum, **the hardware pipeline is confirmed** by credible reporting: Oracle is securing billions of GPUs and partnering in advanced chip design ([[13]](https://www.reuters.com/business/oracle-buy-40-billion-nvidia-chips-openais-us-data-center-ft-reports-2025-05-23/#:~:text=Oracle%20plans%20to%20invest%20approximately,year%20lease "Highlights: Oracle plans to invest approximately,year lease")) ([[40]](https://www.reuters.com/business/openai-taps-broadcom-build-its-first-ai-processor-latest-chip-deal-2025-10-13/#:~:text=OpenAI%20has%20partnered%20with%20Broadcom,cost%20%2450%E2%80%93%2460%20billion%20per%20gigawatt "Highlights: OpenAI has partnered with Broadcom,cost \$50–\$60 billion per gigawatt")). This reduces execution risk associated with supply shortages (one reason Microsoft had capped OpenAI GPU capacity in mid-2025). It also diversifies sources and may lower long-term costs. One metric cited is that OpenAI paid ~60–70 billion per gigawatt in the Broadcom project, indicating the sheer magnitude of capital required to field each gigawatt of AI power ([[40]](https://www.reuters.com/business/openai-taps-broadcom-build-its-first-ai-processor-latest-chip-deal-2025-10-13/#:~:text=OpenAI%20has%20partnered%20with%20Broadcom,cost%20%2450%E2%80%93%2460%20billion%20per%20gigawatt "Highlights: OpenAI has partnered with Broadcom,cost \$50–\$60 billion per gigawatt")).
 
-## Financing and Investment Flows
+### Financing and Investment Flows
 
 Building and equipping these data centers has demanded extensive financing. Multiple funding vehicles have been reported:
 
@@ -207,7 +203,7 @@ Building and equipping these data centers has demanded extensive financing. Mult
 
 Overall, by late 2025 the funding infrastructure is in place. Oracle and partners have drawn on equity, debt, and government support to finance at least **\$40–\$60 billion** in projects (Abilene, Texas NV, New Mexico DC, Ohio plant, etc.). However, the total needs (approaching \$1T) far exceed these, so further financing (or build-out delays) can be expected.
 
-## Preliminary Outcomes & Current Status
+### Preliminary Outcomes & Current Status
 
 What is the situation as of April 2026?
 
@@ -223,9 +219,9 @@ What is the situation as of April 2026?
 
 **Summary**: By April 2026, Oracle and OpenAI have moved well beyond announcements into operational reality. The Abilene flagship is live, multiple new sites are under construction across the U.S., and the \$300B contract is being activated. OpenAI has secured its financial position with a record \$122B funding round and is generating \$2B/month in revenue. Oracle’s cloud business is growing at 44%+ with \$523B in contracted backlog. The full 4.5 GW/year contract delivery is still ramping toward 2027, but the infrastructure foundation is now firmly in place.
 
-# Multi-Stakeholder Perspectives and Analysis
+## Multi-Stakeholder Perspectives and Analysis
 
-## OpenAI’s Perspective
+### OpenAI’s Perspective
 
 From OpenAI’s viewpoint, the Oracle deal is **necessary insurance** against ceilings on its growth. Sam Altman famously said he expects to spend “trillions” on infrastructure ([[29]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=Oracle%20at%20a%20cost%20of,on%20infrastructure "Highlights: Oracle at a cost of,on infrastructure")) and that “30 GW is the target, roughly \$1.4 T in build-out” ([[58]](https://www.axios.com/2025/10/28/openai-1-trillion-altman#:~:text=%241,financial%20challenges%20need%20to%20be "Highlights: \$1,financial challenges need to be")). Legitimizing this scale has been a priority: the Oracle contract ensures compute for at least a fraction of that. OpenAI needed to signal to customers, investors, and employees that it won’t stall due to lack of hardware.
 
@@ -237,7 +233,7 @@ Concerns for OpenAI include:
 
 -   **Regulatory and Public Pressure**: OpenAI is under public microscope for issues like AI safety. Committing to such extravagant spending draws scrutiny. Altman has defended it by pointing out that strong government and industry backing justifies scale ([[86]](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=This%20move%20follows%20OpenAI%E2%80%99s%20%24500,end "Highlights: This move follows OpenAI’s \$500,end")). However, critics (including some technology journalists) have cajoled that the deal may be “smoke and mirrors” if OpenAI cannot justify the costs ([[87]](https://theglobalvillager.com/2025/09/19/the-openai-oracle-deal/#:~:text=The%20OpenAI%20Oracle%20Deal%20or,the%20OpenAI%20Oracle%20Deal%202 "Highlights: The OpenAI Oracle Deal or,the OpenAI Oracle Deal 2")). The coming years will test those criticisms as progress (or lack thereof) becomes visible.
 
-## Oracle’s Perspective
+### Oracle’s Perspective
 
 Oracle sees itself confirmed as a **central AI infrastructure provider**. CEO Safra Catz touted hundreds of billions in future cloud deals and sees OpenAI as a catalyst. On the positive side, Oracle’s board and investors anticipate massive new revenue streams ([[31]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=Oracle%20disclosed%20%24317%20billion%20in,part%2C%20must%20invest%20heavily%20in "Highlights: Oracle disclosed \$317 billion in,part, must invest heavily in")) ([[32]](https://www.pcgamer.com/hardware/oracles-usd300-billion-deal-with-openai-briefly-knocked-elon-musk-off-the-worlds-richest-person-spot-replaced-instead-by-the-companys-head-honcho-larry-ellison/#:~:text=computing%20services%20over%20the%20next,returning%20Musk%20to%20the%20top "Highlights: computing services over the next,returning Musk to the top")). This is also a vindication of Oracle’s cloud build-out strategy: their planned 4.5 GW expansion (added in July 2025 ([[88]](https://www.reuters.com/business/openai-oracle-deepen-ai-data-center-push-with-45-gigawatt-stargate-expansion-2025-07-22/#:~:text=OpenAI%20and%20Oracle%20have%20announced,is%20slated%20to%20open%20in "Highlights: OpenAI and Oracle have announced,is slated to open in")) ([[57]](https://www.reuters.com/business/oracle-openai-add-45-gigawatts-data-center-capacity-stargate-venture-2025-07-22/#:~:text=Oracle%20and%20OpenAI%20have%20announced,technological%20ambition%20of%20the%20project "Highlights: Oracle and OpenAI have announced,technological ambition of the project"))) was partly aimed at accommodating OpenAI workloads.
 
@@ -249,7 +245,7 @@ However, Oracle management also manages huge risk:
 
 -   **Competition and Deal Flow**: The news that Oracle is discussing large deals with Meta ([[41]](https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:text=Oracle%20is%20reportedly%20in%20advanced,to%20enhance%20its%20AI%20capabilities "Highlights: Oracle is reportedly in advanced,to enhance its AI capabilities")) and integrating with AWS/Google clouds demonstrates it is aggressively pursuing more AI customers. Each new contract (e.g. a rumored \$20B Meta deal) reinforces Oracle’s momentum and dilutes risk concentration. In theory, serving multiple hyperscalers would keep multiple “eggs in the basket”.
 
-## Microsoft and Other Cloud Competitors
+### Microsoft and Other Cloud Competitors
 
 Microsoft, the longtime OpenAI partner, finds itself in an increasingly complex position by early 2026. While it retains ~27% ownership of OpenAI (worth ~\$135 billion post-restructuring) and continues to capture a share of OpenAI’s business (Azure usage, GitHub Copilot, etc.), the relationship has measurably cooled. The most telling sign came in March 2026, when **Microsoft leased 900 MW of data center capacity from Crusoe in Abilene, Texas** — at a site that OpenAI had declined to expand — making the two companies literal neighbors on the same tract of land yet pursuing separate compute strategies ([[73]](https://fortune.com/2026/03/27/microsoft-texas-data-center-open-ai-former-partner-cloud-provider/)). Crusoe is building two new "AI factory" buildings and a 900 MW on-site power plant for Microsoft, right next to where it built OpenAI and Oracle’s campus. Microsoft relaxed its exclusivity clauses in early 2025 to allow OpenAI to pursue new cloud compute sources ([[37]](https://www.reuters.com/technology/microsoft-relaxes-data-center-grip-openai-amid-500-bln-joint-venture-2025-01-22/#:~:text=Microsoft%20has%20revised%20its%20agreement,training%2C%20enabling%20collaboration%20with%20Oracle "Highlights: Microsoft has revised its agreement,training, enabling collaboration with Oracle")), but the extent of the drift has surprised observers.
 
@@ -257,7 +253,7 @@ Amazon has deepened its OpenAI ties considerably. Beyond the \$38B cloud computi
 
 Google Cloud’s immediate role in OpenAI’s plans remains limited. While Google’s own LLM efforts (Gemini) position it as a competitor, Oracle has integrated OCI with Google Cloud services ([[70]](https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:text=its%20AI,dramatically%20increased%20Oracle%27s%20cloud%20revenue "Highlights: its AI,dramatically increased Oracle's cloud revenue")), hinting at cooperative channels. Meanwhile, competitors in the AI space are also making major moves: Anthropic reportedly passed OpenAI in revenue at \$30B ARR by April 2026 ([[90]](https://www.the-ai-corner.com/p/anthropic-30b-arr-passed-openai-revenue-2026)), while spending 4× less on training — underscoring that OpenAI’s massive infrastructure bet faces competitive pressure from more capital-efficient rivals.
 
-## National and Economic Perspectives
+### National and Economic Perspectives
 
 The Oracle–OpenAI project is closely entwined with U.S. industrial strategy. It enjoyed political backing (including direct encouragement by President Trump ([[3]](https://www.reuters.com/technology/artificial-intelligence/openai-softbank-oracle-invest-500-bln-ai-trump-says-2025-01-21/#:~:text=On%20January%2021%2C%202025%2C%20President,push%20to%20expand%20AI%20capabilities "Highlights: On January 21, 2025, President,push to expand AI capabilities"))) as a way to ensure American leadership in AI over China. The commitment of hundreds of billions is unprecedented in tech and has raised eyebrows among policymakers. For example, some Democrats and climate/environment advocates question the sustainability of such energy-hungry projects (though Oracle has highlighted green power and closed-loop cooling).
 
@@ -265,7 +261,7 @@ Economically, the project could drive regional development: Abilene’s data cen
 
 Overall, the deal is seen by allies as a bold move to “pull ahead” in AI infrastructure, but by skeptics as a risky mega-bet that assumes perpetual growth. The truth will depend on execution in 2026–2028.
 
-# Case Studies and Comparisons
+## Case Studies and Comparisons
 
 To put the Oracle–OpenAI project in context, we consider other major AI/cloud infrastructure [case studies](/resources/case-studies):
 
@@ -291,7 +287,7 @@ Table 4 compares major AI infrastructure commitments (beyond Oracle–OpenAI) to
 
 \* *Microsoft’s investments in OpenAI span cash infusions and computing credits. Exact figure is not public, but media estimates years of 10s of billions.* This table underscores that Oracle–OpenAI is by far the largest **single** financial commitment focused on AI compute. Even when combined, Amazon and Microsoft’s multi-billion deals do not exceed \$50–100 B at most.
 
-# Data Analysis and Evidence
+## Data Analysis and Evidence
 
 Key quantitative highlights gathered from reporting and filings:
 
@@ -307,27 +303,27 @@ Key quantitative highlights gathered from reporting and filings:
 
 -   **Global Infrastructure Spending**: Industry reports estimate that global data center spending will reach ~\$2.9 trillion by 2028 ([[94]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=AI%20infrastructure%20and%20borrow%20extensively "Highlights: AI infrastructure and borrow extensively")). The Oracle–OpenAI infrastructure (plus related stargate projects) is on that order. It alone may represent >10% of total global data center capex in this period. This underscores how the AI boom is reshaping entire industries (chipmakers, utilities, real estate).
 
-# Discussion: Implications and Future Directions
+## Discussion: Implications and Future Directions
 
-## National Competitiveness and Security
+### National Competitiveness and Security
 
 The national significance is high. U.S. officials see these investments as critical to staying ahead in AI vis-à-vis China. By bringing such projects onshore, the initiative averts a scenario where AI training runs on foreign soil (where data sovereignty and geopolitical risk exist). The Stargate sites are located in “friendly” U.S. territories, often co-locating with renewable power sources. For example, Abilene’s site leveraged local wind/solar blood and even a natural-gas plant for grid stability ([[95]](https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:text=the%20local%20economy%20with%201%2C700,supplement%20local%20renewable%20energy%20sources "Highlights: the local economy with 1,700,supplement local renewable energy sources")). This model may be extended: loan covenants or permits could require efficiency standards.
 
 On the other hand, the extreme concentration of compute in a few U.S. sites could raise national security concerns (e.g. a natural disaster or cyberattack on these clusters could be catastrophic). The government’s role (president’s emergency orders) hints they view this infrastructure as strategic as a power grid.
 
-## Cloud Industry Impact
+### Cloud Industry Impact
 
 For the cloud market, Oracle’s ascendance (if realized) would alter dynamics. Before this, AWS, Azure, and Google dominated. Oracle used to be a distant fourth place in market share. A \$300B deal vaults OCI into instant relevance for generative AI workloads. It may induce second-order effects: specialized services (AI ops software, custom AI chips, Valtra etc.) will be offered by Oracle to capture more of that spending.
 
 Competing clouds cannot rely solely on traditional enterprise workloads; this competition shows they must pivot to support AI. Microsoft announced, as a result of these developments, that it is now allowing expanded use of its compute by OpenAI (and possibly other AI firms) ([[37]](https://www.reuters.com/technology/microsoft-relaxes-data-center-grip-openai-amid-500-bln-joint-venture-2025-01-22/#:~:text=Microsoft%20has%20revised%20its%20agreement,training%2C%20enabling%20collaboration%20with%20Oracle "Highlights: Microsoft has revised its agreement,training, enabling collaboration with Oracle")) ([[4]](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=OpenAI%20CEO%20Sam%20Altman%20is,to%201%20gigawatt%20per%20week "Highlights: OpenAI CEO Sam Altman is,to 1 gigawatt per week")). AWS responded by investing \$11B in new DCs and cutting prices on its Trainium chips ([[53]](https://www.reuters.com/business/retail-consumer/amazons-38-bln-openai-deal-shows-it-is-no-longer-an-ai-laggard-2025-11-04/#:~:text=However%2C%20the%20company%20is%20now,in%20Q4 "Highlights: However, the company is now,in Q4")). Google is building GPT-like models to serve its cloud customers. In short, Oracle’s deal has catalyzed an industry-wide acceleration in AI infrastructure investment.
 
-## Economic and Environmental Considerations
+### Economic and Environmental Considerations
 
 Economically, such multibillion-dollar deals can stimulate jobs and local economies in chosen sites, but raise questions about sustainability. Data centers are electricity-hungry – Oracle itself will need “4.5 GW of power” year-round ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies")). That is a substantial fraction of Texas’ entire generation capacity. Environmental assessments (as reported for Abilene) are active concerns. Analysts point out as AI data center demand grows, utility companies may need to upgrade grids and build new generation (likely gas or nuclear) – a public cost often overlooked in the initial investments.
 
 There is also a hope that AI demand could help renewables, by providing flexible (shiftable) loads and additional revenue streams for wind/solar projects. The reported use of gas turbine backup at Abilene suggests a hybrid approach: primary renewables + diesel/gas peak coverage. Over time, as more states vie to host these facilities, incentives (e.g. low-cost wind in Texas, geothermal in NM, hydro in Washington) will shape the geography of AI hubs.
 
-## Future Outlook
+### Future Outlook
 
 Given current trends as of April 2026, we expect:
 
@@ -343,7 +339,7 @@ Given current trends as of April 2026, we expect:
 
 -   **Innovation and Efficiency**: The massive capital investment creates strong incentives to innovate on efficiency. Crusoe’s pioneering use of on-site gas power for AI compute, combined with liquid cooling advances and custom silicon, points to a future where cost-per-FLOP continues declining rapidly. OpenAI’s advertising pilot (\$100M ARR in under 2 months) also suggests new monetization paths that could help justify infrastructure costs.
 
-# Conclusion
+## Conclusion
 
 The **Oracle–OpenAI \$300B deal** marks a watershed in the technology landscape. It epitomizes the **AI arms race**: unprecedented amounts of capital being deployed to secure computing power. By April 2026, the project has moved well beyond announcements into operational reality: the flagship Abilene campus is live with 1.2 GW of Oracle Cloud Infrastructure, additional sites are under construction across Michigan, Wisconsin, Wyoming, Pennsylvania, and multiple Texas locations, and the Stargate program has expanded to nearly 7 GW of planned capacity with over \$400 billion in investment.
 
@@ -354,275 +350,3 @@ Our research indicates both the *immense potential* and the *serious risks* of t
 Nonetheless, one thing is clear: the Oracle–OpenAI partnership has already **reshaped expectations** of what infrastructure support for AI can look like. It has set a new benchmark for ambition in the field, against which all future deals and strategic plans will be measured. As the \$300B contract begins to deliver compute in 2027, the next 12–18 months will prove whether this grand experiment pays off in transformative AI capabilities or whether the AI industry’s capital efficiency curve renders such massive bets unnecessary.
 
 **Key Citations**: Industry reporting (Reuters, AP, Tech publications) has been used throughout to substantiate facts about deal terms, power requirements, finance figures, and project status ([[44]](https://www.reuters.com/technology/openai-oracle-sign-300-billion-computing-deal-wsj-reports-2025-09-10/#:~:text=OpenAI%20has%20entered%20into%20a,development%20of%20advanced%20AI%20technologies "Highlights: OpenAI has entered into a,development of advanced AI technologies")) ([[5]](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies "Highlights: OpenAI has signed a landmark,collaborations between the two companies")) ([[2]](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=OpenAI%20has%20committed%20to%20a,energy%20demands%20of%20AI%20development "Highlights: OpenAI has committed to a,energy demands of AI development")) ([[1]](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=OpenAI%20has%20reportedly%20agreed%20to,cloud%20computing%20contracts%20in%20history "Highlights: OpenAI has reportedly agreed to,cloud computing contracts in history")) ([[13]](https://www.reuters.com/business/oracle-buy-40-billion-nvidia-chips-openais-us-data-center-ft-reports-2025-05-23/#:~:text=Oracle%20plans%20to%20invest%20approximately,year%20lease "Highlights: Oracle plans to invest approximately,year lease")) ([[39]](https://www.reuters.com/technology/openais-biggest-data-center-secures-116-billion-funding-wsj-reports-2025-05-21/#:~:text=Startup%20Crusoe%20has%20secured%20%2411,for%20AI%20workloads%20like%20ChatGPT "Highlights: Startup Crusoe has secured \$11,for AI workloads like ChatGPT")) ([[48]](https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:text=Currently%20composed%20of%20eight%20buildings%2C,supplement%20local%20renewable%20energy%20sources "Highlights: Currently composed of eight buildings,,supplement local renewable energy sources")) ([[4]](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=OpenAI%20CEO%20Sam%20Altman%20is,to%201%20gigawatt%20per%20week "Highlights: OpenAI CEO Sam Altman is,to 1 gigawatt per week")). Technical publications highlight the scale of AI’s energy demands ([[15]](https://arxiv.org/abs/2505.05794#:~:text=Large%20language%20models%20,These%20demands%20motivate%20exploration "Highlights: Large language models ,These demands motivate exploration")) ([[16]](https://arxiv.org/abs/2509.07218#:~:text=The%20rapid%20growth%20of%20artificial,operation%20and%20sustainable%20AI%20development "Highlights: The rapid growth of artificial,operation and sustainable AI development")). All views are grounded in these sources and data.
-
-External Sources (95)
-
-[1][https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:OpenA...](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=OpenAI%20has%20reportedly%20agreed%20to,cloud%20computing%20contracts%20in%20history)
-
-[2][https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:OpenA...](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=OpenAI%20has%20committed%20to%20a,energy%20demands%20of%20AI%20development)
-
-[3][https://www.reuters.com/technology/artificial-intelligence/openai-softbank-oracle-invest-500-bln-ai-trump-says-2025-01-21/#:~:On%20...](https://www.reuters.com/technology/artificial-intelligence/openai-softbank-oracle-invest-500-bln-ai-trump-says-2025-01-21/#:~:text=On%20January%2021%2C%202025%2C%20President,push%20to%20expand%20AI%20capabilities)
-
-[4][https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:OpenA...](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=OpenAI%20CEO%20Sam%20Altman%20is,to%201%20gigawatt%20per%20week)
-
-[5][https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:OpenA...](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=OpenAI%20has%20signed%20a%20landmark,collaborations%20between%20the%20two%20companies)
-
-[6][https://www.cnbc.com/2026/03/26/openai-ads-pilot-tops-100-million-in-arr-in-under-2-months.html](https://www.cnbc.com/2026/03/26/openai-ads-pilot-tops-100-million-in-arr-in-under-2-months.html)
-
-[7][https://openai.com/index/a-business-that-scales-with-the-value-of-intelligence/](https://openai.com/index/a-business-that-scales-with-the-value-of-intelligence/)
-
-[8][https://www.cnbc.com/2026/03/31/openai-funding-round-ipo.html](https://www.cnbc.com/2026/03/31/openai-funding-round-ipo.html)
-
-[9][https://www.reuters.com/business/moodys-flags-risk-oracles-300-billion-recently-signed-ai-contracts-2025-09-17/#:~:Moody...](https://www.reuters.com/business/moodys-flags-risk-oracles-300-billion-recently-signed-ai-contracts-2025-09-17/#:~:text=Moody%27s%20Ratings%20has%20flagged%20critical,counterparty%20risk)
-
-[10][https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Fiscal-Year-2026-Third-Quarter-Financial-Results/default.aspx](https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Fiscal-Year-2026-Third-Quarter-Financial-Results/default.aspx)
-
-[11][https://www.crusoe.ai/resources/newsroom/crusoe-announces-flagship-abilene-data-center-is-live](https://www.crusoe.ai/resources/newsroom/crusoe-announces-flagship-abilene-data-center-is-live)
-
-[12][https://openai.com/index/five-new-stargate-sites/](https://openai.com/index/five-new-stargate-sites/)
-
-[13][https://www.reuters.com/business/oracle-buy-40-billion-nvidia-chips-openais-us-data-center-ft-reports-2025-05-23/#:~:Oracl...](https://www.reuters.com/business/oracle-buy-40-billion-nvidia-chips-openais-us-data-center-ft-reports-2025-05-23/#:~:text=Oracle%20plans%20to%20invest%20approximately,year%20lease)
-
-[14][https://www.tomshardware.com/openai-broadcom-to-co-develop-10gw-of-custom-ai-chips](https://www.tomshardware.com/openai-broadcom-to-co-develop-10gw-of-custom-ai-chips)
-
-[15][https://arxiv.org/abs/2505.05794#:~:Large...](https://arxiv.org/abs/2505.05794#:~:text=Large%20language%20models%20,These%20demands%20motivate%20exploration)
-
-[16][https://arxiv.org/abs/2509.07218#:~:The%2...](https://arxiv.org/abs/2509.07218#:~:text=The%20rapid%20growth%20of%20artificial,operation%20and%20sustainable%20AI%20development)
-
-[17][https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:OpenA...](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=OpenAI%20has%20committed%20to%20a,million%20homes%E2%80%94highlighting%20the%20immense%20energy)
-
-[18][https://arxiv.org/abs/2506.14551#:~:As%20...](https://arxiv.org/abs/2506.14551#:~:text=As%20AI%27s%20energy%20demand%20continues,GPU%20H100%20systems%20with)
-
-[19][https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:As%20...](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=As%20of%20June%202025%2C%20OpenAI%27s,subscription%20services%20and%20a%20massive)
-
-[20][https://www.reuters.com/business/openai-hits-12-billion-annualized-revenue-information-reports-2025-07-31/#:~:OpenA...](https://www.reuters.com/business/openai-hits-12-billion-annualized-revenue-information-reports-2025-07-31/#:~:text=OpenAI%20has%20reportedly%20reached%20%2412,backed%20firm%20has)
-
-[21][https://www.reuters.com/commentary/breakingviews/openais-valuation-is-tech-booms-key-man-risk-2025-08-07/#:~:growt...](https://www.reuters.com/commentary/breakingviews/openais-valuation-is-tech-booms-key-man-risk-2025-08-07/#:~:text=growth%20since%20launching%20ChatGPT%20in,centers%20to%20reduce%20these%20costs)
-
-[22][https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:secto...](https://www.reuters.com/business/media-telecom/openais-annualized-revenue-hits-10-billion-up-55-billion-december-2024-2025-06-09/#:~:text=sector%2C%20especially%20when%20compared%20to,at%20a%20%24300%20billion%20valuation)
-
-[23][https://www.investing.com/news/company-news/openai-projects-25-billion-in-ad-revenue-for-2026-93CH-4605384](https://www.investing.com/news/company-news/openai-projects-25-billion-in-ad-revenue-for-2026-93CH-4605384)
-
-[24][https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:OpenA...](https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:text=OpenAI%27s%20valuation%20has%20risen%20significantly,billion%20and%20issued%20bonds%20in)
-
-[25][https://techcrunch.com/2026/03/31/openai-not-yet-public-raises-3b-from-retail-investors-in-monster-122b-fund-raise/](https://techcrunch.com/2026/03/31/openai-not-yet-public-raises-3b-from-retail-investors-in-monster-122b-fund-raise/)
-
-[26][https://openai.com/index/evolving-our-structure/](https://openai.com/index/evolving-our-structure/)
-
-[27][https://www.indexbox.io/blog/openai-targets-q4-2026-ipo-with-1-trillion-valuation-goal/](https://www.indexbox.io/blog/openai-targets-q4-2026-ipo-with-1-trillion-valuation-goal/)
-
-[28][https://finance.yahoo.com/news/reported-openai-ipo-later-test-165344346.html](https://finance.yahoo.com/news/reported-openai-ipo-later-test-165344346.html)
-
-[29][https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:Oracl...](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=Oracle%20at%20a%20cost%20of,on%20infrastructure)
-
-[30][https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:In%20...](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=In%20July%2C%20OpenAI%20announced%20,on%20infrastructure)
-
-[31][https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:Oracl...](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=Oracle%20disclosed%20%24317%20billion%20in,part%2C%20must%20invest%20heavily%20in)
-
-[32][https://www.pcgamer.com/hardware/oracles-usd300-billion-deal-with-openai-briefly-knocked-elon-musk-off-the-worlds-richest-person-spot-replaced-instead-by-the-companys-head-honcho-larry-ellison/#:~:compu...](https://www.pcgamer.com/hardware/oracles-usd300-billion-deal-with-openai-briefly-knocked-elon-musk-off-the-worlds-richest-person-spot-replaced-instead-by-the-companys-head-honcho-larry-ellison/#:~:text=computing%20services%20over%20the%20next,returning%20Musk%20to%20the%20top)
-
-[33][https://www.cnbc.com/2026/03/10/oracle-orcl-q3-earnings-report-2026.html](https://www.cnbc.com/2026/03/10/oracle-orcl-q3-earnings-report-2026.html)
-
-[34][https://www.reuters.com/business/moodys-flags-risk-oracles-300-billion-recently-signed-ai-contracts-2025-09-17/#:~:The%2...](https://www.reuters.com/business/moodys-flags-risk-oracles-300-billion-recently-signed-ai-contracts-2025-09-17/#:~:text=The%20contracts%20underscore%20the%20potential,grade)
-
-[35][https://www.fool.com/investing/2026/04/06/oracle-shares-are-down-24-so-far-in-2026-amid-ai/](https://www.fool.com/investing/2026/04/06/oracle-shares-are-down-24-so-far-in-2026-amid-ai/)
-
-[36][https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:In%20...](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=In%20a%20notable%20strategic%20shift%2C,in%20AI%20data%20center%20development)
-
-[37][https://www.reuters.com/technology/microsoft-relaxes-data-center-grip-openai-amid-500-bln-joint-venture-2025-01-22/#:~:Micro...](https://www.reuters.com/technology/microsoft-relaxes-data-center-grip-openai-amid-500-bln-joint-venture-2025-01-22/#:~:text=Microsoft%20has%20revised%20its%20agreement,training%2C%20enabling%20collaboration%20with%20Oracle)
-
-[38][https://www.reuters.com/business/media-telecom/openai-oracle-softbank-plan-five-new-ai-data-centers-500-billion-stargate-2025-09-23/#:~:OpenA...](https://www.reuters.com/business/media-telecom/openai-oracle-softbank-plan-five-new-ai-data-centers-500-billion-stargate-2025-09-23/#:~:text=OpenAI%2C%20Oracle%2C%20and%20SoftBank%20have,far%20to%20over%20%24400%20billion)
-
-[39][https://www.reuters.com/technology/openais-biggest-data-center-secures-116-billion-funding-wsj-reports-2025-05-21/#:~:Start...](https://www.reuters.com/technology/openais-biggest-data-center-secures-116-billion-funding-wsj-reports-2025-05-21/#:~:text=Startup%20Crusoe%20has%20secured%20%2411,for%20AI%20workloads%20like%20ChatGPT)
-
-[40][https://www.reuters.com/business/openai-taps-broadcom-build-its-first-ai-processor-latest-chip-deal-2025-10-13/#:~:OpenA...](https://www.reuters.com/business/openai-taps-broadcom-build-its-first-ai-processor-latest-chip-deal-2025-10-13/#:~:text=OpenAI%20has%20partnered%20with%20Broadcom,cost%20%2450%E2%80%93%2460%20billion%20per%20gigawatt)
-
-[41][https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:Oracl...](https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:text=Oracle%20is%20reportedly%20in%20advanced,to%20enhance%20its%20AI%20capabilities)
-
-[42][https://www.reuters.com/business/retail-consumer/amazons-38-bln-openai-deal-shows-it-is-no-longer-an-ai-laggard-2025-11-04/#:~:Amazo...](https://www.reuters.com/business/retail-consumer/amazons-38-bln-openai-deal-shows-it-is-no-longer-an-ai-laggard-2025-11-04/#:~:text=Amazon%27s%20%2438%20billion%20cloud%20computing,integrated%20cloud%20platforms)
-
-[43][https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:2025,...](https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:text=2025,models%2C%20supplementing%20Meta%E2%80%99s%20current)
-
-[44][https://www.reuters.com/technology/openai-oracle-sign-300-billion-computing-deal-wsj-reports-2025-09-10/#:~:OpenA...](https://www.reuters.com/technology/openai-oracle-sign-300-billion-computing-deal-wsj-reports-2025-09-10/#:~:text=OpenAI%20has%20entered%20into%20a,development%20of%20advanced%20AI%20technologies)
-
-[45][https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:compu...](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=computing%20power%20over%20the%20next,million%20homes%E2%80%94highlighting%20the%20immense%20energy)
-
-[46][https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:compu...](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=computing%20power%20over%20the%20next,energy%20demands%20of%20AI%20development)
-
-[47][https://www.reuters.com/business/media-telecom/softbank-invest-3-billion-ohio-factory-openai-data-center-information-reports-2025-11-20/#:~:SoftB...](https://www.reuters.com/business/media-telecom/softbank-invest-3-billion-ohio-factory-openai-data-center-information-reports-2025-11-20/#:~:text=SoftBank%20plans%20to%20invest%20up,initiative%20announced%20at%20the%20White)
-
-[48][https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:Curre...](https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:text=Currently%20composed%20of%20eight%20buildings%2C,supplement%20local%20renewable%20energy%20sources)
-
-[49][https://www.reuters.com/business/openai-taps-broadcom-build-its-first-ai-processor-latest-chip-deal-2025-10-13/#:~:Despi...](https://www.reuters.com/business/openai-taps-broadcom-build-its-first-ai-processor-latest-chip-deal-2025-10-13/#:~:text=Despite%20the%20groundbreaking%20move%2C%20analysts,alternative%20to%20Nvidia%27s%20InfiniBand%20solution)
-
-[50][https://www.reuters.com/business/oracle-openai-add-45-gigawatts-data-center-capacity-stargate-venture-2025-07-22/#:~:Texas...](https://www.reuters.com/business/oracle-openai-add-45-gigawatts-data-center-capacity-stargate-venture-2025-07-22/#:~:text=Texas%2C%20and%20will%20increase%20the,technological%20ambition%20of%20the%20project)
-
-[51][https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:Despi...](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=Despite%20OpenAI%E2%80%99s%20lack%20of%20profitability,of%20the%20global%20wealth%20rankings)
-
-[52][https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:OpenA...](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=OpenAI%20will%20need%20to%20find,1bn%20in%20July%202025%20alone)
-
-[53][https://www.reuters.com/business/retail-consumer/amazons-38-bln-openai-deal-shows-it-is-no-longer-an-ai-laggard-2025-11-04/#:~:Howev...](https://www.reuters.com/business/retail-consumer/amazons-38-bln-openai-deal-shows-it-is-no-longer-an-ai-laggard-2025-11-04/#:~:text=However%2C%20the%20company%20is%20now,in%20Q4)
-
-[54][https://www.axios.com/2025/10/28/openai-1-trillion-altman#:~:Sam%2...](https://www.axios.com/2025/10/28/openai-1-trillion-altman#:~:text=Sam%20Altman%2C%20CEO%20of%20OpenAI%2C,However)
-
-[55][https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:In%20...](https://www.datacenterdynamics.com/en/news/openai-signs-300bn-cloud-deal-with-oracle-report/#:~:text=In%20an%20earnings%20call%20on,the%20first%20quarter%20of%202025)
-
-[56][https://www.reuters.com/technology/artificial-intelligence/behind-500-billion-ai-data-center-plan-us-startups-jockey-with-tech-giants-2025-01-23/#:~:Presi...](https://www.reuters.com/technology/artificial-intelligence/behind-500-billion-ai-data-center-plan-us-startups-jockey-with-tech-giants-2025-01-23/#:~:text=President%20Donald%20Trump%20recently%20announced,like%20Microsoft%2C%20Google%2C%20and%20Amazon)
-
-[57][https://www.reuters.com/business/oracle-openai-add-45-gigawatts-data-center-capacity-stargate-venture-2025-07-22/#:~:Oracl...](https://www.reuters.com/business/oracle-openai-add-45-gigawatts-data-center-capacity-stargate-venture-2025-07-22/#:~:text=Oracle%20and%20OpenAI%20have%20announced,technological%20ambition%20of%20the%20project)
-
-[58][https://www.axios.com/2025/10/28/openai-1-trillion-altman#:~:%241,...](https://www.axios.com/2025/10/28/openai-1-trillion-altman#:~:text=%241,financial%20challenges%20need%20to%20be)
-
-[59][https://www.reuters.com/commentary/breakingviews/openais-valuation-is-tech-booms-key-man-risk-2025-08-07/#:~:OpenA...](https://www.reuters.com/commentary/breakingviews/openais-valuation-is-tech-booms-key-man-risk-2025-08-07/#:~:text=OpenAI%27s%20soaring%20valuation%20is%20becoming,Despite%20dominating%20enterprise%20AI)
-
-[60][https://www.itpro.com/business/business-strategy/openai-1-trillion-infrastructure-investment-oracle-broadcom-amd#:~:To%20...](https://www.itpro.com/business/business-strategy/openai-1-trillion-infrastructure-investment-oracle-broadcom-amd#:~:text=To%20finance%20this%20staggering%20investment%E2%80%94despite,companies%20in%20AI%20infrastructure%20development)
-
-[61][https://www.itpro.com/business/business-strategy/openai-1-trillion-infrastructure-investment-oracle-broadcom-amd#:~:Many%...](https://www.itpro.com/business/business-strategy/openai-1-trillion-infrastructure-investment-oracle-broadcom-amd#:~:text=Many%20of%20these%20deals%20are,to%20support%20its%20future%20ambitions)
-
-[62][https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:OpenA...](https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:text=OpenAI%27s%20valuation%20has%20risen%20significantly,bridge%20loans%20totaling%20%2415%20billion)
-
-[63][https://www.reuters.com/business/media-telecom/softbanks-58-billion-nvidia-stake-sale-stirs-fresh-ai-bubble-fears-2025-11-11/#:~:SoftB...](https://www.reuters.com/business/media-telecom/softbanks-58-billion-nvidia-stake-sale-stirs-fresh-ai-bubble-fears-2025-11-11/#:~:text=SoftBank%20Group%27s%20sale%20of%20its,speculation%20that%20AI%20stock%20valuations)
-
-[64][https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:Despi...](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=Despite%20OpenAI%E2%80%99s%20lack%20of%20profitability,and%20vaulting%20CEO%20Larry)
-
-[65][https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:OpenA...](https://www.reuters.com/world/asia-pacific/softbank-group-posts-166-billion-net-profit-q2-2025-11-11/#:~:text=OpenAI%27s%20valuation%20has%20risen%20significantly,history%20of%20bold%20tech%20investments%E2%80%94some)
-
-[66][https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:A%20c...](https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:text=A%20consortium%20of%20about%2020,commitments%20expected%20by%20late%20November)
-
-[67][https://www.reuters.com/business/oracle-buy-40-billion-nvidia-chips-openais-us-data-center-ft-reports-2025-05-23/#:~:The%2...](https://www.reuters.com/business/oracle-buy-40-billion-nvidia-chips-openais-us-data-center-ft-reports-2025-05-23/#:~:text=The%20financing%20includes%20%249,using%20over%20100%2C000%20Nvidia%20chips)
-
-[68][https://www.reuters.com/business/finance/banks-talks-lend-38-billion-fund-sites-openai-ft-reports-2025-11-28/#:~:A%20c...](https://www.reuters.com/business/finance/banks-talks-lend-38-billion-fund-sites-openai-ft-reports-2025-11-28/#:~:text=A%20consortium%20of%20banks%20is,key%20technology%20and%20data%20firms)
-
-[69][https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:The%2...](https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:text=The%20data%20center%20campus%20is,major%20tenant%20at%20the%20facility)
-
-[70][https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:its%2...](https://www.reuters.com/business/oracle-talks-with-meta-20-billion-ai-cloud-computing-deal-bloomberg-reports-2025-09-19/#:~:text=its%20AI,dramatically%20increased%20Oracle%27s%20cloud%20revenue)
-
-[71][https://www.datacenterdynamics.com/en/news/crusoe-tops-out-final-building-at-openai-stargate-data-center-campus-in-abilene-texas/](https://www.datacenterdynamics.com/en/news/crusoe-tops-out-final-building-at-openai-stargate-data-center-campus-in-abilene-texas/)
-
-[72][https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:Curre...](https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:text=Currently%20composed%20of%20eight%20buildings%2C,Efforts%20are)
-
-[73][https://fortune.com/2026/03/27/microsoft-texas-data-center-open-ai-former-partner-cloud-provider/](https://fortune.com/2026/03/27/microsoft-texas-data-center-open-ai-former-partner-cloud-provider/)
-
-[74][https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:major...](https://www.reuters.com/business/finance/banks-lend-18-billion-oracle-tied-data-center-project-bloomberg-news-reports-2025-11-07/#:~:text=major%20tenant%20at%20the%20facility)
-
-[75][https://www.reuters.com/business/media-telecom/softbank-invest-3-billion-ohio-factory-openai-data-center-information-reports-2025-11-20/#:~:House...](https://www.reuters.com/business/media-telecom/softbank-invest-3-billion-ohio-factory-openai-data-center-information-reports-2025-11-20/#:~:text=House%20in%20January)
-
-[76][https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:fundi...](https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:text=funding%20round%2C%20valuing%20the%20company,a%20year%20after%20construction%20started)
-
-[77][https://www.reuters.com/business/softbank-openais-stargate-aims-building-small-data-center-by-year-end-wsj-2025-07-22/#:~:The%2...](https://www.reuters.com/business/softbank-openais-stargate-aims-building-small-data-center-by-year-end-wsj-2025-07-22/#:~:text=The%20Stargate%20project%2C%20a%20joint,Despite%20this%2C%20both%20companies)
-
-[78][https://www.reuters.com/business/media-telecom/openai-oracle-softbank-plan-five-new-ai-data-centers-500-billion-stargate-2025-09-23/#:~:Oracl...](https://www.reuters.com/business/media-telecom/openai-oracle-softbank-plan-five-new-ai-data-centers-500-billion-stargate-2025-09-23/#:~:text=Oracle%20and%20OpenAI%20are%20also,defense%20and%20global%20tech%20competition)
-
-[79][https://www.reuters.com/technology/openais-biggest-data-center-secures-116-billion-funding-wsj-reports-2025-05-21/#:~:secur...](https://www.reuters.com/technology/openais-biggest-data-center-secures-116-billion-funding-wsj-reports-2025-05-21/#:~:text=secured%20for%20the%20project%20to,for%20AI%20workloads%20like%20ChatGPT)
-
-[80][https://www.cnbc.com/2026/04/06/broadcom-agrees-to-expanded-chip-deals-with-google-anthropic.html](https://www.cnbc.com/2026/04/06/broadcom-agrees-to-expanded-chip-deals-with-google-anthropic.html)
-
-[81][https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:AI%20...](https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:text=AI%20data%20center%20startup%20Crusoe,a%20year%20after%20construction%20started)
-
-[82][https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:overs...](https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:text=oversubscribed%20round,a%20year%20after%20construction%20started)
-
-[83][https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:Denve...](https://www.reuters.com/technology/ai-data-centre-startup-crusoe-raising-138-billion-latest-funding-round-2025-10-23/#:~:text=Denver%2C%20Crusoe%20has%20attracted%20major,a%20year%20after%20construction%20started)
-
-[84][https://www.axios.com/2025/10/28/openai-1-trillion-altman#:~:Sam%2...](https://www.axios.com/2025/10/28/openai-1-trillion-altman#:~:text=Sam%20Altman%2C%20CEO%20of%20OpenAI%2C,financial%20challenges%20need%20to%20be)
-
-[85][https://www.theinformation.com/briefings/exclusive-openai-cfo-questions-2026-ipo-readiness](https://www.theinformation.com/briefings/exclusive-openai-cfo-questions-2026-ipo-readiness)
-
-[86][https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:This%...](https://www.reuters.com/sustainability/land-use-biodiversity/altman-touts-trillion-dollar-ai-vision-openai-restructures-chase-scale-2025-10-29/#:~:text=This%20move%20follows%20OpenAI%E2%80%99s%20%24500,end)
-
-[87][https://theglobalvillager.com/2025/09/19/the-openai-oracle-deal/#:~:The%2...](https://theglobalvillager.com/2025/09/19/the-openai-oracle-deal/#:~:text=The%20OpenAI%20Oracle%20Deal%20or,the%20OpenAI%20Oracle%20Deal%202)
-
-[88][https://www.reuters.com/business/openai-oracle-deepen-ai-data-center-push-with-45-gigawatt-stargate-expansion-2025-07-22/#:~:OpenA...](https://www.reuters.com/business/openai-oracle-deepen-ai-data-center-push-with-45-gigawatt-stargate-expansion-2025-07-22/#:~:text=OpenAI%20and%20Oracle%20have%20announced,is%20slated%20to%20open%20in)
-
-[89][https://www.reuters.com/technology/artificial-intelligence/behind-500-billion-ai-data-center-plan-us-startups-jockey-with-tech-giants-2025-01-23/#:~:by%20...](https://www.reuters.com/technology/artificial-intelligence/behind-500-billion-ai-data-center-plan-us-startups-jockey-with-tech-giants-2025-01-23/#:~:text=by%20OpenAI%2C%20SoftBank%2C%20Oracle%2C%20and,like%20Microsoft%2C%20Google%2C%20and%20Amazon)
-
-[90][https://www.the-ai-corner.com/p/anthropic-30b-arr-passed-openai-revenue-2026](https://www.the-ai-corner.com/p/anthropic-30b-arr-passed-openai-revenue-2026)
-
-[91][https://www.pcgamer.com/hardware/oracles-usd300-billion-deal-with-openai-briefly-knocked-elon-musk-off-the-worlds-richest-person-spot-replaced-instead-by-the-companys-head-honcho-larry-ellison/#:~:compu...](https://www.pcgamer.com/hardware/oracles-usd300-billion-deal-with-openai-briefly-knocked-elon-musk-off-the-worlds-richest-person-spot-replaced-instead-by-the-companys-head-honcho-larry-ellison/#:~:text=computing%20services%20over%20the%20next,However)
-
-[92][https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:flow%...](https://www.tomshardware.com/tech-industry/openai-signs-contract-to-buy-usd300-billion-worth-of-oracle-computing-power-over-the-next-five-years-company-needs-4-5-gigawatts-of-power-enough-to-power-four-million-homes#:~:text=flow%20is%20much%20smaller%20than,of%20the%20global%20wealth%20rankings)
-
-[93][https://www.reuters.com/business/media-telecom/openai-oracle-softbank-plan-five-new-ai-data-centers-500-billion-stargate-2025-09-23/#:~:in%20...](https://www.reuters.com/business/media-telecom/openai-oracle-softbank-plan-five-new-ai-data-centers-500-billion-stargate-2025-09-23/#:~:text=in%20Shackelford%20County%20,gigawatts%20of%20data%20center%20capacity)
-
-[94][https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:AI%20...](https://www.techradar.com/pro/openai-bets-usd300-billion-on-oracle-contract-to-power-artificial-intelligence-expansion-despite-ongoing-losses#:~:text=AI%20infrastructure%20and%20borrow%20extensively)
-
-[95][https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:the%2...](https://apnews.com/article/0b3f4fa6e8d8141b4c143e3e7f41aba1#:~:text=the%20local%20economy%20with%201%2C700,supplement%20local%20renewable%20energy%20sources)
-
-[openai](/articles/tags/openai)[oracle cloud infrastructure](/articles/tags/oracle-cloud-infrastructure)[ai infrastructure](/articles/tags/ai-infrastructure)[cloud computing](/articles/tags/cloud-computing)[data centers](/articles/tags/data-centers)[stargate project](/articles/tags/stargate-project)[generative ai](/articles/tags/generative-ai)[large language models](/articles/tags/large-language-models)[financial analysis](/articles/tags/financial-analysis)[nvidia](/articles/tags/nvidia)[ai](/articles/tags/ai)
-
-### Get a Free AI Cost Estimate
-
-Tell us about your use case and we'll provide a personalized cost analysis.
-
-### Ready to implement AI at scale?
-
-From proof-of-concept to production, we help enterprises deploy AI solutions that deliver measurable ROI.
-
-[Book a Free Consultation](/about/contact)
-
-## How We Can Help
-
-IntuitionLabs helps companies implement AI solutions that deliver real business value.
-
-[
-
-### AI Strategy Consulting
-
-Navigate model selection, cost optimization, and build-vs-buy decisions with expert guidance tailored to your industry.
-
-](/services/ai-enablement)[
-
-### Custom AI Development
-
-Purpose-built AI agents, RAG pipelines, and LLM integrations designed for your specific workflows and data.
-
-](/services/custom-software-development)[
-
-### AI Integration & Deployment
-
-Production-ready AI systems with monitoring, guardrails, and seamless integration into your existing tech stack.
-
-](/services/implementation-integration)
-
-## DISCLAIMER
-
-The information contained in this document is provided for educational and informational purposes only. We make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability, or availability of the information contained herein. Any reliance you place on such information is strictly at your own risk. In no event will [IntuitionLabs.ai](https://intuitionlabs.ai) or its representatives be liable for any loss or damage including without limitation, indirect or consequential loss or damage, or any loss or damage whatsoever arising from the use of information presented in this document. This document may contain content generated with the assistance of artificial intelligence technologies. AI-generated content may contain errors, omissions, or inaccuracies. Readers are advised to independently verify any critical information before acting upon it. All product names, logos, brands, trademarks, and registered trademarks mentioned in this document are the property of their respective owners. All company, product, and service names used in this document are for identification purposes only. Use of these names, logos, trademarks, and brands does not imply endorsement by the respective trademark holders. [IntuitionLabs.ai](https://intuitionlabs.ai) is an AI software development company specializing in helping life-science companies implement and leverage artificial intelligence solutions. Founded in 2023 by [Adrien Laurent](https://www.linkedin.com/in/adrienlaurent/) and based in San Jose, California. This document does not constitute professional or legal advice. For specific guidance related to your business needs, please consult with appropriate qualified professionals.
-
-## Related Articles
-
-[
-
-![ChatGPT Deep Research: Guide to AI Agents & RAG](intuitionlabs-ai-img-002.jpg)
-
-### ChatGPT Deep Research: Guide to AI Agents & RAG
-
-Analyze ChatGPT Deep Research features and RAG technology. Understand agentic workflows, automated literature reviews, and accuracy limitations.
-
-large language modelsgenerative ai
-
-](/articles/chatgpt-deep-research-guide-ai-agents-rag)[
-
-![Prompt Engineering for Business: A Practical Guide](intuitionlabs-ai-img-003.jpg)
-
-### Prompt Engineering for Business: A Practical Guide
-
-Learn prompt engineering strategies for business teams. Covers zero-shot, few-shot, and chain-of-thought techniques to optimize AI workflows without coding.
-
-generative ailarge language models
-
-](/articles/prompt-engineering-business-guide)[
-
-![Claude vs ChatGPT vs Copilot vs Gemini: 2026 Enterprise Guide](intuitionlabs-ai-img-004.jpg)
-
-### Claude vs ChatGPT vs Copilot vs Gemini: 2026 Enterprise Guide
-
-Compare 2026 enterprise AI models. Evaluate ChatGPT, Claude, Copilot, and Gemini on security, context windows, and performance benchmarks for business adoption.
-
-generative ailarge language models
-
-](/articles/claude-vs-chatgpt-vs-copilot-vs-gemini-enterprise-comparison)
-
-We help companies implement AI at scale.
-
-Need help with AI?
-
-[Talk to an Expert](/about/contact)

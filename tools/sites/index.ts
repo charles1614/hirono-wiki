@@ -22,6 +22,8 @@ import { site as epochAi } from "./epoch-ai/index.ts";
 import { site as raschkaGallery } from "./sebastianraschka-gallery/index.ts";
 import { site as substack } from "./substack/index.ts";
 import { site as arxiv } from "./arxiv/index.ts";
+import { site as intuitionlabs } from "./intuitionlabs/index.ts";
+import { site as sspai } from "./sspai/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
@@ -54,6 +56,16 @@ export const SITES: readonly Site[] = [
   // social bookmarks, browse navigation) and produces a clean §2
   // article-shape output.
   arxiv,
+  // intuitionlabs.ai: Tailwind-typography articles with stable
+  // `<div class="prose">` body container. Replaces legacy generic
+  // converter which captured nav chrome + tag chains.
+  intuitionlabs,
+  // sspai.com (少数派): WangEditor-content articles with stable
+  // `<div class="article__main__content">` body container. Substitutes
+  // full-resolution image URLs from `data-original=` over the lower-res
+  // CDN-transformed `src=`. Replaces legacy generic converter that
+  // captured author cards + action bar as content.
+  sspai,
 ];
 
 export function routeSite(url: string): Site | null {
