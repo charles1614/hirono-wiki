@@ -25,7 +25,7 @@
 -   :white\_check\_mark: **自动安装检查** - 检查并安装 Claude Code 工具
 -   :gear: **智能配置** - 自动配置 `~/.claude/settings.json` 文件
 -   :wrench: **多种更新方式** - 支持 `jq` 或 `python3` 更新 JSON 配置
--   :floppy\_disk: **安全备份** - 更新前自动备份原配置文件
+-   :floppy_disk: **安全备份** - 更新前自动备份原配置文件
 -   :globe\_with\_meridians: **代理支持** - 设置代理 API 地址和密钥
 
 ## :hammer\_and\_wrench: 系统要求
@@ -69,7 +69,7 @@ chmod +x claude_proxy.sh
 claude "Hello, world!"
 ```
 
-## :file\_folder: 文件结构
+## :file_folder: 文件结构
 
 ```auto
 ~/.claude/
@@ -97,7 +97,7 @@ claude "Hello, world!"
 
 -   :memo: 请确保 API 密钥的安全性，不要在公共仓库中暴露
 -   :counterclockwise\_arrows\_button: 脚本会修改 `~/.claude/settings.json` 文件
--   :floppy\_disk: 每次运行都会创建配置文件的备份
+-   :floppy_disk: 每次运行都会创建配置文件的备份
 -   :globe\_with\_meridians: 确保代理服务地址可以正常访问
 
 ## #2 @Ling_Anthony (Tingxifa) · 2025-07-03
@@ -185,7 +185,7 @@ mark一下
 ## #19 @bifang · 2025-07-03
 
 ![image](linuxdo-img-004.jpg)
-用上了 :tieba\_003:
+用上了 :tieba_003:
 
 ## #20 @bifang · 2025-07-03 (回复 #18)
 

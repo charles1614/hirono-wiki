@@ -18,6 +18,8 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types published for this package
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
+import { applyCommonMarkdownCleanups } from "./markdown-cleanups.ts";
+
 export interface GenericImageDownload {
   remoteUrl: string;
   localFilename: string;
@@ -220,6 +222,62 @@ export function convertGenericHtml(opts: GenericConvertOpts): GenericConvertResu
     }
     body = lines.join("\n");
   }
+
+  // Multi-line link wrapper unwrap. Two shapes show up in the generic
+  // web-fetch path:
+  //   (a) Click-to-enlarge / quoted-card: `[\n\n![alt](url)\n\n](other)`
+  //       Unwrap to just the image (drop the outer link).
+  //   (b) Multi-line text wrapper: `[\n\nText\n\n](url)` (e.g. profile-
+  //       link cards rendered with the visible text on its own line).
+  //       Collapse to single-line `[Text](url)`.
+  // Walks lines so paren-in-title shapes that the naive regex misses are
+  // caught. (Lifted from tools/sites/substack/converter.ts.)
+  {
+    const srcLines = body.split("\n");
+    const keep: string[] = [];
+    let i = 0;
+    while (i < srcLines.length) {
+      if (srcLines[i].trim() === "[") {
+        let j = i + 1;
+        while (j < srcLines.length && srcLines[j].trim() === "") j++;
+        const innerMatch = j < srcLines.length ? srcLines[j].match(/^(.+?)\s*$/) : null;
+        if (innerMatch) {
+          const inner = innerMatch[1];
+          let k = j + 1;
+          while (k < srcLines.length && srcLines[k].trim() === "") k++;
+          const closeMatch = k < srcLines.length ? srcLines[k].match(/^\](\(.+\))\s*$/) : null;
+          if (closeMatch) {
+            // Shape (a): `![alt](url)` inside.
+            if (/^!\[[^\]]*\]\(.+\)$/.test(inner)) {
+              keep.push(inner);  // emit just the image, drop outer link
+            } else if (!/[\[\]]/.test(inner) && inner.length < 200) {
+              // Shape (b): plain text inside (no nested brackets, not
+              // arbitrary length). Collapse to `[text](url)` on one line.
+              keep.push(`[${inner}]${closeMatch[1]}`);
+            } else {
+              // Mixed/complex content — leave as-is rather than risk
+              // mangling. Structural rule will flag it for human review.
+              keep.push(srcLines[i]);
+              i++;
+              continue;
+            }
+            i = k + 1;
+            continue;
+          }
+        }
+      }
+      keep.push(srcLines[i]);
+      i++;
+    }
+    body = keep.join("\n");
+  }
+
+  // Shared post-turndown cleanups (insert space after closing `**` etc.).
+  body = applyCommonMarkdownCleanups(body);
+
+  // Final whitespace cleanup — runs LAST so it catches any `\n{3,}` that
+  // earlier passes (heading-drop, link-unwrap) re-introduced.
+  body = body.replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
 
   const features = countFeatures(body);
 

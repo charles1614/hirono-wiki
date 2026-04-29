@@ -29,8 +29,27 @@ import {
   huggingfaceBlogReformat,
   redditReformat,
   unescapeBracketsInLinks,
+  xMetadataStub,
   applyPostProcessors,
 } from "../hirono/shared/post-process.ts";
+import { validateStructure, formatViolations } from "./structural-rules.ts";
+
+/**
+ * Assert that processor output passes the structural-rule layer.
+ * Use this as a backstop for post-processor tests where substring
+ * matchers might false-pass on broken output (e.g. multi-line link
+ * wrappers, over-escaped emoji shortcodes, triple newlines).
+ *
+ * Layer this ON TOP of existing substring assertions:
+ *   assert.match(r.md, /Actual article body/);  // content survives
+ *   assertStructurallyClean(r.md, "case label");  // shape is clean
+ */
+function assertStructurallyClean(md: string, label: string): void {
+  const violations = validateStructure(md);
+  if (violations.length > 0) {
+    assert.fail(formatViolations(violations, label));
+  }
+}
 
 // ---------------------------------------------------------------------------
 // substackReformat
@@ -68,7 +87,13 @@ test("substackReformat: strips header chrome (author, date, counters)", () => {
   assert.doesNotMatch(r.md, /Jun 23, 2025/);
   assert.doesNotMatch(r.md, /AWS Trainium3 Deep Dive/, "article's own H1 is chrome (second H1 dropped)");
   assert.doesNotMatch(r.md, /^\d+$/m, "raw counter lines should be gone");
+  // Shape-anchored: no chrome line MUST appear — line-anchor each label
+  assert.doesNotMatch(r.md, /^Share$/m, "bare 'Share' line is chrome");
+  assert.doesNotMatch(r.md, /^∙ Paid$/m, "bare '∙ Paid' line is chrome");
   assert.ok(r.notes.some((n) => /stripped.*header/i.test(n)));
+  // Structural-rule backstop: catches multi-line wrappers, over-escapes,
+  // triple newlines, etc. that substring matchers miss.
+  assertStructurallyClean(r.md, "substackReformat: header chrome");
 });
 
 test("substackReformat: collapses embedded post-card", () => {
@@ -789,25 +814,17 @@ test("applyPostProcessors: blog.google end-to-end (chrome + truncated H1)", () =
   assert.ok(r.appliedNames.includes("enforce-single-h1"));
 });
 
-test("applyPostProcessors: pipeline runs all processors on substack-like input", () => {
+test("applyPostProcessors: cross-host processors run on substack-like input (substack-reformat retired — site module owns it)", () => {
+  // substack hosts now flow through `tools/sites/substack/`; the legacy
+  // `substackReformat` post-processor's match() returns false. The
+  // cross-host processors below (strip-color-tags, unescape-brackets,
+  // strip-empty-anchor-links) still run because they apply to ANY host.
   const md = [
     "# Our synthesized title",
     "",
     "---",
     "",
-    "# Actual article H1",
-    "",
-    "[Author](https://substack.com/@x)",
-    "",
-    "Jun 1, 2025",
-    "",
-    "1",
-    "",
-    "2",
-    "",
-    "Share",
-    "",
-    "The body has <text color=\"blue\">blue</text> text.",
+    "Body text with <text color=\"blue\">blue</text> color tag.",
     "",
     "And a [\\[ref\\]](https://example.com/ref) link.",
     "",
@@ -816,13 +833,117 @@ test("applyPostProcessors: pipeline runs all processors on substack-like input",
     "Final paragraph.",
   ].join("\n");
   const r = applyPostProcessors(md, "https://newsletter.semianalysis.com/p/x");
-  assert.doesNotMatch(r.md, /Jun 1, 2025/);
   assert.doesNotMatch(r.md, /<text color/);
   assert.doesNotMatch(r.md, /\\\[ref\\\]/, "escaped brackets should be unescaped");
   assert.doesNotMatch(r.md, /\[\]\(#empty-anchor\)/);
-  assert.match(r.md, /The body has blue text/);
-  assert.ok(r.appliedNames.includes("substack-reformat"));
+  assert.match(r.md, /Body text with blue color tag/);
+  // substack-reformat is retired — the site module handles substack URLs
+  assert.ok(!r.appliedNames.includes("substack-reformat"),
+    "substack-reformat should be retired; site module handles substack hosts now");
+  // Cross-host processors still apply
   assert.ok(r.appliedNames.includes("strip-color-tags"));
   assert.ok(r.appliedNames.includes("unescape-brackets-in-links"));
   assert.ok(r.appliedNames.includes("strip-empty-anchor-links"));
+});
+
+// ---------------------------------------------------------------------------
+// xMetadataStub
+// ---------------------------------------------------------------------------
+
+test("xMetadataStub: gated body produces metadata stub", () => {
+  const md = "Sign in to X to see this tweet";
+  const r = xMetadataStub.transform(md, "https://x.com/foo/status/1");
+  assert.match(r.md, /# Tweet \/ X post/);
+  assert.match(r.md, /auth-gated/);
+  assert.deepEqual(r.extraFlags, ["intentional-stub"]);
+});
+
+test("xMetadataStub: visible conversation cleans handle, name, content", () => {
+  const md = [
+    "# (10) X 上的 Foo Bar：\"Hello world\" / X",
+    "",
+    "> 原文链接: https://x.com/foobar/status/1",
+    "",
+    "## 对话",
+    "",
+    "[",
+    "",
+    "![](img1.jpg)",
+    "",
+    "](/foobar)",
+    "[",
+    "",
+    "Foo Bar",
+    "![](img2.png)",
+    "",
+    "](/foobar)",
+    "[",
+    "",
+    "@foobar",
+    "",
+    "](/foobar)",
+    "点击 订阅 到 foobar",
+    "Hello world tweet body. " + "x".repeat(800),
+    "[下午3:00 · 2026年4月10日](/foobar/status/1)",
+    "·",
+    "[",
+    "",
+    "10万",
+    "",
+    "查看](/foobar/status/1/analytics)",
+    "[查看引用](/foobar/status/1/quotes)",
+    "## 当前趋势",
+    "",
+    "trending junk",
+  ].join("\n");
+  const r = xMetadataStub.transform(md, "https://x.com/foobar/status/1");
+  assert.match(r.md, /^# @foobar on X/m);
+  // Byline collapsed: name + linked @handle on one line.
+  assert.match(r.md, /\*\*Foo Bar\*\* \[@foobar\]\(https:\/\/x\.com\/foobar\)/);
+  assert.match(r.md, /Hello world tweet body\./);
+  assert.match(r.md, /\[下午3:00 · 2026年4月10日\]\(https:\/\/x\.com\/foobar\/status\/1\)/);
+  assert.doesNotMatch(r.md, /img1\.jpg|img2\.png/);
+  assert.doesNotMatch(r.md, /点击\s+订阅/);
+  assert.doesNotMatch(r.md, /10万/);
+  assert.doesNotMatch(r.md, /查看引用/);
+  assert.doesNotMatch(r.md, /当前趋势|trending junk/);
+  assert.doesNotMatch(r.md, /^·$/m);
+});
+
+test("xMetadataStub: link card flattens to image + plain link on separate lines", () => {
+  const md = [
+    "# t",
+    "",
+    "[",
+    "",
+    "![](thumb.jpg)",
+    "",
+    "GitHub - foo/bar: A repo description",
+    "",
+    "](https://t.co/abc)",
+    "",
+    "Body text. " + "z".repeat(800),
+  ].join("\n");
+  const r = xMetadataStub.transform(md, "https://x.com/foo/status/1");
+  // Image standalone, link standalone — no multi-line `[\n![](...)`.
+  assert.match(r.md, /!\[\]\(thumb\.jpg\)/);
+  assert.match(r.md, /\[GitHub - foo\/bar: A repo description\]\(https:\/\/t\.co\/abc\)/);
+  assert.doesNotMatch(r.md, /\[\s*\n\s*!\[/, "no multi-line link wrapping an image");
+});
+
+test("xMetadataStub: photo embed unwraps to plain image", () => {
+  const md = [
+    "# t",
+    "",
+    "[",
+    "",
+    "![图像](photo1.jpg)",
+    "",
+    "](/foo/status/1/photo/1)",
+    "",
+    "Body text. " + "y".repeat(800),
+  ].join("\n");
+  const r = xMetadataStub.transform(md, "https://x.com/foo/status/1");
+  assert.match(r.md, /!\[\]\(photo1\.jpg\)/);
+  assert.doesNotMatch(r.md, /\/photo\/1/);
 });

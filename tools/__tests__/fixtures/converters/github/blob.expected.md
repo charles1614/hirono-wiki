@@ -345,7 +345,6 @@ from sglang.jit_kernel.utils import (
 if TYPE_CHECKING:
     from tvm_ffi.module import Module
 
-
 @cache_once
 def _jit_scale_module(dtype: torch.dtype) -> Module:
     """Compile and cache the JIT scale module for a given dtype."""
@@ -356,7 +355,6 @@ def _jit_scale_module(dtype: torch.dtype) -> Module:
         cuda_files=["elementwise/scale.cuh"],
         cuda_wrappers=[("scale", f"scale<{args}>")],
     )
-
 
 def scale(src: torch.Tensor, factor: float, out: torch.Tensor | None = None) -> torch.Tensor:
     """
@@ -434,7 +432,7 @@ if torch.cuda.get_device_capability()[0] < 9:
 
 JIT kernel tests live under `python/sglang/jit_kernel/tests/`. **CI does not run `pytest` in that directory directly.** The unified runner `test/run_suite.py` discovers every `test_*.py` there (and every `bench_*.py` under `benchmark/`), collects `register_*_ci(...)` calls by **statically parsing each file's AST**, and executes the selected suite. Every test file must register at least one CUDA entry or the collector fails its sanity check.
 
-- **PR / per-commit CUDA suites** (see `test/run_suite.py` → `PER_COMMIT_SUITES`): JIT unit tests use `stage-b-kernel-unit-1-gpu-large` (see `.github/workflows/pr-test-jit-kernel.yml`: `python3 run_suite.py --hw cuda --suite stage-b-kernel-unit-1-gpu-large`).
+- **PR / per-commit CUDA suites** (see `test/run_suite.py` → `PER_COMMIT_SUITES`): JIT unit tests use `stage-b-kernel-unit-1-gpu-large` on H100 and `stage-b-kernel-unit-1-gpu-b200` on B200/SM100 paths (see `.github/workflows/pr-test-jit-kernel.yml`). Multi-GPU JIT tests use `stage-b-kernel-unit-8-gpu-h200`.
 - **Nightly kernel suite**: `nightly-kernel-1-gpu` with `--nightly` — typically used with `SGLANG_JIT_KERNEL_RUN_FULL_TESTS=1` in CI for expanded parameter grids (see `python/sglang/jit_kernel/utils.py` → `should_run_full_tests` / `get_ci_test_range`). Wired in `.github/workflows/nightly-test-nvidia.yml` (e.g. `python3 run_suite.py --hw cuda --suite nightly-kernel-1-gpu --nightly --continue-on-error`).
 
 Registration pattern (module level, **literal** `est_time` and `suite` strings — required for AST parsing):
@@ -443,6 +441,8 @@ Registration pattern (module level, **literal** `est_time` and `suite` strings �
 from sglang.test.ci.ci_register import register_cuda_ci
 
 register_cuda_ci(est_time=30, suite="stage-b-kernel-unit-1-gpu-large")
+# Optional B200/SM100 registration for tests that cover Blackwell-specific code paths
+# register_cuda_ci(est_time=30, suite="stage-b-kernel-unit-1-gpu-b200")
 # Optional second registration: same file also listed under the nightly kernel suite
 # register_cuda_ci(est_time=120, suite="nightly-kernel-1-gpu", nightly=True)
 ```
@@ -454,7 +454,9 @@ Use `register_cuda_ci(..., disabled="reason")` if the file must stay in-tree but
 **Run like CI** (from repo root):
 
 ```bash
-cd test && python3 run_suite.py --hw cuda --suite stage-b-kernel-unit-1-gpu-large
+(cd test && python3 run_suite.py --hw cuda --suite stage-b-kernel-unit-1-gpu-large)
+# For B200/SM100-specific coverage:
+(cd test && python3 run_suite.py --hw cuda --suite stage-b-kernel-unit-1-gpu-b200)
 ```
 
 For fast iteration you can still run `pytest` on a single file locally; CI coverage is via `run_suite.py`.
@@ -469,7 +471,6 @@ from sglang.test.ci.ci_register import register_cuda_ci
 
 register_cuda_ci(est_time=30, suite="stage-b-kernel-unit-1-gpu-large")
 
-
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
 @pytest.mark.parametrize("size", [1, 127, 128, 1024, 4097])  # cover tail remainder
 @pytest.mark.parametrize("factor", [0.5, 1.0, 2.0, 3.0])
@@ -481,7 +482,6 @@ def test_scale_correctness(dtype, size, factor):
     rtol, atol = (1e-5, 1e-6) if dtype == torch.float32 else (1e-2, 1e-2)
     torch.testing.assert_close(out, expected, rtol=rtol, atol=atol)
 
-
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
 def test_scale_out_param(dtype):
     src = torch.randn(1024, dtype=dtype, device="cuda")
@@ -490,18 +490,15 @@ def test_scale_out_param(dtype):
     assert result is out
     torch.testing.assert_close(out, src * 2.0, rtol=1e-2, atol=1e-2)
 
-
 def test_scale_cpu_error():
     src = torch.randn(128, dtype=torch.float16)  # CPU tensor
     with pytest.raises(RuntimeError, match="CUDA"):
         scale(src, 2.0)
 
-
 def test_scale_unsupported_dtype():
     src = torch.randint(0, 10, (128,), dtype=torch.int32, device="cuda")
     with pytest.raises(RuntimeError, match="dtype"):
         scale(src, 2.0)
-
 
 if __name__ == "__main__":
     import sys
@@ -541,7 +538,6 @@ SIZE_LIST = get_benchmark_range(
 
 configs = list(itertools.product(SIZE_LIST))
 
-
 @triton.testing.perf_report(
     triton.testing.Benchmark(
         x_names=["size"],
@@ -565,7 +561,6 @@ def benchmark(size: int, provider: str):
         fn = lambda: src * factor
 
     return run_benchmark(fn)
-
 
 if __name__ == "__main__":
     benchmark.run(print_data=True)

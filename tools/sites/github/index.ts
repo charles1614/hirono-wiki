@@ -12,6 +12,7 @@
  */
 
 import { mkdirSync } from "node:fs";
+import { join } from "node:path";
 
 import type { Site } from "../_shared/types.ts";
 import {
@@ -26,8 +27,30 @@ import {
   convertGithubPrIssue,
   convertGithubRelease,
   convertGithubRaw,
+  type GithubImageDownload,
 } from "./converter.ts";
-import { processImages } from "../../fetch-raw.ts";
+import { downloadImage } from "../../fetch-raw.ts";
+
+/**
+ * Iterate the converter's `imagesToDownload` list, fetch each via curl,
+ * and return the local filenames that landed on disk. Mirrors the
+ * pattern used by other site modules (zhihu, substack, weixin) — the
+ * converter pre-allocates filenames; the runtime fetches the bytes.
+ */
+function downloadAll(
+  imagesToDownload: GithubImageDownload[],
+  slugDir: string,
+): { images: string[]; failed: number } {
+  const images: string[] = [];
+  let failed = 0;
+  for (const dl of imagesToDownload) {
+    const dest = join(slugDir, dl.localFilename);
+    const bytes = downloadImage(dl.remoteUrl, dest);
+    if (bytes > 0) images.push(dl.localFilename);
+    else failed++;
+  }
+  return { images, failed };
+}
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -52,7 +75,7 @@ export const site: Site = {
       if (!result) {
         return stubResult(url, `github ${kind} REST API fetch failed (rate limit? auth?)`);
       }
-      let markdown = convertGithubPrIssue({
+      const conv = convertGithubPrIssue({
         kind: kind === "pr" ? "pull" : kind === "issue" ? "issues" : "discussions",
         org,
         repo,
@@ -64,14 +87,10 @@ export const site: Site = {
         reviewComments: result.reviewComments,
       });
 
-      // Localize any user-attachment images embedded in PR/issue bodies.
-      const images: string[] = [];
-      const r = processImages(markdown, opts.slugDir, true);
-      markdown = r.content;
-      for (const rec of r.images) images.push(rec.local);
+      const { images, failed } = downloadAll(conv.imagesToDownload, opts.slugDir);
 
       return {
-        markdown,
+        markdown: conv.markdown,
         images,
         title: `${result.main.title || ""} · ${kind}#${parsed.ref}`,
         metadata: {
@@ -81,9 +100,11 @@ export const site: Site = {
           number: parsed.ref,
           comment_count: result.comments.length,
         },
-        flags: [],
+        flags: failed > 0 ? ["github-image-download-partial"] : [],
         notes: [
-          `github: ${kind} #${parsed.ref} via REST API (${result.comments.length} comment(s)${images.length > 0 ? `, ${images.length} image(s)` : ""})`,
+          `github: ${kind} #${parsed.ref} via REST API (${result.comments.length} comment(s)` +
+          `${images.length > 0 ? `, ${images.length}/${conv.imagesToDownload.length} image(s) downloaded` : ""}` +
+          `${failed > 0 ? ` (${failed} failed)` : ""}` + `)`,
         ],
       };
     }
@@ -94,20 +115,17 @@ export const site: Site = {
       if (!release || !release.body) {
         return stubResult(url, `github release ${parsed.ref} fetch failed or empty body`);
       }
-      let markdown = convertGithubRelease({
+      const conv = convertGithubRelease({
         org, repo,
         tag: parsed.ref!,
         originUrl: url,
         release,
       });
 
-      const images: string[] = [];
-      const r = processImages(markdown, opts.slugDir, true);
-      markdown = r.content;
-      for (const rec of r.images) images.push(rec.local);
+      const { images, failed } = downloadAll(conv.imagesToDownload, opts.slugDir);
 
       return {
-        markdown,
+        markdown: conv.markdown,
         images,
         title: `${org}/${repo}: ${release.name || release.tag_name || parsed.ref}`,
         metadata: {
@@ -117,9 +135,11 @@ export const site: Site = {
           published_at: release.published_at,
           author: release.author?.login,
         },
-        flags: [],
+        flags: failed > 0 ? ["github-image-download-partial"] : [],
         notes: [
-          `github: release ${parsed.ref} via REST API (${(release.body || "").length} body chars${images.length > 0 ? `, ${images.length} image(s)` : ""})`,
+          `github: release ${parsed.ref} via REST API (${(release.body || "").length} body chars` +
+          `${images.length > 0 ? `, ${images.length}/${conv.imagesToDownload.length} image(s) downloaded` : ""}` +
+          `${failed > 0 ? ` (${failed} failed)` : ""}` + `)`,
         ],
       };
     }
@@ -142,7 +162,7 @@ export const site: Site = {
     if (!raw) {
       return stubResult(url, `github raw fetch failed for ${kind} (path may not be markdown, or 404)`);
     }
-    let markdown = convertGithubRaw({
+    const conv = convertGithubRaw({
       org, repo,
       branch: raw.branch,
       path: raw.resolvedPath,
@@ -150,13 +170,10 @@ export const site: Site = {
       body: raw.body,
     });
 
-    const images: string[] = [];
-    const r = processImages(markdown, opts.slugDir, true);
-    markdown = r.content;
-    for (const rec of r.images) images.push(rec.local);
+    const { images, failed } = downloadAll(conv.imagesToDownload, opts.slugDir);
 
     return {
-      markdown,
+      markdown: conv.markdown,
       images,
       title: `${org}/${repo}: ${raw.resolvedPath}`,
       metadata: {
@@ -166,9 +183,11 @@ export const site: Site = {
         path: raw.resolvedPath,
         kind,
       },
-      flags: [],
+      flags: failed > 0 ? ["github-image-download-partial"] : [],
       notes: [
-        `github: raw ${kind} (${raw.resolvedPath}) via raw.githubusercontent.com (${raw.body.length} chars${images.length > 0 ? `, ${images.length} image(s)` : ""})`,
+        `github: raw ${kind} (${raw.resolvedPath}) via raw.githubusercontent.com (${raw.body.length} chars` +
+        `${images.length > 0 ? `, ${images.length}/${conv.imagesToDownload.length} image(s) downloaded` : ""}` +
+        `${failed > 0 ? ` (${failed} failed)` : ""}` + `)`,
       ],
     };
   },

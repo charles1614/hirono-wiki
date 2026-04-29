@@ -1,4 +1,14 @@
 {
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292036/e2b308c3a0f7d8c85492fc498d7751a7/spectrum/1040g34o31tq5fli5mq705p61upal6u6s8j09ft8!nd_dft_wlteh_webp_3",
+      "localFilename": "69b8d122000000001d01a6c7_01.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292036/4ecb826aadfbea19a1c5e19032158dc9/spectrum/1040g34o31tq5frfcmi0g5p61upal6u6s7043pv0!nd_dft_wlteh_webp_3",
+      "localFilename": "69b8d122000000001d01a6c7_02.jpg"
+    }
+  ],
   "stats": {
     "paragraphs": 5,
     "tagsExtracted": 5,

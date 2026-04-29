@@ -26,6 +26,8 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types published for this package
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
+import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+
 export interface DeepwikiComImageDownload {
   remoteUrl: string;
   localFilename: string;
@@ -210,7 +212,9 @@ export function convertDeepwikiComHtml(
 
   const title = opts.title || "Untitled DeepWiki page";
   const fm = ["# " + title, "", "> 原文链接: " + opts.url, "", "---", ""].join("\n");
-  const markdown = fm + "\n" + body.replace(/^\n+/, "").replace(/\n+$/, "") + "\n";
+  const markdown = applyCommonMarkdownCleanups(
+    fm + "\n" + body.replace(/^\n+/, "").replace(/\n+$/, "") + "\n",
+  );
 
   const features = countFeatures(markdown);
 

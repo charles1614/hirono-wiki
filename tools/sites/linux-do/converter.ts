@@ -37,6 +37,7 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
+import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
 import type { LinuxDoTopic, LinuxDoPost } from "./fetcher.ts";
 
 export interface LinuxDoImageDownload {
@@ -193,6 +194,40 @@ export function convertLinuxDoTopic(topic: LinuxDoTopic): LinuxDoConvertResult {
 
   // Bold-colon normalization (consistent with weixin/zhihu/deepwiki).
   markdown = markdown.replace(/\*\*([^*\n]+?)([:：])\*\*/g, "**$1**$2");
+
+  // Emoji-shortcode escape repair. Discourse posts use `:emoji_name:`
+  // shortcodes for custom forum emoji (e.g. `:high_voltage:`,
+  // `:glowing_star:`, `:bili_057:`). Turndown over-escapes:
+  //   - `\_` inside the shortcode (because `_` looks like emphasis to it)
+  //   - `\!\[:name:\]` when the shortcode appears in a context turndown
+  //     mistakes for image syntax
+  // Both are fence-aware passes — leave inside code blocks alone.
+  {
+    const lines2 = markdown.split("\n");
+    let inFence = false;
+    for (let i = 0; i < lines2.length; i++) {
+      if (/^```/.test(lines2[i].trim())) { inFence = !inFence; continue; }
+      if (inFence) continue;
+      // Pass A FIRST: unescape `\_` inside `:emoji_name:` shortcodes.
+      // Looped until stable (a shortcode may have multiple `\_`). Run
+      // before Pass B so the inner shortcode is normalized when we look
+      // for `\!\[:name:\]` patterns.
+      let prev: string;
+      do {
+        prev = lines2[i];
+        lines2[i] = prev.replace(/(:[a-z][\w]*?)\\_([\w]*:)/g, "$1_$2");
+      } while (lines2[i] !== prev);
+      // Pass B: unwrap `!\[:name:\]` → `:name:` (turndown emitted image-
+      // syntax escapes around a shortcode that's just text — only `[`
+      // and `]` are escaped, the `!` is not). Runs AFTER Pass A so the
+      // inner shortcode is already normalized.
+      lines2[i] = lines2[i].replace(/!\\\[:([a-z][\w]*):\\\]/g, ":$1:");
+    }
+    markdown = lines2.join("\n");
+  }
+
+  // Shared post-turndown cleanups (insert space after closing `**` etc.).
+  markdown = applyCommonMarkdownCleanups(markdown);
 
   const features = countFeatures(markdown);
 

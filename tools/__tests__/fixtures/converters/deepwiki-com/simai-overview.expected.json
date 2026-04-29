@@ -4,10 +4,10 @@
     "title": "SimAI Overview"
   },
   "stats": {
-    "mermaidExpected": 3,
-    "mermaidPlaced": 3,
+    "mermaidExpected": 2,
+    "mermaidPlaced": 2,
     "tables": 21,
-    "codeFences": 3,
+    "codeFences": 2,
     "images": 0,
     "chromeStripped": 0
   }

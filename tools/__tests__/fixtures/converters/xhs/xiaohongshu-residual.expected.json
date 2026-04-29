@@ -1,4 +1,22 @@
 {
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/af9f7bbcb27838834ba94bb4fc47ef75/spectrum/1040g34o31tpdt09lg80g5prusmo23beg81v9m80!nd_dft_wgth_webp_3",
+      "localFilename": "69b8157a000000002200dde0_01.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/e20ba2ac8bdf2c395b0f2777ffd85108/spectrum/1040g0k031tpdu7ienu005prusmo23beg7lnjmso!nd_dft_wgth_webp_3",
+      "localFilename": "69b8157a000000002200dde0_02.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/c2fae0d6afacbbf045b17103b7b69e20/spectrum/1040g34o31tpdt3t7mq0g5prusmo23beglge1kq8!nd_dft_wlteh_webp_3",
+      "localFilename": "69b8157a000000002200dde0_03.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/75681adfd01eaa54490e173b4423fb82/spectrum/1040g0k031tpem99j6o005prusmo23begiotqpeg!nd_dft_wgth_webp_3",
+      "localFilename": "69b8157a000000002200dde0_04.jpg"
+    }
+  ],
   "stats": {
     "paragraphs": 4,
     "tagsExtracted": 4,

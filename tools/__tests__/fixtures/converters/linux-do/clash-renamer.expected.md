@@ -30,7 +30,7 @@
 ### 12.17更新：
 
 更新官网展示：官网 [Clash IP Checker - 节点纯净度检测与标记](https://tombcato.github.io/clash-ip-checker/)
-更新极速模式:high\_voltage:：暂时默认 **关闭**，通过 IPPure API 直接检测，速度比浏览器模式快 10 倍以上！但缺少 Bot 比例分析，输出`【🟢 住宅|原生】`，可在config.yaml中设置`fast_mode = True`开启
+更新极速模式:high_voltage:：暂时默认 **关闭**，通过 IPPure API 直接检测，速度比浏览器模式快 10 倍以上！但缺少 Bot 比例分析，输出`【🟢 住宅|原生】`，可在config.yaml中设置`fast_mode = True`开启
 
 * * *
 
@@ -55,12 +55,12 @@
 
 标记：`【🟢🟡 属性|来源】`
 
--   **第 1 个 Emoji (:green\_circle:)**: **IP 纯净度** (值越低越好，越低越像真实用户)
--   **第 2 个 Emoji (:yellow\_circle:)**: **Bot 比例** (值越低越不容易被反爬，越高来自机器人的流量更大更容易弹验证)
+-   **第 1 个 Emoji (:green_circle:)**: **IP 纯净度** (值越低越好，越低越像真实用户)
+-   **第 2 个 Emoji (:yellow_circle:)**: **Bot 比例** (值越低越不容易被反爬，越高来自机器人的流量更大更容易弹验证)
 -   **属性**: 机房、住宅
 -   **来源**: 原生、广播
 
-觉得好用的话求个 Star !\[:glowing\_star:\] 有 bug 欢迎提 issue！
+觉得好用的话求个 Star :glowing_star: 有 bug 欢迎提 issue！
 
 ## #2 @Godhelpsme · 2025-12-13
 
@@ -129,7 +129,7 @@
 
 ## #11 @jiuyue (玖月) · 2025-12-13
 
-:bili\_057:牛的 机场垃圾佬很有用（
+:bili_057:牛的 机场垃圾佬很有用（
 
 ## #12 @imfine · 2025-12-13 (回复 #6)
 
@@ -189,7 +189,7 @@ cf Worker 的话还可以叠加d1 kv 去做处理
 
 ## #24 @millx (米哩) · 2025-12-13 (回复 #23)
 
-嗯嗯 我记得 有个可以测速的项目 然后 搭配这个 再额外写一个脚本就可以了吧 :partying\_face:
+嗯嗯 我记得 有个可以测速的项目 然后 搭配这个 再额外写一个脚本就可以了吧 :partying_face:
 
 ## #25 @imfine · 2025-12-13 (回复 #24)
 

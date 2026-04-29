@@ -55,6 +55,14 @@ export interface SnapshotInvariants {
    *  weixin-DOM splicer's "couldn't anchor; appended at end" sentinel — its
    *  presence means content placement failed). */
   splicer_appendix_markers: number;
+  /**
+   * Optional. Source URL the snapshot was captured from. Written by the
+   * approve.ts and snapshot-create.ts pipelines; consumed by check-drift.ts
+   * to know what URL to re-fetch when checking for upstream changes.
+   * Existing pre-source_url snapshots may omit this field; backfill via:
+   *   npx tsx tools/__tests__/snapshot-helpers.ts backfill-source-url <md-path> <url>
+   */
+  source_url?: string;
 }
 
 /**
@@ -237,15 +245,23 @@ export function diffInvariants(
 // ---------------------------------------------------------------------------
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [cmd, target] = process.argv.slice(2);
+  const [cmd, target, arg3] = process.argv.slice(2);
   if (cmd === "capture" && target) {
     const md = readFileSync(target, "utf8");
     const inv = countFeatures(md);
     writeInvariants(target, inv);
     console.log(`captured invariants → ${invariantsPathFor(target)}`);
     console.log(JSON.stringify(inv, null, 2));
+  } else if (cmd === "backfill-source-url" && target && arg3) {
+    // Backfill source_url onto an existing sidecar without recomputing counts.
+    // Use when a pre-source_url snapshot needs to be drift-checked.
+    const inv = loadInvariants(target);
+    inv.source_url = arg3;
+    writeInvariants(target, inv);
+    console.log(`backfilled source_url=${arg3} → ${invariantsPathFor(target)}`);
   } else {
     console.error("usage: snapshot-helpers.ts capture <path/to/snapshot.md>");
+    console.error("       snapshot-helpers.ts backfill-source-url <path/to/snapshot.md> <url>");
     process.exit(2);
   }
 }

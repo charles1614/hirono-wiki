@@ -12,11 +12,7 @@ pseudoyu
 
 个人博客：https://www.pseudoyu.com
 
-[
-
-pseudoyu
-
-](/u/pseudoyu/updates)
+[pseudoyu](/u/pseudoyu/updates)
 
 [](/u/pseudoyu/updates)
 
@@ -44,11 +40,7 @@ pseudoyu
 
 个人博客：https://www.pseudoyu.com
 
-[
-
-pseudoyu
-
-](/u/pseudoyu/updates)
+[pseudoyu](/u/pseudoyu/updates)
 
 [](/u/pseudoyu/updates)
 
@@ -335,7 +327,6 @@ PicGo 本体并不包括 S3 图床，但可以通过「[GitHub - wayjam/picgo-pl
 
 -   总结
 
-
 讨论
 
 发表评论
@@ -366,10 +357,6 @@ PicGo 本体并不包括 S3 图床，但可以通过「[GitHub - wayjam/picgo-pl
 
 [![pseudoyu](sspai-com-img-041.jpg)](/u/pseudoyu/updates)
 
-[
-
-pseudoyu
-
-](/u/pseudoyu/updates)
+[pseudoyu](/u/pseudoyu/updates)
 
 个人博客：https://www.pseudoyu.com

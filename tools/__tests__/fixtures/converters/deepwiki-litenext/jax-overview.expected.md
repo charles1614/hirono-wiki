@@ -172,7 +172,6 @@ graph TB
 
 6.  **Hardware Layer**: Physical compute devices (CPUs, GPUs, TPUs)
 
-
 ---
 
 ## Use Cases

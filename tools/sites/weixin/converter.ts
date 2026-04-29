@@ -24,6 +24,8 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types published for this package
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
+import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+
 export interface WeixinMetadata {
   /** Activity name from `<h1 id="activity-name">`. */
   title: string;
@@ -525,6 +527,8 @@ export function convertWeixinHtml(
   body = body.replace(/\*\*([^*\n]+?)([:：])\*\*/g, "**$1**$2");
   // Re-collapse newlines after the strips above.
   body = body.replace(/\n{3,}/g, "\n\n");
+  // Shared post-turndown cleanups (insert space after closing `**` etc.).
+  body = applyCommonMarkdownCleanups(body);
 
   // 5. §2 frontmatter
   const fmLines: string[] = [`# ${metadata.title || "(untitled)"}`, ""];

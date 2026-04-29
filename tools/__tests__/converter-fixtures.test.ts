@@ -33,20 +33,9 @@ import assert from "node:assert/strict";
 import { readdirSync, existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { convertWeixinHtml } from "../sites/weixin/converter.ts";
-import { convertXhsHtml } from "../sites/xhs/converter.ts";
-import {
-  convertGithubPrIssue,
-  convertGithubRelease,
-  convertGithubRaw,
-} from "../sites/github/converter.ts";
-import { convertZhihuArticleHtml } from "../sites/zhihu/converter.ts";
-import { convertDeepwikiLitenextHtml } from "../sites/deepwiki-litenext/converter.ts";
-import { convertDeepwikiComHtml } from "../sites/deepwiki-com/converter.ts";
-import { convertLinuxDoTopic } from "../sites/linux-do/converter.ts";
 import { convertGenericHtml } from "../sites/_shared/generic-converter.ts";
-import { convertEpochAiContent } from "../sites/epoch-ai/converter.ts";
-import type { LinuxDoTopic } from "../sites/linux-do/fetcher.ts";
+import { findHooksByConverterFn } from "../sites/test-hooks-registry.ts";
+import { validateStructure, formatViolations } from "./structural-rules.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
 // (npm test runs from tools/; manual `npx tsx ...` runs from repo root).
@@ -81,83 +70,32 @@ function listFixtures(): Fixture[] {
 }
 
 interface InputDoc {
-  fn: "convertWeixinHtml" | "convertXhsHtml" | "convertGithubPrIssue" | "convertGithubRelease" | "convertGithubRaw" | "convertZhihuArticleHtml" | "convertDeepwikiLitenextHtml" | "convertDeepwikiComHtml" | "convertLinuxDoTopic" | "convertGenericHtml" | "convertEpochAiContent";
+  fn: string;
   args: unknown[];
 }
 
+/**
+ * Dispatch a captured fixture's `(fn, args)` to the matching converter
+ * via the site-module test-hooks registry. The generic web-fetch
+ * converter (`convertGenericHtml`) is NOT in the site registry — it's
+ * the legacy fallback for `web-<host>/` fixture directories — and is
+ * special-cased below.
+ */
 function runConverter(input: InputDoc): { markdown: string; rest: Record<string, unknown> } {
-  if (input.fn === "convertWeixinHtml") {
-    const [contentHtml, metadata, originUrl] = input.args as [string, unknown, string];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = convertWeixinHtml(contentHtml, metadata as any, originUrl);
-    const { markdown, ...rest } = r;
-    return { markdown, rest: rest as Record<string, unknown> };
-  }
-  if (input.fn === "convertXhsHtml") {
-    const [descText, metadata, originUrl, imageRefs] = input.args as [string, unknown, string, string[]];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = convertXhsHtml(descText, metadata as any, originUrl, imageRefs);
-    const { markdown, ...rest } = r;
-    return { markdown, rest: rest as Record<string, unknown> };
-  }
-  // GitHub converters return a string directly (not a {markdown, ...rest} shape).
-  // We wrap as { markdown: string, rest: {} } so the existing test infra reuses.
-  if (input.fn === "convertGithubPrIssue") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const md = convertGithubPrIssue(input.args[0] as any);
-    return { markdown: md, rest: {} };
-  }
-  if (input.fn === "convertGithubRelease") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const md = convertGithubRelease(input.args[0] as any);
-    return { markdown: md, rest: {} };
-  }
-  if (input.fn === "convertGithubRaw") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const md = convertGithubRaw(input.args[0] as any);
-    return { markdown: md, rest: {} };
-  }
-  if (input.fn === "convertZhihuArticleHtml") {
-    const [contentHtml, rawMetadata, originUrl] = input.args as [string, unknown, string];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = convertZhihuArticleHtml(contentHtml, rawMetadata as any, originUrl);
-    const { markdown, ...rest } = r;
-    return { markdown, rest: rest as Record<string, unknown> };
-  }
-  if (input.fn === "convertDeepwikiLitenextHtml") {
-    const [contentHtml, mermaidSources, opts] = input.args as [string, string[], { title: string; url: string }];
-    const r = convertDeepwikiLitenextHtml(contentHtml, mermaidSources, opts);
-    const { markdown, ...rest } = r;
-    return { markdown, rest: rest as Record<string, unknown> };
-  }
-  if (input.fn === "convertDeepwikiComHtml") {
-    const [contentHtml, mermaidSources, opts] = input.args as [string, string[], { title: string; url: string }];
-    const r = convertDeepwikiComHtml(contentHtml, mermaidSources, opts);
-    const { markdown, ...rest } = r;
-    return { markdown, rest: rest as Record<string, unknown> };
-  }
-  if (input.fn === "convertLinuxDoTopic") {
-    const [topic] = input.args as [LinuxDoTopic];
-    const r = convertLinuxDoTopic(topic);
-    const { markdown, ...rest } = r;
-    return { markdown, rest: rest as Record<string, unknown> };
-  }
+  // Site-module path: registry lookup by `input.fn`.
+  const hooks = findHooksByConverterFn(input.fn);
+  if (hooks) return hooks.runFromFixture(input);
+
+  // Generic web-fetch path: returns `{ body, imagesToDownload, stats }`
+  // (no `markdown` key). Map `body` → `markdown` for the byte-equal infra.
   if (input.fn === "convertGenericHtml") {
-    // The generic web-fetch converter returns `{ body, imagesToDownload, stats }`
-    // (no `markdown` key — the caller composes §2 frontmatter separately).
-    // We map `body` → `markdown` for the byte-equal assertion infra to reuse.
     const [opts] = input.args as [{ html: string; url: string; imagePrefix?: string }];
     const r = convertGenericHtml(opts);
     const { body, ...rest } = r;
     return { markdown: body, rest: rest as Record<string, unknown> };
   }
-  if (input.fn === "convertEpochAiContent") {
-    const [opts] = input.args as [{ introHtml: string; csvUrl: string; csvText: string; url: string; maxRows?: number }];
-    const r = convertEpochAiContent(opts);
-    const { body, ...rest } = r;
-    return { markdown: body, rest: rest as Record<string, unknown> };
-  }
-  throw new Error(`unknown converter fn: ${(input as InputDoc).fn}`);
+
+  throw new Error(`unknown converter fn: ${input.fn}`);
 }
 
 const fixtures = listFixtures();
@@ -200,5 +138,19 @@ for (const fx of fixtures) {
     const expected = JSON.parse(readFileSync(fx.expectedJsonPath, "utf8"));
     const actual = runConverter(input).rest;
     assert.deepStrictEqual(actual, expected, `${fx.host}/${fx.name}: non-markdown fields diverged`);
+  });
+
+  test(`converter-fixture[${fx.host}/${fx.name}]: expected.md passes structural rules`, () => {
+    const expected = readFileSync(fx.expectedMdPath, "utf8");
+    const violations = validateStructure(expected);
+    if (violations.length > 0) {
+      assert.fail(
+        formatViolations(violations, `${fx.host}/${fx.name} ground truth`) +
+        `\n\nThe captured ground truth has structural defects. Either:` +
+        `\n  1. Fix the converter to produce defect-free output, then refresh:` +
+        `\n     npx tsx tools/__tests__/capture-fixtures.ts ${fx.host} ${fx.name} <url>` +
+        `\n  2. If the rule fires a false positive, refine the rule in tools/__tests__/structural-rules.ts`,
+      );
+    }
   });
 }

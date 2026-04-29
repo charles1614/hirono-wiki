@@ -1,4 +1,38 @@
 {
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/52dfa3bcb4e7307ea320163a412e6c78/spectrum/1040g0k031u4r9hcsiu005pf70sih91im1acgtkg!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_01.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/c0c73b6f4a2d1f2337050d04537455b1/spectrum/1040g34o31u4r9e012u005pf70sih91imujvg6lo!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_02.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/ffbe7b17fde14d8f4648296df1aee09b/spectrum/1040g34o31u4r9e012u0g5pf70sih91im5e61jk0!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_03.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/683917aa724d44dc375d06e6cafca009/spectrum/1040g34o31u4r9e012u105pf70sih91imfrpbcig!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_04.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/4ec6e62438d3ed4ff0318c15712f0175/spectrum/1040g34o31u4r9e012u1g5pf70sih91im1vjbgu8!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_05.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/7991e41852c6939909a780e152aa54c0/spectrum/1040g34o31u4r9e012u205pf70sih91imlr0e9s0!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_06.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/8cc3e6f445cd7afd7307f1d6841225f0/spectrum/1040g34o31u4r9e012u2g5pf70sih91im330br9o!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_07.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/e2510252150000181e67032017d002da/spectrum/1040g34o31u4r9e012u305pf70sih91imp0bgdd8!nd_dft_wlteh_webp_3",
+      "localFilename": "69c3bfb9000000002301f59c_08.jpg"
+    }
+  ],
   "stats": {
     "paragraphs": 7,
     "tagsExtracted": 0,

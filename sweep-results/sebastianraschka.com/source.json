@@ -1,41 +1,313 @@
 {
-  "fetched_at": "2026-04-26T15:37:42.140Z",
+  "fetched_at": "2026-04-28T14:14:04.984Z",
   "origin": "url:https://sebastianraschka.com/llm-architecture-gallery/",
   "origin_url": "https://sebastianraschka.com/llm-architecture-gallery/",
   "fetcher": "opencli",
   "fetcher_reason": "domain-override",
-  "content_sha": "dd12a3090c384bc2b0573f9162702ef8aa2f9dc0797b93c0668319087a65d399",
-  "content_length": 69236,
+  "content_sha": "1c3577ed831097099fbf1feb1f456ae03720d74a37f189946aa40a176f1ca03d",
+  "content_length": 58082,
   "quality_flags": [],
   "quality_status": "good",
   "images": [
     {
-      "local": "sebastianraschka-com-img-001.webp",
+      "local": "images/gpt-2-xl.webp",
       "remote": "",
-      "bytes": 153068
+      "bytes": 183008
     },
     {
-      "local": "sebastianraschka-com-img-002.jpg",
+      "local": "images/llama-3-8b.webp",
       "remote": "",
-      "bytes": 269433
+      "bytes": 151424
     },
     {
-      "local": "sebastianraschka-com-img-003.jpg",
+      "local": "images/llama-3-2-1b.webp",
       "remote": "",
-      "bytes": 85831
+      "bytes": 145234
     },
     {
-      "local": "sebastianraschka-com-img-004.webp",
+      "local": "images/olmo-2-7b.webp",
       "remote": "",
-      "bytes": 122460
+      "bytes": 146004
+    },
+    {
+      "local": "images/deepseek-v3-r1-671-billion.webp",
+      "remote": "",
+      "bytes": 279568
+    },
+    {
+      "local": "images/deepseek-v3-r1-671-billion.webp",
+      "remote": "",
+      "bytes": 279568
+    },
+    {
+      "local": "images/gemma-3-27b.webp",
+      "remote": "",
+      "bytes": 184780
+    },
+    {
+      "local": "images/mistral-3-1-small-24b.webp",
+      "remote": "",
+      "bytes": 167778
+    },
+    {
+      "local": "images/llama-4-maverick-400b.webp",
+      "remote": "",
+      "bytes": 280702
+    },
+    {
+      "local": "images/qwen3-235b-a22b.webp",
+      "remote": "",
+      "bytes": 261286
+    },
+    {
+      "local": "images/qwen3-32b.webp",
+      "remote": "",
+      "bytes": 181456
+    },
+    {
+      "local": "images/qwen3-4b.webp",
+      "remote": "",
+      "bytes": 157758
+    },
+    {
+      "local": "images/qwen3-8b.webp",
+      "remote": "",
+      "bytes": 181240
+    },
+    {
+      "local": "images/smollm3-3b.webp",
+      "remote": "",
+      "bytes": 159542
+    },
+    {
+      "local": "images/kimi-k2-1-trillion.webp",
+      "remote": "",
+      "bytes": 270144
+    },
+    {
+      "local": "images/glm-4-5-355b.webp",
+      "remote": "",
+      "bytes": 264350
+    },
+    {
+      "local": "images/gpt-oss-120b.webp",
+      "remote": "",
+      "bytes": 254184
+    },
+    {
+      "local": "images/gpt-oss-20b.webp",
+      "remote": "",
+      "bytes": 253512
+    },
+    {
+      "local": "images/gemma-3-270m.webp",
+      "remote": "",
+      "bytes": 197242
+    },
+    {
+      "local": "images/grok-2-5-270b.webp",
+      "remote": "",
+      "bytes": 297422
+    },
+    {
+      "local": "images/qwen3-next-80b-a3b.webp",
+      "remote": "",
+      "bytes": 235260
+    },
+    {
+      "local": "images/minimax-m2-230b.webp",
+      "remote": "",
+      "bytes": 256914
+    },
+    {
+      "local": "images/kimi-linear-48b-a3b.webp",
+      "remote": "",
+      "bytes": 254504
+    },
+    {
+      "local": "images/olmo-3-32b.webp",
+      "remote": "",
+      "bytes": 185282
+    },
+    {
+      "local": "images/olmo-3-7b.webp",
+      "remote": "",
+      "bytes": 189284
+    },
+    {
+      "local": "images/deepseek-v3-2-671b.webp",
+      "remote": "",
+      "bytes": 292484
+    },
+    {
+      "local": "images/mistral-3-large-673-billion.webp",
+      "remote": "",
+      "bytes": 282386
+    },
+    {
+      "local": "images/nemotron-3-nano-30b-a3b.webp",
+      "remote": "",
+      "bytes": 259736
+    },
+    {
+      "local": "images/xiaomi-mimo-v2-flash-309b.webp",
+      "remote": "",
+      "bytes": 295990
+    },
+    {
+      "local": "images/glm-4-7-355b.webp",
+      "remote": "",
+      "bytes": 267700
+    },
+    {
+      "local": "images/arcee-ai-trinity-large-400b.webp",
+      "remote": "",
+      "bytes": 309216
+    },
+    {
+      "local": "images/glm-5-744b.webp",
+      "remote": "",
+      "bytes": 278580
+    },
+    {
+      "local": "images/nemotron-3-super-120b-a12b.webp",
+      "remote": "",
+      "bytes": 432816
+    },
+    {
+      "local": "images/gemma-4-31b.webp",
+      "remote": "",
+      "bytes": 210036
+    },
+    {
+      "local": "images/gemma-4-26b-a4b.webp",
+      "remote": "",
+      "bytes": 267990
+    },
+    {
+      "local": "images/phi-4.webp",
+      "remote": "",
+      "bytes": 166966
+    },
+    {
+      "local": "images/xlstm-7b.webp",
+      "remote": "",
+      "bytes": 211476
+    },
+    {
+      "local": "images/glm-4-5-air.webp",
+      "remote": "",
+      "bytes": 265502
+    },
+    {
+      "local": "images/qwen3-coder-flash-30b-a3b-mixture-of-experts.webp",
+      "remote": "",
+      "bytes": 263942
+    },
+    {
+      "local": "images/kimi-k2-5.webp",
+      "remote": "",
+      "bytes": 265258
+    },
+    {
+      "local": "images/step-3-5-flash-196b.webp",
+      "remote": "",
+      "bytes": 292012
+    },
+    {
+      "local": "images/nanbeige-4-1-3b.webp",
+      "remote": "",
+      "bytes": 163512
+    },
+    {
+      "local": "images/minimax-m2-5-230b.webp",
+      "remote": "",
+      "bytes": 257540
+    },
+    {
+      "local": "images/tiny-aya-3-35b.webp",
+      "remote": "",
+      "bytes": 168896
+    },
+    {
+      "local": "images/ling-2-5-1t.webp",
+      "remote": "",
+      "bytes": 233464
+    },
+    {
+      "local": "images/qwen3-5-397b.webp",
+      "remote": "",
+      "bytes": 257420
+    },
+    {
+      "local": "images/sarvam-30b.webp",
+      "remote": "",
+      "bytes": 262618
+    },
+    {
+      "local": "images/sarvam-105b.webp",
+      "remote": "",
+      "bytes": 290284
+    },
+    {
+      "local": "images/intellect-3.webp",
+      "remote": "",
+      "bytes": 231178
+    },
+    {
+      "local": "images/mistral-small-4.webp",
+      "remote": "",
+      "bytes": 270060
+    },
+    {
+      "local": "images/nemotron-3-nano-4b.webp",
+      "remote": "",
+      "bytes": 280364
+    },
+    {
+      "local": "images/gemma-4-e2b.webp",
+      "remote": "",
+      "bytes": 205988
+    },
+    {
+      "local": "images/gemma-4-e4b.webp",
+      "remote": "",
+      "bytes": 206886
+    },
+    {
+      "local": "images/glm-5-1.webp",
+      "remote": "",
+      "bytes": 282132
+    },
+    {
+      "local": "images/qwen3-6-35b-a3b.webp",
+      "remote": "",
+      "bytes": 191464
+    },
+    {
+      "local": "images/kimi-k2-6.webp",
+      "remote": "",
+      "bytes": 77882
+    },
+    {
+      "local": "images/qwen3-6-27b.webp",
+      "remote": "",
+      "bytes": 182238
+    },
+    {
+      "local": "images/deepseek-v4-flash.webp",
+      "remote": "",
+      "bytes": 246050
+    },
+    {
+      "local": "images/deepseek-v4-pro.webp",
+      "remote": "",
+      "bytes": 242202
     }
   ],
   "notes": [
     "opencli adapter: sebastianraschka-blog",
-    "web-fetch: own jsdom+turndown — 0 table line(s), 1 code fence(s), 4/4 image(s) downloaded",
-    "hirono post-processors: substack-reformat, sebastianraschka-gallery-cleanup",
-    "substack: unwrapped click-to-enlarge image links",
-    "sebastianraschka: stripped 2 modal/placeholder artifact(s)",
-    "4 images downloaded by adapter"
+    "raschka-gallery: 59 architecture card(s), 59/59 image(s) downloaded",
+    "59 images downloaded by adapter"
   ]
 }

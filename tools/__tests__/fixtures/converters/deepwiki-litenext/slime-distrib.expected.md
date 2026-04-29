@@ -110,7 +110,6 @@ After placement groups are allocated, three higher-level functions assemble the 
 
 3.  **`create_rollout_manager()`** (`slime/ray/placement_group.py:181-201`): Spawns the `RolloutManager` Ray actor with zero GPUs (it coordinates other actors rather than running on GPU itself), calculates the total number of rollouts from epoch count, and optionally offloads the rollout engines.
 
-
 ## Actor Group Management
 
 The `RayTrainGroup` class (`slime/ray/actor_group.py:10-149`) is the primary abstraction for managing a distributed group of training workers. Each worker is a `TrainRayActor` (or one of its concrete subclasses) placed on a specific GPU bundle.
@@ -329,7 +328,6 @@ The two concrete implementations are:
 -   **`MegatronTrainRayActor`** (`slime/backends/megatron_utils/actor.py:45`): Uses Megatron-LM for training with tensor/pipeline/context parallelism, mixed precision, and distributed checkpointing. Supports advanced features like routing replay for MoE models and on-policy distillation.
 
 -   **`FSDPTrainRayActor`** (`slime/backends/fsdp_utils/__init__.py:3`): Uses PyTorch FSDP (Fully Sharded Data Parallelism) for training. Supports CPU offloading with hybrid distributed backends.
-
 
 The `set_rollout_manager()` method (`slime/ray/train_actor.py:132-136`) wires each training actor to the rollout manager. On rank 0 only, it also pushes the training parallel configuration (DP size, TP size, PP size) to the rollout manager so that data can be correctly partitioned.
 

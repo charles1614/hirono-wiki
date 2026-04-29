@@ -1,1 +1,8 @@
-{}
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://github.com/user-attachments/assets/502e0a19-a66b-49d5-b2ae-0e5caf0bf759",
+      "localFilename": "github-img-001.png"
+    }
+  ]
+}

@@ -21,6 +21,7 @@ import { readdirSync, existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { countFeatures, loadInvariants, diffInvariants, invariantsPathFor } from "./snapshot-helpers.ts";
+import { validateStructure, formatViolations } from "./structural-rules.ts";
 
 // Resolve relative to the TEST FILE so this works regardless of cwd
 // (npm test runs from tools/; manual `npx tsx ...` runs from repo root).
@@ -95,6 +96,19 @@ for (const { host, slug, mdPath } of pairs) {
     assert.equal(c.unbalanced_bold_runs, 0, `${host}/${slug}: ${c.unbalanced_bold_runs} line(s) with 3+ consecutive asterisks (signals unbalanced bold from nested-emphasis HTML; see CLAUDE.md §4 "WeChat / mdnice malformed bold")`);
     assert.equal(c.empty_headings, 0, `${host}/${slug}: ${c.empty_headings} empty heading line(s) like '## ' (H1-demotion artifact)`);
     assert.equal(c.splicer_appendix_markers, 0, `${host}/${slug}: ${c.splicer_appendix_markers} '附录（位置未识别）' marker(s) (legacy splicer fallback — content placement failed)`);
+  });
+
+  test(`snapshot[${host}/${slug}]: passes structural rules`, () => {
+    const md = readFileSync(mdPath, "utf8");
+    const violations = validateStructure(md);
+    if (violations.length > 0) {
+      assert.fail(
+        formatViolations(violations, `${host}/${slug}`) +
+        `\n\nThe captured snapshot has structural defects. Refresh with:` +
+        `\n  npx tsx tools/__tests__/snapshot-create.ts <url> --slug ${slug}` +
+        `\nor refine the rule in tools/__tests__/structural-rules.ts if it's a false positive.`,
+      );
+    }
   });
 
   test(`snapshot[${host}/${slug}]: every image ref resolves to a real file`, () => {

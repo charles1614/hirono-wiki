@@ -8,6 +8,8 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
+import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+
 export interface NvidianewsImageDownload {
   remoteUrl: string;
   localFilename: string;
@@ -95,7 +97,7 @@ export function convertNvidianewsHtml(opts: ConvertOpts): NvidianewsConvertResul
     fmLines.push("");
   }
 
-  const markdown = fmLines.join("\n") + body + "\n";
+  const markdown = applyCommonMarkdownCleanups(fmLines.join("\n") + body + "\n");
   const features = countFeatures(markdown);
 
   return {

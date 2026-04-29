@@ -34,10 +34,26 @@ opencli's MD output is **not** a valid source — it's lossy and opaque, and cha
 
 ## 2. Scaffold the module
 
+### Naming rule: one engine + one operator = one module
+
+The module name is the **most-recognizable identifier for the engine**, not necessarily a single hostname. Two precedents to follow:
+
+- **One engine, one operator, multiple CNAMEs → ONE module** that path/host-matches all CNAMEs. The module name reflects the engine.
+  - `tools/sites/xhs/` covers `xiaohongshu.com` + `xhslink.com` (same Xiaohongshu engine; xhslink is the short-link redirector).
+  - `tools/sites/substack/` covers `*.substack.com` + `magazine.sebastianraschka.com` + `newsletter.semianalysis.com` (all run on Substack Inc's platform; same `<div class="available-content">`, same paywall mechanics).
+  - `tools/sites/weixin/` covers `mp.weixin.qq.com` only — one engine, one host, but named after the engine because the hostname is awkward.
+
+- **Same software, INDEPENDENT operators → SEPARATE modules**, even if the converter logic looks similar. The two modules may diverge as the operators customize the engine.
+  - `tools/sites/deepwiki-com/` (operator: deepwiki.com) and `tools/sites/deepwiki-litenext/` (operator: wiki.litenext.digital) — both run DeepWiki the software, but the operators are independent and ship their own forks.
+
+When in doubt: if you'd put `host === "X"` and `host === "Y"` in one `match()` predicate AND the converter doesn't branch on the host, it's one module. If the converter branches on host or the operators are unrelated entities, it's two modules.
+
+### Files
+
 Three files, sometimes four:
 
 ```
-tools/sites/<host>/
+tools/sites/<engine-or-host>/
 ├── index.ts        ← Site contract: { name, match(url), fetch(url, opts) }
 ├── fetcher.ts      ← acquire raw content (HTTP / browser eval / API)
 └── converter.ts    ← raw → §2 markdown (PURE FUNCTION, fixture-testable)
@@ -152,19 +168,21 @@ This step exists because preferences (what's content vs chrome, how aggressive t
 
 ## 7. Lock with fixtures (after approval)
 
-Two layers of test coverage to add:
+**Canonical workflow: `approve.ts`** (replaces the legacy two-step capture+snapshot ritual). Writes both fixture AND snapshot atomically, runs structural rules first (refuses to lock buggy ground truth), shows eye-read sections + diff vs current ground truth, prompts for approval:
 
 ```bash
-# Byte-equal converter fixtures (per CLAUDE.md §6b workflow):
-npx tsx tools/__tests__/capture-fixtures.ts <host> <name> <url>
+# 1. Write tools/sites/<X>/test-hooks.ts (see _shared/test-hooks-types.ts).
+#    Add an import to tools/sites/test-hooks-registry.ts.
+# 2. Capture each URL via the unified approve workflow:
+npx tsx tools/__tests__/approve.ts --site <X> --name <fixture-name> --url <url> --slug <slug>
 # Capture ≥3 fixtures covering distinct content shapes — OR every available
-# URL if the host has fewer than 3 bookmarks in the corpus (deepwiki.com is
-# the prior example: 2 bookmarks total → 2 fixtures, not 3 with a synthetic).
-
-# Per-host snapshot:
-npx tsx tools/__tests__/snapshot-create.ts <url> --slug <slug>
-# Refuses on hard-rule defects; eye-read top + tail before commit.
+# URL if the host has fewer than 3 bookmarks in the corpus.
+# 3. Run npm test — coverage-gate.test.ts will pass once the new site has
+#    fixtures + snapshot. Structural-rule layer ensures captured ground
+#    truth is defect-free.
 ```
+
+Low-level primitives (`tools/__tests__/capture-fixtures.ts`, `tools/__tests__/snapshot-create.ts`) remain available for scripting; approve.ts is the canonical operator command.
 
 When two hostnames are **the same logical site** (one is an alias /
 shortlink for the other — same operator), one site module with a
@@ -206,7 +224,7 @@ as a yellow flag — only do it when you know the two callers have a
 contractual relationship (same vendor, documented compatibility), not
 just incidental similarity.
 
-If `capture-fixtures.ts` doesn't have a case for your host yet, add one (see CLAUDE.md §6b "Adding fixture support for a NEW converter").
+If your site isn't in the test-hooks registry yet, write `tools/sites/<X>/test-hooks.ts` (see existing examples like `tools/sites/substack/test-hooks.ts`) and import it from `tools/sites/test-hooks-registry.ts`. The coverage-gate test will then enforce that `<X>` has ≥1 fixture + ≥1 snapshot. Use `approve.ts` to capture both atomically.
 
 Run `npm test` 3 times back-to-back. Test count must be identical and `fail = 0` every time. If it varies, you have a path-resolution bug (`fileURLToPath(import.meta.url)`, not cwd-relative literals — see commit `4ca244e`).
 

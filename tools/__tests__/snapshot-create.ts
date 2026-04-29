@@ -168,6 +168,10 @@ console.log(r.md.split("\n").slice(-30).join("\n"));
 // Recompute invariants from the FINAL on-disk markdown (after image-ref
 // rewriting above) so we catch any bug introduced by the rewrite pass too.
 const finalInv = countFeatures(readFileSync(snapPath, "utf8"));
+// Stamp the source URL into the sidecar so check-drift.ts knows what to
+// re-fetch. Existing pre-source_url sidecars will be backfilled on the
+// next snapshot refresh through this path.
+finalInv.source_url = url;
 writeInvariants(snapPath, finalInv);
 const fail: string[] = [];
 if (finalInv.h1 !== 1) fail.push(`h1=${finalInv.h1} (expected 1)`);

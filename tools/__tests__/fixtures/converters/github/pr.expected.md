@@ -15,7 +15,7 @@
 Follow-up to the work and discussion in this PR https://github.com/vllm-project/vllm/pull/22188.
 Here we expose the metrics we're currently tracking for the nixl connector to prometheus.
 
-![image](https://github.com/user-attachments/assets/502e0a19-a66b-49d5-b2ae-0e5caf0bf759)
+![image](github-img-001.png)
 
 cc @markmc  
 

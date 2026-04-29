@@ -28,8 +28,21 @@ export interface XhsMetadata {
   comments?: string;
 }
 
+export interface XhsImageDownload {
+  remoteUrl: string;
+  localFilename: string;
+}
+
 export interface ConvertResult {
   markdown: string;
+  /**
+   * Pre-allocated (remoteUrl, localFilename) pairs for the runtime to
+   * download. Same shape as other site-module converters (canonical
+   * pattern). The converter allocates filenames deterministically based
+   * on note ID + index so successive captures of the same note produce
+   * stable filenames.
+   */
+  imagesToDownload: XhsImageDownload[];
   /** Diagnostics (for adapterNotes). */
   stats: {
     paragraphs: number;
@@ -99,11 +112,23 @@ function renderParagraph(p: string): string {
   return p;
 }
 
+/**
+ * Allocate a deterministic local filename for an xhs image at index `i`.
+ * Pattern: `<noteId>_<NN>.<ext>` (matches the legacy adapter's allocation
+ * for backward-compatibility with existing snapshot images on disk).
+ */
+function allocateXhsFilename(noteId: string, i: number, totalCount: number, remoteUrl: string): string {
+  const pad = Math.max(2, String(totalCount).length);
+  const ext = (remoteUrl.match(/\.(jpe?g|png|webp)(?:\?|$)/i)?.[1] ?? "jpg").toLowerCase();
+  return `${noteId}_${String(i + 1).padStart(pad, "0")}.${ext === "jpeg" ? "jpg" : ext}`;
+}
+
 export function convertXhsHtml(
   descText: string,
   metadata: XhsMetadata,
   originUrl: string,
-  imageRefs: string[],
+  imageUrls: string[],
+  noteId: string,
 ): ConvertResult {
   const allParas = splitParagraphs(descText);
   // Trailing tags paragraph (if any) gets pulled out into the **标签 / Tags:** line.
@@ -117,6 +142,14 @@ export function convertXhsHtml(
       bodyParas.push(renderParagraph(allParas[i]));
     }
   }
+
+  // Allocate local filenames deterministically. Canonical-pattern parity
+  // with weixin / zhihu / substack / etc.: converter pre-allocates,
+  // emits `imagesToDownload`, runtime caller fetches each.
+  const imagesToDownload: XhsImageDownload[] = imageUrls.map((url, i) => ({
+    remoteUrl: url,
+    localFilename: allocateXhsFilename(noteId, i, imageUrls.length, url),
+  }));
 
   const fm: string[] = [`# ${metadata.title || "(Xiaohongshu note)"}`, ""];
   fm.push(`> 原文链接: ${originUrl}`);
@@ -139,11 +172,11 @@ export function convertXhsHtml(
     out.push(`**标签 / Tags:** ${tags.map((t) => "#" + t).join(", ")}`);
     out.push("");
   }
-  if (imageRefs.length > 0) {
+  if (imagesToDownload.length > 0) {
     out.push("## Images");
     out.push("");
-    for (const ref of imageRefs) {
-      out.push(`![${ref}](${ref})`);
+    for (const dl of imagesToDownload) {
+      out.push(`![${dl.localFilename}](${dl.localFilename})`);
     }
     out.push("");
   }
@@ -151,10 +184,11 @@ export function convertXhsHtml(
   const markdown = out.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
   return {
     markdown,
+    imagesToDownload,
     stats: {
       paragraphs: bodyParas.length,
       tagsExtracted: tags.length,
-      images: imageRefs.length,
+      images: imagesToDownload.length,
     },
   };
 }

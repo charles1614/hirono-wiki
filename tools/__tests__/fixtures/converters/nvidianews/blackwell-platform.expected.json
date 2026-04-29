@@ -1,0 +1,18 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://iprsoftwaremedia.com/219/files/20242/202403180530/65f7d1913d633238713719f6_NVIDIA-GB200-NVL72/NVIDIA-GB200-NVL72_mid.jpg",
+      "localFilename": "nvidianews-img-001.jpg"
+    }
+  ],
+  "metadata": {
+    "title": "NVIDIA Blackwell Platform Arrives to Power a New Era of Computing",
+    "subtitle": "",
+    "date": "March 18, 2024"
+  },
+  "stats": {
+    "images": 1,
+    "paragraphs": 27,
+    "codeFences": 0
+  }
+}

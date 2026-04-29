@@ -1,0 +1,311 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!iCn-!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4ae4aa85-3e22-486c-9bd9-27edc4acbf8b_3000x2093.png",
+      "localFilename": "substack-img-001.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!QwUc!,w_140,h_140,c_fill,f_auto,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd6ebc5c9-461f-4d3a-889b-b8ea4e14e5ba_1600x830.png",
+      "localFilename": "substack-img-002.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!uVhV!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F647caf83-cd3d-46f8-8bd0-0946bd896ea1_1023x474.png",
+      "localFilename": "substack-img-003.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!jagJ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Feb9a75be-2848-4b99-af3d-4c48bdd0181a_1550x858.png",
+      "localFilename": "substack-img-004.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!efDX!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2b7e646a-16c1-4245-9a3f-55a41f3070c2_903x856.png",
+      "localFilename": "substack-img-005.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!d_xI!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F632d3212-432a-4d43-b271-f2269be1d8ec_1304x822.png",
+      "localFilename": "substack-img-006.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!i4ms!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3d93c441-a6d2-4257-bd80-2d3590c4001c_1039x569.png",
+      "localFilename": "substack-img-007.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!7DYj!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbb5c7281-eded-4319-9ae2-7b07478a86b2_1027x823.png",
+      "localFilename": "substack-img-008.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!wYj9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F61a4560f-d97f-4c78-a7a3-765babb45bec_1444x789.png",
+      "localFilename": "substack-img-009.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!ebW0!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F186190ec-2ae5-430d-b0d4-a63486e0f3fb_1289x407.png",
+      "localFilename": "substack-img-010.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!S6Y9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7fa42974-cfae-45cc-9cd9-fc1d9607d386_1329x737.png",
+      "localFilename": "substack-img-011.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!LQA4!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb5363ce6-0ec8-49e6-b296-9836c248e159_665x302.png",
+      "localFilename": "substack-img-012.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!tTJ5!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff32c2d74-ec34-43ef-86bc-bcce832426b3_1600x792.png",
+      "localFilename": "substack-img-013.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!YSZb!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F788a5023-1ba3-4372-89cd-4ebeff132255_1600x477.png",
+      "localFilename": "substack-img-014.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!A1BM!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F752ec4b7-2720-44f8-958b-0ca85b3a96f1_1068x855.png",
+      "localFilename": "substack-img-015.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!Su7d!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb05999d6-88ca-4739-8b0b-266b48da288b_662x483.png",
+      "localFilename": "substack-img-016.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!SdCR!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5140cd93-4e54-4a3d-af74-f8d1b8ea1647_1402x757.png",
+      "localFilename": "substack-img-017.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!ShdO!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F17518ff9-1f60-4aca-b654-034dabe20626_1600x823.png",
+      "localFilename": "substack-img-018.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!pu4b!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9d542035-0713-4c71-8d6d-68e0e37bf0c7_1466x925.png",
+      "localFilename": "substack-img-019.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!6Cx4!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4627dac1-ced7-4e8d-8de4-d9238b1c427d_1632x810.png",
+      "localFilename": "substack-img-020.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!vPTQ!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Febfdfd6e-6aee-4894-8a57-307a25bc2c0a_743x519.png",
+      "localFilename": "substack-img-021.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!oGOS!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ff761a811-e394-4ea1-bb80-fbed44f48d89_1447x770.png",
+      "localFilename": "substack-img-022.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!lLgK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd79f412c-269f-4236-9cbe-81f1a5944ae1_1190x548.png",
+      "localFilename": "substack-img-023.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!I9j6!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd7a57872-2af0-465b-ab5f-2caecc0aac8f_1364x800.png",
+      "localFilename": "substack-img-024.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!_Zh8!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F78d5d4e4-7dc4-49ab-87be-a885ba78447e_759x684.png",
+      "localFilename": "substack-img-025.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!B3em!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb721c5ef-057b-405b-9293-f11e161d9230_1599x816.png",
+      "localFilename": "substack-img-026.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!q-S4!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd9ee20b3-2ef5-4988-9abc-736bcd20ea51_2200x2200.jpeg",
+      "localFilename": "substack-img-027.jpg"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!kftt!,w_140,h_140,c_fill,f_auto,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F529c4cc7-161c-4d7c-b186-06e68c771776_1564x926.png",
+      "localFilename": "substack-img-028.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!1PO4!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2d438dde-c0f6-4e99-a0a8-b41e11366a27_1631x788.png",
+      "localFilename": "substack-img-029.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!eSQG!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc79215d3-891e-431f-af20-8e2a3fa4be10_1552x799.png",
+      "localFilename": "substack-img-030.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!kMwd!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F019ead67-6811-4c9d-af7b-4e6b2563ea68_1046x565.png",
+      "localFilename": "substack-img-031.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!hfZq!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F15ddb1b6-1540-4889-86c5-c54f5918562e_1221x352.png",
+      "localFilename": "substack-img-032.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!vQ5q!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2fa2e161-ba61-43ab-a17b-5e6eab448699_307x151.png",
+      "localFilename": "substack-img-033.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!xuLx!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F389b83da-f588-4e54-93ca-716d60d7f087_1064x754.png",
+      "localFilename": "substack-img-034.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!kftt!,w_140,h_140,c_fill,f_auto,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F529c4cc7-161c-4d7c-b186-06e68c771776_1564x926.png",
+      "localFilename": "substack-img-035.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!3Zgv!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F59c43b82-8214-4def-996f-f22a45fa085c_1683x919.png",
+      "localFilename": "substack-img-036.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!qmQC!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf489564-f69c-4aa7-b335-0f7d172205c4_4349x3076.jpeg",
+      "localFilename": "substack-img-037.jpg"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!hFr9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6bc7588c-88bc-408e-8c71-9190d476149f_2280x1262.png",
+      "localFilename": "substack-img-038.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!iUTU!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fce674219-3fb4-4c76-b397-408f477ce827_4111x2244.png",
+      "localFilename": "substack-img-039.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!5TUn!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcbd1f80f-9ace-4b4c-b79a-2397a6f75dc8_3845x2597.png",
+      "localFilename": "substack-img-040.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!o36C!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9a248bdb-c1f2-4c7f-861a-1d2921d785e5_8676x3593.png",
+      "localFilename": "substack-img-041.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!FZo2!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe5c8bd5f-4bef-4a7e-81e0-6b9923b9cfb3_2154x818.png",
+      "localFilename": "substack-img-042.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!9tSa!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc2c47830-113c-4742-a20d-61c65be805ed_2540x1398.png",
+      "localFilename": "substack-img-043.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!3NS4!,w_140,h_140,c_fill,f_auto,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F69bfee26-ea3b-42a6-8a1a-6b8187852082_738x564.png",
+      "localFilename": "substack-img-044.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!fVCN!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2602d095-c73d-4b70-a461-d1e84555d2cb_793x831.png",
+      "localFilename": "substack-img-045.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!8d7L!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7bfd3b82-47f8-4efd-abc9-1e8ae2a1c350_948x362.png",
+      "localFilename": "substack-img-046.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!StPn!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3b813eae-03ec-4289-aa18-bde7b7ef887c_2224x1468.png",
+      "localFilename": "substack-img-047.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!ZTgh!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb2735736-1197-49d4-8a53-84a0ce178247_718x600.png",
+      "localFilename": "substack-img-048.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!-a3F!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbdc2e5a4-ebf8-49a5-bada-e42712d7cff5_7624x4202.png",
+      "localFilename": "substack-img-049.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!ah3K!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F9dc738f6-7d4b-467f-a417-21623af37341_7401x4103.png",
+      "localFilename": "substack-img-050.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!ASJ0!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1b86a6b8-2810-4106-a6b6-b1279f74cd6a_5000x5000.png",
+      "localFilename": "substack-img-051.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!3k9N!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8e05d2ad-c3f3-4ba3-9f41-6f266fdc385a_2318x778.png",
+      "localFilename": "substack-img-052.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!0Nu7!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F889af384-7748-4eb7-9caf-1fa332f8ed10_2652x1442.png",
+      "localFilename": "substack-img-053.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!C3LV!,w_140,h_140,c_fill,f_auto,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0c867bba-a952-4285-849e-e70a5555622c_1990x1576.png",
+      "localFilename": "substack-img-054.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!p-ic!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95750417-26c3-414d-8d09-4446b281c59f_2116x1198.png",
+      "localFilename": "substack-img-055.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!hyFt!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F991a079d-36d9-433a-befb-f783f7e1df85_2340x1156.png",
+      "localFilename": "substack-img-056.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!GkUD!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8cf4dcd3-76ef-43df-92d1-1d0e1832a5de_1596x1562.png",
+      "localFilename": "substack-img-057.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!vFov!,w_140,h_140,c_fill,f_auto,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe1732960-2119-429d-96e7-bafee7f79283_5862x3699.jpeg",
+      "localFilename": "substack-img-058.jpg"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!csBk!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2416e3bd-8628-42da-b8bc-2cead9970971_2048x1284.png",
+      "localFilename": "substack-img-059.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!5eJd!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faf154466-501f-411c-8552-b605ca6c3f20_1862x1656.png",
+      "localFilename": "substack-img-060.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!dA9C!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc5749706-bfd2-4210-a9b0-d1e6f6d7edb8_1858x894.png",
+      "localFilename": "substack-img-061.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!3OQi!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F83e10345-16d1-4c00-883b-08946c9980a3_2556x1212.png",
+      "localFilename": "substack-img-062.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!Zfu9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5d18dfdb-dacf-40fb-aae0-937abe96ea12_1512x1556.png",
+      "localFilename": "substack-img-063.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!DQdq!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8c156e1e-f414-46bb-aadf-76db5059bdbc_2478x1242.png",
+      "localFilename": "substack-img-064.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!y7Xt!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcac96315-e4a7-43ec-b48f-158161090a2d_1426x940.png",
+      "localFilename": "substack-img-065.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!UmUH!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd5369a4c-218b-4987-b28f-f36d7e3fa37e_5807x2924.png",
+      "localFilename": "substack-img-066.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!TY2g!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F916c0755-6c9d-4f14-bec5-d0daf9337e00_5680x5821.png",
+      "localFilename": "substack-img-067.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!4ppK!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6e610250-2793-4aa0-8a98-a0acf4a68d7e_1908x942.png",
+      "localFilename": "substack-img-068.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!c7Za!,w_140,h_140,c_fill,f_auto,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1748fa24-e946-47fb-bf1b-e488d08547fd_1764x1244.png",
+      "localFilename": "substack-img-069.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!TDMh!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F208e9bab-a2f8-4e5b-bed0-2db600993c41_4200x2400.png",
+      "localFilename": "substack-img-070.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!CFGk!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Faffe325a-5dce-4298-96d0-61c7d8f6b673_1828x920.png",
+      "localFilename": "substack-img-071.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!NgKc!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F95bfad09-34e9-463d-8a0e-745108c383b6_4050x2400.png",
+      "localFilename": "substack-img-072.png"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!MMT9!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F37068b66-4b13-474c-849b-9224d549a513_3276x2808.webp",
+      "localFilename": "substack-img-073.webp"
+    },
+    {
+      "remoteUrl": "https://substackcdn.com/image/fetch/$s_!RCl_!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F27a118a0-5da6-4486-b1f0-3743754d0a77_8106x4044.webp",
+      "localFilename": "substack-img-074.webp"
+    }
+  ],
+  "metadata": {
+    "title": "The Big LLM Architecture Comparison",
+    "author": "Sebastian Raschka, PhD",
+    "publishedAt": ""
+  },
+  "stats": {
+    "bodyChars": 101647,
+    "cardsCollapsed": 1,
+    "headerChromeStripped": 0,
+    "images": 74
+  }
+}

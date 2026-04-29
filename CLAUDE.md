@@ -13,6 +13,7 @@ Fidelity before cleanliness, always. I've shipped "clean-looking" outputs that w
 3. **Post-processing is subtractive.** If opencli dropped whole structural categories, no regex recovers them — use an extraction fallback (API / raw / git mirror), not another cleanup pass.
 4. **Declaring victory on the manifest, not the output.** `source.json` notes "spliced 3/3 mermaid + 3/3 tables" and I call it done — but never opened the `.md` file. Mechanism-level success ("splicer ran") ≠ output-level success ("markdown reads well"). Every claim of "pass" must be grounded in the final file, read end-to-end. Deepwiki splicer shipped with duplicate cell-runs below every spliced table; the manifest said 3/3; the user had to point it out.
 5. **Cleanup creates its own artifacts.** Removing a cell-run leaves the `**Label:**` bold lead-in orphaned. Stripping a nav block leaves stray blank lines. Splicing a table leaves a double-blank gap after the heading. Every removal/insertion needs a boundary-check on the paragraph immediately before and after.
+6. **Substring assertions are not UI tests.** `assert.match(r.md, /Foo Bar/)` + `assert.match(r.md, /@foo/)` both pass even when "Foo Bar" and "@foo" are 4 paragraphs apart in a stew of half-stripped link wrappers. A green test suite is a necessary gate, not a sufficient one — eye-read the actual output before declaring done. When converting conversational/threaded content, assertions must check rendered SHAPE (`/^\*\*Foo Bar\*\* \[@foo\]\(.*\) · \[date\]\(.*\)$/m`), not just substring presence. The x.com cleaner shipped twice with passing tests before the second pass actually produced a readable thread — the first pass had multi-line link-card wrappers and 4-paragraph-per-tweet whitespace that the substring tests missed entirely.
 
 ## 1. Fidelity check (ALWAYS run first)
 
@@ -180,6 +181,43 @@ encoded there; reference implementations for any new Layer-4 host.
 | SVG diagrams flattened to garbage | WeChat embeds mermaid-rendered flowcharts as inline `<svg>` with `<foreignObject>` labels, not `<text>`. Source recovery is INFEASIBLE — mdnice strips every `class` and `id` from the rendered SVG, leaving anonymous `<g>`/`<rect>`/`<path>` with no semantic structure to reconstruct mermaid from. Save SVG-as-image. | `processSvgs(doc, root, originalSvgs)`: real (≥2KB OR has `aria-roledescription` matching flowchart/sequence/diagram/graph) → save as `weixin-svg-NNN.svg` standalone file + `<img data-local-svg="1" src="…">` placeholder; decorative (~500-byte 3-ellipse dots) → drop. CRITICAL: harvest pristine SVG bytes BEFORE the style-strip pass, otherwise the saved file renders as black-on-white wireframe with broken markers (mermaid's visual semantics live entirely in inline styles) |
 | SVG placeholder removed by `normalizeImages` | The placeholder `<img src="weixin-svg-001.svg">` has a relative URL → `normalizeImages`'s http-only filter treats it as a tracking pixel | Tag SVG placeholders with `data-local-svg="1"`; `normalizeImages` checks for it and skips |
 
+### x.com / Twitter conversation cleanup
+
+`xMetadataStub` has two paths. **Auth-gated** (body < 800 chars OR contains "Sign in to X" / "Don't miss what's happening" / etc.) → emits the metadata stub template + `intentional-stub` flag. **Visible-content** (web-read got the conversation through pre-login skim) → cleans nav chrome and re-shapes into a per-tweet card layout.
+
+The web-read output for an x.com thread is structurally regular: each tweet is a 3–4 paragraph stew of `[\n\n![](avatar)\n\n](/handle)`, `[\n\nDisplay Name\n![](badge)\n\n](/handle)`, `[\n\n@handle\n\n](/handle)`, optional `[\n\nNN.NM\n\n查看](.../analytics)` view-count blocks, plus a date link `[4月10日](/handle/status/N)` (relative URL). The cleanup pipeline strips and re-collapses in this order:
+
+```
+1.  truncate trailing trends sidebar  (`## 当前趋势` / `What's happening` → end)
+2.  drop view-count metric blocks    (BEFORE generic unwrappers — see ordering note)
+3.  unwrap inline photo links        (`[\n\n![图像](url)\n\n](.../photo/N)` → `![](url)`)
+4.  drop avatar-only link blocks     (`[\n\n![](img)\n\n](/handle)`)
+5.  unwrap name + verified-badge     (`[\n\nName\n![](badge)\n\n](/handle)` → `Name`)
+6.  unwrap text-only profile links   (`[\n\n@handle\n\n](/handle)` — single-segment paths only)
+6b. flatten multi-line link cards    (`[\n\n![](thumb)\n\nTitle\n\n](url)` → `![](thumb)\n\n[Title](url)`)
+6c. flatten plain text wrappers      (`[\n\nText\n\n](url)` → `[Text](url)`)
+7.  drop quote-count link            (`[查看引用](...)`)
+8.  line-filter — `·`, `发布你的回复`, `点击 订阅 到 X` chrome
+9.  drop `[来自 github.com](...)` link-card source-of footers
+10. drop empty `## 帖子` heading when followed by another `##`
+11. resolve relative status/date links to absolute `https://x.com/...`
+11b. collapse byline:                 `Name\n@handle\n[date](url)` → `**Name** [@handle](profile) · [date](url)`
+                                     (and `Name\n@handle$` → `**Name** [@handle](profile)` for OP shape)
+11c. insert `---` between tweets     (anchored on `**…** [@…]` byline; drop leading `---` under `## 对话`)
+12. collapse runs of blank lines
+13. replace bloated H1 with `# @<handle> on X` (handle from origin URL)
+```
+
+**Ordering is load-bearing.**
+
+- **View-count strip BEFORE generic unwrap.** Step 2 looks for `[...].../analytics`. If the generic profile-unwrap (step 6, `[\n\nText\n\n](/path)`) runs first, it eats the analytics block and leaves a bare `3.3万` floating in the middle of replies.
+- **Photo unwrap BEFORE avatar drop.** Step 3 looks for `.../photo/N`. If the avatar drop (step 4, `[\n\n![](img)\n\n](*)`) runs first, it strips the photo embed entirely because `[\n\n![](url)\n\n](url)` matches both shapes — the generic rule cannibalizes the specific one. **General principle: when a specific rule and a generic rule overlap, the specific one runs first.**
+- **Step 6 restricts to single-segment paths** (`\(\/[^/)]+\)`) so date links to `/handle/status/N` are NOT unwrapped — those need to survive into step 11 for absolute-URL resolution and step 11b for byline collapse.
+
+The byline regex (step 11b) tolerates `\n+` (one or more newlines) between `Name` and `@handle` because the upstream unwrappers leave them either single- or paragraph-separated depending on input shape. Don't tighten to `\n\n`.
+
+Reference output: `sweep-results/x.com/sample.md` — read this before changing the cleaner. Tests assert byline shape (`/\*\*Foo Bar\*\* \[@foo\]\(https:\/\/x\.com\/foo\)/`), not substring presence (see "substring tests are not UI tests" in §before-shipping).
+
 ### KaTeX triple-rendered math (HuggingFace blog)
 
 Each inline formula appears 3x: text-fallback + LaTeX-source (with `\\cmd`) + alt-text-fallback. `collapseHfTripleMath` uses V1/V3 suffix-match to collapse. After collapse, convert `\\cmd` → `\cmd` — LaTeX `\\` means newline, not a command escape. Single-variable `N N N → $N$` is a separate pass (no `\\` to anchor on).
@@ -245,11 +283,22 @@ A regex that fails because its input shape differs from expectation is usually a
 
 ## 5. New-URL / new-host protocol
 
-### 5a. The universal pattern (use this for every host)
+### 5a. The universal pattern (target architecture)
 
-**Rule (codified 2026-04-26):** every host gets a self-contained site module under `tools/sites/<host>/`. The module owns the FULL pipeline from URL to clean §2 markdown. opencli is used for browser session + auth ONLY (or not at all if a structured source exists); we never consume opencli's lossy markdown output as the canonical content. References: `tools/sites/weixin/`, `tools/sites/xhs/`.
+**Target (codified 2026-04-26):** every host that needs custom logic gets a self-contained site module under `tools/sites/<host>/`. The module owns the FULL pipeline from URL to clean §2 markdown. opencli is used for browser session + auth ONLY (or not at all if a structured source exists); we never consume opencli's lossy markdown output as the canonical content. References: `tools/sites/weixin/`, `tools/sites/xhs/`, `tools/sites/sebastianraschka-gallery/`.
 
-The wrong way (the legacy "Layer 1/2/3/4" ladder framing) is to take opencli's MD output and patch it with downstream post-processors. That approach repeatedly produced unfixable defects (doubled list markers, lost inline code in tables, paragraph collapse, SVG flattening, activity-event leakage, etc.) because the upstream conversion is opaque. We never do this for new hosts; existing hosts on this path are migrated to the universal pattern when touched.
+**Current state (partial adoption — 2026-04-28):** ~10 of ~32 verified hosts are migrated. The rest live on the legacy `web-read + post-processor` path under `tools/hirono/shared/post-process.ts`. Migration is *gated by payoff*, not driven to completion — see [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) §0 for the bookmark-count + defect-severity gate. Don't read §5a as "everything is migrated"; it isn't.
+
+**Migrate a host when ANY of:**
+
+- The legacy path produced an unfixable defect (lost code blocks / tables, mermaid flattened, doubled markers, paragraph collapse, etc.) and the fix needs structural work, not regex patches.
+- The host has a cleaner source-of-truth (REST API / raw mirror / hydration JSON / DOM attrs / linked downloads — see §5e.v) that the legacy path doesn't use.
+- The host shares a content engine with an already-migrated host (e.g. substack-family hosts can share one module that path-matches all of them).
+- The bookmark count is high enough (≥10 per MIGRATION.md §0) that consolidating the host's logic in one place pays back the migration cost.
+
+**Don't migrate just for pattern consistency.** Simple article hosts where `web-read + smallChromeCleanup` already produces clean output (aleksagordic, blog.google, blog.csdn, intuitionlabs, lmsys, qwen, sspai, sohu, etc.) are *valid* on the legacy path. Forcing them into `tools/sites/<host>/` adds code without adding quality, and that's exactly the failure mode §5e was added to prevent.
+
+The wrong way (the legacy "Layer 1/2/3/4" ladder framing as a TARGET, treating it as the path of least resistance for new defects) is to take opencli's MD output and patch it with downstream post-processors. That approach repeatedly produced unfixable defects (doubled list markers, lost inline code in tables, paragraph collapse, SVG flattening, activity-event leakage, etc.) because the upstream conversion is opaque. We never do this for new hosts when the migrate-when criteria above fire; existing hosts on this path are migrated when one of the criteria fires for them.
 
 **Source-of-truth selection** for the site's `fetcher.ts` — pick the cleanest available source for the host:
 
@@ -306,6 +355,83 @@ Don't guess the quality bar — preferences (what's content vs chrome, formattin
 
 The legacy locations (`tools/hirono/processors/`, `tools/hirono/shared/post-process.ts` for site-specific cleanups) are being drained as their hosts migrate to `tools/sites/<host>/`. Do NOT add new code to the legacy locations.
 
+### 5e. Direction-finding for new hosts (cross-host patterns)
+
+Don't start from blank. Every verified host falls into one of a handful of *shapes*, has chrome from a small set of *categories*, and yields to ordering *invariants* that existing recipes have validated. Use the catalogues below as a map: classify the shape, scan for chrome categories, plan the cleanup ordering. The §4 recipes are then targeted reference material, not first-principles work.
+
+#### 5e.i. Content-shape taxonomy
+
+After reading 2–3 sample URLs from a new host, classify into one of these. Each shape has a recipe template — the cleanup converges much faster when you know which template you're aiming at.
+
+| Shape | Signal | Recipe template | Reference sites |
+|---|---|---|---|
+| **Article** | Single prose body, one author/date, may have images/code/tables | H1 title + `> 原文链接:` + optional `> Authors:` callout + body. Strip header chrome (nav, share row), strip footer chrome (subscribe, related, tags). | aleksagordic, blog.google, intuitionlabs, qwen, sspai |
+| **Thread / conversation** | Repeated `[Name][@handle][date][body]` blocks; flat or nested replies | Per-message card: `**Name** [@handle](profile) · [date](url)` byline, body, `---` between cards | x.com, linux.do, reddit |
+| **PR / issue / discussion** | OP + activity timeline + threaded comments + reactions | Split-speaker: `## username` heading + `> opened/commented/replied on … · Role` blockquote + body. Strip activity events, reactions, avatars per §3 | github.com PR/issue/discussion |
+| **Catalog / table page** | Page is mostly a structured table/note with metadata fields | Title + author/metadata callout + flattened table. Image-only variants get explicit "Text content unavailable" marker | xhs, github releases |
+| **Data / interactive viz** | Interactive chart/dashboard; real data lives in JS state or a CSV download | Intro prose + `## Dataset (top N of M rows)` markdown table built from the CSV | epoch.ai |
+| **Wiki / docs** | Multi-page hierarchy, mermaid diagrams, rich tables, code refs | Body + spliced mermaid fences + spliced table contents (see DeepWiki recipe in §4) | deepwiki.com, wiki.litenext.digital |
+| **Gallery / SPA** | React-rendered grid with dropdown filters; "content" lives in JS state | Best-achievable: capture visible prose, flag interactive UI as known-limit, do NOT lock fixtures around partial output | sebastianraschka.com |
+
+If a host matches none of these, *say so explicitly to the user before guessing*. Adding a new shape is a deliberate design decision, not a fallback.
+
+#### 5e.ii. Universal chrome categories
+
+These categories appear on almost every content host in some combination. Scan for them in the first/last 30 lines of any new sample. For each present: reuse the §4 recipe regex if one matches, else write a new line-filter following the same shape.
+
+| Category | Common shapes | Already-handled hosts |
+|---|---|---|
+| **Profile / avatar links** | `[\n\n![](avatar)\n\n](/handle)`, `[\n\nName\n![](badge)\n\n](/handle)`, bare `[@name](/name)` | x.com, github, sspai, huggingface |
+| **Engagement metrics** | `[\n\nNN.NM\n\n查看](.../analytics)`, reactions bars, "N people reacted", view-count text | x.com, github releases, zhihu |
+| **Sidebars / rails** | `## Trending`, `## What's happening`, `## 当前趋势`, recent-articles lists, related-posts blocks | x.com, blog.google, sebastianraschka |
+| **Subscribe / signup prompts** | "Subscribe to X", "Join N readers", `Ready for more?`, `Discussion about this post`, `点击 订阅 到 …` | substack/magazine, intuitionlabs, sspai, x.com |
+| **Author / footer cards** | Author bio below content, tag chains, social-share rows, copyright lines, byline-tail metadata | most blogs (blog.google, intuitionlabs, hf, sspai) |
+| **Editor / UI controls** | "Heading / Bold / Italic" toolbar text, "Markdown is supported", "Comment Write Preview", "Add your comment here…" | github |
+| **Skeletons / loading states** | "Loading…", "加载中", "Please wait" in <2 KB body | many SPAs before browser-eval delay completes |
+| **Login / paywall walls** | "Sign in to X", "请登录", "This post is for paid subscribers", "Don't miss what's happening" | x.com (gated), feishu, substack paid |
+| **Page-title duplicate** | Body re-emits the H1 from page chrome (creating two `# ` headings) | github (PR/issue title), substack, weixin |
+
+#### 5e.iii. Cleanup ordering invariants
+
+Order is load-bearing across all hosts. Generic regexes cannibalize specific ones if they run first. Five rules, derived from the bugs that bit each host listed:
+
+1. **Specific before generic.** When a specific rule ("drop view-count blocks at `.../analytics`") and a generic rule ("unwrap any `[\n\nText\n\n](url)`") both match the same shape, the specific one runs FIRST. Otherwise the generic rule turns the specific shape into bare text and the specific rule has nothing left to match. *Symptom of violation:* bare numbers like `3.3万` floating between paragraphs (x.com, first iteration).
+2. **Specific images before generic image-link drop.** Photo embeds (`.../photo/N`), figure captions, click-to-enlarge thumbnails, and link-card images must be unwrapped before any "drop standalone `[\n\n![](*)\n\n](*)`" rule. *Symptom:* missing inline images that should have been preserved (x.com photos, second iteration).
+3. **Truncate rails / footers EARLY.** Trailing-sidebar cuts (`## 当前趋势` → end, `## Related stories` → end) run before line-level filters. The rail/footer often contains lines (`显示更多`, `订阅`, "Subscribe to") that a generic filter would also match, but cutting the section saves cycles and avoids over-deleting in the body. *Symptom of violation:* in-body legitimate "Subscribe" mentions get stripped (false positive on a paragraph in a content article).
+4. **Identity / byline collapse AFTER unwraps, BEFORE separator insertion.** The byline-collapse regex needs the unwrappers to have already run so it sees `Name\n@handle\n[date](url)`, not still-wrapped `[\n\nName\n\n](/handle)`. The card-separator (`---`) insertion needs the byline already collapsed so it can anchor on the bold-name-then-handle shape. *Symptom of violation:* either no separators inserted, or separators inserted before raw unwrapped text (x.com, third iteration before reordering).
+5. **Image localization is the LAST step before §2 frontmatter assembly.** Earlier pipeline stages can still rewrite image URLs (relative-resolve, click-to-enlarge unwrap, embedded photo unwrap, referer-protected re-fetch). Localize once, at the boundary, so `processImages` sees the final URL set. *Symptom of violation:* `![](https://...)` remote URLs surviving to final output (caught by the §1 `remote_imgs` block-ship gate).
+
+#### 5e.iv. First-pass eye-read checklist
+
+For every new host, scan the first generated sample for these defects before showing it to the user. Each item is something an existing host previously shipped wrong.
+
+| Where to look | What to scan for |
+|---|---|
+| **Top 30 lines** | Nav bar bleed, language-picker chrome, "Skip to content" links, breadcrumbs, share-button rows, **duplicate H1** from page-title block, frontmatter `> 原文链接:` present and on its own line |
+| **Tail 30 lines** | Subscribe footer, related-posts list, tag chain, author bio card, "More from this author", trending sidebar, copyright/year, social-share row, comment-count line |
+| **One mid-document section** | **Multi-line link wrappers** (`[\n\n![](*)\n\n*\n\n](url)`) — these render but read as broken markdown; **paragraph-spaced bylines** (3+ blank-line gaps where one would render right); **bare relative URLs** (`](/path)` instead of `](https://host/path)`); orphan `**Label:**` lead-ins after a removed cell-run |
+| **Code / tables / images** | Every code block fenced with a language tag (not `<table>`-rendered — Hexo `figure.highlight` defect); table cells flattened (no `<div>` / `<h*>` / `<br>` inside `td`); every `![](*)` resolves to a local file in `<slug>-images/`; title attributes preserved on rewritten refs |
+| **Math / footnotes / currency** | `$NNN` not auto-italicized as math (escape to `\$NNN`); `\[1]` footnote refs unescaped to `[1]`; KaTeX triplets collapsed (HF blog: V1+V3 suffix-match); single-`_{...}` per formula (multi-subscript breaks lark-cli) |
+| **Heading hierarchy** | Exactly one `# ` H1 (frontmatter title); no empty `## ` lines; no Chinese ordinal headings (`## 一、` → `## 1`); H2/H3 numbering consistent across siblings |
+| **Whitespace** | No `\n{3,}` runs; no triple-newline around spliced blocks; no orphan blank lines around removed chrome; standalone images on their own lines |
+| **Conversation hosts only** | Each speaker has a single byline line, NOT 3 paragraphs; `---` (or equivalent) separator visible between speakers; relative date links resolved to absolute |
+
+If the sample fails any item: fix the cleanup, regenerate, scan again. Don't show the user a sample with known defects — every iteration has context cost. The checklist exists so the cost is paid once, by you, before the user sees it.
+
+#### 5e.v. Where cleaner data may hide (source-of-truth detection)
+
+Before settling for opencli's rendered-MD path, check these alternatives in order. They're listed by frequency of yielding cleaner data on the verified hosts:
+
+1. **REST / GraphQL API** of the host returning structured JSON we can convert ourselves. *Used by:* github (issue/PR/discussion/release APIs).
+2. **Raw markdown mirror** in a public repo or CDN. *Used by:* huggingface blog (mirrored at `github.com/huggingface/blog`); github file/repo content via `raw.githubusercontent.com`.
+3. **Inline hydration JSON** in `<script>` tags. Next.js / React SPAs often ship the page state as `self.__next_f.push([...])` or `__NEXT_DATA__`. *Used by:* deepwiki.com (mermaid sources live in hydration).
+4. **DOM attribute data** for embedded widgets. *Used by:* wiki.litenext.digital deepwiki (`.mermaid[data-original-text]`).
+5. **Linked downloads** (CSV, JSON, PDF). *Used by:* epoch.ai (`<a href="*.csv">` for the actual dataset).
+6. **`<meta>` tags** for shape and metadata hints — `og:type` (article / video / website), `og:url`, `article:author`, `article:published_time`. Always cheap to read; useful for shape classification (5e.i).
+7. **`<head>` `<title>`** as last-resort title fallback when body extraction misses the title.
+
+If any of these returns cleaner data than the rendered HTML, the site module's `fetcher.ts` should use *that* source — not patch opencli's output downstream. The "lossy MD + N post-processors" path is what produced the unfixable defects we migrated away from (§5a).
+
 ## 6. Regression set
 
 Before committing post-processor/adapter changes, re-export these AND check each against the contract. `block-ship` one-liner below each table row flags obvious regressions.
@@ -325,6 +451,7 @@ Before committing post-processor/adapter changes, re-export these AND check each
 | `mp.weixin.qq.com/s/PcyKi5q8zT-tJ_9rzgKSqg` (Anthropic Skills) | Layer 4 raw-HTML, 30 fences, 0 doubled markers, 0 unbalanced bold runs, YAML body intact | good · ~6KB |
 | `mp.weixin.qq.com/s/FcK3QmzudPZzqsz85odFlQ` (GPU container) | Layer 4 raw-HTML, 14 fences, 21 table rows, 1 SVG diagram preserved as `weixin-snap-gpu-container-images/weixin-svg-001.svg` (with inline styles), all multi-line code blocks intact | good · ~6KB + 20KB SVG |
 | `mp.weixin.qq.com/s/44_UrbaQu2U1EAB9OrGNxQ` (Xiaomi interview) | Layer 4 raw-HTML, image-heavy interview, 15 images downloaded, `**作者丨何煦阳**` properly merged from adjacent strongs | good · ~12KB |
+| `x.com/garrytan/status/2042497872114090069` | xMetadataStub visible-content path: `# @<handle> on X`, per-tweet card layout (`**Name** [@handle](profile) · [date](url)` byline + `---` separator), zero avatar-only link blocks, zero view-count metric blocks, no multi-line `[\n![` wrappers | good · ~3KB |
 
 **Block-ship one-liner** (anything > 0 for remote_imgs/activity, or FM == 0, or feature < contract → DO NOT SHIP):
 
@@ -347,44 +474,61 @@ Run `npm test` (cwd `tools/`) before every commit that touches an adapter, conve
 cd tools && npm test           # runs node --import tsx --test __tests__/*.test.ts
 ```
 
-**Three layers of test coverage** — each catches a different class of bug:
+**Five layers of test coverage** — each catches a different class of bug:
 
 | Layer | File | What fails it |
 |---|---|---|
-| Per-host snapshot tests | `__tests__/per-host-snapshot.test.ts` | (a) snapshot `.md` was hand-edited away from its sidecar `.invariants.json`; (b) snapshot contains a hard-rule defect: `h1 != 1`, missing `> 原文链接:`, remote `![](http://...)` refs, bare chrome lines (Subscribe/订阅/etc.), `\*{3,}` runs OR odd `**` count outside code (unbalanced bold), empty `## ` heading lines, `附录（位置未识别）` markers; (c) any local image ref doesn't resolve to a real file in the snapshot's `-images/` dir |
-| Converter-fixture tests | `__tests__/converter-fixtures.test.ts` | **byte-equal diff** between `convertX(frozen-input)` and the saved `expected.md`. ANY change to the converter's output trips this — even a one-character punctuation drift. The failure message reports the first divergent character offset for fast diagnosis. |
-| Pure-function fixture tests | `__tests__/post-process-fixtures.test.ts` (47 cases) | input markdown → assert exact output. Same shape as converter-fixture tests but for post-processors. |
+| **Coverage gate** (NEW) | `__tests__/coverage-gate.test.ts` | A site module under `tools/sites/<X>/` is registered in `test-hooks-registry.ts` but missing fixture(s) under `__tests__/fixtures/converters/<X>/` OR a snapshot under `__tests__/snapshots/<host>/`. Surfaces incomplete migrations as failing tests with actionable next-step commands. |
+| **Structural rules** (NEW) | `__tests__/structural-rules.ts` (applied by both fixture + snapshot tests) | Captured ground truth (expected.md / snapshot.md) contains a known defect shape: multi-line link wrappers, over-escaped emoji shortcodes, over-escaped image syntax, empty headings, triple newlines, quad-asterisk runs. Layers ON TOP of byte-equal — catches the case where a buggy converter's output got captured as ground truth. |
+| Per-host snapshot tests | `__tests__/per-host-snapshot.test.ts` | (a) snapshot `.md` was hand-edited away from its sidecar `.invariants.json`; (b) hard-rule defect (h1 != 1, missing frontmatter, remote refs, etc.); (c) structural-rule violation; (d) local image ref unresolved on disk. |
+| Converter-fixture tests | `__tests__/converter-fixtures.test.ts` | **byte-equal diff** between `convertX(frozen-input)` and the saved `expected.md`. ANY drift trips this. PLUS structural rules over the saved `expected.md` (catches buggy ground truth). |
+| Pure-function fixture tests | `__tests__/post-process-fixtures.test.ts` | input markdown → assert exact output. Use `assertStructurallyClean(r.md, label)` helper as a backstop for substring matchers. |
+
+**Canonical workflow: `approve.ts` for ground-truth capture / refresh.**
+
+```bash
+npx tsx tools/__tests__/approve.ts --site <site> --name <fixture-name> --url <url> [--slug <slug>] [--yes]
+```
+
+What it does, in order:
+1. Fetches the URL via the site-module's test hook.
+2. Runs the converter; runs structural rules over the output (refuses to write if any rule fires).
+3. Prints eye-read sections (top 30 / mid 30 / tail 30) per CLAUDE.md §5e.iv.
+4. Prints diff vs current ground truth (if exists).
+5. Prompts y/n (skip with `--yes` for scripted use).
+6. On y, writes fixture (3 files) + snapshot atomically, with rollback on partial failure.
+
+This replaces the legacy multi-step ritual (`capture-fixtures.ts` + `snapshot-create.ts` + manual eye-reading). The legacy scripts remain as low-level primitives for scripting bulk operations, but `approve.ts` is the canonical "I confirmed the output is good" command.
 
 **When converter-fixture tests fail:**
 
 1. Read the byte-offset diff in the failure message.
 2. Decide:
    - **Bug** in the new code → fix the code, do NOT regenerate the fixture.
-   - **Intentional improvement** → regenerate the fixture and commit it ALONGSIDE the code change so the diff is reviewable:
+   - **Intentional improvement** → regenerate via `approve.ts` (interactive, runs structural rules):
      ```bash
-     npx tsx tools/__tests__/capture-fixtures.ts <host> <name> <url>
+     npx tsx tools/__tests__/approve.ts --site <site> --name <name> --url <url>
      ```
-     Always `git diff` the regenerated fixture before committing. Silent fixture regeneration bakes regressions in.
+     The diff vs the existing `expected.md` is shown before the prompt. Always read the diff before approving. Silent fixture regeneration bakes regressions in.
 3. Never `--no-verify` past a fixture test failure.
 
-**Adding a new fixture for an existing converter:**
+**Adding a new site module to the test infrastructure** (one-file change):
+
+Write `tools/sites/<X>/test-hooks.ts` exporting a `testHooks` declaration (see `tools/sites/_shared/test-hooks-types.ts` for the contract). Add an import to `tools/sites/test-hooks-registry.ts`. The coverage gate (`__tests__/coverage-gate.test.ts`) will then enforce that `<X>` has ≥1 fixture and ≥1 snapshot. Capture via `approve.ts`.
+
+**Coverage target per converter: ≥3 fixtures.** A single fixture catches only the bugs its URL happens to exercise. Three diverse shapes give meaningful regression coverage. The coverage gate accepts ≥1 today (low floor for incremental migration); bump in `coverage-gate.test.ts` when all sites reach ≥3.
+
+**Live-fetch upstream-drift detection** (operator-run, NOT in CI):
 
 ```bash
-npx tsx tools/__tests__/capture-fixtures.ts weixin <name> <url>
-# or
-npx tsx tools/__tests__/capture-fixtures.ts xhs <name> <url>
+npx tsx tools/__tests__/check-drift.ts [--host <host>] [--site <name>] [--diff-only]
 ```
 
-Writes `tools/__tests__/fixtures/converters/<host>/<name>.{input.json,expected.md,expected.json}`. The next `npm test` picks it up automatically (the test walks the fixtures directory).
-
-**Adding fixture support for a NEW converter** (when migrating a new host to the target architecture):
-
-1. Add a `case` to `runConverter()` in `__tests__/converter-fixtures.test.ts` covering the new converter's argument shape.
-2. Add a `capture<X>()` function and dispatch in `__tests__/capture-fixtures.ts`.
-3. Capture ≥3 fixtures via `capture-fixtures.ts` covering distinct content shapes (e.g., text-heavy / image-heavy / code-heavy). One fixture only catches the bugs that one URL happens to trigger.
-4. Run `npm test` — the new fixture tests must pass before commit.
+Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) and diffs against the saved snapshot. Categorizes per-snapshot as `unchanged` / `trivial-diff` / `significant-diff`. Detects upstream site changes (DOM rearrangements, content updates) that fixture tests miss because they run on captured input. Pre-source_url snapshots are skipped with a message; backfill via `npx tsx tools/__tests__/snapshot-helpers.ts backfill-source-url <md-path> <url>`.
 
 **Coverage target per converter: ≥3 fixtures.** A single fixture catches only the bugs its URL happens to exercise. Three diverse shapes give meaningful regression coverage.
+
+**Assertion shape, not substring presence.** When testing conversion / formatting output, `assert.match(out, /Foo Bar/)` is almost always wrong — it confirms a token survives but says nothing about whether the token is rendered well. Anchor assertions to the rendered SHAPE: byline regex (`/^\*\*Name\*\* \[@handle\]\(.+\)$/m`), card-separator presence (`/\n---\n/`), absence of broken multi-line wrappers (`/\[\s*\n\s*!\[/` must NOT match). When the test would still pass on visibly-bad output, the assertion is too weak. Failed-the-eye-read but passed-the-test is a category of regression that the test suite must catch, because the eye-read step is the most-skipped step in the workflow.
 
 **Path-resolution gotcha** (learned the hard way): test files MUST resolve fixture/snapshot paths via `fileURLToPath(import.meta.url)`, not via cwd-relative literals like `"tools/__tests__/snapshots"`. `npm test` runs with cwd=`tools/`, so a literal would resolve to non-existent `tools/tools/__tests__/...` — the suite degrades to a "no fixtures present" sentinel and silently no-ops every assertion. Caught when running tests reported "60 pass" then `npm test` reported "1 pass" for the same file. (See commit `4ca244e` for the fix.)
 

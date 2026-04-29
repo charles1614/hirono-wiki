@@ -26,6 +26,8 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types published for this package
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
+import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+
 export interface DeepwikiLitenextImageDownload {
   remoteUrl: string;
   localFilename: string;
@@ -210,7 +212,13 @@ export function convertDeepwikiLitenextHtml(
 
   const title = opts.title || "Untitled DeepWiki page";
   const fm = ["# " + title, "", "> 原文链接: " + opts.url, "", "---", ""].join("\n");
-  const markdown = fm + "\n" + body.replace(/^\n+/, "").replace(/\n+$/, "") + "\n";
+  let markdown = fm + "\n" + body.replace(/^\n+/, "").replace(/\n+$/, "") + "\n";
+  // Shared post-turndown cleanups (insert space after closing `**` etc.).
+  markdown = applyCommonMarkdownCleanups(markdown);
+  // Final cleanup — `\n{3,}` may be reintroduced by the splice/anchor passes
+  // above (mermaid splicer can insert extra blank lines around fences;
+  // anchor-strip can leave orphan blanks). Collapse at the very end.
+  markdown = markdown.replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
 
   const features = countFeatures(markdown);
 

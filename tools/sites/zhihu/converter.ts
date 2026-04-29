@@ -17,6 +17,8 @@ import TurndownService from "turndown";
 // @ts-expect-error  no types published for this package
 import { gfm } from "@joplin/turndown-plugin-gfm";
 
+import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+
 export interface ZhihuMetadata {
   title: string;
   author: string;
@@ -248,7 +250,7 @@ export function convertZhihuArticleHtml(
   if (meta.publishedAt) fm.push(`> 发布时间: ${meta.publishedAt}`);
   fm.push(`> 原文链接: ${originUrl}`, "", "---", "", "");
 
-  const markdown = fm.join("\n") + body + "\n";
+  const markdown = applyCommonMarkdownCleanups(fm.join("\n") + body + "\n");
 
   return {
     markdown,

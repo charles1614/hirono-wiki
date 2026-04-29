@@ -1,7 +1,7 @@
 # 稳定快速 Google Gemini 公益站 2.0
 
 > 原文链接: https://linux.do/t/topic/698408
-> 主题元信息: 共 406 楼 · 23172 浏览 · 781 点赞 · 标签 人工智能, Gemini
+> 主题元信息: 共 406 楼 · 23176 浏览 · 781 点赞 · 标签 人工智能, Gemini
 > *只归档了前 50/406 楼。*
 
 ---
@@ -25,9 +25,9 @@ Roo Code：
 
 ![image](linuxdo-img-003.png)
 
-[沉浸式翻译可以用这个:partying\_face:](https://linux.do/t/topic/698480)
+[沉浸式翻译可以用这个:partying_face:](https://linux.do/t/topic/698480)
 
-[觉得麻烦可以使用这个:partying\_face:](https://linux.do/t/topic/548303)
+[觉得麻烦可以使用这个:partying_face:](https://linux.do/t/topic/548303)
 
 觉得好用别忘了点赞~
 
@@ -178,7 +178,7 @@ Roo Code：
 
 ## #38 @dongqiang_dong (佩德罗) · 2025-06-04
 
-感谢佬！！方便我这样的新手试用， :star\_struck:
+感谢佬！！方便我这样的新手试用， :star_struck:
 
 ## #39 @gsnqazwsx (看今朝) · 2025-06-04
 
@@ -186,7 +186,7 @@ Roo Code：
 
 ## #40 @InFatuation (默默叽叽) · 2025-06-04
 
-感谢佬:folded\_hands:
+感谢佬:folded_hands:
 
 ## #41 @v123ve · 2025-06-04
 
@@ -226,7 +226,7 @@ Roo Code：
 
 ## #49 @moonlight (迪迦) · 2025-06-04
 
-感谢大佬:folded\_hands:
+感谢大佬:folded_hands:
 
 ## #50 @euzen (细佬我食过几晚夜粥) · 2025-06-04
 

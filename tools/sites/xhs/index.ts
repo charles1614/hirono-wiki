@@ -61,15 +61,8 @@ export const site: Site = {
       adapterNotes.push(`xhs Layer-4 browser extraction failed: ${xhsFull.error.slice(0, 120)}`);
     } else if (xhsFull.descText.trim().length > 0) {
       const noteId = extractXhsNoteId(xhsFull.finalUrl || url) || extractXhsNoteId(url) || "xhs";
-      const pad = Math.max(2, String(xhsFull.imageUrls.length).length);
-      const layer4Images: string[] = [];
-      for (let i = 0; i < xhsFull.imageUrls.length; i++) {
-        const imgUrl = xhsFull.imageUrls[i];
-        const ext = (imgUrl.match(/\.(jpe?g|png|webp)(?:\?|$)/i)?.[1] ?? "jpg").toLowerCase();
-        const name = `${noteId}_${String(i + 1).padStart(pad, "0")}.${ext === "jpeg" ? "jpg" : ext}`;
-        const dest = join(slugDir, name);
-        if (downloadImageToPath(imgUrl, dest)) layer4Images.push(name);
-      }
+      // Canonical pattern: converter pre-allocates filenames + emits
+      // `imagesToDownload`. Runtime here iterates that list to fetch.
       const conv = convertXhsHtml(
         xhsFull.descText,
         {
@@ -80,10 +73,16 @@ export const site: Site = {
           comments: xhsFull.comments,
         },
         url,
-        layer4Images,
+        xhsFull.imageUrls,
+        noteId,
       );
+      const layer4Images: string[] = [];
+      for (const dl of conv.imagesToDownload) {
+        const dest = join(slugDir, dl.localFilename);
+        if (downloadImageToPath(dl.remoteUrl, dest)) layer4Images.push(dl.localFilename);
+      }
       adapterNotes.push(
-        `xhs Layer-4: ${conv.stats.paragraphs} paragraph(s), ${conv.stats.tagsExtracted} tag(s), ${layer4Images.length}/${xhsFull.imageUrls.length} image(s) downloaded`,
+        `xhs Layer-4: ${conv.stats.paragraphs} paragraph(s), ${conv.stats.tagsExtracted} tag(s), ${layer4Images.length}/${conv.imagesToDownload.length} image(s) downloaded`,
       );
       return {
         markdown: conv.markdown,

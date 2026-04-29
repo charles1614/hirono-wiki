@@ -620,12 +620,15 @@ export const anthropicStripSvgExplosion: PostProcessor = {
  */
 export const substackReformat: PostProcessor = {
   name: "substack-reformat",
-  match: (_u, h) =>
-    // Known Substack CNAMEs + the generic substack.com domain.
-    h === "newsletter.semianalysis.com" ||
-    h === "magazine.sebastianraschka.com" ||
-    h === "sebastianraschka.com" ||
-    /(?:^|\.)substack\.com$/i.test(h),
+  // RETIRED 2026-04-28: substack hosts now flow through `tools/sites/substack/`
+  // which owns the full pipeline (curl + jsdom + turndown + cleanups). This
+  // post-processor stays in-tree for two reasons: (a) backward compat —
+  // any caller that bypasses the site router and hands raw substack
+  // markdown to applyPostProcessors can still invoke `transform` directly;
+  // (b) `post-process-fixtures.test.ts` still exercises `transform` to
+  // lock the cleanup logic in place. The match predicate returns false
+  // so the pipeline never reaches it for live fetches.
+  match: () => false,
   transform: (md, _originUrl) => {
     const notes: string[] = [];
     let out = md;
@@ -2033,32 +2036,158 @@ export const xMetadataStub: PostProcessor = {
   name: "x-metadata-stub",
   match: (_u, h) => h === "x.com" || h === "twitter.com",
   transform: (md, originUrl) => {
-    // If web-read got real content (unlikely but possible for embeds), keep it.
-    // Real content heuristic: more than 500 chars and doesn't look like login wall.
     const authGatedHints = [
       "Sign in to X", "Log in to Twitter", "Sign up for X",
       "Don't miss what's happening", "New to X?",
     ];
     const isGated = md.length < 800 || authGatedHints.some((h) => md.includes(h));
-    if (!isGated) return { md, newAbsoluteImageUrls: [], notes: [] };
+    if (isGated) {
+      const stub = [
+        `# Tweet / X post`,
+        ``,
+        `> **Source:** ${originUrl}`,
+        `> **Status:** auth-gated — Twitter/X requires login to fetch tweet content.`,
+        `> The full tweet is available at the original URL above.`,
+        ``,
+        `*This entry is a metadata stub. Content could not be extracted without authentication.*`,
+        ``,
+      ].join("\n");
+      return {
+        md: stub,
+        newAbsoluteImageUrls: [],
+        notes: [`x.com: auth-gated — produced metadata stub`],
+        extraFlags: ["intentional-stub"],
+      };
+    }
 
-    // Produce a metadata-only stub
-    const stub = [
-      `# Tweet / X post`,
-      ``,
-      `> **Source:** ${originUrl}`,
-      `> **Status:** auth-gated — Twitter/X requires login to fetch tweet content.`,
-      `> The full tweet is available at the original URL above.`,
-      ``,
-      `*This entry is a metadata stub. Content could not be extracted without authentication.*`,
-      ``,
-    ].join("\n");
+    // Visible-content path: web-read returned the conversation but it's
+    // buried under nav chrome (avatar links, view counts, "subscribe"
+    // prompts, trending sidebar). Strip everything except @handle, display
+    // name, date, and tweet body — that's what the reader actually wants.
+    let out = md;
+
+    // 1. Truncate trailing trends sidebar — everything after `## 当前趋势`
+    //    or `## What's happening` is the homepage rail, not the thread.
+    out = out.replace(/\n+##\s+(当前趋势|What's happening|Trending)[\s\S]*$/i, "\n");
+
+    // 2. Drop view-count metric blocks FIRST (before generic unwrappers
+    //    accidentally turn them into bare numbers). Two shapes:
+    //    `[\n\n106.9万\n\n查看](.../analytics)` and `[\n\n3.3万\n\n](.../analytics)`.
+    out = out.replace(
+      /\[\s*\n\s*[\d,.]+(?:[万千KM])?\s*\n\s*(?:查看)?\s*\]\([^)]*\/analytics\)\s*\n?/g,
+      "",
+    );
+
+    // 3. Unwrap inline photo links: `[\n\n![图像](url)\n\n](.../photo/N)`
+    //    → `![](url)`. Run BEFORE the generic avatar-link drop so the
+    //    embedded photo isn't mistaken for a profile pic.
+    out = out.replace(
+      /\[\s*\n\s*!\[[^\]]*\]\(([^)]*)\)\s*\n\s*\]\([^)]*\/photo\/\d+\)/g,
+      "![]($1)",
+    );
+
+    // 4. Drop avatar-only link blocks: `[\n\n![](...)\n\n](/handle)` —
+    //    these are profile pic links with no other content.
+    out = out.replace(/\[\s*\n\s*!\[[^\]]*\]\([^)]*\)\s*\n\s*\]\([^)]*\)/g, "");
+
+    // 5. Unwrap "[\n\nDisplay Name\n![](...)\n\n](/handle)" — keep the
+    //    name, drop the verified-badge avatar inside the link.
+    out = out.replace(
+      /\[\s*\n\s*([^\n\[\]]+?)\s*\n\s*!\[[^\]]*\]\([^)]*\)\s*\n\s*\]\(\/[^)]*\)/g,
+      "$1",
+    );
+
+    // 6. Unwrap simple text-only profile links: `[\n\n@handle\n\n](/handle)`
+    //    and `[\n\nDisplay Name\n\n](/handle)` — keep just the inner text.
+    //    Restricted to `/handle` paths (no slash after — profile pages),
+    //    so date links to `/handle/status/...` are preserved.
+    out = out.replace(/\[\s*\n\s*([^\n\[\]]+?)\s*\n\s*\]\(\/[^/)]+\)/g, "$1");
+
+    // 6b. Flatten embedded link cards (e.g. quoted tweets, GitHub repo
+    //     previews) from multi-line `[\n\n![](thumb)\n\nTitle\n\n](url)`
+    //     into `![](thumb)\n\n[Title](url)` — a real image plus a real
+    //     link, both standalone and renderable.
+    out = out.replace(
+      /\[\s*\n\s*(!\[[^\]]*\]\([^)]*\))\s*\n\s*([^\n\[\]]+?)\s*\n\s*\]\(([^)]+)\)/g,
+      "$1\n\n[$2]($3)",
+    );
+
+    // 6c. Flatten plain text-only link wrappers spanning multiple lines:
+    //     `[\n\nText\n\n](url)` → `[Text](url)`. Keeps content intact;
+    //     only collapses surrounding whitespace.
+    out = out.replace(
+      /\[\s*\n\s*([^\n\[\]]+?)\s*\n\s*\]\(([^)]+)\)/g,
+      "[$1]($2)",
+    );
+
+    // 7. Drop quote-count and similar trailing metric links.
+    out = out.replace(/\[查看引用\]\([^)]*\)\s*\n?/g, "");
+
+    // 8. Drop standalone "·" separator lines and "发布你的回复" placeholders
+    //    and "点击 订阅 到 X" subscribe prompts.
+    out = out
+      .split("\n")
+      .filter((l) => {
+        const t = l.trim();
+        if (t === "·") return false;
+        if (t === "发布你的回复") return false;
+        if (/^点击\s+订阅\s+到\s/.test(t)) return false;
+        return true;
+      })
+      .join("\n");
+
+    // 9. Drop "[来自 github.com](https://t.co/...)" link-card source-of
+    //    footers — they duplicate the link card itself.
+    out = out.replace(/\[来自\s+[^\]]+\]\([^)]*\)\s*\n?/g, "");
+
+    // 10. Drop empty "## 帖子" / "## 对话" headers when they have no body
+    //     (or merge consecutive empties).
+    out = out.replace(/##\s+帖子\s*\n+(?=##\s)/g, "");
+
+    // 11. Resolve relative status/date links to absolute x.com URLs.
+    //     `[4月10日](/handle/status/123)` → `[4月10日](https://x.com/handle/status/123)`.
+    out = out.replace(/\]\((\/[^)\s]+)\)/g, "](https://x.com$1)");
+
+    // 11b. Collapse name + @handle pairs into a single byline. After
+    //      steps 4–6 each tweet looks like
+    //        `Display Name\n\n@handle\n\n[date](url)\n\nbody`
+    //      Squash into `**Display Name** [@handle](profile) · [date](url)`.
+    //      Then collapse to `**Display Name** [@handle](profile)\n\nbody`
+    //      when the date is missing (OP shape — date comes after body).
+    out = out.replace(
+      /^([^\n@\[\]#>!|*][^\n\[\]]{0,80})\n+@(\w+)\n+\[([^\]]+)\]\((https?:\/\/x\.com\/\w+\/status\/[^)]+)\)/gm,
+      "**$1** [@$2](https://x.com/$2) · [$3]($4)",
+    );
+    out = out.replace(
+      /^([^\n@\[\]#>!|*][^\n\[\]]{0,80})\n+@(\w+)$/gm,
+      "**$1** [@$2](https://x.com/$2)",
+    );
+
+    // 11c. Insert a `---` separator before each byline (except the very
+    //      first, which sits right under `## 对话`). Bylines are easy to
+    //      detect post-collapse: lines starting with `**…** [@`.
+    out = out.replace(
+      /\n\n(\*\*[^*\n]+\*\* \[@\w+\])/g,
+      "\n\n---\n\n$1",
+    );
+    // Drop the leading separator if it ends up directly under `## 对话`.
+    out = out.replace(/(##\s+对话\n+)---\n+/, "$1");
+
+    // 12. Collapse runs of blank lines.
+    out = out.replace(/\n{3,}/g, "\n\n");
+
+    // 13. Simplify the H1: web-read's title is the entire first tweet
+    //     copy-pasted into the page <title>. Replace with "# @handle on X".
+    const handleMatch = originUrl.match(/x\.com\/([^/?#]+)\/status\//);
+    if (handleMatch) {
+      const handle = handleMatch[1];
+      out = out.replace(/^#\s+.*$/m, `# @${handle} on X`);
+    }
 
     return {
-      md: stub,
+      md: out.trim() + "\n",
       newAbsoluteImageUrls: [],
-      notes: [`x.com: auth-gated — produced metadata stub`],
-      extraFlags: ["intentional-stub"],
+      notes: [`x.com: cleaned conversation chrome`],
     };
   },
 };

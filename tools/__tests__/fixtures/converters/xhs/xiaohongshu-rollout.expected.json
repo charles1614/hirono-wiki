@@ -1,4 +1,62 @@
 {
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/26a46266136b35b00fcfb329c3b37216/spectrum/1040g0k031u0hn6861g005p6onn0g9t25ebstm5g!nd_dft_wlteh_webp_3",
+      "localFilename": "69bf57f200000000230274d8_01.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/871db0becf8ec73849f731c8b6c4e86d/spectrum/1040g0k031u0hn6861g0g5p6onn0g9t25hajgvio!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_02.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/92f19f8fa3a8df3e37a24c40c36224f1/spectrum/1040g0k031u0hn6861g105p6onn0g9t25jvami1o!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_03.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/8a45d63446f82f90bbcbaf5e4c4510ea/spectrum/1040g0k031u0hn6861g1g5p6onn0g9t259tfo0d0!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_04.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/313d9aab2b2ba1564e013044f6afc1bc/spectrum/1040g0k031u0hn6861g205p6onn0g9t25i44g6hg!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_05.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/63880eedbc24a46614d15875bfa8c9e3/spectrum/1040g0k031u0hn6861g2g5p6onn0g9t2511ssejo!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_06.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/14ca8420b7a8bae78b0e4ef63f0e79e7/spectrum/1040g0k031u0hn6861g305p6onn0g9t25boflrp8!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_07.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/0f3c6cc26f4704b3761d3f49170877e4/spectrum/1040g0k031u0hn6861g3g5p6onn0g9t25grg6r28!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_08.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/b2611a464f6fe0d27b7729aa6a5ff6ff/spectrum/1040g0k031u0hn6861g405p6onn0g9t25h05i410!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_09.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/33edebf55a026355e281d6dee6659940/spectrum/1040g0k031u0hn6861g4g5p6onn0g9t25gsfenco!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_10.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/e738f8ac487806e72c2a7b637726055c/spectrum/1040g0k031u0hn6861g505p6onn0g9t25t9f5km8!nd_dft_wlteh_webp_3",
+      "localFilename": "69bf57f200000000230274d8_11.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/15ff7b0255419fe5dd1210de0224989a/spectrum/1040g0k031u0hn6861g5g5p6onn0g9t256dgjkv8!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_12.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/9b1301d9b9cd3dbcad1f956a65e746f3/spectrum/1040g0k031u0hn6861g605p6onn0g9t25emr6ot0!nd_dft_wgth_webp_3",
+      "localFilename": "69bf57f200000000230274d8_13.jpg"
+    },
+    {
+      "remoteUrl": "https://sns-webpic-qc.xhscdn.com/202604292035/8337d2760306a0bff4a9c149d0d68e37/spectrum/1040g0k031u0hn6861g6g5p6onn0g9t25f1ptpbg!nd_dft_wlteh_webp_3",
+      "localFilename": "69bf57f200000000230274d8_14.jpg"
+    }
+  ],
   "stats": {
     "paragraphs": 4,
     "tagsExtracted": 0,

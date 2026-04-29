@@ -54,7 +54,7 @@
           "cooked": "<p>感谢大佬！</p>",
           "created_at": "2025-12-13T04:59:57.070Z",
           "reply_to_post_number": null,
-          "reads": 558,
+          "reads": 559,
           "score": 126.4,
           "reply_count": 0
         },
@@ -65,7 +65,7 @@
           "cooked": "<p>非常方便！</p>",
           "created_at": "2025-12-13T05:34:16.952Z",
           "reply_to_post_number": null,
-          "reads": 498,
+          "reads": 499,
           "score": 144.4,
           "reply_count": 0
         },
@@ -77,7 +77,7 @@
           "cooked": "<p>感谢分享，之前一直想找一个类似功能的工具没找到，很方便，我在fclash上测试的，可用，好用</p>",
           "created_at": "2025-12-13T06:06:02.581Z",
           "reply_to_post_number": null,
-          "reads": 447,
+          "reads": 448,
           "score": 94.2,
           "reply_count": 1
         },
@@ -89,7 +89,7 @@
           "cooked": "<p>有点笨重啊<br>\n还要上无头浏览器<br>\n本地更新也麻烦</p>\n<p>小建议<br>\n最方便的是整个docker或者github-action跑着<br>\n丢个订阅进去返回处理过的订阅吧</p>",
           "created_at": "2025-12-13T06:12:29.949Z",
           "reply_to_post_number": null,
-          "reads": 410,
+          "reads": 411,
           "score": 86.8,
           "reply_count": 1
         },
@@ -101,7 +101,7 @@
           "cooked": "<p>不知道sparkle能不能用，试试</p>",
           "created_at": "2025-12-13T06:14:39.018Z",
           "reply_to_post_number": null,
-          "reads": 378,
+          "reads": 379,
           "score": 95.6,
           "reply_count": 1
         },
@@ -112,7 +112,7 @@
           "cooked": "<p>楼主这个自由猫怎么样？魔法快过期了，最近在找新的呢 <img src=\"https://linux.do/images/emoji/twemoji/blush.png?v=15\" title=\":blush:\" class=\"emoji\" alt=\":blush:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
           "created_at": "2025-12-13T06:18:04.358Z",
           "reply_to_post_number": null,
-          "reads": 357,
+          "reads": 358,
           "score": 91.4,
           "reply_count": 1
         },
@@ -124,7 +124,7 @@
           "cooked": "<p>感谢大佬 目前以尝试可以用</p>\n<p>但是有个想法 是否可以改成api服务那种</p>\n<hr>\n<ol>\n<li>可以用docker部署</li>\n<li>可以实现 接口请求 传入订阅url ，然后开始检测 例如订阅url是 https//xxx.com/xxx   <a href=\"http://xn--aaa-888fy43egsa009by36afio.com/check?url=https//xxx.com/xxx\" rel=\"noopener nofollow ugc\">部署的项目是aaa.com/check?url=https//xxx.com/xxx</a><br>\n2.1 clash订阅写这个url，在部署项目时候可以通过配置设置检测间隔，</li>\n</ol>\n<p>例如 检测间隔设置了1天， 订阅url有10个节点<br>\n然后 1天内请求 当天 只要检测过了就不会在检测 直接返回检测结果<br>\n第一次刷新时，假如没有完成 直接返回订阅url的结果<br>\n第二次刷新时，检测完成2个未完成8个 返回2个检查ok并改名+8个原配置<br>\n第三次刷新时，检查完成9个 未完成1个 返回9个检查ok并改名+1个原配置<br>\n第四次刷新时，检查全部完成，返回全部10个<br>\n第二天整点以后  第一次刷新 又触发重复检测</p>\n<p>在docker中配置缓存目录可以按照订阅的url md5以后+最近一次检测的时间戳 做个文件标记<br>\n先判断时间是否符合规则，如果符合规则则直接继续检测，如果不符合规则则删除文件开始检测 并返回默认</p>\n<ol start=\"4\">\n<li>然后docker 里面可以内置个 clash内核 调用内核 做模拟 clash的操作</li>\n</ol>\n<p>不知道这种是否可行</p>",
           "created_at": "2025-12-13T06:23:11.549Z",
           "reply_to_post_number": null,
-          "reads": 334,
+          "reads": 335,
           "score": 91.8,
           "reply_count": 2
         },
@@ -136,7 +136,7 @@
           "cooked": "<p>太强了佬友</p>",
           "created_at": "2025-12-13T06:24:39.768Z",
           "reply_to_post_number": null,
-          "reads": 288,
+          "reads": 289,
           "score": 107.6,
           "reply_count": 0
         },
@@ -148,7 +148,7 @@
           "cooked": "<p><img src=\"https://cdn3.ldstatic.com/original/3X/1/a/1a9f6c30e88a7901b721fffc1aaeec040f54bdf3.png?v=15\" title=\":bili_057:\" class=\"emoji emoji-custom\" alt=\":bili_057:\" loading=\"lazy\" width=\"20\" height=\"20\">牛的 机场垃圾佬很有用（</p>",
           "created_at": "2025-12-13T06:34:03.851Z",
           "reply_to_post_number": null,
-          "reads": 287,
+          "reads": 288,
           "score": 77.4,
           "reply_count": 1
         },
@@ -160,7 +160,7 @@
           "cooked": "<p>没找到稳定免费的api来获取这些信息，IPPure有api但是信息不全也有CF墙，所以我只能上无头了，简单request不行<br>\n更新确实是个问题 需要重新跑一边，我这边更新不频繁先暂时用着，研究下你说的处理订阅的方案</p>",
           "created_at": "2025-12-13T07:55:08.013Z",
           "reply_to_post_number": 6,
-          "reads": 275,
+          "reads": 276,
           "score": 85,
           "reply_count": 0
         },
@@ -172,7 +172,7 @@
           "cooked": "<p>试试能用不 <img src=\"https://linux.do/images/emoji/twemoji/joy.png?v=15\" title=\":joy:\" class=\"emoji\" alt=\":joy:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
           "created_at": "2025-12-13T07:56:51.011Z",
           "reply_to_post_number": 7,
-          "reads": 273,
+          "reads": 274,
           "score": 59.6,
           "reply_count": 0
         },
@@ -184,7 +184,7 @@
           "cooked": "<p>节点还挺好的 就是有时候会全红 我还有便宜的良心云跑了下节点纯净度全是危险 <img src=\"https://linux.do/images/emoji/twemoji/joy.png?v=15\" title=\":joy:\" class=\"emoji\" alt=\":joy:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
           "created_at": "2025-12-13T07:58:17.171Z",
           "reply_to_post_number": 8,
-          "reads": 262,
+          "reads": 263,
           "score": 62.4,
           "reply_count": 2
         },
@@ -196,7 +196,7 @@
           "cooked": "<p>我也找了没找到就vibecoding了一个 <img src=\"https://linux.do/images/emoji/twemoji/laughing.png?v=15\" title=\":laughing:\" class=\"emoji\" alt=\":laughing:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
           "created_at": "2025-12-13T07:59:05.259Z",
           "reply_to_post_number": 5,
-          "reads": 253,
+          "reads": 254,
           "score": 65.6,
           "reply_count": 0
         },
@@ -207,7 +207,7 @@
           "cooked": "<p>感谢分享</p>",
           "created_at": "2025-12-13T08:00:01.727Z",
           "reply_to_post_number": null,
-          "reads": 242,
+          "reads": 243,
           "score": 63.4,
           "reply_count": 0
         },
@@ -219,7 +219,7 @@
           "cooked": "<p>哈哈哈我就是垃圾佬用垃圾节点才开发的这个 <img src=\"https://linux.do/images/emoji/twemoji/rofl.png?v=15\" title=\":rofl:\" class=\"emoji\" alt=\":rofl:\" loading=\"lazy\" width=\"20\" height=\"20\"></p>",
           "created_at": "2025-12-13T08:00:12.593Z",
           "reply_to_post_number": 11,
-          "reads": 241,
+          "reads": 242,
           "score": 63.2,
           "reply_count": 0
         },
@@ -231,7 +231,7 @@
           "cooked": "<p>很强！ 我研究下你说的方案试试</p>",
           "created_at": "2025-12-13T08:01:03.938Z",
           "reply_to_post_number": 9,
-          "reads": 243,
+          "reads": 244,
           "score": 58.4,
           "reply_count": 0
         },
@@ -243,7 +243,7 @@
           "cooked": "<aside class=\"quote no-group\" data-username=\"imfine\" data-post=\"14\" data-topic=\"1305514\">\n<div class=\"title\">\n<div class=\"quote-controls\"></div>\n<img alt=\"\" width=\"24\" height=\"24\" src=\"https://linux.do/user_avatar/linux.do/imfine/48/290629_2.png\" class=\"avatar\"> imfine:</div>\n<blockquote>\n<p>还挺好的 就是有时候会全红 我还有便宜的良心</p>\n</blockquote>\n</aside>\n<p>docker 内例如模拟一个ubuntu linux 系统 系统可以安装clash 或者其他的 然后 docker安装还可以映射目录<br>\n相当于对外提供一个api接口 然后后台运行个线程去处理<br>\n并行可以运行一个无头浏览器 ，相当于 环境都ok 然后 对外api有个端口可以用nginx设置 也就是完整的处理下来了，<br>\ncf Worker 的话还可以叠加d1 kv 去做处理</p>",
           "created_at": "2025-12-13T08:24:02.690Z",
           "reply_to_post_number": 9,
-          "reads": 241,
+          "reads": 242,
           "score": 78,
           "reply_count": 2
         },
@@ -254,7 +254,7 @@
           "cooked": "<p>谢谢佬友，那我下次就用这个了，免费的一般不解锁GPT这些，平常宝可梦就够我用了hhhhhh</p>",
           "created_at": "2025-12-13T09:11:08.354Z",
           "reply_to_post_number": 14,
-          "reads": 223,
+          "reads": 224,
           "score": 44.4,
           "reply_count": 0
         },

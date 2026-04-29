@@ -1,6 +1,7 @@
 # The Big LLM Architecture Comparison
 
 > 原文链接: https://magazine.sebastianraschka.com/p/the-big-llm-architecture-comparison
+> 作者: Sebastian Raschka, PhD
 
 ---
 **Last updated: Apr 2, 2026 (added Gemma 4 in section 23)**
@@ -13,7 +14,7 @@ Comparing LLMs to determine the key ingredients that contribute to their good (o
 
 However, I think that there is still a lot of value in examining the structural changes of the architectures themselves to see what LLM developers are up to in 2025. (A subset of them are shown in Figure 1 below.)
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-002.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-001.png)
 
 Figure 1: A subset of the architectures covered in this article.
 
@@ -37,9 +38,9 @@ While my focus here is on architectures released in 2025, I think it’s reasona
 
 If you are interested in the training of DeepSeek R1 specifically, you may also find my article from earlier this year useful:
 
-![Understanding Reasoning LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-003.png)
+![Understanding Reasoning LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-002.png)
 
-> 🔗 **Related:** [Understanding Reasoning LLMs](https://magazine.sebastianraschka.com/p/understanding-reasoning-llms) — Sebastian Raschka, PhD · 5 February 2025
+> 🔗 **Related:** [Understanding Reasoning LLMs](https://magazine.sebastianraschka.com/p/understanding-reasoning-llms) — Sebastian Raschka, PhD · February 5, 2025
 
 In this section, I’ll focus on two key architectural techniques introduced in DeepSeek V3 that improved its computational efficiency and distinguish it from many other LLMs:
 
@@ -47,7 +48,7 @@ In this section, I’ll focus on two key architectural techniques introduced in 
 
 -   Mixture-of-Experts (MoE)
 
-## **1.1 Multi-Head Latent Attention (MLA)**
+### **1.1 Multi-Head Latent Attention (MLA)**
 
 Before discussing Multi-Head Latent Attention (MLA), let's briefly go over some background to motivate why it's used. For that, let's start with Grouped-Query Attention (GQA), which has become the new standard replacement for a more compute- and parameter-efficient alternative to Multi-Head Attention (MHA) in recent years.
 
@@ -55,7 +56,7 @@ So, here's a brief GQA summary. Unlike MHA, where each head also has its own set
 
 For example, as further illustrated in Figure 2 below, if there are 2 key-value groups and 4 attention heads, then heads 1 and 2 might share one set of keys and values, while heads 3 and 4 share another. This reduces the total number of key and value computations, which leads to lower memory usage and improved efficiency (without noticeably affecting the modeling performance, according to ablation studies).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-004.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-003.png)
 
 *Figure 2: A comparison between MHA and GQA. Here, the group size is 2, where a key and value pair is shared among 2 queries.*
 
@@ -69,7 +70,7 @@ Now, Multi-Head Latent Attention (MLA) offers a different memory-saving strategy
 
 At inference time, these compressed tensors are projected back to their original size before being used, as shown in the Figure 3 below. This adds an extra matrix multiplication but reduces memory usage.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-005.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-004.png)
 
 *Figure 3: Comparison between MLA (used in DeepSeek V3 and R1) and regular MHA.*
 
@@ -77,7 +78,7 @@ At inference time, these compressed tensors are projected back to their original
 
 By the way, MLA is not new in DeepSeek V3, as its [DeepSeek-V2 predecessor](https://arxiv.org/abs/2405.04434) also used (and even introduced) it. Also, the V2 paper contains a few interesting ablation studies that may explain why the DeepSeek team chose MLA over GQA (see Figure 4 below).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-006.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-005.png)
 
 Figure 4: Annotated tables from the DeepSeek-V2 paper, https://arxiv.org/abs/2405.04434
 
@@ -85,7 +86,7 @@ As shown in Figure 4 above, GQA appears to perform worse than MHA, whereas MLA o
 
 To summarize this section before we move on to the next architecture component, MLA is a clever trick to reduce KV cache memory use while even slightly outperforming MHA in terms of modeling performance.
 
-## **1.2 Mixture-of-Experts (MoE)**
+### **1.2 Mixture-of-Experts (MoE)**
 
 The other major architectural component in DeepSeek worth highlighting is its use of Mixture-of-Experts (MoE) layers. While DeepSeek did not invent MoE, it has seen a resurgence this year, and many of the architectures we will cover later also adopt it.
 
@@ -93,7 +94,7 @@ You are likely already familiar with MoE, but a quick recap may be helpful.
 
 The core idea in MoE is to replace each FeedForward module in a transformer block with multiple expert layers, where each of these expert layers is also a FeedForward module. This means that we swap a single FeedForward block for multiple FeedForward blocks, as illustrated in the Figure 5 below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-007.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-006.png)
 
 Figure 5: An illustration of the Mixture-of-Experts (MoE) module in DeepSeek V3/R1 (right) compared to an LLM with a standard FeedForward block (left).
 
@@ -107,13 +108,13 @@ For example, DeepSeek V3 has 256 experts per MoE module and a total of 671 billi
 
 One notable feature of DeepSeek V3's MoE design is the use of a shared expert. This is an expert that is always active for every token. This idea is not new and was already introduced in the [DeepSeek 2024 MoE](https://arxiv.org/abs/2401.06066) and [2022 DeepSpeedMoE paper](https://arxiv.org/abs/2201.05596)s.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-008.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-007.png)
 
 *Figure 6: An annotated figure from "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models", https://arxiv.org/abs/2401.06066*
 
 The benefit of having a shared expert was first noted in the [DeepSpeedMoE paper](https://arxiv.org/abs/2201.05596), where they found that it boosts overall modeling performance compared to no shared experts. This is likely because common or repeated patterns don't have to be learned by multiple individual experts, which leaves them with more room for learning more specialized patterns.
 
-## **1.3 DeepSeek Summary**
+### **1.3 DeepSeek Summary**
 
 To summarize, DeepSeek V3 is a massive 671-billion-parameter model that, at launch, outperformed other open-weight models, including the 405B Llama 3. Despite being larger, it is much more efficient at inference time thanks to its Mixture-of-Experts (MoE) architecture, which activates only a small subset of (just 37B) parameters per token.
 
@@ -127,7 +128,7 @@ While you probably won’t find OLMo models at the top of any benchmark or leade
 
 And while OLMo models are popular because of their transparency, they are not that bad either. In fact, at the time of release in January (before Llama 4, Gemma 3, and Qwen 3), [OLMo 2](https://arxiv.org/abs/2501.00656) models were sitting at the Pareto frontier of compute to performance, as shown in Figure 7 below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-009.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-008.png)
 
 Figure 7: Modeling benchmark performance (higher is better) vs pre-training cost (FLOPs; lower is better) for different LLMs. This is an annotated figure from the OLMo 2 paper, https://arxiv.org/abs/2501.00656
 
@@ -135,7 +136,7 @@ As mentioned earlier in this article, I aim to focus only on the LLM architectur
 
 Another thing worth mentioning is that OLMo 2 still uses traditional Multi-Head Attention (MHA) instead of MLA or GQA.
 
-## **2.1 Normalization Layer Placement**
+### **2.1 Normalization Layer Placement**
 
 Overall, OLMo 2 largely follows the architecture of the original GPT model, similar to other contemporary LLMs. However, there are some noteworthy deviations. Let's start with the normalization layers.
 
@@ -149,7 +150,7 @@ This is also known as Post-LN or Post-Norm.
 
 GPT and most other LLMs that came after placed the normalization layers *before* the attention and FeedForward modules, which is known as Pre-LN or Pre-Norm. A comparison between Post- and Pre-Norm is shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-010.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-009.png)
 
 *Figure 8: A comparison of Post-Norm, Pre-Norm, and OLMo 2's flavor of Post-Norm.*
 
@@ -161,13 +162,13 @@ In OLMo 2, instead of placing the normalization layers before the attention and 
 
 So, why did they move the position of the normalization layers? The reason is that it helped with training stability, as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-011.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-010.png)
 
 *Figure 9: A plot showing the training stability for Pre-Norm (like in GPT-2, Llama 3, and many others) versus OLMo 2's flavor of Post-Norm. This is an annotated figure from the OLMo 2 paper, https://arxiv.org/abs/2501.00656*
 
 Unfortunately this figure shows the results of the reordering together with QK-Norm, which is a separate concept. So, it’s hard to tell how much the normalization layer reordering contributed by itself.
 
-## **2.2 QK-Norm**
+### **2.2 QK-Norm**
 
 Since the previous section already mentioned the QK-norm, and other LLMs we discuss later, such as Gemma 2 and Gemma 3, also use QK-norm, let's briefly discuss what this is.
 
@@ -218,13 +219,13 @@ class GroupedQueryAttention(nn.Module):
 
 As mentioned earlier, together with Post-Norm, QK-Norm stabilizes the training. Note that QK-Norm was not invented by OLMo 2 but goes back to the [2023 Scaling Vision Transformers paper](https://arxiv.org/abs/2302.05442).
 
-## **2.3 OLMo 2 Summary**
+### **2.3 OLMo 2 Summary**
 
 In short, the noteworthy OLMo 2 architecture design decisions are primarily the RMSNorm placements: RMSNorm after instead of before the attention and FeedForward modules (a flavor of Post-Norm), as well as the addition of RMSNorm for the queries and keys inside the attention mechanism (QK-Norm), which both, together, help stabilize the training loss.
 
 Below is a figure that further compares OLMo 2 to Llama 3 side by side; as one can see, the architectures are otherwise relatively similar except for the fact that OLMo 2 still uses the traditional MHA instead of GQA. (However, the [OLMo 2 team released a 32B variant](https://huggingface.co/allenai/OLMo-2-0325-32B-Instruct) 3 months later that uses GQA.)
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-012.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-011.png)
 
 Figure 10: An architecture comparison between Llama 3 and OLMo 2.
 
@@ -240,17 +241,17 @@ So, what else is interesting in [Gemma 3](https://arxiv.org/abs/2503.19786)? As 
 
 Gemma 3 uses a different "trick" to reduce computational costs, namely sliding window attention.
 
-## **3.1 Sliding Window Attention**
+### **3.1 Sliding Window Attention**
 
 With sliding window attention (originally introduced in the [LongFormer paper in 2020](https://arxiv.org/abs/2004.05150) and also already used by [Gemma 2](http://arxiv.org/abs/2408.00118)), the Gemma 3 team was able to reduce the memory requirements in the KV cache by a substantial amount, as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-013.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-012.png)
 
 *Figure 11: An annotated figure from Gemma 3 paper (https://arxiv.org/abs/2503.19786) showing the KV cache memory savings via sliding window attention.*
 
 So, what is sliding window attention? If we think of regular self-attention as a *global* attention mechanism, since each sequence element can access every other sequence element, then we can think of sliding window attention as *local* attention, because here we restrict the context size around the current query position. This is illustrated in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-014.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-013.png)
 
 *Figure 12: A comparison between regular attention (left) and sliding window attention (right).*
 
@@ -266,31 +267,31 @@ Where Gemma 2 used sliding window attention in every other layer, Gemma 3 now ha
 
 According to their ablation study, the use of sliding window attention has minimal impact on modeling performance, as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-015.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-014.png)
 
 Figure 13: An annotated figure from Gemma 3 paper (https://arxiv.org/abs/2503.19786) showing that sliding window attention has little to no impact on the LLM-generated output perplexity.
 
 While sliding window attention is the most notable architecture aspect of Gemma 3, I want to also briefly go over the placement of the normalization layers as a follow-up to the previous OLMo 2 section.
 
-## **3.2 Normalization Layer Placement in Gemma 3**
+### **3.2 Normalization Layer Placement in Gemma 3**
 
 A small but interesting tidbit to highlight is that Gemma 3 uses RMSNorm in both a Pre-Norm and Post-Norm setting around its grouped-query attention module.
 
 This is similar to Gemma 2 but still worth highlighting, as it differs from (1) the Post-Norm used in the original transformer (“Attention is all you need”), (2) the Pre-Norm, which was popularized by GPT-2 and used in many other architectures afterwards, and (3) the Post-Norm flavor in OLMo 2 that we saw earlier.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-016.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-015.png)
 
 *Figure 14: An architecture comparison between OLMo2 and Gemma 3; note the additional normalization layers in Gemma 3.*
 
 I think this normalization layer placement is a relatively intuitive approach as it gets the best of both worlds: Pre-Norm and Post-Norm. In my opinion, a bit of extra normalization can't hurt. In the worst case, if the extra normalization is redundant, this adds a bit of inefficiency through redundancy. In practice, since RMSNorm is relatively cheap in the grand scheme of things, this shouldn't have any noticeable impact, though.
 
-## **3.3 Gemma 3 Summary**
+### **3.3 Gemma 3 Summary**
 
 Gemma 3 is a well-performing open-weight LLM that, in my opinion, is a bit underappreciated in the open-source circles. The most interesting part is the use of sliding window attention to improve efficiency (it will be interesting to combine it with MoE in the future).
 
 Also, Gemma 3 has a unique normalization layer placement, placing RMSNorm layers both before and after the attention and FeedForward modules.
 
-## **3.4 Bonus: Gemma 3n**
+### **3.4 Bonus: Gemma 3n**
 
 A few months after the Gemma 3 release, Google shared [Gemma 3n](https://developers.googleblog.com/en/introducing-gemma-3n/), which is a Gemma 3 model that has been optimized for small-device efficiency with the goal of running on phones.
 
@@ -298,7 +299,7 @@ One of the changes in Gemma 3n to achieve better efficiency is the so-called Per
 
 The figure below illustrates the PLE memory savings, listing 5.44 billion parameters for a standard Gemma 3 model. This likely refers to the Gemma 3 4-billion variant.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-017.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-016.png)
 
 Figure 15: An annotated figure from Google's Gemma 3n blog (https://developers.googleblog.com/en/introducing-gemma-3n/) illustrating the PLE memory savings.
 
@@ -312,7 +313,7 @@ Another interesting trick is the [MatFormer](https://arxiv.org/abs/2310.07707) c
 
 The reasons for the lower inference latency of Mistral Small 3.1 over Gemma 3 are likely due to their custom tokenizer, as well as shrinking the KV cache and layer count. Otherwise, it's a standard architecture as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-018.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-017.png)
 
 Figure 16: An architecture comparison between Gemma 3 27B and Mistral 3.1 Small 24B.
 
@@ -324,7 +325,7 @@ So, since Mistral uses regular Grouped-Query Attention instead of Grouped-Query 
 
 The extensive introductory discussion on Mixture-of-Experts (MoE) earlier in this article pays off again. [Llama 4](https://ai.meta.com/blog/llama-4-multimodal-intelligence/) has also adopted an MoE approach and otherwise follows a relatively standard architecture that is very similar to DeepSeek V3, as shown in the figure below. (Llama 4 includes native multimodal support, similar to models like Gemma and Mistral. However, since this article focuses on language modeling, we only focus on the text model.)
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-019.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-018.png)
 
 Figure 17: An architecture comparison between DeepSeek V3 (671-billion parameters) and Llama 4 Maverick (400-billion parameters).
 
@@ -344,13 +345,13 @@ Now, Qwen3 is another hit model series at the top of the leaderboards for their 
 
 (By the way, note that the missing whitespace in "Qwen3" is not a typo; I simply try to preserve the original spelling the Qwen developers chose.)
 
-## **6.1 Qwen3 (Dense)**
+### **6.1 Qwen3 (Dense)**
 
 Let's discuss the dense model architecture first. As of this writing, the 0.6B model may well be the smallest current-generation open-weight model out there. And based on my personal experience, it performs really well given its small size. It has great token/sec throughput and a low memory footprint if you are planning to run it locally. But what's more, it's also easy to train locally (for educational purposes) due to its small size.
 
 So, Qwen3 0.6B has replaced Llama 3 1B for me for most purposes. A comparison between these two architectures is shown below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-020.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-019.png)
 
 Figure 18: An architecture comparison between Qwen3 0.6B and Llama 3 1B; notice that Qwen3 is a deeper architecture with more layers, whereas Llama 3 is a wider architecture with more attention heads.
 
@@ -358,7 +359,7 @@ If you are interested in a human-readable Qwen3 implementation without external 
 
 The computational performance numbers in the figure above are based on my from-scratch PyTorch implementations when run on an A100 GPU. As one can see, Qwen3 has a smaller memory footprint as it is a smaller architecture overall, but also uses smaller hidden layers and fewer attention heads. However, it uses more transformer blocks than Llama 3, which leads to a slower runtime (lower tokens/sec generation speed).
 
-## **6.2 Qwen3 (MoE)**
+### **6.2 Qwen3 (MoE)**
 
 As mentioned earlier, Qwen3 also comes in two MoE flavors: 30B-A3B and 235B-A22B. Why do some architectures, like Qwen3, come as regular (dense) and MoE (sparse) variants?
 
@@ -372,7 +373,7 @@ By releasing both types, the Qwen3 series can support a broader range of use cas
 
 To round up this section, let's look at Qwen3 235B-A22B (note that the A22B stands for "22B active parameters) to DeepSeek V3, which has almost twice as many active parameters (37B).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-021.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-020.png)
 
 Figure 19: An architecture comparison between DeepSeek V3 and Qwen3 235B-A22B.
 
@@ -390,23 +391,23 @@ Unfortunately, the Qwen3 team did not disclose any reason as to why they moved a
 
 Moreover, it also shared a lot of the training details, similar to OLMo, which is rare and always appreciated!
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-022.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-021.png)
 
 *Figure 20: An annotated figure from the SmolLM3 announcement post, https://huggingface.co/blog/smollm3, comparing the SmolLM3 win rate to Qwen3 1.7B and 4B as well as Llama 3 3B and Gemma 3 4B.*
 
 As shown in the architecture comparison figure below, the SmolLM3 architecture looks fairly standard. The perhaps most interesting aspect is its use of NoPE (No Positional Embeddings), though.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-023.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-022.png)
 
 Figure 21: A side-by-side architecture comparison between Qwen3 4B and SmolLM3 3B.
 
-## **7.1 No Positional Embeddings (NoPE)**
+### **7.1 No Positional Embeddings (NoPE)**
 
 NoPE is, in LLM contexts, an older idea that goes back to a 2023 paper ([The Impact of Positional Encoding on Length Generalization in Transformers](https://arxiv.org/abs/2305.19466)) to remove explicit positional information injection (like through classic absolute positional embedding layers in early GPT architectures or nowadays RoPE).
 
 In transformer-based LLMs, positional encoding is typically necessary because self-attention treats tokens independently of order. Absolute position embeddings solve this by adding an additional embedding layer that adds information to the token embeddings.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-024.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-023.png)
 
 Figure 22: A modified figure from my Build A Large Language Model (From Scratch) book (https://www.amazon.com/Build-Large-Language-Model-Scratch/dp/1633437167) illustrating absolute positional embeddings.
 
@@ -420,7 +421,7 @@ So while there is no positional information that is explicitly added, there is s
 
 So, overall, the [NoPE paper](https://arxiv.org/abs/2305.19466) not only found that no positional information injection is necessary, but it also found that NoPE has better length generalization, which means that LLM answering performance deteriorates less with increased sequence length, as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-025.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-024.png)
 
 Figure 23: An annotated figure from the NoPE paper (https://arxiv.org/abs/2305.19466) showing better length generalization with NoPE.
 
@@ -438,7 +439,7 @@ While people commented that the loss was exceptionally smooth (due to the lack o
 
 However, as mentioned in the introduction of this article, training methodologies are a topic for another time.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-026.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-025.png)
 
 Figure 24: Annotated figures from the Kimi K2 announcement blog article (https://moonshotai.github.io/Kimi-K2/) and the OLMo 2 paper (https://arxiv.org/abs/2305.19466).
 
@@ -448,7 +449,7 @@ It may be the biggest LLM of this generation as of this writing (given the const
 
 It's also coming full circle as Kimi K2 uses the DeepSeek V3 architecture we covered at the beginning of this article except they made it larger, as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-027.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-026.png)
 
 Figure 25.1: An architecture comparison between DeepSeek V3 and Kimi K2.
 
@@ -462,7 +463,7 @@ So, most likely the Kimi K2 team took these lessons to heart and shared Kimi K2 
 
 According to the [benchmarks shared by the Kimi team](https://moonshotai.github.io/Kimi-K2/thinking.html), the model exceeds the performance of the leading proprietary LLMs. (Unfortunately, there is no direct comparison to DeepSeek R1.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-028.jpg)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-027.jpg)
 
 Figure 25.2: DeepSeek R1 versus Kimi K2 Thinking architecture (top) and Kimi K2 Thinking benchmarks (bottom).
 
@@ -470,25 +471,25 @@ Figure 25.2: DeepSeek R1 versus Kimi K2 Thinking architecture (top) and Kimi K2 
 
 OpenAI’s [released](https://openai.com/index/introducing-gpt-oss/) gpt-oss-120b and gpt-oss-20b, their first open-weight models since GPT-2 in 2019, about one week after I wrote this article. Since OpenAI’s open-weight models have been so widely anticipated, I updated this article to include them. I will keep this section brief, but I have written another, much more detailed article dedicated to the gpt-oss models here:
 
-![From GPT-2 to gpt-oss: Analyzing the Architectural Advances](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-029.png)
+![From GPT-2 to gpt-oss: Analyzing the Architectural Advances](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-028.png)
 
-> 🔗 **Related:** [From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the) — Sebastian Raschka, PhD · 9 August 2025
+> 🔗 **Related:** [From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the) — Sebastian Raschka, PhD · August 9, 2025
 
 Before summarizing the interesting tidbits, let's start with an overview of the two models, gpt-oss-20b and gpt-oss-120b, as shown in Figure 26 below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-030.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-029.png)
 
 Figure 26: Architecture overview of the two gpt-oss models.
 
 Looking at Figure 26, the architecture contains all the familiar components we have seen in other architectures discussed previously. For instance, Figure 27 puts the smaller gpt-oss architecture next to Qwen3 30B-A3B, which is also an MoE model with a similar number of active parameters (gpt-oss has 3.6B active parameters, and Qwen3 30B-A3B has 3.3B).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-031.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-030.png)
 
 Figure 27: Architecture comparison between gpt-oss and Qwen3
 
 One aspect not shown in Figure 27 is that gpt-oss uses sliding window attention (similar to Gemma 3, but in every other layer instead of using a 5:1 ratio).
 
-### **9.1 Width Versus Depth**
+#### **9.1 Width Versus Depth**
 
 Figure 27 shows that gpt-oss and Qwen3 use similar components. But if we look at the two models closely, we see that Qwen3 is a much deeper architecture with its 48 transformer blocks instead of 24.
 
@@ -506,31 +507,31 @@ Wider architectures have the advantage of being faster during inference (with a 
 
 When it comes to modeling performance, there's unfortunately no good apples-to-apples comparison I am aware of (where parameter size and datasets are kept constant) except for an ablation study in the [Gemma 2 paper (Table 9)](https://arxiv.org/abs/2408.00118), which found that for a 9B parameter architecture, a wider setup is slightly better than a deeper setup. Across 4 benchmarks, the wider model achieved a 52.0 average score, and the deeper model achieved a 50.8 average score.
 
-### **9.2 Few Large Versus Many Small Experts**
+#### **9.2 Few Large Versus Many Small Experts**
 
 As shown in Figure 27 above, it's also noteworthy that gpt-oss has a surprisingly small number of experts (32 instead of 128), and only uses 4 instead of 8 active experts per token. However, each expert is much larger than the experts in Qwen3.
 
 This is interesting because the recent trends and developments point towards more, smaller models as being beneficial. This change, at a constant total parameter size, is nicely illustrated in Figure 28 below from the DeepSeekMoE paper.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-032.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-031.png)
 
 Figure 28: An annotated figure from "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models", https://arxiv.org/abs/2401.06066
 
 Notably, unlike DeepSeek's models, neither gpt-oss nor Qwen3 uses shared experts, though.
 
-### **9.3 Attention Bias and Attention Sinks**
+#### **9.3 Attention Bias and Attention Sinks**
 
 Both gpt-oss and Qwen3 use grouped query attention. The main difference is that gpt-oss restricts the context size via sliding window attention in each second layer, as mentioned earlier.
 
 However, there's one interesting detail that caught my eye. It seems that gpt-oss uses bias units for the attention weights, as shown in Figure 29 below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-033.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-032.png)
 
 Figure 29: gpt-oss models use bias units in the attention layers. See code example here.
 
 I haven't seen these bias units being used since the GPT-2 days, and they are commonly regarded as redundant. Indeed, I found a recent paper that shows mathematically that this is at least true for the key transformation (`k_proj`). Furthermore, the empirical results show that there is little difference between with and without bias units (see Figure 30 below).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-034.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-033.png)
 
 Figure 30: Table from https://arxiv.org/pdf/2302.08626 showing the average test loss when the models were trained from scratch with and without bias units.
 
@@ -538,15 +539,15 @@ Another detail you may have noticed is the definition of `sinks` in the code scr
 
 In the gpt-oss implementation, *attention sinks* are not actual tokens in the input sequence. Instead, they are learned per-head bias logits that are appended to the attention scores (Figure 31). The goal is the same as with the above-mentioned attention sinks, but without modifying the tokenized inputs.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-035.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-034.png)
 
 Figure 31: The use of attention sinks in gpt-oss; based on the Hugging Face code [here](https://github.com/huggingface/transformers/blame/369c99d0cea403b77bd0aef818527106453fd9fc/src/transformers/models/gpt_oss/modular_gpt_oss.py).
 
 For more information about gpt-oss, and how it compares to GPT-2, please see my other gpt-oss article:
 
-![From GPT-2 to gpt-oss: Analyzing the Architectural Advances](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-036.png)
+![From GPT-2 to gpt-oss: Analyzing the Architectural Advances](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-035.png)
 
-> 🔗 **Related:** [From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the) — Sebastian Raschka, PhD · 9 August 2025
+> 🔗 **Related:** [From GPT-2 to gpt-oss: Analyzing the Architectural Advances](https://magazine.sebastianraschka.com/p/from-gpt-2-to-gpt-oss-analyzing-the) — Sebastian Raschka, PhD · August 9, 2025
 
 ## 10. Grok 2.5
 
@@ -558,7 +559,7 @@ With Grok 2.5, we get a rare look at a real production system, even if it is las
 
 Architecturally, Grok 2.5 looks fairly standard overall (Figure 32), but there are a few noteworthy details.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-037.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-036.png)
 
 Figure 32: Grok 2.5 next to a Qwen3 model of comparable size
 
@@ -572,7 +573,7 @@ Another interesting choice is the use of what amounts to a shared expert. The ad
 
 It is an instruction/reasoning hybrid similar to Qwen3, but even better optimized for function calling and agent-style contexts.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-038.jpg)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-037.jpg)
 
 Figure 33: GLM-4.5 benchmark from the official GitHub repository at https://github.com/zai-org/GLM-4.5
 
@@ -580,7 +581,7 @@ As shown in Figure 34, GLM-4.5 comes in two variants. The flagship 355-billion-p
 
 Figure 35 compares the 355-billion architecture to Qwen3.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-039.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-038.png)
 
 Figure 34: GLM-4.5 next to a similarly-sized Qwen3 model.
 
@@ -594,21 +595,21 @@ Also, GLM-4.5 uses a shared expert similar to DeepSeek V3 (and unlike Qwen3).
 
 On 11 September 2025, the Qwen3 team released Qwen3 Next 80B-A3B (Figure 35), available in both Instruct and Thinking variants. While its design builds on the previously discussed Qwen3 architecture, I included it here as a separate entry to keep the figure numbering consistent and to draw attention to some of its design changes.
 
-## **12.1 Expert Size and Number**
+### **12.1 Expert Size and Number**
 
 The new Qwen3 Next architecture stands out because, despite being 3× smaller than the previous 235B-A22B model (Figure 35), it introduces four times as many experts and even adds a shared expert. Both of these design choices (a high expert count and the inclusion of a shared expert) were future directions I had highlighted prior to this release, particularly in the video version of the article that I linked at the top.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-040.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-039.png)
 
 Figure 35: The original Qwen3 model released in May (left) next to the Qwen3 Next model released in September (right).
 
-## **12.2 Gated DeltaNet + Gated Attention Hybrid**
+### **12.2 Gated DeltaNet + Gated Attention Hybrid**
 
 The other highlight is that they replace the regular attention mechanism by a [Gated DeltaNet](https://arxiv.org/abs/2412.06464) + [Gated Attention](https://arxiv.org/abs/2505.06708) hybrid, which helps enable the native 262k token context length in terms of memory usage (the previous 235B-A22B model model supported 32k natively, and 131k with [YaRN](https://arxiv.org/abs/2309.00071) scaling.)
 
 So how does this new attention hybrid work? Compared to grouped‑query attention (GQA), which is still standard scaled dot‑product attention (sharing K/V across query‑head groups to cut KV‑cache size and memory bandwidth as discussed earlier but whose decode cost and cache still grow with sequence length), their hybrid mechanism mixes *Gated DeltaNet* blocks with *Gated Attention* blocks with in a 3:1 ratio as shown in Figure 36.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-041.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-040.png)
 
 Figure 36: The Gated DeltaNet + Gated Attention hybrid mechanism. Note that these are arranges in a 3:1 ratio, meaning that 3 transformer blocks with Gated DeltaNet are followed by 1 transformer block with Gated Attention. The right subfigure is from the official Qwen3 blog: [https://qwen.ai/blog?id=4074cca80393150c248e508aa62983f9cb7d27cd&from=research.latest-advancements-list](https://qwen.ai/blog?id=4074cca80393150c248e508aa62983f9cb7d27cd&from=research.latest-advancements-list)
 
@@ -628,7 +629,7 @@ However, the tradeoff is that DeltaNet offers less precise content‑based retri
 
 Given that attention grows quadratically, the DeltaNet component was added to help with memory efficiency. In the "linear-time, cache-free" family, the DeltaNet block is a essentially an alternative to Mamba. Mamba keeps a state with a learned state-space filter (essentially a dynamic convolution over time). DeltaNet keeps a tiny fast-weight memory updated with α and β and reads it with q, with small convolutions only used only to help form q, k, v, α, β.
 
-## **12.3 Multi-Token Prediction**
+### **12.3 Multi-Token Prediction**
 
 The two subsections above describe two design decisions geared towards efficiency. Since all good things come in threes, the Qwen3 also adds another efficiency-technique on top: [Multi-Token Prediction](https://arxiv.org/abs/2404.19737) (MTP).
 
@@ -638,7 +639,7 @@ Multi-token prediction trains the LLM to predict several future tokens, instead 
 
 > Qwen3-Next introduces a native Multi-Token Prediction (MTP) mechanism, which not only yields an MTP module with a high acceptance rate for Speculative Decoding but also enhances the overall performance.Additionally, Qwen3-Next specifically optimizes the multi-step inference performance of MTP, further improving the acceptance rate of Speculative Decoding in real scenarios through multi-step training that maintains consistency between training and inference. [Souce: Qwen3-Next blog post](https://qwen.ai/blog?id=4074cca80393150c248e508aa62983f9cb7d27cd&from=research.latest-advancements-list)
 
-## **12.4 Qwen3-Coder-Next**
+### **12.4 Qwen3-Coder-Next**
 
 In early February 2026, the Qwen3 team [shared](https://github.com/QwenLM/Qwen3-Coder/blob/main/qwen3_coder_next_tech_report.pdf) the 80B Qwen3-Coder-Next model (3B parameters active), which made big headlines for outperforming much larger models like DeepSeek V3.2 (37B active) and Kimi K2.5 and GLM-7.5 (both 32B active) on coding tasks.
 
@@ -652,19 +653,19 @@ Recently, open-weight LLM developers shared flavors of their core architectures 
 
 Now, [MiniMax-M1](https://arxiv.org/abs/2506.13585) falls into a similar category to the models above, in that it uses a linear attention variant (lightning attention) that offers improved efficiency over regular (full) attention. I originally didn’t cover MiniMax M1 as it wasn’t quite as popular as some of the other models discussed here. However, their new [MiniMax-M2](https://huggingface.co/MiniMaxAI/MiniMax-M2) release is currently considered the best open-weight model (according to benchmark performance), which makes it too big to ignore.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-042.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-041.png)
 
 Figure 37: MiniMax-M2 benchmark performance compared to other popular open-weight and proprietary LLMs. Image from the official model hub release [readme](https://huggingface.co/MiniMaxAI/MiniMax-M2) file.
 
 As shown in the overview figure below, I grouped MiniMax-M2 with the other decoder-style transformer LLMs as it does not use the efficient lightning attention variant proposed in MiniMax-M1. Instead, the developers went back to using full attention, likely to improve modeling (and benchmark) performance.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-043.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-042.png)
 
 Figure 38: A timeline of the main LLMs covered in this article, next to some of the attention-hybrid models that constitute more efficient alternatives, trading off some modeling performance with improved efficiency.
 
 Overall, MiniMax-M2 is surprisingly similar to Qwen3. Besides changing the number of layers, sizes, etc., it uses the same components overall.
 
-## 13.1 Per-Layer QK-Norm
+### 13.1 Per-Layer QK-Norm
 
 Perhaps the one noteworthy highlight here is that MiniMax-M2 uses a so-called “per\_layer” QK-Norm instead of the regular QK-Norm. A closer look at the [code](https://github.com/vllm-project/vllm/blob/main/vllm/model_executor/models/minimax_m2.py#L222C23-L222C45) reveals that it is implemented like this inside the attention mechanism:
 
@@ -682,17 +683,17 @@ The [model configuration file](https://huggingface.co/Qwen/Qwen3-235B-A22B/blob/
 
 Otherwise, besides the per-layer QK-Norm, the architecture is very similar to Qwen3, as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-044.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-043.png)
 
 Figure 39: Comparison between Qwen3 and MiniMax-M2.
 
-## 13.2 MoE Sparsity
+### 13.2 MoE Sparsity
 
 Other interesting tidbits, as shown in the figure below, include the fact that they don’t use a shared expert (similar to Qwen3 but unlike Qwen3-Next). As mentioned earlier, in my opinion, shared experts are useful because they reduce redundancy among the other experts.
 
 Also, as apparent from the figure above, MiniMax-M2 is twice as “sparse” as Qwen3. I.e., at roughly the same size as Qwen3 235B-A22B, MiniMax-M2 has only 10B instead of 22B active experts per token (that is, 4.37% of the parameters are used in each inference step in MiniMax-M2, whereas Qwen3 uses 9.36% active tokens).
 
-## 13.3 Partial RoPE
+### 13.3 Partial RoPE
 
 Lastly, similar to MiniMax-M1, MiniMax-M2 uses a “partial” instead of regular RoPE inside the attention modules to encode positional information. Similar to regular RoPE, the rotations are applied to the queries and keys after applying QK-Norm.
 
@@ -723,25 +724,19 @@ There’s recently been a revival in linear attention mechanisms to improve the 
 
 The attention mechanism introduced in the Attention Is All You Need paper (2017), aka scaled-dot-product attention, remains the most popular attention variant in today’s LLMs. Besides traditional multi-head attention, it’s also used in the more efficient flavors like grouped-query attention, sliding window attention, and multi-head latent attention.
 
-## **14.1 Traditional Attention and Quadratic Costs**
+### **14.1 Traditional Attention and Quadratic Costs**
 
 The original attention mechanism scales quadratically with the sequence length:
 
-Attention(Q,K,V)\=softmax(QK⊤d)V
+\\(\\text{Attention}(Q, K, V) = \\text{softmax}\\!\\left(\\frac{QK^\\top}{\\sqrt{d}}\\right)V \\)
 
 This is because the query (Q), key (K), and value (V) are *n*\-by-*d* matrices, where *d* is the embedding dimension (a hyperparameter) and *n* is the sequence length (i.e., the number of tokens).
 
 You can find more details on attention in my other article:
 
-![Understanding and Coding Self-Attention, Multi-Head Attention, Causal-Attention, and Cross-Attention in LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-045.png)
+![Understanding and Coding Self-Attention, Multi-Head Attention, Causal-Attention, and Cross-Attention in LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-044.png)
 
-[
-
-#### Understanding and Coding Self-Attention, Multi-Head Attention, Causal-Attention, and Cross-Attention in LLMs
-
-14 January 2024
-
-](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention)
+> 🔗 **Related:** [Understanding and Coding Self-Attention, Multi-Head Attention, Causal-Attention, and Cross-Attention in LLMs](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention) · January 14, 2024
 
 [](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention)[
 
@@ -749,15 +744,15 @@ Read full story
 
 ](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention)
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-046.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-045.png)
 
 Figure 40: Illustration of the quadratic cost in attention due to sequence length *n*.
 
-## **14.2 Linear attention**
+### **14.2 Linear attention**
 
 Linear attention variants have been around for a long time, and I remember seeing tons of papers in the 2020s. For example, one of the earliest I recall is the 2020 [Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention](https://arxiv.org/abs/2006.16236) paper, where the researchers approximated the attention mechanism:
 
-Attention(Q,K,V)\=softmax(QK⊤d)V≈ϕ(Q)(ϕ(K)⊤V)
+\\(\\text{Attention}(Q, K, V) = \\text{softmax}\\!\\left(\\frac{QK^\\top}{\\sqrt{d}}\\right)V \\approx \\phi(Q)\\big(\\phi(K)^\\top V\\big)\\)
 
 Here, φ(·) is a kernel feature function, set to φ(x) = elu(x) + 1 .
 
@@ -767,7 +762,7 @@ I don’t want to dwell too long on these older attempts. But the bottom line wa
 
 However, they never really gained traction as they degraded the model accuracy, and I have never really seen one of these variants applied in an open-weight state-of-the-art LLM.
 
-## **14.3 Linear Attention Revival**
+### **14.3 Linear Attention Revival**
 
 In the second half of this year, there was a bit of a revival of linear attention variants. The first notable model was [MiniMax-M1](https://arxiv.org/abs/2506.13585) with lightning attention, a 456B parameter mixture-of-experts (MoE) model with 46B active parameters, which came out back in June.
 
@@ -777,17 +772,17 @@ Interestingly, there was a recent plot twist, where the MiniMax team released th
 
 This could have been a turning point where linear attention may not be worth pursuing after all. However, it gets more interesting. In October, the Kimi team released their new [Kimi Linear](https://arxiv.org/abs/2510.26692) model with linear attention.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-047.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-046.png)
 
 Figure 41: An overview of the linear attention hybrid architectures.
 
 Side note: I could have grouped Qwen3-Next and Kimi Linear with the other transformer-state space model (SSM) hybrids in the overview figure. Personally, I see these other transformer-SSM hybrids as SSMs with transformer components, whereas I see the models discussed here (Qwen3-Next and Kimi Linear) as transformers with SSM components. However, since I have listed IBM Granite 4.0 and NVIDIA Nemotron Nano 2 in the transformer-SSM box, an argument could be made for putting them into a single category.
 
-## **14.4 Kimi Linear vs. Qwen3-Next**
+### **14.4 Kimi Linear vs. Qwen3-Next**
 
 Kimi Linear shares several structural similarities with Qwen3-Next. Both models rely on a hybrid attention strategy. Concretely, they combine lightweight linear attention with heavier full attention layers. Specifically, both use a 3:1 ratio, meaning for every three transformer blocks employing the linear Gated DeltaNet variant, there’s one block that uses full attention as shown in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-048.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-047.png)
 
 Figure 42: Qwen3-Next and Kimi Linear side by side.
 
@@ -797,7 +792,7 @@ Note that the omission of the RoPE box in the Kimi Linear part of the figure abo
 
 **In addition, I’ve written more about Gated DeltaNet [here](https://sebastianraschka.com/llms-from-scratch/ch04/08_deltanet/).**
 
-## **14.5 Kimi Delta Attention**
+### **14.5 Kimi Delta Attention**
 
 Kimi Linear modifies the linear attention mechanism of Qwen3-Next by the Kimi Delta Attention (KDA) mechanism, which is essentially a refinement of Gated DeltaNet. Whereas Qwen3-Next applies a scalar gate (one value per attention head) to control the memory decay rate, Kimi Linear replaces it with a channel-wise gating for each feature dimension. According to the authors, this gives more control over the memory, and this, in turn, improves long-context reasoning.
 
@@ -805,7 +800,7 @@ In addition, for the full attention layers, Kimi Linear replaces Qwen3-Next’s 
 
 There’s no direct comparison to Qwen3-Next, but compared to the Gated DeltaNet-H1 model from the Gated DeltaNet paper (which is essentially Gated DeltaNet with sliding-window attention), Kimi Linear achieves higher modeling accuracy while maintaining the same token-generation speed.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-049.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-048.png)
 
 Figure 43: Annotated figure from the Kimi Linear paper showing that Kimi Linear is as fast as GatedDeltaNet, and much faster than an architecture with multi-head latent attention (like DeepSeek V3/R1), while having a higher benchmark performance.
 
@@ -825,7 +820,7 @@ The closest model to compare Olmo 3 to would be Qwen3, as the Qwen3 series has t
 
 First, let’s take a look at the smaller of the two, Olmo 3 7B.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-050.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-049.png)
 
 Figure 44: Olmo 3 7B and Qwen3 8B side by side.
 
@@ -837,7 +832,7 @@ Interestingly, the 7B model still uses multi-head attention similar to Olmo 2. H
 
 Next, let’s look at the 32B model.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-051.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-050.png)
 
 Figure 45: Olmo 3 32B and Qwen3 32B side by side.
 
@@ -853,7 +848,7 @@ In Qwen3, YaRN is optional to extend the native context from 32k tokens to 131k 
 
 If you are interested in additional architecture details, I implemented Olmo 3 from scratch in a standalone notebook [here](https://github.com/rasbt/LLMs-from-scratch/blob/main/ch05/13_olmo3/standalone-olmo3.ipynb).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-052.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-051.png)
 
 Figure 46: [Olmo 3 from-scratch implementation](https://github.com/rasbt/LLMs-from-scratch/blob/main/ch05/13_olmo3/standalone-olmo3.ipynb)
 
@@ -861,7 +856,7 @@ Figure 46: [Olmo 3 from-scratch implementation](https://github.com/rasbt/LLMs-fr
 
 This article started with DeepSeek V3, which was released back in December 2024. There have been multiple DeepSeek releases back then, but I largely skipped them as they were not big flagship-model releases like DeepSeek V3 and DeepSeek R1.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-053.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-052.png)
 
 Figure 47: A timeline of the DeepSeek model releases since DeepSeek V3. The main models are shown in red.
 
@@ -869,15 +864,15 @@ However, DeepSeek V3.2 was a really big release as it is on par with the current
 
 The architecture is overall similar to DeepSeek V3 but they added a sparse attention mechanism to improve efficiency.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-054.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-053.png)
 
 Figure 48: The DeepSeek model architecture with multi-head latent and sparse attention.
 
 I originally planned to write a short section about DeepSeek V3.2 for this article, but it turned into a >5000 word write-up, so I moved it to a separate article, which I linked below:
 
-![A Technical Tour of the DeepSeek Models from V3 to V3.2](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-055.png)
+![A Technical Tour of the DeepSeek Models from V3 to V3.2](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-054.png)
 
-> 🔗 **Related:** [A Technical Tour of the DeepSeek Models from V3 to V3.2](https://magazine.sebastianraschka.com/p/technical-deepseek) — Sebastian Raschka, PhD · 3 December 2025
+> 🔗 **Related:** [A Technical Tour of the DeepSeek Models from V3 to V3.2](https://magazine.sebastianraschka.com/p/technical-deepseek) — Sebastian Raschka, PhD · December 3, 2025
 
 ## 17. Mistral 3
 
@@ -901,7 +896,7 @@ Since the release of Mistral 3 was just one day after DeepSeek V3.2’s release,
 
 Unfortunately, it’s not possible to do an apples-to-apples comparison right now, because Mistral 3 Large currently doesn’t have a reasoning model, and DeepSeek V3.2 didn’t share the benchmark results for their non-thinking mode, but in case you are curious, I overlaid the DeepSeek V3.2-Thinking numbers (from the [DeepSeek V3.2 report](https://arxiv.org/abs/2512.02556)) with the Mistral 3 Large benchmark chart.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-056.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-055.png)
 
 Figure 49: Mistral 3 Large benchmarks from the [Mistral 3 announcement](https://mistral.ai/news/mistral-3), with the DeepSeek V3.2 results (from the [DeepSeek V3.2 paper](https://arxiv.org/abs/2512.02556)) overlayed on top of it.
 
@@ -915,7 +910,7 @@ Unfortunately, there is no technical report. that contains more information abou
 
 As it turns out, Mistral 3 Large is exactly the same architecture as DeepSeek V3 and V3.1! The only difference is that they increased the size of the experts by a factor of 2 while decreasing the number of experts by the same factor.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-057.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-056.png)
 
 Figure 50: DeepSeek V3 and Mistral 3 Large side by side.
 
@@ -937,11 +932,11 @@ According to the [announcement article](https://nvidianews.nvidia.com/news/nvidi
 
 3. and Ultra (500B).
 
-## 18.1 Nemotron 3 Nano
+### 18.1 Nemotron 3 Nano
 
 Architecture-wise, the models are a Mixture-of-Experts (MoE) Mamba-Transformer hybrid architecture. As of this writing (Dec 17), only the Nano model has been released as open-weight model, so the discussion below will focus on it, as illustrated in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-058.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-057.png)
 
 Figure 51.1: Outline of the Nemotron 3 Nano model, which is a Transformer-Mamba hybrid.
 
@@ -953,9 +948,9 @@ Regarding the MoE modules, each MoE layer contains 128 experts but activates onl
 
 The Mamba-2 layers would take a whole article itself to explain (perhaps a topic for another time). But for now, conceptually, you can think of them as similar to the Gated DeltaNet approach that Qwen3-Next and Kimi-Linear use, which I introduced above. You can also read more about it in my other Beyond Standard LLMs article:
 
-![Beyond Standard LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-059.jpg)
+![Beyond Standard LLMs](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-058.jpg)
 
-> 🔗 **Related:** [Beyond Standard LLMs](https://magazine.sebastianraschka.com/p/beyond-standard-llms) — Sebastian Raschka, PhD · 4 November 2025
+> 🔗 **Related:** [Beyond Standard LLMs](https://magazine.sebastianraschka.com/p/beyond-standard-llms) — Sebastian Raschka, PhD · November 4, 2025
 
 The similarity between Gated DeltaNet and Mamba-2 layers is that both replace standard attention with a gated-state-space update. The idea behind this state-space-style module is that it maintains a running hidden state and mixes new inputs via learned gates. In contrast to attention, it scales linearly instead of quadratically with the input sequence length.
 
@@ -963,7 +958,7 @@ What’s actually quite exciting about this architecture is its really good perf
 
 Overall, this is an interesting direction, even more extreme than Qwen3-Next and Kimi-Linear in its use of only a few attention layers. However, one of the strengths of the transformer architecture is its performance at a (really) large scale. I am curious to see how Nemotron 3 Super and especially Ultra will compare to the likes of DeepSeek V3.2.
 
-## 18.2 Nemotron 3 Super
+### 18.2 Nemotron 3 Super
 
 On March 11, 2026, NVIDIA now also released the 120B Super version as [open-weight models](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16) on the Hugging Face Hub alongside a nice new “[Super”-focused technical report](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Super-Technical-Report.pdf).
 
@@ -973,7 +968,7 @@ First Nemotron 3 Super uses [Multi-Token Prediction (MTP)](https://arxiv.org/abs
 
 Instead of training the model only with the standard next-token objective, MTP also trains it to predict multiple future token offsets from the same position. This provides a richer training signal and, according to the Super report, improves both modeling quality and inference efficiency.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-060.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-059.png)
 
 Figure 51.2: Multi-Token Prediction versus regular next token prediction. (Left subfigure inspired by the [MTP paper](https://arxiv.org/abs/2404.19737).) Originally, MTP was only used during training, not inference; hence, the inference time steps (bottom) show a single next-token prediction.
 
@@ -985,13 +980,13 @@ Since this is not quite standard MTP, it is perhaps more accurate to describe Ne
 
 The second main difference compared to Nano is that the Super architecture uses latent experts, meaning that the experts operate in latent space (the inputs to the MoE layer are down-projected from 4096 to 1024 dimensions, the experts are applied, and then the outputs are up-projected back from 1024 to 4096 dimensions.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-061.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-060.png)
 
 Figure 51.3: Nemotron 3 Super 120B-A12B with latent MoE layers, multi-token prediction, and the Mamba-2 hybrid attention approach.
 
 Benchmark-wise Nemotron 3 Super is on par with Qwen3.5 122B-A10B and GPT-OSS 120B, but the throughput, thanks to the aforementioned “tricks” (MTP, latent MoE, and hybrid attention) is great: 2x faster than Qwen3.5 122B-A10B and (regarding the NVFP4 version) 2.2x faster than GPT-OSS 120B.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-062.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-061.png)
 
 Figure 51.4: Nemotron 3 Super benchmark comparison from the [Hugging Face Hub](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16/blob/main/accuracy_chart.png) page.
 
@@ -1001,7 +996,7 @@ There’s been another impressive entry in December 2025. Xiaomi released their 
 
 Interestingly, it uses sliding window attention (SWA) in a 5:1 ratio with global (regular) attention, similar to Gemma 3 (see section 3). However, it uses a much more aggressive sliding window size (128) that is 8 times smaller than Gemma 3 (1024).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-063.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-062.png)
 
 Figure 52: Xiaomi MiMo-V2-Flash compared to DeepSeek V3.2, which has similar benchmark performance.
 
@@ -1015,7 +1010,7 @@ It’s been a while since the last LLM architecture addition. On January 27, Arc
 
 Their flagship large model is a 400B param MoE (13B active params). The two smaller variants are Trinity Mini (26B with 3B active parameters) and Trinity Nano (6B with 1B active parameters).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-064.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-063.png)
 
 Figure 53: Overview of the Trinity Large architecture (based on the model hub [config file](https://huggingface.co/arcee-ai/Trinity-Large-Preview/blob/main/config.json)).
 
@@ -1023,7 +1018,7 @@ Along with the model weights, Arcee AI also released a nice [technical report](h
 
 So, let’s take a closer look at the 400B flagship model. The figure below compares it to the previously discussed GLM 4.5 (section 11), which is perhaps the most similar and is also relatively small. Also, the Trinity technical report showed that the modeling performance of the Trinity Large and GLM-4.5 base models are practically identical (I assume they didn’t compare it to more recent base models because many companies only share their fine-tuned models these days.)
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-065.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-064.png)
 
 Figure 54: Arcee AI Trinity Large next to GLM 4.5 of a relatively similar size (400B vs 355B).
 
@@ -1037,7 +1032,7 @@ They also have a form of gated attention. They don’t have the full-blown Gated
 
 But they modified the standard attention by adding elementwise gating to the scaled dot-product before the output linear projection (as shown in the figure below), which reduces attention sinks and improves long-sequence generalization. Additionally, it also helped with training stability.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-066.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-065.png)
 
 Figure 55: Illustration of the gating mechanism that Trinity Large uses in the attention mechanism.
 
@@ -1057,7 +1052,7 @@ Compared to the GLM-4.5 model I covered earlier in this article (see section 11,
 
 Similar to GLM-4.5, GLM-5 is a Mixture-of-Experts (section 1.2) model, and the number of active parameters per token is only increased slightly: 40B in GLM-5 versus 32B in GLM-4.5.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-067.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-066.png)
 
 Figure 56: Architecture of GLM-5 and GLM-4.5 side by side.
 
@@ -1067,7 +1062,7 @@ Other than that, the architecture is relatively similar. The increased size is m
 
 I usually don’t include benchmarks here since this article is focused on the architecture. If I were to include training details and evaluations, this article would grow way out of scope and length. That being said, I saw that I included the GLM-4.5 benchmark back in July 2025, so I will make another exception here, because the benchmarks look truly impressive and on par with all major flagship LLM offerings (GPT-5.2 extra-high, Gemini Pro 3, and Claude 4.6 Opus). But again, it’s worth highlighting that benchmark performance isn’t necessarily equal to real-world performance.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-068.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-067.png)
 
 Figure 57: GLM architectures next to benchmarks. The GLM-4.7 architecture is similar to GLM-4.5. The benchmarks are taken from the GLM-5 release blog post: https://z.ai/blog/glm-5
 
@@ -1099,35 +1094,13 @@ In total, there have been 10 interesting open-weight LLM releases between Januar
 
 I covered Arcee AI’s Trinity Large and z.AI’s GLM-5 in sections 19 and 20 above. However, since there was a lot of content to cover for the January-February time period, I wrote a standalone article with more information about the 10 architectures listed above here:
 
-[
-
-## A Dream of Spring for Open-Weight LLMs: 10 Architectures from Jan-Feb 2026
-
-](https://magazine.sebastianraschka.com/p/a-dream-of-spring-for-open-weight)
-
-[Sebastian Raschka, PhD](https://substack.com/profile/27393275-sebastian-raschka-phd)
-
-·
-
-25 Feb
-
-![A Dream of Spring for Open-Weight LLMs: 10 Architectures from Jan-Feb 2026](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-069.png)
-
-If you have struggled a bit to keep up with open-weight model releases this month, this article should catch you up on the main themes.
-
-[
-
-Read full story
-
-](https://magazine.sebastianraschka.com/p/a-dream-of-spring-for-open-weight)
-
 ## 23. Gemma 4
 
 After the Nemotron 3 Super release in March, the rest of the month was relatively quiet for flagship open-weight model releases. While I am still waiting for DeepSeek-V4, April at least brought us Google’s Gemma 4.
 
 Architecture-wise, Gemma 4 (31B) looks pretty much unchanged compared to Gemma 3 (27B), as illustrated in the figure below.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-070.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-068.png)
 
 Figure 58: Gemma 3 (27B) and Gemma 4 (31B) side by side.
 
@@ -1141,19 +1114,19 @@ Furthermore, Gemma 4 also uses p-RoPE, where only 25% of the frequency pairs get
 
 But let’s not be fooled by the lack of big(ger) architectural changes. Looking at the benchmarks, Gemma 4 is a huge leap from Gemma 3! For instance, on the [AI Arena Leaderboard](https://arena.ai/leaderboard/text), Gemma 4 (31B) ranks similarly to the much larger Qwen3.5-397B-A17B model. But as I discussed in my model evaluation article (linked below), arena scores are a bit problematic as they can be gamed and are biased towards human (style) preference.
 
-![Understanding the 4 Main Approaches to LLM Evaluation (From Scratch)](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-071.png)
+![Understanding the 4 Main Approaches to LLM Evaluation (From Scratch)](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-069.png)
 
-> 🔗 **Related:** [Understanding the 4 Main Approaches to LLM Evaluation (From Scratch)](https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches) — Sebastian Raschka, PhD · 5 October 2025
+> 🔗 **Related:** [Understanding the 4 Main Approaches to LLM Evaluation (From Scratch)](https://magazine.sebastianraschka.com/p/llm-evaluation-4-approaches) — Sebastian Raschka, PhD · October 5, 2025
 
 However, if we look at some other common benchmarks, which I plotted below, we can see that it’s indeed a very clear leap over Gemma 3 and ranks on par with Qwen3.5 27B.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-072.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-070.png)
 
 Figure 59: Gemma 3 versus Gemma 4 versus Qwen3.5 (the numbers are taken from the [Gemma 4](https://huggingface.co/google/gemma-4-31B) and [Qwen3.5](https://huggingface.co/Qwen/Qwen3.5-27B) model hub pages).
 
 Note that there is also a Mixture-of-Experts (MoE) Gemma 4 variant, which is illustrated below next to a Qwen3 model of similar size.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-073.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-071.png)
 
 Figure 60: Qwen3 Coder Flash compared to Gemma 4 MoE.
 
@@ -1161,13 +1134,13 @@ As the figure above shows, the approaches are relatively similar except that Gem
 
 Benchmark-wise, the Gemma 4 MoE variant, which has 4B parameters less in total than the Gemma 4 (31B) dense variant, the performances are relatively similar.
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-074.png)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-072.png)
 
 Figure 61: Gemma 4 MoE (26B-A4B) is only slightly worse than Gemma 4 (31) dense.
 
 If you are interested in a visual overview of all the architectures covered here, I put together an LLM Architecture Gallery [here](https://sebastianraschka.com/llm-architecture-gallery/).
 
-![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-075.webp)
+![](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-073.webp)
 
 LLM architecture gallery at [https://sebastianraschka.com/llm-architecture-gallery/](https://sebastianraschka.com/llm-architecture-gallery/)
 
@@ -1181,16 +1154,10 @@ LLM architecture gallery at [https://sebastianraschka.com/llm-architecture-galle
 
 *Thanks for reading, and for helping support independent research!*
 
-[
-
-![Build a Large Language Model (From Scratch)](magazine-sebastianraschka-com-snap-big-llm-architecture-images/magazine-sebastianraschka-com-img-076.webp "Build a Large Language Model (From Scratch)")
-
-](https://substackcdn.com/image/fetch/$s_!RCl_!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F27a118a0-5da6-4486-b1f0-3743754d0a77_8106x4044.webp)
+![Build a Large Language Model (From Scratch)](magazine-sebastianraschka-com-snap-big-llm-architecture-images/substack-img-074.webp "Build a Large Language Model (From Scratch)")
 
 *Build a Large Language Model (From Scratch) is now available on [Amazon](https://amzn.to/4fqvn0D). Build a Reasoning Model (From Scratch) is in [Early Access at Manning](https://mng.bz/Nwr7).*
 
 If you read the book and have a few minutes to spare, I’d really appreciate a [brief review](https://www.amazon.com/Build-Large-Language-Model-Scratch/dp/1633437167). It helps us authors a lot!
 
 **Your support means a great deal! Thank you!**
-
-* * *

@@ -10,9 +10,84 @@
  * formatting.
  *
  * All three converters are pure: no I/O, no network. They take
- * already-fetched data and return strings. Image localization is the
- * caller's responsibility (run processImages after).
+ * already-fetched data and return `{markdown, imagesToDownload}`. The
+ * markdown has remote `![](http...)` refs rewritten to deterministic
+ * local filenames; the `imagesToDownload` list pairs each remote URL
+ * with its allocated local filename so the runtime caller can fetch
+ * them. Same convention as the other site-module converters (weixin,
+ * xhs, substack, etc.) — no per-converter image-rewriting code path
+ * outside the converter.
  */
+
+import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+
+// ───────────────────────────── shared types + helper ────────────────
+
+export interface GithubImageDownload {
+  remoteUrl: string;
+  localFilename: string;
+}
+
+export interface GithubConvertResult {
+  markdown: string;
+  imagesToDownload: GithubImageDownload[];
+}
+
+/**
+ * Walk markdown for `![alt](http(s)://...)` image refs. For each:
+ *   - allocate a deterministic local filename `<prefix>-img-NNN.<ext>`
+ *   - rewrite the ref in the markdown to use the local filename
+ *   - emit a (remoteUrl, localFilename) pair into `imagesToDownload`
+ *
+ * Title attributes (`(url "title")`) are preserved. Skips inline-code
+ * spans and fenced code blocks (markdown examples there shouldn't be
+ * confused for real refs). Idempotent on already-localized refs (those
+ * starting with relative paths or `<prefix>-img-`).
+ */
+export function localizeMarkdownImages(
+  md: string,
+  prefix: string,
+): { markdown: string; imagesToDownload: GithubImageDownload[] } {
+  const imagesToDownload: GithubImageDownload[] = [];
+  let imgCounter = 0;
+  const seen = new Map<string, string>();  // remoteUrl → localFilename (de-dup)
+
+  const lines = md.split("\n");
+  let inFence = false;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^```/.test(lines[i].trim())) { inFence = !inFence; continue; }
+    if (inFence) continue;
+    // Replace `![alt](url[ "title"])` where url is http(s)://...
+    lines[i] = lines[i].replace(
+      /(!\[[^\]]*\]\()(https?:\/\/[^)\s]+)((?:\s+"[^"]*")?\))/g,
+      (_full, pre: string, url: string, post: string) => {
+        let local = seen.get(url);
+        if (!local) {
+          imgCounter++;
+          const ext = guessImageExt(url);
+          local = `${prefix}-img-${String(imgCounter).padStart(3, "0")}${ext}`;
+          seen.set(url, local);
+          imagesToDownload.push({ remoteUrl: url, localFilename: local });
+        }
+        return `${pre}${local}${post}`;
+      },
+    );
+  }
+  return { markdown: applyCommonMarkdownCleanups(lines.join("\n")), imagesToDownload };
+}
+
+function guessImageExt(url: string): string {
+  try {
+    const p = new URL(url).pathname.toLowerCase();
+    const m = p.match(/\.(png|jpe?g|gif|webp|svg)(?:$|[?#])/);
+    if (m) return "." + (m[1] === "jpeg" ? "jpg" : m[1]);
+  } catch { /* fall through */ }
+  // GitHub user-attachments serve images without an extension in the URL —
+  // they're typically PNG. Default to `.png` and let the downloader honor
+  // whatever the server's Content-Type says (the file extension is just
+  // a hint anyway).
+  return ".png";
+}
 
 // ───────────────────────────── PR / issue / discussion ──────────────
 
@@ -211,9 +286,9 @@ function demoteHeadings(md: string, levels: number): string {
 /**
  * Convert HTML `<img ... src="X" ... alt="Y" .../>` tags to markdown
  * `![alt](src)`. GitHub PR/issue bodies frequently include HTML img tags
- * for size attributes. The existing processImages walker matches both
- * forms, but leaving the HTML tag in the output is ugly and the width/
- * height attributes don't render in plain markdown viewers anyway.
+ * for size attributes. We normalize to markdown form so the converter's
+ * downstream `localizeMarkdownImages` pass sees a uniform `![](url)` shape;
+ * width/height attrs don't render in plain markdown viewers anyway.
  */
 function normalizeHtmlImages(md: string): string {
   return md.replace(
@@ -229,7 +304,7 @@ function normalizeHtmlImages(md: string): string {
   );
 }
 
-export function convertGithubPrIssue(input: PrIssueConvertInput): string {
+export function convertGithubPrIssue(input: PrIssueConvertInput): GithubConvertResult {
   const metaLines = buildMetadataLines(input);
   const fm: string[] = [
     `# ${buildTitle(input)}`,
@@ -317,7 +392,8 @@ export function convertGithubPrIssue(input: PrIssueConvertInput): string {
     );
   }
 
-  return [...fm, ...blocks].join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+  const markdown = [...fm, ...blocks].join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+  return localizeMarkdownImages(markdown, "github");
 }
 
 // ──────────────────────────────── release ───────────────────────────
@@ -339,7 +415,7 @@ export interface ReleaseConvertInput {
   release: GithubRelease;
 }
 
-export function convertGithubRelease(input: ReleaseConvertInput): string {
+export function convertGithubRelease(input: ReleaseConvertInput): GithubConvertResult {
   const r = input.release;
   const title = r.name || r.tag_name || input.tag;
   const author = r.author?.login;
@@ -373,7 +449,8 @@ export function convertGithubRelease(input: ReleaseConvertInput): string {
     },
   );
 
-  return fm.join("\n") + body;
+  const markdown = fm.join("\n") + body;
+  return localizeMarkdownImages(markdown, "github");
 }
 
 // ───────────────────────────── raw markdown blob ────────────────────
@@ -389,7 +466,7 @@ export interface RawConvertInput {
   body: string;
 }
 
-export function convertGithubRaw(input: RawConvertInput): string {
+export function convertGithubRaw(input: RawConvertInput): GithubConvertResult {
   let body = input.body;
 
   // Strip a leading YAML frontmatter block (`---\n...\n---\n`) from the
@@ -412,7 +489,9 @@ export function convertGithubRaw(input: RawConvertInput): string {
   body = body.replace(/^<div\s+[^>]*>\s*\n?/gim, "");
   body = body.replace(/^<\/div>\s*\n?/gim, "");
 
-  // Resolve relative image paths to GitHub's raw-content host so processImages can fetch them.
+  // Resolve relative image paths to GitHub's raw-content host so the
+  // downstream `localizeMarkdownImages` pass can allocate local
+  // filenames + queue the fetch.
   const pathDir = input.path.includes("/") ? input.path.slice(0, input.path.lastIndexOf("/")) : "";
   const resolveBase = `https://raw.githubusercontent.com/${input.org}/${input.repo}/${input.branch}/${pathDir ? pathDir + "/" : ""}`;
   const repoBase = `https://raw.githubusercontent.com/${input.org}/${input.repo}/${input.branch}/`;
@@ -450,5 +529,6 @@ export function convertGithubRaw(input: RawConvertInput): string {
     "",
   ];
 
-  return fm.join("\n") + body.trim() + "\n";
+  const markdown = (fm.join("\n") + body.trim() + "\n").replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
+  return localizeMarkdownImages(markdown, "github");
 }
