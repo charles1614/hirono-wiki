@@ -1,0 +1,202 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/h100_model.png",
+      "localFilename": "aleksagordic-img-001.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/mem_hierarchy.png",
+      "localFilename": "aleksagordic-img-002.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/h100_sol.png",
+      "localFilename": "aleksagordic-img-003.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/clk.png",
+      "localFilename": "aleksagordic-img-004.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/cuda_model.png",
+      "localFilename": "aleksagordic-img-005.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/cuda_model2.png",
+      "localFilename": "aleksagordic-img-006.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/gmem_dram_cell.png",
+      "localFilename": "aleksagordic-img-007.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/gmem.png",
+      "localFilename": "aleksagordic-img-008.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/gmem_example.png",
+      "localFilename": "aleksagordic-img-009.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/smem_pt1.png",
+      "localFilename": "aleksagordic-img-010.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/smem_pt2.png",
+      "localFilename": "aleksagordic-img-011.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/smem_pt3.png",
+      "localFilename": "aleksagordic-img-012.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/l1.png",
+      "localFilename": "aleksagordic-img-013.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/kway.png",
+      "localFilename": "aleksagordic-img-014.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/ptx_sass_hierarchy.png",
+      "localFilename": "aleksagordic-img-015.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/cpu_kernel_example.png",
+      "localFilename": "aleksagordic-img-016.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/tile_quantization.png",
+      "localFilename": "aleksagordic-img-017.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/simple_kernel_logical.png",
+      "localFilename": "aleksagordic-img-018.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/simple_kernel.png",
+      "localFilename": "aleksagordic-img-019.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/occupancy_waves.png",
+      "localFilename": "aleksagordic-img-020.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/wave_quant.png",
+      "localFilename": "aleksagordic-img-021.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/ptx.png",
+      "localFilename": "aleksagordic-img-022.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/sass.png",
+      "localFilename": "aleksagordic-img-023.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/simple_kernel_uncoalesced_logical.png",
+      "localFilename": "aleksagordic-img-024.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/simple_kernel_uncoalesced.png",
+      "localFilename": "aleksagordic-img-025.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/roofline.png",
+      "localFilename": "aleksagordic-img-026.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/outer.png",
+      "localFilename": "aleksagordic-img-027.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/block_tile_equivalence.png",
+      "localFilename": "aleksagordic-img-028.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/arithmetic_intensity.png",
+      "localFilename": "aleksagordic-img-029.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/warp_tiling_pt1.png",
+      "localFilename": "aleksagordic-img-030.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/warp_tiling_pt2_smem_load_b.png",
+      "localFilename": "aleksagordic-img-031.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/warp_tiling_pt2_smem_load.png",
+      "localFilename": "aleksagordic-img-032.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/warp_tiling_pt3_compute.png",
+      "localFilename": "aleksagordic-img-033.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/high_level_block_structure.png",
+      "localFilename": "aleksagordic-img-034.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/swizzle_example.png",
+      "localFilename": "aleksagordic-img-035.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/swizzle_property.png",
+      "localFilename": "aleksagordic-img-036.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/swizzle_function_intuition.png",
+      "localFilename": "aleksagordic-img-037.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/swizzle_apply.png",
+      "localFilename": "aleksagordic-img-038.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/4_wgmma_calls.png",
+      "localFilename": "aleksagordic-img-039.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/better_pipeline.png",
+      "localFilename": "aleksagordic-img-040.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/kernel4_pipeline.png",
+      "localFilename": "aleksagordic-img-041.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/2wgs.png",
+      "localFilename": "aleksagordic-img-042.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/overlap_stores.png",
+      "localFilename": "aleksagordic-img-043.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/naive_schedule.png",
+      "localFilename": "aleksagordic-img-044.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/blockwise_schedule.png",
+      "localFilename": "aleksagordic-img-045.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/hilbert_schedule.png",
+      "localFilename": "aleksagordic-img-046.png"
+    },
+    {
+      "remoteUrl": "https://www.aleksagordic.com/blog/matmul/clusters.png",
+      "localFilename": "aleksagordic-img-047.png"
+    }
+  ],
+  "metadata": {
+    "title": "Inside NVIDIA GPUs: Anatomy of high performance matmul kernels",
+    "description": "From GPU architecture and PTX/SASS to warp-tiling and deep asynchronous tensor core pipelines.",
+    "publishedAt": "",
+    "authors": []
+  },
+  "stats": {
+    "bodyChars": 90859,
+    "images": 47
+  }
+}

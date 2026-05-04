@@ -31,6 +31,7 @@ import { testHooks as substackHooks } from "./substack/test-hooks.ts";
 import { testHooks as arxivHooks } from "./arxiv/test-hooks.ts";
 import { testHooks as intuitionlabsHooks } from "./intuitionlabs/test-hooks.ts";
 import { testHooks as sspaiHooks } from "./sspai/test-hooks.ts";
+import { testHooks as aleksagordicHooks } from "./aleksagordic/test-hooks.ts";
 
 export const TEST_HOOKS: readonly SiteTestHooks[] = [
   xhsHooks,
@@ -47,6 +48,7 @@ export const TEST_HOOKS: readonly SiteTestHooks[] = [
   arxivHooks,
   intuitionlabsHooks,
   sspaiHooks,
+  aleksagordicHooks,
 ];
 
 /**

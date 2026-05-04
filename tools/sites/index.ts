@@ -24,6 +24,15 @@ import { site as substack } from "./substack/index.ts";
 import { site as arxiv } from "./arxiv/index.ts";
 import { site as intuitionlabs } from "./intuitionlabs/index.ts";
 import { site as sspai } from "./sspai/index.ts";
+import { site as aleksagordic } from "./aleksagordic/index.ts";
+import { site as blogGoogle } from "./blog-google/index.ts";
+import { site as zeroOneMe } from "./01-me/index.ts";
+import { site as blogCsdn } from "./blog-csdn/index.ts";
+import { site as developerNvidia } from "./developer-nvidia/index.ts";
+import { site as docsNvidia } from "./docs-nvidia/index.ts";
+import { site as lmsys } from "./lmsys/index.ts";
+import { site as sohu } from "./sohu/index.ts";
+import { site as huggingface } from "./huggingface/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
@@ -57,15 +66,28 @@ export const SITES: readonly Site[] = [
   // article-shape output.
   arxiv,
   // intuitionlabs.ai: Tailwind-typography articles with stable
-  // `<div class="prose">` body container. Replaces legacy generic
-  // converter which captured nav chrome + tag chains.
+  // `<div class="prose">` body container.
   intuitionlabs,
   // sspai.com (少数派): WangEditor-content articles with stable
-  // `<div class="article__main__content">` body container. Substitutes
-  // full-resolution image URLs from `data-original=` over the lower-res
-  // CDN-transformed `src=`. Replaces legacy generic converter that
-  // captured author cards + action bar as content.
+  // `<div class="article__main__content">` body container.
   sspai,
+  // aleksagordic.com: Next.js + Tailwind .prose blog (same shape as
+  // intuitionlabs).
+  aleksagordic,
+  // The remaining article-shape hosts use the shared article-site
+  // factory (`_shared/article-site-factory.ts`) — one config per host.
+  // Plain curl + JSDOM body extraction + standard chrome stripping.
+  blogGoogle,
+  zeroOneMe,
+  blogCsdn,
+  developerNvidia,
+  docsNvidia,
+  lmsys,
+  sohu,
+  // huggingface.co/blog: pulls clean markdown from
+  // raw.githubusercontent.com/huggingface/blog (the public mirror).
+  // Path-filtered — only `/blog/<slug>` URLs go through this module.
+  huggingface,
 ];
 
 export function routeSite(url: string): Site | null {

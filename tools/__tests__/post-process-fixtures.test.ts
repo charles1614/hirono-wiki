@@ -676,8 +676,11 @@ test("blogGoogleCleanup: strips social-share + author block + byline", () => {
   assert.match(r.md, /More body/);
 });
 
-test("blogGoogleCleanup: only fires for blog.google", () => {
-  assert.equal(blogGoogleCleanup.match("https://blog.google/foo", "blog.google"), true);
+test("blogGoogleCleanup: retired (site module owns blog.google) — match returns false everywhere", () => {
+  // blog.google migrated to tools/sites/blog-google/. The post-processor's
+  // match() now returns false; the transform stays available only as a
+  // referenceable function in case future regressions need it.
+  assert.equal(blogGoogleCleanup.match("https://blog.google/foo", "blog.google"), false);
   assert.equal(blogGoogleCleanup.match("https://example.com/", "example.com"), false);
 });
 
@@ -790,7 +793,10 @@ test("arxivPdfNote: substantial PDF fetch keeps body + adds abstract note", () =
 // Pipeline composition: applyPostProcessors with the new processors
 // ---------------------------------------------------------------------------
 
-test("applyPostProcessors: blog.google end-to-end (chrome + truncated H1)", () => {
+test("applyPostProcessors: blog.google bypasses retired blog-google-cleanup (site module owns it)", () => {
+  // blog.google migrated to tools/sites/blog-google/. The legacy
+  // blog-google-cleanup processor's match() now returns false. Cross-host
+  // processors (enforce-single-h1) still run.
   const md = [
     "# Introducing Pathways: A next",
     "",
@@ -799,22 +805,12 @@ test("applyPostProcessors: blog.google end-to-end (chrome + truncated H1)", () =
     "---",
     "# Introducing Pathways: A next-generation AI architecture",
     "",
-    "Oct 28, 2021",
-    "",
-    "·",
-    "",
-    "5 min read",
-    "",
     "Real body content.",
   ].join("\n");
   const r = applyPostProcessors(md, "https://blog.google/innovation-and-ai/products/introducing-pathways/");
-  assert.match(r.md, /^# Introducing Pathways: A next-generation AI architecture$/m);
-  // Body H1 dedup'd, byline stripped
-  assert.doesNotMatch(r.md, /^# Introducing Pathways: A next$/m);
-  assert.doesNotMatch(r.md, /Oct 28, 2021/);
-  assert.doesNotMatch(r.md, /5 min read/);
+  assert.ok(!r.appliedNames.includes("blog-google-cleanup"), "retired processor must not fire");
+  // enforce-single-h1 demotes the duplicate body H1.
   assert.match(r.md, /Real body content/);
-  assert.ok(r.appliedNames.includes("blog-google-cleanup"));
   assert.ok(r.appliedNames.includes("enforce-single-h1"));
 });
 

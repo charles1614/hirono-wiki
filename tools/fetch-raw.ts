@@ -2080,7 +2080,13 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     }
   }
 
-  if (!opencliDoctorOk()) {
+  // Skip the opencli extension-online check for URLs handled by a
+  // site module — many site modules (arxiv, intuitionlabs, sspai,
+  // aleksagordic, etc.) use plain curl with no browser dependency.
+  // The legacy `case "web-read"` path does require opencli, so we
+  // still enforce when no site matches.
+  const earlyMatchedSite = routeSite(opts.url);
+  if (!earlyMatchedSite && !opencliDoctorOk()) {
     throw makeError(
       "extension-offline", "L3",
       "opencli Chrome extension not connected",

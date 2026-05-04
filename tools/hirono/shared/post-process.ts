@@ -1216,7 +1216,11 @@ export const sebastianraschkaBlogCleanup: PostProcessor = {
 
 export const huggingfaceBlogReformat: PostProcessor = {
   name: "huggingface-blog-reformat",
-  match: (_u, h) => h === "huggingface.co",
+  // huggingface.co/blog/* migrated to tools/sites/huggingface/, which pulls
+  // raw markdown directly from raw.githubusercontent.com (no rendered-page
+  // chrome to strip). This processor remains for OTHER huggingface.co paths
+  // (model cards, dataset pages, spaces) that still go through web-read.
+  match: (u, h) => h === "huggingface.co" && !/^https?:\/\/huggingface\.co\/blog\//.test(u),
   transform: (md, originUrl) => {
     const notes: string[] = [];
     let out = md;
@@ -1554,23 +1558,19 @@ function fixLineTripleMath(line: string): string {
 // Generic article cleanup — Groups 6 (English + Chinese tech blogs)
 // ---------------------------------------------------------------------------
 
+// Hosts that still go through the legacy generic-converter pipeline AND
+// benefit from this article-cleanup processor's heuristic chrome-stripping.
+//
+// Most former entries (intuitionlabs.ai, sspai.com, nvidianews.nvidia.com,
+// epoch.ai, developer.nvidia.com, blog.google, aleksagordic.com,
+// huggingface.co, blog.csdn.net, 01.me, docs.nvidia.com, sohu.com,
+// lmsys.org) have migrated to per-host site modules under
+// tools/sites/<host>/, so they bypass this pipeline entirely.
+//
+// qwen.ai remains on the legacy path because it's an SPA: its content
+// requires browser-eval (still needs migration to a dedicated site module).
 const ARTICLE_CLEANUP_HOSTS = new Set([
-  "intuitionlabs.ai",
-  "sspai.com",
-  "nvidianews.nvidia.com",
   "qwen.ai",
-  "lmsys.org",
-  "epoch.ai",
-  "developer.nvidia.com",
-  "blog.google",
-  "aleksagordic.com",
-  "www.aleksagordic.com",
-  "huggingface.co",
-  "blog.csdn.net",
-  "01.me",
-  "docs.nvidia.com",
-  "sohu.com",
-  "www.sohu.com",
 ]);
 
 // ---------------------------------------------------------------------------
@@ -1732,7 +1732,10 @@ export const sspaiCleanup: PostProcessor = {
  */
 export const lmsysCleanup: PostProcessor = {
   name: "lmsys-cleanup",
-  match: (_u, h) => h === "lmsys.org",
+  // Retired: lmsys.org migrated to tools/sites/lmsys/ (curl + JSDOM via the
+  // article-site factory). The site module strips chrome via dropSelectors,
+  // so this post-processor no longer has work to do.
+  match: () => false,
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     const out: string[] = [];
@@ -1765,7 +1768,10 @@ export const lmsysCleanup: PostProcessor = {
  */
 export const sphinxHeadingAnchorCleanup: PostProcessor = {
   name: "sphinx-heading-anchor-cleanup",
-  match: (_u, h) => h === "docs.nvidia.com" || /\.readthedocs\.(io|org)$/.test(h),
+  // docs.nvidia.com migrated to tools/sites/docs-nvidia/. Other Sphinx-built
+  // sites (readthedocs.io / readthedocs.org) still go through the legacy
+  // path, so the heading-anchor stripper is kept for them.
+  match: (_u, h) => /\.readthedocs\.(io|org)$/.test(h),
   transform: (md, _originUrl) => {
     let stripped = 0;
     const out = md.split("\n").map((l) => {
@@ -2249,7 +2255,10 @@ export const feishuWikiCleaner: PostProcessor = {
 
 export const blogGoogleCleanup: PostProcessor = {
   name: "blog-google-cleanup",
-  match: (_u, h) => h === "blog.google",
+  // Retired: blog.google migrated to tools/sites/blog-google/ (curl + JSDOM
+  // via the article-site factory). Chrome stripping happens via
+  // dropSelectors at the DOM level, not as post-turndown text patches.
+  match: () => false,
   transform: (md, _originUrl) => {
     const notes: string[] = [];
     let out = md;
