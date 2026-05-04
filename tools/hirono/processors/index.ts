@@ -16,11 +16,13 @@
  * compose them ahead of the generic / cross-site ones in the PROCESSORS
  * pipeline.
  *
- * As of the initial scaffold, NO per-host files have been migrated here yet.
- * The remaining legacy site-specific processors still live in `post-process.ts`
- * itself (substackReformat, etc.). They will be retired or migrated into
- * this directory one-by-one as their hosts move to per-host site modules
- * under `tools/sites/<host>/`.
+ * As of 2026-05-04, the bulk of site-specific cleanup logic has moved
+ * into per-host site modules under `tools/sites/<host>/converter.ts`
+ * (which is the modern home — see `docs/fetcher-architecture.md`).
+ * The remaining processors here are for hosts that haven't migrated yet
+ * (xhsReformatNoteTable for the legacy xhs adapter path; new site-
+ * specific processors should normally land as a new site module's
+ * converter, not here).
  */
 
 import type { PostProcessor } from "../shared/post-process.ts";

@@ -1,22 +1,20 @@
 /**
- * Fixture-based tests for the post-processors that had zero coverage
- * before plan H3. Each test case pairs a canned "dirty" markdown input
- * with the expected "clean" output. Asserts on SUBSTRINGS rather than
- * exact whole-file matches so the tests tolerate unrelated cosmetic
- * touch-ups (newline collapsing, etc.).
+ * Fixture-based tests for the post-processors that survive in
+ * `tools/hirono/shared/post-process.ts`. Each test case pairs a canned
+ * "dirty" markdown input with the expected "clean" output. Asserts on
+ * SUBSTRINGS rather than exact whole-file matches so the tests tolerate
+ * unrelated cosmetic touch-ups (newline collapsing, etc.).
  *
- * Processors covered here:
- *   - substackReformat (4 cases)
- *   - xhsReformatNoteTable (3 cases)
- *   - arxivStripTrailingChrome + arxivStructureImprove (2 cases each)
- *   - stripEmptyAnchorLinks (2 cases)
- *   - unescapeBracketsInLinks (2 cases)
+ * Retired processors (substackReformat, intuitionlabsCleanup, sspaiCleanup,
+ * lmsysCleanup, blogGoogleCleanup) had their tests removed when the
+ * transforms were deleted on 2026-05-04 — their hosts migrated to per-host
+ * site modules whose converters own the cleanup logic now (and have their
+ * own byte-equal fixture coverage under __tests__/fixtures/converters/).
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { xhsReformatNoteTable } from "../hirono/processors/xiaohongshu.ts";
 import {
-  substackReformat,
   arxivStripTrailingChrome,
   arxivStructureImprove,
   arxivPdfNote,
@@ -25,7 +23,6 @@ import {
   stripDecorativeEmojiImages,
   stripTrailingTagList,
   stripShareWidgetLines,
-  blogGoogleCleanup,
   huggingfaceBlogReformat,
   redditReformat,
   unescapeBracketsInLinks,
@@ -50,144 +47,6 @@ function assertStructurallyClean(md: string, label: string): void {
     assert.fail(formatViolations(violations, label));
   }
 }
-
-// ---------------------------------------------------------------------------
-// substackReformat
-// ---------------------------------------------------------------------------
-
-test("substackReformat: strips header chrome (author, date, counters)", () => {
-  const md = [
-    "# Our Title",
-    "",
-    "---",
-    "",
-    "# AWS Trainium3 Deep Dive",
-    "",
-    "### A potential path to winning back share",
-    "",
-    "[Dylan Patel](https://substack.com/@semianalysis), [Kimbo Chen](https://substack.com/@kimbobachen)",
-    "",
-    "Jun 23, 2025",
-    "",
-    "∙ Paid",
-    "",
-    "19",
-    "",
-    "1",
-    "",
-    "Share",
-    "",
-    "Actual article body starts here.",
-    "",
-    "More content.",
-  ].join("\n");
-  const r = substackReformat.transform(md, "https://newsletter.semianalysis.com/p/aws-trainium3");
-  assert.match(r.md, /Actual article body/);
-  assert.doesNotMatch(r.md, /∙ Paid/);
-  assert.doesNotMatch(r.md, /Jun 23, 2025/);
-  assert.doesNotMatch(r.md, /AWS Trainium3 Deep Dive/, "article's own H1 is chrome (second H1 dropped)");
-  assert.doesNotMatch(r.md, /^\d+$/m, "raw counter lines should be gone");
-  // Shape-anchored: no chrome line MUST appear — line-anchor each label
-  assert.doesNotMatch(r.md, /^Share$/m, "bare 'Share' line is chrome");
-  assert.doesNotMatch(r.md, /^∙ Paid$/m, "bare '∙ Paid' line is chrome");
-  assert.ok(r.notes.some((n) => /stripped.*header/i.test(n)));
-  // Structural-rule backstop: catches multi-line wrappers, over-escapes,
-  // triple newlines, etc. that substring matchers miss.
-  assertStructurallyClean(r.md, "substackReformat: header chrome");
-});
-
-test("substackReformat: collapses embedded post-card", () => {
-  const md = [
-    "# Our Title",
-    "",
-    "---",
-    "",
-    "# Article Title",
-    "",
-    "[Dylan Patel](https://substack.com/@semianalysis)",
-    "",
-    "Nov 1, 2025",
-    "",
-    "42",
-    "",
-    "10",
-    "",
-    "Share",
-    "",
-    "Some body text.",
-    "",
-    "[",
-    "",
-    "#### Google AI Infrastructure Supremacy",
-    "",
-    "](https://newsletter.semianalysis.com/p/google-infra-supremacy)",
-    "",
-    "[](https://newsletter.semianalysis.com/p/google-infra-supremacy)[Dylan Patel](https://substack.com/profile/abc) and 2 others",
-    "",
-    "·",
-    "",
-    "Jun 15, 2025",
-    "",
-    "[",
-    "",
-    "Read full story",
-    "",
-    "](https://newsletter.semianalysis.com/p/google-infra-supremacy)",
-    "",
-    "More body text after.",
-  ].join("\n");
-  const r = substackReformat.transform(md, "https://newsletter.semianalysis.com/p/x");
-  assert.match(r.md, /Related:.*Google AI Infrastructure/);
-  assert.match(r.md, /Dylan Patel/);
-  assert.doesNotMatch(r.md, /#### Google AI/, "embedded H4 title gone; collapsed to blockquote");
-  assert.doesNotMatch(r.md, /Read full story/);
-  assert.ok(r.notes.some((n) => /collapsed.*card/i.test(n)));
-});
-
-test("substackReformat: unwraps click-to-enlarge image links", () => {
-  const md = [
-    "# Foo",
-    "",
-    "Paragraph.",
-    "",
-    "[",
-    "",
-    "![figure](https://substackcdn.com/image/fetch/f_auto,q_auto:good/abc.png)",
-    "",
-    "](https://substackcdn.com/image/fetch/abc.png)",
-    "",
-    "More text.",
-  ].join("\n");
-  const r = substackReformat.transform(md, "https://substack.com/foo");
-  // After unwrap, the `![]()` should be standalone, NOT wrapped in `[...]()`
-  assert.match(r.md, /!\[figure\]\(https:\/\/substackcdn\.com\/image\/fetch\/f_auto,q_auto:good\/abc\.png\)/);
-  assert.doesNotMatch(r.md, /\]\(https:\/\/substackcdn\.com\/image\/fetch\/abc\.png\)/);
-  assert.ok(r.notes.some((n) => /unwrapped.*click-to-enlarge/i.test(n)));
-});
-
-test("substackReformat: truncates at paywall marker", () => {
-  const md = [
-    "# Article",
-    "",
-    "Body paragraph before paywall.",
-    "",
-    "## This post is for paid subscribers",
-    "",
-    "## Continue reading",
-    "",
-    "[Subscribe](https://example.substack.com/subscribe?ref=paywall)",
-  ].join("\n");
-  const r = substackReformat.transform(md, "https://newsletter.semianalysis.com/foo");
-  assert.match(r.md, /Body paragraph before paywall/);
-  assert.doesNotMatch(r.md, /This post is for paid/);
-  assert.doesNotMatch(r.md, /Continue reading/);
-  assert.ok(r.notes.some((n) => /truncated.*paywall/i.test(n)));
-});
-
-test("substackReformat: no-op on non-substack URL", () => {
-  const md = "# Not substack\n\n[Author](https://substack.com/@foo)\n\nNov 1, 2025\n\nBody.";
-  assert.equal(substackReformat.match("https://example.com/x", "example.com"), false);
-});
 
 // ---------------------------------------------------------------------------
 // xhsReformatNoteTable
@@ -628,63 +487,6 @@ test("stripShareWidgetLines: leaves prose containing 'Share' alone", () => {
 });
 
 // ---------------------------------------------------------------------------
-// blogGoogleCleanup
-// ---------------------------------------------------------------------------
-
-test("blogGoogleCleanup: strips social-share + author block + byline", () => {
-  const md = [
-    "# Title",
-    "",
-    "---",
-    "",
-    "[",
-    "",
-    "x.com",
-    "",
-    "](https://twitter.com/intent/tweet?text=foo)[",
-    "",
-    "Facebook",
-    "",
-    "](https://www.facebook.com/sharer/sharer.php?u=foo)[",
-    "",
-    "LinkedIn",
-    "",
-    "](https://www.linkedin.com/shareArticle?url=foo)[",
-    "",
-    "Mail",
-    "",
-    "](mailto:?subject=foo)",
-    "Copy link",
-    "",
-    "Real article body.",
-    "",
-    "Oct 28, 2021",
-    "",
-    "·",
-    "",
-    "5 min read",
-    "",
-    "More body.",
-  ].join("\n");
-  const r = blogGoogleCleanup.transform(md, "https://blog.google/foo/");
-  assert.doesNotMatch(r.md, /twitter\.com\/intent/);
-  assert.doesNotMatch(r.md, /facebook\.com\/sharer/);
-  assert.doesNotMatch(r.md, /Copy link/);
-  assert.doesNotMatch(r.md, /Oct 28, 2021/);
-  assert.doesNotMatch(r.md, /5 min read/);
-  assert.match(r.md, /Real article body/);
-  assert.match(r.md, /More body/);
-});
-
-test("blogGoogleCleanup: retired (site module owns blog.google) — match returns false everywhere", () => {
-  // blog.google migrated to tools/sites/blog-google/. The post-processor's
-  // match() now returns false; the transform stays available only as a
-  // referenceable function in case future regressions need it.
-  assert.equal(blogGoogleCleanup.match("https://blog.google/foo", "blog.google"), false);
-  assert.equal(blogGoogleCleanup.match("https://example.com/", "example.com"), false);
-});
-
-// ---------------------------------------------------------------------------
 // huggingfaceBlogReformat: 404 stub branch
 // ---------------------------------------------------------------------------
 
@@ -793,26 +595,6 @@ test("arxivPdfNote: substantial PDF fetch keeps body + adds abstract note", () =
 // Pipeline composition: applyPostProcessors with the new processors
 // ---------------------------------------------------------------------------
 
-test("applyPostProcessors: blog.google bypasses retired blog-google-cleanup (site module owns it)", () => {
-  // blog.google migrated to tools/sites/blog-google/. The legacy
-  // blog-google-cleanup processor's match() now returns false. Cross-host
-  // processors (enforce-single-h1) still run.
-  const md = [
-    "# Introducing Pathways: A next",
-    "",
-    "> 原文链接: https://blog.google/innovation-and-ai/products/introducing-pathways/",
-    "",
-    "---",
-    "# Introducing Pathways: A next-generation AI architecture",
-    "",
-    "Real body content.",
-  ].join("\n");
-  const r = applyPostProcessors(md, "https://blog.google/innovation-and-ai/products/introducing-pathways/");
-  assert.ok(!r.appliedNames.includes("blog-google-cleanup"), "retired processor must not fire");
-  // enforce-single-h1 demotes the duplicate body H1.
-  assert.match(r.md, /Real body content/);
-  assert.ok(r.appliedNames.includes("enforce-single-h1"));
-});
 
 test("applyPostProcessors: cross-host processors run on substack-like input (substack-reformat retired — site module owns it)", () => {
   // substack hosts now flow through `tools/sites/substack/`; the legacy
