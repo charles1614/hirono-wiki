@@ -33,6 +33,7 @@ import { site as docsNvidia } from "./docs-nvidia/index.ts";
 import { site as lmsys } from "./lmsys/index.ts";
 import { site as sohu } from "./sohu/index.ts";
 import { site as huggingface } from "./huggingface/index.ts";
+import { site as qwenlmGithubIo } from "./qwenlm-github-io/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
@@ -88,6 +89,9 @@ export const SITES: readonly Site[] = [
   // raw.githubusercontent.com/huggingface/blog (the public mirror).
   // Path-filtered — only `/blog/<slug>` URLs go through this module.
   huggingface,
+  // qwenlm.github.io: Qwen team's research blog (Hugo on GitHub Pages).
+  // qwen.ai itself is an SPA shell; the actual blog content lives here.
+  qwenlmGithubIo,
 ];
 
 export function routeSite(url: string): Site | null {

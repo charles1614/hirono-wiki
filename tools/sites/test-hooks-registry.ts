@@ -40,6 +40,7 @@ import { testHooks as docsNvidiaHooks } from "./docs-nvidia/test-hooks.ts";
 import { testHooks as lmsysHooks } from "./lmsys/test-hooks.ts";
 import { testHooks as sohuHooks } from "./sohu/test-hooks.ts";
 import { testHooks as huggingfaceHooks } from "./huggingface/test-hooks.ts";
+import { testHooks as qwenlmGithubIoHooks } from "./qwenlm-github-io/test-hooks.ts";
 
 export const TEST_HOOKS: readonly SiteTestHooks[] = [
   xhsHooks,
@@ -65,6 +66,7 @@ export const TEST_HOOKS: readonly SiteTestHooks[] = [
   lmsysHooks,
   sohuHooks,
   huggingfaceHooks,
+  qwenlmGithubIoHooks,
 ];
 
 /**
