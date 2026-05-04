@@ -1,0 +1,38 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://q2.itc.cn/images01/20260429/d8502e346cae42ec82eb82f13cc3e9dd.jpeg",
+      "localFilename": "sohu-img-001.jpg"
+    },
+    {
+      "remoteUrl": "https://m1.auto.itc.cn/appImage/sohu-default.png",
+      "localFilename": "sohu-img-002.png"
+    },
+    {
+      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
+      "localFilename": "sohu-img-003.gif"
+    },
+    {
+      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
+      "localFilename": "sohu-img-004.gif"
+    },
+    {
+      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
+      "localFilename": "sohu-img-005.gif"
+    },
+    {
+      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
+      "localFilename": "sohu-img-006.gif"
+    }
+  ],
+  "metadata": {
+    "title": "当面“踢馆”大众！李想“报仇”，6年不晚？",
+    "description": "李想“踢馆”上汽大众，扬言“L9领先两代”。",
+    "publishedAt": "2026-04-29 20:57:19",
+    "authors": []
+  },
+  "stats": {
+    "bodyChars": 4887,
+    "images": 6
+  }
+}

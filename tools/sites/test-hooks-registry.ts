@@ -32,6 +32,14 @@ import { testHooks as arxivHooks } from "./arxiv/test-hooks.ts";
 import { testHooks as intuitionlabsHooks } from "./intuitionlabs/test-hooks.ts";
 import { testHooks as sspaiHooks } from "./sspai/test-hooks.ts";
 import { testHooks as aleksagordicHooks } from "./aleksagordic/test-hooks.ts";
+import { testHooks as blogGoogleHooks } from "./blog-google/test-hooks.ts";
+import { testHooks as zeroOneMeHooks } from "./01-me/test-hooks.ts";
+import { testHooks as blogCsdnHooks } from "./blog-csdn/test-hooks.ts";
+import { testHooks as developerNvidiaHooks } from "./developer-nvidia/test-hooks.ts";
+import { testHooks as docsNvidiaHooks } from "./docs-nvidia/test-hooks.ts";
+import { testHooks as lmsysHooks } from "./lmsys/test-hooks.ts";
+import { testHooks as sohuHooks } from "./sohu/test-hooks.ts";
+import { testHooks as huggingfaceHooks } from "./huggingface/test-hooks.ts";
 
 export const TEST_HOOKS: readonly SiteTestHooks[] = [
   xhsHooks,
@@ -49,6 +57,14 @@ export const TEST_HOOKS: readonly SiteTestHooks[] = [
   intuitionlabsHooks,
   sspaiHooks,
   aleksagordicHooks,
+  blogGoogleHooks,
+  zeroOneMeHooks,
+  blogCsdnHooks,
+  developerNvidiaHooks,
+  docsNvidiaHooks,
+  lmsysHooks,
+  sohuHooks,
+  huggingfaceHooks,
 ];
 
 /**

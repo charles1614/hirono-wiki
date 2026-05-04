@@ -1,0 +1,30 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://docs.nvidia.com/cuda/cuda-quick-start-guide/_images/navigate_nbody.png",
+      "localFilename": "docs-nvidia-img-001.png"
+    },
+    {
+      "remoteUrl": "https://docs.nvidia.com/cuda/cuda-quick-start-guide/_images/nbody_build.png",
+      "localFilename": "docs-nvidia-img-002.png"
+    },
+    {
+      "remoteUrl": "https://docs.nvidia.com/cuda/cuda-quick-start-guide/_images/navigate_nbody.png",
+      "localFilename": "docs-nvidia-img-003.png"
+    },
+    {
+      "remoteUrl": "https://docs.nvidia.com/cuda/cuda-quick-start-guide/_images/nbody_build.png",
+      "localFilename": "docs-nvidia-img-004.png"
+    }
+  ],
+  "metadata": {
+    "title": "CUDA Quick Start Guide — Quick Start Guide 13.2 documentation",
+    "description": "",
+    "publishedAt": "",
+    "authors": []
+  },
+  "stats": {
+    "bodyChars": 41135,
+    "images": 4
+  }
+}

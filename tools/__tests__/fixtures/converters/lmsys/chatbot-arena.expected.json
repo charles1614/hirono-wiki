@@ -1,0 +1,44 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://lmsys.org/images/blog/arena/chat_demo.png",
+      "localFilename": "lmsys-img-001.png"
+    },
+    {
+      "remoteUrl": "https://lmsys.org/images/blog/arena/battle_counts.png",
+      "localFilename": "lmsys-img-002.png"
+    },
+    {
+      "remoteUrl": "https://lmsys.org/images/blog/arena/lang_counts.png",
+      "localFilename": "lmsys-img-003.png"
+    },
+    {
+      "remoteUrl": "https://wikimedia.org/api/rest_v1/media/math/render/svg/7c80282e9c95e92d6b210467aab48a8c4c81ef10",
+      "localFilename": "lmsys-img-004.jpg"
+    },
+    {
+      "remoteUrl": "https://wikimedia.org/api/rest_v1/media/math/render/svg/1cad9fb1cfc6a8e845493ac9a40eb98541a4641a",
+      "localFilename": "lmsys-img-005.jpg"
+    },
+    {
+      "remoteUrl": "https://lmsys.org/images/blog/arena/win_fraction.png",
+      "localFilename": "lmsys-img-006.png"
+    },
+    {
+      "remoteUrl": "https://lmsys.org/images/blog/arena/predicted_win_fraction.png",
+      "localFilename": "lmsys-img-007.png"
+    }
+  ],
+  "metadata": {
+    "title": "Chatbot Arena: Benchmarking LLMs in the Wild with Elo Ratings - LMSYS Blog",
+    "description": "We present Chatbot Arena, a benchmark platform for large language models (LLMs) that features anonymous, randomized battles in a crowdsourced manner. In this blog post, we are releasing our initial re...",
+    "publishedAt": "May 3, 2023",
+    "authors": [
+      "Lianmin Zheng*, Ying Sheng*, Wei-Lin Chiang, Hao Zhang, Joseph E. Gonzalez, Ion Stoica"
+    ]
+  },
+  "stats": {
+    "bodyChars": 13214,
+    "images": 7
+  }
+}

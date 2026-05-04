@@ -1,0 +1,35 @@
+{
+  "imagesToDownload": [],
+  "metadata": {
+    "title": "SmolLM3: smol, multilingual, long-context reasoner",
+    "authors": [
+      "eliebak",
+      "cmpatino",
+      "anton-l",
+      "edbeeching",
+      "m-ric",
+      "nouamanetazi",
+      "akseljoonas",
+      "guipenedo",
+      "hynky",
+      "clefourrier",
+      "SaylorTwift",
+      "kashif",
+      "qgallouedec",
+      "hlarcher",
+      "glutamatt",
+      "Xenova",
+      "reach-vb",
+      "ngxson",
+      "craffel",
+      "lewtun",
+      "loubnabnl",
+      "lvwerra",
+      "thomwolf"
+    ]
+  },
+  "stats": {
+    "bodyChars": 27141,
+    "images": 0
+  }
+}

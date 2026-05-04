@@ -1,0 +1,16 @@
+{
+  "h1": 1,
+  "frontmatter_present": true,
+  "remote_images": 0,
+  "fences": 166,
+  "tables": 0,
+  "images": 4,
+  "h2s": 13,
+  "h3s": 10,
+  "body_chars": 41266,
+  "chrome_denylist_matches": 0,
+  "unbalanced_bold_runs": 0,
+  "empty_headings": 0,
+  "splicer_appendix_markers": 0,
+  "source_url": "https://docs.nvidia.com/cuda/cuda-quick-start-guide/index.html"
+}

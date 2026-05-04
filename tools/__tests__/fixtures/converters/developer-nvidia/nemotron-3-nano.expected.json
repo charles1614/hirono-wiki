@@ -1,0 +1,13 @@
+{
+  "imagesToDownload": [],
+  "metadata": {
+    "title": "NVIDIA Nemotron 3 Nano Omni Powers Multimodal Agent Reasoning in a Single Efficient Open Model",
+    "description": "Agentic systems often reason across screens, documents, audio, video, and text within a single perception‑to‑action loop. However, they still rely on fragmented model chains—separate stacks for vision…",
+    "publishedAt": "2026-04-28T16:01:12+00:00",
+    "authors": []
+  },
+  "stats": {
+    "bodyChars": 22925,
+    "images": 0
+  }
+}

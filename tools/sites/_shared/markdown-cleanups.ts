@@ -124,10 +124,38 @@ export function addSpaceAroundBolds(md: string): string {
 }
 
 /**
+ * Collapse runs of 4+ asterisks (e.g. `****text****`, `**A****B**`) to
+ * the single bold marker `**`. These runs come from turndown rendering
+ * adjacent or nested `<strong>` siblings as `**A****B**` — the structural
+ * rule `no-quad-asterisk-runs` flags them as defects. Fence-aware:
+ * skips runs inside ``` fenced code blocks.
+ *
+ * Idempotent. Safe on already-clean input (no `\*{4,}` runs → no-op).
+ *
+ * Implementation: line-based walker that tracks fence state. Inside a
+ * fence (between matching ``` lines), the line is copied verbatim.
+ * Outside, every run of 4+ `*` chars collapses to `**`. The collapse
+ * loses no content because turndown's adjacent-strong artifact never
+ * has meaningful text between the doubled markers.
+ */
+export function collapseQuadAsteriskRuns(md: string): string {
+  const lines = md.split("\n");
+  let inFence = false;
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trimStart();
+    if (trimmed.startsWith("```")) { inFence = !inFence; continue; }
+    if (inFence) continue;
+    lines[i] = lines[i].replace(/\*{4,}/g, "**");
+  }
+  return lines.join("\n");
+}
+
+/**
  * Bundle of cleanups every converter should apply at the end of its
  * pipeline. The bold-spacing walker handles both sides (close+word and
- * word+open) in one pass with proper state tracking.
+ * word+open) in one pass with proper state tracking. The quad-asterisk
+ * collapser fixes adjacent-strong artifacts.
  */
 export function applyCommonMarkdownCleanups(md: string): string {
-  return addSpaceAroundBolds(md);
+  return collapseQuadAsteriskRuns(addSpaceAroundBolds(md));
 }

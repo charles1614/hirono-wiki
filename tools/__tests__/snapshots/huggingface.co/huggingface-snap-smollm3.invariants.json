@@ -1,0 +1,16 @@
+{
+  "h1": 1,
+  "frontmatter_present": true,
+  "remote_images": 0,
+  "fences": 8,
+  "tables": 0,
+  "images": 0,
+  "h2s": 18,
+  "h3s": 4,
+  "body_chars": 25943,
+  "chrome_denylist_matches": 0,
+  "unbalanced_bold_runs": 0,
+  "empty_headings": 0,
+  "splicer_appendix_markers": 0,
+  "source_url": "https://huggingface.co/blog/smollm3"
+}
