@@ -8,6 +8,8 @@ References (read at least one end-to-end before writing your first line):
 - `tools/sites/zhihu/` — DOM source, browser eval fetcher
 - `tools/sites/weixin/` — DOM source, full-content extractor with image localization
 - `tools/sites/github/` — REST API + raw URL paths, no browser
+- `tools/sites/huggingface/` — raw markdown from upstream mirror (`raw.githubusercontent.com/huggingface/blog`)
+- `tools/sites/aleksagordic/` — simplest pattern: 15-line config via the shared article-site factory (see Quick reference at the bottom)
 
 ---
 
@@ -275,6 +277,43 @@ One host per commit. Title: `sites: <host> migrated to per-host module (<source>
 | `fetcher.ts` | I/O boundary | opencli spawn / fetch / curl; returns raw HTML or JSON |
 | `converter.ts` | pure function | jsdom + turndown + per-site rules; emits markdown + image refs |
 | `metadata.ts` (optional) | pure function | when title/author/date logic exceeds ~30 lines, extract here |
+
+## Quick reference: shared article-site factory (for blog-shape hosts)
+
+For hosts whose pages follow the simple article shape — single body container, og:title metadata, optional published-date meta, occasional chrome divs — the per-host module collapses to a 1-file, ~15-line config via the shared factory:
+
+```ts
+// tools/sites/<host>/index.ts
+import { makeArticleSite } from "../_shared/article-site-factory.ts";
+
+export const { site, testHooks } = makeArticleSite({
+  name: "<host-slug>",
+  hosts: ["<host-domain>"],
+  pathPrefix: "/blog/",                     // optional path filter
+  converterName: "convert<HostCamel>",
+  selectors: {
+    bodySelectors: [".prose", "article", "main"],
+    titleSuffix: /\s*\|\s*Site Name\s*$/,    // strip trailing site name from <title>
+    dropSelectors: [".nav", ".author-bio", ".related-posts"],
+    demoteH1: true,                          // for hosts whose body uses <h1> as section heads
+    imagePrefix: "<host-slug>",
+  },
+});
+```
+
+The factory:
+
+- Provides plain `curl` as the fetcher (most simple article hosts work without a browser).
+- Walks `bodySelectors` in order until one returns an element with ≥200 chars text.
+- Drops elements matching `dropSelectors` from the body before turndown sees them.
+- Optionally demotes `<h1>`/`<h2>`/… by 1 level (Tailwind `.prose` pattern).
+- Composes the §2 frontmatter (title + 原文链接 + optional Authors + published-date callout).
+- Applies `applyCommonMarkdownCleanups` (bold-spacing walker + quad-asterisk collapse).
+- Returns `imagesToDownload`; the runtime in `fetch` iterates and downloads them.
+
+Use the factory unless the host needs custom DOM walking, multi-source fetching (API + DOM), or non-trivial metadata reconstruction. Reference: `tools/sites/aleksagordic/`, `tools/sites/lmsys/`, `tools/sites/sohu/`. Even for hosts that do need custom logic (`tools/sites/sebastianraschka-gallery/`), keep them as full modules — don't shoe-horn into the factory.
+
+After scaffolding via the factory, the rest of the workflow (§5 iterate, §6 user approval, §7 fixture/snapshot capture, §8 retire legacy) is identical.
 
 ## Quick reference: anti-patterns to refuse
 
