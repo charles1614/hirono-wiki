@@ -524,16 +524,18 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
 
 ## 8. Code pointers
 
-- **`tools/fetch-raw.ts`** — single dispatch point:
+- **`tools/fetch-raw.ts`** — single dispatch point + raw-archive layout:
   - `AUTO_SKIP_RULES` — URL refuse-list (currently HF Spaces, L2 skip)
   - `HOST_MIN_BODY_SIZES` — per-host+URL-path size bands
   - `classifyQuality` — flag assembly; consumes `intentional-stub`
-  - `fetchUrlAndStore` — calls `routeSite(url).fetch()`, runs image processing + post-cleanup, writes raw archive. The whole legacy adapter switch + DISPATCH_RULES is gone — there's exactly one site-module call now.
-  - xhs helpers (`extractXhsFullContent`, `extractXhsImageUrlsInOrder`, `closeBrowser`, etc.) are still here for historical reasons; they could eventually move to `tools/sites/xhs/` but it's a substantial mechanical refactor with no functional payoff.
+  - `fetchUrlAndStore` — calls `routeSite(url).fetch()`, runs image processing + post-cleanup, writes raw archive. Exactly one site-module call.
+  - status helpers: `parseFetchDecisions`, `listRawSlugs`, `buildStatusReport`, `buildSyncPlan`, `remediationFor`
+  - CLI subcommands: `cmdStore`, `cmdFetchUrl`, `cmdStatus`, `cmdSync`, `cmdRefetch`, etc.
 - **`tools/sites/`** — every host module:
   - `<host>/index.ts` — `Site` contract export with `match(url)` + `fetch(url, opts)`
   - `<host>/test-hooks.ts` — re-export from index.ts (factory does it for you)
-  - `<host>/converter.ts` — only for hosts with custom DOM logic (e.g. weixin, xhs, deepwiki); factory hosts inline this
+  - `<host>/converter.ts` — only for hosts with custom DOM logic (weixin, xhs, deepwiki, etc.); factory hosts inline this
+  - `xhs/browser-extract.ts` — xhs-specific opencli browser extractors (kept under `xhs/` so all xhs code lives in one dir)
   - `index.ts` — `routeSite(url) → Site` (TOTAL — never null thanks to `_default`)
   - `test-hooks-registry.ts` — central registry of every module's test hooks
   - `_default/` — catch-all module, registered LAST
@@ -543,12 +545,20 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
   - `_shared/markdown-cleanups.ts` — bold-spacing walker + quad-asterisk collapse
   - `_shared/generic-converter.ts` — JSDOM + turndown plumbing
   - `_shared/types.ts` + `_shared/test-hooks-types.ts` — contracts
-  - `_shared/browser-eval-json.ts` — opencli browser-eval helpers
-- **`tools/opencli/`** — in-repo home of opencli adapters used by the browser-eval site modules (xhs, weixin, zhihu):
-  - `clis/<site>/<name>.js` — adapter source (git-tracked)
-  - `sites/<site>/` — recon notes, fixtures, endpoint refs per site
+  - `_shared/browser-eval-json.ts` — opencli eval-stdout JSON parser
+  - `_shared/browser-helpers.ts` — `sleepMs`, `closeBrowser`, `runOpencli`, `browserTimeoutMs`, `opencliDoctorOk` (used by every D-bucket module)
+- **`tools/shared/`** — infrastructure utilities (not site- or hirono-specific):
+  - `atomic-write.ts` — atomic file writes
+  - `browser-lock.ts` — machine-wide opencli concurrency lock
+- **`tools/hirono/`** — `hirono` CLI for raindrop-driven bulk fetching:
+  - `doctor.ts` — environment health check
+  - `adapter-paths.ts` — opencli `~/.opencli/clis/` symlink helpers (used only by doctor)
+  - `raindrop/` — `check`, `export`, `fetch-all`, `refresh-cache` subcommands
+- **`tools/opencli/`** — in-repo home of project-local opencli adapters:
+  - `clis/<site>/<name>.js` — adapter source (git-tracked); empty until a site needs one
+  - `sites/<site>/` — accumulated recon notes per site
   - `install-symlinks.sh` — idempotent bootstrap that links into `~/.opencli/clis/`
-  - `host-counts.json` — graduation watchdog snapshot (used by `hirono raindrop check`)
+  - `host-counts.json` — graduation watchdog snapshot
 - **`tools/__tests__/`**:
   - `coverage-gate.test.ts` — every registered site module must have ≥1 fixture + ≥1 snapshot
   - `per-host-snapshot.test.ts` — per-host snapshot regression suite (sidecar match + hard-rule defects + image-ref existence)
