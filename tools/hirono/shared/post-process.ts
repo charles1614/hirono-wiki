@@ -1381,7 +1381,12 @@ export const redditReformat: PostProcessor = {
  */
 export const xMetadataStub: PostProcessor = {
   name: "x-metadata-stub",
-  match: (_u, h) => h === "x.com" || h === "twitter.com",
+  // Retired 2026-05-05: x.com / twitter.com migrated to
+  // tools/sites/x-twitter/. The site module emits a stub for every
+  // URL (Twitter/X auth-gates virtually all content). The legacy
+  // visible-content cleanup path is preserved in this transform body
+  // for reference, but match() returns false. Transform deleted in C12.
+  match: () => false,
   transform: (md, originUrl) => {
     const authGatedHints = [
       "Sign in to X", "Log in to Twitter", "Sign up for X",

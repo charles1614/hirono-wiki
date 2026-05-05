@@ -1,0 +1,8 @@
+{
+  "fn": "convertXTwitterStub",
+  "args": [
+    {
+      "url": "https://x.com/garrytan/status/1234567890"
+    }
+  ]
+}

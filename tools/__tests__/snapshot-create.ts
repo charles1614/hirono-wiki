@@ -80,6 +80,7 @@ const stubFlags = new Set([
   "arxiv-listing",
   "huggingface-non-blog",
   "huggingface-space",
+  "x-twitter-auth-gated",
 ]);
 const isStub = flags.some((f: string) => stubFlags.has(f));
 // Per-host minimum content lengths. Micro-post hosts (xhs, x.com) are

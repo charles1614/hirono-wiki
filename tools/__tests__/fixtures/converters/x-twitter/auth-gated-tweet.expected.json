@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "source": "x-twitter-stub"
+  },
+  "flags": [
+    "intentional-stub",
+    "x-twitter-auth-gated"
+  ],
+  "notes": [
+    "x.com: auth-gated — emitted metadata stub"
+  ]
+}
