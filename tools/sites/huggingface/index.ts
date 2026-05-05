@@ -138,25 +138,56 @@ function convertHf(opts: HfFixtureArgs): HfConvertResult {
   };
 }
 
-function stub(url: string, reason: string): Result {
+function stub(url: string, reason: string, kind: "blog-fetch-failed" | "non-blog" | "space" = "blog-fetch-failed"): Result {
+  const flag = kind === "non-blog" ? "huggingface-non-blog"
+    : kind === "space" ? "huggingface-space"
+    : "huggingface-fetch-failed";
+  const titleHint = kind === "non-blog" ? "HuggingFace page"
+    : kind === "space" ? "HuggingFace Space"
+    : "HuggingFace blog";
   return {
-    markdown:
-      `# huggingface blog: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
+    markdown: [
+      `# ${titleHint}: ${url}`,
+      ``,
+      `> 原文链接: ${url}`,
+      ``,
+      `---`,
+      ``,
+      `*This entry is a metadata stub. ${reason}*`,
+      ``,
+    ].join("\n"),
     images: [],
-    metadata: { source: "huggingface-stub", reason },
-    flags: ["intentional-stub", "huggingface-fetch-failed"],
+    metadata: { source: `huggingface-${kind}-stub`, reason },
+    flags: ["intentional-stub", flag],
     notes: [`huggingface: stub emitted — ${reason}`],
   };
 }
 
 export const site: Site = {
   name: "huggingface",
-  match: (url: string) => HOSTS.includes(hostOf(url)) && pathOf(url).startsWith("/blog/"),
+  // Claim every huggingface.co URL. Behaviour branches on the path:
+  //   /blog/<slug>           → fetch raw markdown from the GitHub mirror
+  //   /spaces/<owner>/<name> → emit Space stub (interactive demo, no
+  //                            useful HTML body)
+  //   anything else          → emit non-blog stub (model cards, dataset
+  //                            pages, papers, etc. don't fit the article
+  //                            shape; their HTML is heavily dynamic)
+  match: (url: string) => HOSTS.includes(hostOf(url)),
   fetch: (url: string, opts: FetchOpts): Result => {
     mkdirSync(opts.slugDir, { recursive: true });
+
+    const path = pathOf(url);
+    if (path.startsWith("/spaces/")) {
+      return stub(url,
+        "HuggingFace Space — interactive demo with no static body. Visit the URL in a browser to use the Space.",
+        "space");
+    }
+    if (!path.startsWith("/blog/")) {
+      return stub(url,
+        "HuggingFace non-blog page (model card / dataset / paper / etc.). The page is heavily dynamic; visit the URL for content.",
+        "non-blog");
+    }
+
     const slug = slugFromUrl(url);
     if (!slug) return stub(url, "could not extract slug from URL");
 

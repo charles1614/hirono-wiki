@@ -78,6 +78,8 @@ const stubFlags = new Set([
   "reddit-blocked",
   "arxiv-pdf",
   "arxiv-listing",
+  "huggingface-non-blog",
+  "huggingface-space",
 ]);
 const isStub = flags.some((f: string) => stubFlags.has(f));
 // Per-host minimum content lengths. Micro-post hosts (xhs, x.com) are

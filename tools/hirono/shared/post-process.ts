@@ -755,11 +755,11 @@ export const sebastianraschkaBlogCleanup: PostProcessor = {
 
 export const huggingfaceBlogReformat: PostProcessor = {
   name: "huggingface-blog-reformat",
-  // huggingface.co/blog/* migrated to tools/sites/huggingface/, which pulls
-  // raw markdown directly from raw.githubusercontent.com (no rendered-page
-  // chrome to strip). This processor remains for OTHER huggingface.co paths
-  // (model cards, dataset pages, spaces) that still go through web-read.
-  match: (u, h) => h === "huggingface.co" && !/^https?:\/\/huggingface\.co\/blog\//.test(u),
+  // Retired 2026-05-05: tools/sites/huggingface/ now claims every
+  // huggingface.co URL. /blog/<slug> goes through GitHub mirror;
+  // /spaces/, model cards, datasets, papers all emit dedicated stubs.
+  // Transform kept here as referenceable code; deleted in C12.
+  match: () => false,
   transform: (md, originUrl) => {
     const notes: string[] = [];
     let out = md;
