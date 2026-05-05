@@ -69,7 +69,8 @@ export const SITES: readonly Site[] = [
   // sebastianraschka.com/llm-architecture-gallery/: server-rendered
   // catalog of 50+ LLM architectures. Curl + jsdom; one section per
   // card with image + fact table. Matches a path prefix only — regular
-  // sebastianraschka.com blog posts still go through the legacy path.
+  // sebastianraschka.com blog posts go through `sebastianraschka-blog`
+  // (registered below).
   raschkaGallery,
   // substack: covers *.substack.com + magazine.sebastianraschka.com +
   // newsletter.semianalysis.com. Pages are SSR — plain curl returns

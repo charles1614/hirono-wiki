@@ -199,7 +199,7 @@ export interface QualityContext {
   /**
    * The URL that was fetched. When set, enables per-host expected-size-band
    * and structural checks (heading count, host-specific minimum body size).
-   * Omitted for legacy call sites that only have markdown without URL.
+   * Omitted for callers that only have markdown without URL.
    */
   originUrl?: string;
 }
@@ -437,7 +437,7 @@ export function downloadImage(url: string, destPath: string, maxBytes = 15 * 102
 }
 
 /** Download images + rewrite references in the markdown to local paths. */
-export function processImages(content: string, slugDir: string, enabled: boolean, originUrl?: string): { content: string; images: ImageRecord[]; notes: string[] } {
+function processImages(content: string, slugDir: string, enabled: boolean, originUrl?: string): { content: string; images: ImageRecord[]; notes: string[] } {
   if (!enabled) return { content, images: [], notes: ["images: skipped (--no-images)"] };
   const all = extractImageUrls(content);
   // Resolve site-relative refs (only starting with `/` or `../`) against
@@ -614,19 +614,18 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
 
 
 /**
- * Several opencli adapters' `download`-style subcommands save a Markdown file
- * + image assets into `--output <dir>`, and print a JSON summary to stdout
- * when run with `-f json`. We read the summary, find the saved markdown, move
- * / rename to our canonical `content.md`, and keep images in place.
+ * Internal shape used by `fetchUrlAndStore` to bridge the site-module
+ * `Result` into the format `writeRawArchive` consumes (with image
+ * basenames + extra flags surfaced separately for `classifyQuality`).
  */
 interface AdapterResult {
-  markdown: string;      // content of the markdown file, read into memory
+  markdown: string;
   title?: string;
-  imageFiles: string[];  // assets saved alongside the markdown (basenames, relative to slugDir)
-  rawMetadata: unknown;  // whatever the adapter returned on stdout
-  /** Optional adapter-issued quality flags to merge into classifyQuality. Empty when nothing extra to report. */
+  imageFiles: string[];   // assets saved alongside the markdown (basenames, relative to slugDir)
+  rawMetadata: unknown;   // whatever the site module's metadata field carried
+  /** Optional site-module quality flags to merge into classifyQuality. */
   extraFlags?: string[];
-  /** Optional notes from the adapter (e.g. "xhs download retried once"). */
+  /** Optional human-readable notes (e.g. "xhs Layer-4: 5 paragraphs"). */
   adapterNotes?: string[];
 }
 
@@ -723,11 +722,10 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
   const slugDir = rawDirFor(opts.slug);
   mkdirSync(slugDir, { recursive: true });
 
-  // Routing is total under the unified architecture: every URL maps to
-  // a site module under `tools/sites/<host>/`, with `tools/sites/_default/`
-  // catching anything no host-specific module claimed. There is no
-  // legacy fallback path. See `docs/fetcher-architecture.md` for the
-  // architectural rationale.
+  // Routing is total: every URL maps to a site module under
+  // `tools/sites/<host>/`, with `tools/sites/_default/` catching
+  // anything no host-specific module claimed. See
+  // `docs/fetcher-architecture.md` for the architectural rationale.
   const matchedSite = routeSite(opts.url);
   const fetcherReason: FetcherReason = opts.viaBrowser
     ? "forced-via-browser"
@@ -802,12 +800,10 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
   }
 
   // Unconditionally run processImages on the finalized markdown to catch
-  // any remote `![](https://...)` refs the opencli adapter missed and
-  // any new absolute URLs surfaced by the post-processor. Idempotent
-  // (skips non-http refs; already-local paths). Previously this only
-  // ran when the post-processor explicitly flagged new URLs, which left
-  // systemic remote-ref leakage on lmsys / sspai / semianalysis / csdn
-  // fetches where opencli's own --download-images is incomplete.
+  // any remote `![](https://...)` refs that survived the site module's
+  // own image localization, and any new absolute URLs surfaced by the
+  // transformMarkdown hook. Idempotent (skips non-http refs and
+  // already-local paths).
   const additionalImages: ImageRecord[] = [];
   if (opts.downloadImages) {
     const r = processImages(finalMarkdown, slugDir, true, opts.url);
@@ -968,7 +964,7 @@ export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
  * changes (e.g. new flag added) — picks up retroactive classifications
  * without an expensive re-fetch.
  */
-export function reclassifyRawSlug(slug: string): SourceJson | null {
+function reclassifyRawSlug(slug: string): SourceJson | null {
   const slugDir = rawDirFor(slug);
   const contentPath = join(slugDir, "content.md");
   const sourcePath = join(slugDir, "source.json");

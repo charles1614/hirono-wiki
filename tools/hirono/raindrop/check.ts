@@ -86,9 +86,8 @@ export interface HostRow {
   coverage: "dedicated-adapter" | "web-read-fallback" | "unknown";
   /**
    * Routing handler with explicit prefix:
-   *   `site:<name>`     — routed through tools/sites/<name>/ (universal pattern)
-   *   `opencli:<name>`  — legacy opencli adapter (only zhihu-question remains)
-   *   `web-read`        — opencli's generic web reader (catch-all fallback)
+   *   `site:<name>`     — host-specific module under tools/sites/<name>/
+   *   `site:_default`   — catch-all module (label `web-read-fallback`)
    */
   handler?: string;
 }
@@ -275,7 +274,7 @@ export function formatReport(r: CheckReport): string {
   if (r.uncovered_high_frequency.length === 0) {
     lines.push(`_All high-frequency domains are covered by a dedicated adapter._`);
   } else {
-    lines.push(`These domains fall through to generic \`opencli web read\`. Consider authoring a dedicated adapter or a domain-specific post-processor.`);
+    lines.push(`These domains fall through to the catch-all \`tools/sites/_default/\` module. Consider promoting them to dedicated site modules under \`tools/sites/<host>/\` (see [\`tools/sites/MIGRATION.md\`](tools/sites/MIGRATION.md)).`);
     lines.push(``);
     lines.push(`| hostname | count |`);
     lines.push(`|---|---|`);

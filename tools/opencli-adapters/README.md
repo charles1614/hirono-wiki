@@ -88,22 +88,28 @@ cli({
 });
 ```
 
-## Wiring into fetch-raw.ts
+## Wiring into a site module
 
-Once an adapter is authored + verified, plug it into the fetch pipeline by:
+Custom opencli adapters are consumed by site modules under
+`tools/sites/<host>/`. Once an adapter is authored + verified:
 
-1. Adding a new variant to the `OpencliAdapter` union type in
-   `tools/fetch-raw.ts` (e.g. `"arxiv-paper"`).
-2. Adding a matching rule to `DISPATCH_RULES` so URLs of that site route to
-   your adapter.
-3. Adding a `fetchXxxViaAdapter()` helper (shape follows
-   `fetchZhihuArticleViaAdapter` etc.) that calls `runOpencli([...])` and
-   harvests the adapter's output.
-4. Adding a case in `fetchUrlAndStore`'s switch for your new adapter.
+1. Build a site module under `tools/sites/<host>/` that calls the adapter
+   from its `fetcher.ts` via `runOpencli([...])` (imported from
+   `tools/sites/_shared/browser-helpers.ts`).
+2. Register the module in `tools/sites/index.ts` and
+   `tools/sites/test-hooks-registry.ts`.
+3. Capture fixtures + a snapshot via
+   `npx tsx tools/__tests__/approve.ts`.
 
-## No adapters yet
+See `tools/sites/MIGRATION.md` for the full recipe and
+`tools/sites/xhs/` / `tools/sites/zhihu/` for reference modules that
+drive opencli adapters.
 
-This directory is intentionally empty at Phase 1 — the infrastructure
-exists, but we haven't authored a custom adapter yet. First one lands when
-we hit a site where post-processors aren't enough (probably arxiv.org for
-PDF abstract extraction or linux.do for forum threads).
+## No adapters here yet
+
+This directory is intentionally empty — most sites we've added work via
+plain curl + JSDOM (see `tools/sites/_shared/article-site-factory.ts`)
+or via opencli's `browser open + eval` interface (see `tools/sites/xhs/`,
+`tools/sites/weixin/`, `tools/sites/zhihu/`). The custom-adapter path is
+reserved for sites where neither curl nor browser-eval is sufficient
+and a dedicated opencli adapter would be a meaningful win.

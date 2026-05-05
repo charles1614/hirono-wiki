@@ -121,7 +121,7 @@ function deriveSlugFromBookmark(b: CachedBookmark): string {
 }
 
 /**
- * Run the export pipeline: identifier → URL → opencli adapter → post-processors →
+ * Run the export pipeline: identifier → URL → site module → post-cleanups →
  * writeRawArchive. Returns the final SourceJson that was written.
  */
 export function runExport(opts: ExportOpts): { source: SourceJson; slug: string } {

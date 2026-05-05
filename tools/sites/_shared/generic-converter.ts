@@ -1,10 +1,12 @@
 /**
- * Generic HTML → markdown converter for the web-read fallback path.
+ * Generic HTML → markdown converter shared by every site module.
  *
- * Pure function: given raw outerHTML extracted from a browser session,
- * produce clean §2-body markdown plus a list of images to localize.
- * No site-specific selectors or rules — every host on the web-read
- * path runs through this same converter.
+ * Pure function: given raw outerHTML extracted from a browser session
+ * (or curl), produce clean §2-body markdown plus a list of images to
+ * localize. No site-specific selectors or rules — host-specific
+ * extraction happens in each module's `converter.ts` BEFORE this
+ * function sees the HTML. This module just owns the HTML→Markdown
+ * conversion mechanics (jsdom + TurndownService).
  *
  * Reuses the proven jsdom + TurndownService + @joplin/turndown-plugin-gfm
  * stack from the per-host converters (nvidianews, deepwiki, linux-do).
