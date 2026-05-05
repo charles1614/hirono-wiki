@@ -38,6 +38,16 @@ export interface ArticleSelectors {
    */
   dropSelectors?: string[];
   /**
+   * Selectors whose matches should be REPLACED with a placeholder
+   * paragraph (instead of removed). Use for non-text content turndown
+   * would mangle — e.g. inline `<svg>` whose `<text>` children would
+   * otherwise become a character-per-line "explosion" in the markdown.
+   *
+   * Each entry: `{ selector, replacementText }`. Every match is swapped
+   * for a `<p>` containing `replacementText`. Runs AFTER `dropSelectors`.
+   */
+  replaceSelectors?: { selector: string; replacementText: string }[];
+  /**
    * Set true if the host uses `<h1>` for in-page section headings inside
    * the body (Tailwind .prose theme, some Hexo themes). Demotes all
    * body headings by 1 level so the §2 contract single-H1 rule holds.
@@ -111,6 +121,15 @@ export function convertArticle(opts: ArticleConvertOpts): ArticleConvertResult {
   // ── Pre-filter chrome ───────────────────────────────────────────────────
   for (const sel of selectors.dropSelectors || []) {
     for (const el of Array.from(bodyEl.querySelectorAll(sel))) el.remove();
+  }
+
+  // ── Replace selectors with placeholder paragraphs ────────────────────────
+  for (const { selector, replacementText } of selectors.replaceSelectors || []) {
+    for (const el of Array.from(bodyEl.querySelectorAll(selector))) {
+      const p = doc.createElement("p");
+      p.textContent = replacementText;
+      el.replaceWith(p);
+    }
   }
 
   // ── Demote H1 if requested (Tailwind .prose pattern) ────────────────────

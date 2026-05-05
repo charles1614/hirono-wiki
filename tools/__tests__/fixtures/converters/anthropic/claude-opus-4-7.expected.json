@@ -1,0 +1,170 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F96ea2509a90e527642c822303e56296a07bcfce4-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-001.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2Fd434d15757c6abac1122af483617741776d5a114-2600x2638.png&w=3840&q=75",
+      "localFilename": "anthropic-img-002.jpg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/fabc67a6a0069ebc13b12f3174019826a123b184-141x64.svg",
+      "localFilename": "anthropic-img-003.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/da8b7d16990b7089e525075421a4b08ded561ae7-309x78.svg",
+      "localFilename": "anthropic-img-004.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/7fbed01e869d6a4faf97317a1fc4b74f7997c66e-78x64.svg",
+      "localFilename": "anthropic-img-005.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/7715b118c5eb0ff2a85f1f7914bce8c634ecacbd-150x48.svg",
+      "localFilename": "anthropic-img-006.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/e360f8a29093a6b4fccdc006315035583e89f9ac-146x64.svg",
+      "localFilename": "anthropic-img-007.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/31f81aea37256a9c1600e17eb8916ac158443073-145x64.svg",
+      "localFilename": "anthropic-img-008.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/5e46a61d5d1fb792611e33dc7a6af84653c6744a-222x64.svg",
+      "localFilename": "anthropic-img-009.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/da50e4c43d4b95fe1a2105c344050c6ba2397f3f-150x48.svg",
+      "localFilename": "anthropic-img-010.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/0504471eb7da85317c6def349d315e2f8be00b0f-127x64.svg",
+      "localFilename": "anthropic-img-011.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/6dfc3bd55cc5f9d5ebdd8d5437505ae4b8560412-120x64.svg",
+      "localFilename": "anthropic-img-012.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/f084c88e65466636019709c40cc477aadce2f718-151x64.svg",
+      "localFilename": "anthropic-img-013.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/1add7d4281e08801657b1a2cfb75a0adce536010-128x64.svg",
+      "localFilename": "anthropic-img-014.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/ac77c59a0734811a829fab67d7ee8e801e45c50c-136x64.svg",
+      "localFilename": "anthropic-img-015.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/73b380711885c6beb5270575119dbf31d7f71236-107x64.svg",
+      "localFilename": "anthropic-img-016.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/f7d48545ec6df380bb86fa71fb8e23a3fc4f240c-171x64.svg",
+      "localFilename": "anthropic-img-017.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/bc14f46de9312f43e333a11e258641a98f28e34e-64x64.svg",
+      "localFilename": "anthropic-img-018.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/608086181ee4ce73f49dd2e6ab3a4ed11a3d6f29-130x64.svg",
+      "localFilename": "anthropic-img-019.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/cc80b0a6f9534a34252756b93dd5a9bc26dd58f1-222x64.svg",
+      "localFilename": "anthropic-img-020.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/0ac44b8505d1e5d6ef413b164a81942a62e06f12-148x64.svg",
+      "localFilename": "anthropic-img-021.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/f78eb8e663df313f53156d3cea8d7ad2801df313-148x64.svg",
+      "localFilename": "anthropic-img-022.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/6e08084acc2ecab54d61761dbef22ece20aa0ff4-113x64.svg",
+      "localFilename": "anthropic-img-023.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/50f4e92c08e3640d95f500c7126f78e109558c9b-120x64.svg",
+      "localFilename": "anthropic-img-024.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/18f900625532e1baaa3302bdf9539f73592bdf60-164x64.svg",
+      "localFilename": "anthropic-img-025.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/046fc90b1e849e0ef96b6a9923d47ae13272b50f-173x64.svg",
+      "localFilename": "anthropic-img-026.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/810980148a3039102a4754f94895132ccb8b5b35-117x64.svg",
+      "localFilename": "anthropic-img-027.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/4661a860c6f9018830d5f95679bbae5c2359109b-170x64.svg",
+      "localFilename": "anthropic-img-028.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/04280ffcf9a88b0f6fa85f2437b46102c8cb35e6-118x64.svg",
+      "localFilename": "anthropic-img-029.svg"
+    },
+    {
+      "remoteUrl": "https://www-cdn.anthropic.com/images/4zrzovbb/website/b6ba30deda95060f1a9ff19cf03b184d36529a2a-92x64.svg",
+      "localFilename": "anthropic-img-030.svg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F9299f8b86c69359c31d15dbece4545e628bddc34-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-031.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2Fe97dffe5ee2a8764d5f122578f2ad8cde957070e-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-032.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F664cea994d186e0d4dbb276bcdb502a49b1e702d-3840x2160.png&w=3840&q=75",
+      "localFilename": "anthropic-img-033.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F186551e6352bcfb4f9880b46ab41a9a381c15c4a-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-034.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F925c2e9b8c5b01825b167dd188286e266f3ef2c8-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-035.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2Fd6b081334e5c673cf0ab1f6e014c55bb46d17db9-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-036.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F34fc5568d8026abba82f18fccfb436f0419d7e40-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-037.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2F3a5b5c3eedb539fe20bc8dd1ecfc952c447000b8-1920x1080.png&w=3840&q=75",
+      "localFilename": "anthropic-img-038.jpg"
+    },
+    {
+      "remoteUrl": "https://www.anthropic.com/_next/image?url=https%3A%2F%2Fwww-cdn.anthropic.com%2Fimages%2F4zrzovbb%2Fwebsite%2Fff97ab0f2a5f3a243da02398f97dec1ac99b526a-3840x2160.png&w=3840&q=75",
+      "localFilename": "anthropic-img-039.jpg"
+    }
+  ],
+  "metadata": {
+    "title": "Introducing Claude Opus 4.7",
+    "description": "Our latest model, Claude Opus 4.7, is now generally available. Opus 4.7 is a notable improvement on Opus 4.6 in advanced software engineering, with particular gains on the most difficult tasks.",
+    "publishedAt": "",
+    "authors": []
+  },
+  "stats": {
+    "bodyChars": 23181,
+    "images": 39
+  }
+}

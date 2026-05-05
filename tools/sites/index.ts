@@ -34,6 +34,7 @@ import { site as lmsys } from "./lmsys/index.ts";
 import { site as sohu } from "./sohu/index.ts";
 import { site as huggingface } from "./huggingface/index.ts";
 import { site as qwenlmGithubIo } from "./qwenlm-github-io/index.ts";
+import { site as anthropic } from "./anthropic/index.ts";
 import { site as defaultSite } from "./_default/index.ts";
 
 export const SITES: readonly Site[] = [
@@ -93,6 +94,10 @@ export const SITES: readonly Site[] = [
   // qwenlm.github.io: Qwen team's research blog (Hugo on GitHub Pages).
   // qwen.ai itself is an SPA shell; the actual blog content lives here.
   qwenlmGithubIo,
+  // anthropic.com: blog and product pages. Replaces inline SVG figures
+  // with a placeholder paragraph at the DOM level, avoiding the
+  // character-per-line "explosion" the legacy post-processor patched.
+  anthropic,
   // CATCH-ALL: must be LAST. Fields any URL no host-specific module
   // claimed. Plain curl + JSDOM with permissive selectors; emits
   // `intentional-stub` if extraction returns < 200 chars (typical

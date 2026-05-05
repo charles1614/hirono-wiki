@@ -567,7 +567,13 @@ export const resolveRelativeImageUrls: PostProcessor = {
  */
 export const anthropicStripSvgExplosion: PostProcessor = {
   name: "anthropic-strip-svg-explosion",
-  match: (_u, h) => h === "anthropic.com",
+  // Retired 2026-05-05: anthropic.com migrated to tools/sites/anthropic/.
+  // The site module replaces inline `<svg>` elements with a placeholder
+  // paragraph at the DOM level via the article-site factory's
+  // `replaceSelectors`, eliminating the character-per-line explosion
+  // BEFORE turndown sees it. Transform kept here for one release as
+  // referenceable code; will be deleted in C12.
+  match: () => false,
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     const out: string[] = [];
