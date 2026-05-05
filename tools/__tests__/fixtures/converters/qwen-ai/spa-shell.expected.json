@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "source": "qwen-ai-spa-stub"
+  },
+  "flags": [
+    "intentional-stub",
+    "qwen-ai-spa"
+  ],
+  "notes": [
+    "qwen.ai: SPA shell — emitted stub redirecting to qwenlm.github.io"
+  ]
+}

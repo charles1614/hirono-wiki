@@ -40,6 +40,7 @@ import { site as feishu } from "./feishu/index.ts";
 import { site as reddit } from "./reddit/index.ts";
 import { site as sebastianraschkaBlog } from "./sebastianraschka-blog/index.ts";
 import { site as xTwitter } from "./x-twitter/index.ts";
+import { site as qwenAi } from "./qwen-ai/index.ts";
 import { site as defaultSite } from "./_default/index.ts";
 
 export const SITES: readonly Site[] = [
@@ -122,6 +123,10 @@ export const SITES: readonly Site[] = [
   // module — every URL gets a metadata stub since Twitter/X requires
   // login to render content reliably.
   xTwitter,
+  // qwen.ai: pure JavaScript SPA shell — every URL serves the same
+  // chrome with empty body. Stub-only — points operator at the real
+  // Qwen blog at qwenlm.github.io (already migrated above).
+  qwenAi,
   // CATCH-ALL: must be LAST. Fields any URL no host-specific module
   // claimed. Plain curl + JSDOM with permissive selectors; emits
   // `intentional-stub` if extraction returns < 200 chars (typical

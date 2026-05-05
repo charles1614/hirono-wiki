@@ -47,6 +47,7 @@ import { testHooks as feishuHooks } from "./feishu/test-hooks.ts";
 import { testHooks as redditHooks } from "./reddit/test-hooks.ts";
 import { testHooks as sebastianraschkaBlogHooks } from "./sebastianraschka-blog/test-hooks.ts";
 import { testHooks as xTwitterHooks } from "./x-twitter/test-hooks.ts";
+import { testHooks as qwenAiHooks } from "./qwen-ai/test-hooks.ts";
 import { testHooks as defaultHooks } from "./_default/test-hooks.ts";
 
 export const TEST_HOOKS: readonly SiteTestHooks[] = [
@@ -80,6 +81,7 @@ export const TEST_HOOKS: readonly SiteTestHooks[] = [
   redditHooks,
   sebastianraschkaBlogHooks,
   xTwitterHooks,
+  qwenAiHooks,
   defaultHooks,
 ];
 

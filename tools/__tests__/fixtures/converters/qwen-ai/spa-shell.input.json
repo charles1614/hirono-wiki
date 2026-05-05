@@ -1,0 +1,8 @@
+{
+  "fn": "convertQwenAiStub",
+  "args": [
+    {
+      "url": "https://qwen.ai/"
+    }
+  ]
+}

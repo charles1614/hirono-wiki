@@ -1152,7 +1152,10 @@ export const sphinxHeadingAnchorCleanup: PostProcessor = {
 
 export const articleCleanup: PostProcessor = {
   name: "article-cleanup",
-  match: (_u, h) => ARTICLE_CLEANUP_HOSTS.has(h),
+  // Retired 2026-05-05: qwen.ai (last user) migrated to
+  // tools/sites/qwen-ai/ which emits a stub for SPA URLs. Transform
+  // kept here as referenceable code; deleted in C12.
+  match: () => false,
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     const notes: string[] = [];
