@@ -2,9 +2,11 @@
  * `hirono raindrop check` — enumerate the Raindrop bookmark corpus and
  * report:
  *   1. Duplicate URLs (same normalized URL across multiple bookmark IDs)
- *   2. Hostname coverage (covered by DISPATCH_RULES / falls through to
- *      web-read / unknown)
+ *   2. Hostname coverage (`dedicated-adapter` / `web-read-fallback` per
+ *      `tools/hirono/shared/dispatch.ts`'s `classifyCoverage`)
  *   3. New-hostnames-to-consider — uncovered domains with >1 bookmark
+ *      (i.e. landing on the `_default` catch-all site module — candidates
+ *      for promotion to a dedicated `tools/sites/<host>/` module)
  *
  * The command reads from a cache file (populated separately by the
  * MCP-capable caller). Exits non-zero when duplicates exist OR any

@@ -8,7 +8,7 @@
 //
 // Effects:
 //   - Calls fetch-raw.ts fetch-url to land raw output under raw/2026/<slug>/
-//   - Reads back, runs applyPostProcessors against origin URL
+//   - Reads back, runs applyPostCleanups against origin URL
 //   - Derives host from URL → tools/__tests__/snapshots/<host>/<slug>.md
 //   - Writes <slug>.invariants.json sidecar
 //   - Cleans up raw/2026/<slug>/ (we don't keep ad-hoc fetches)

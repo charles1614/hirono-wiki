@@ -89,44 +89,41 @@ The site-module pattern keeps the conversion ours end-to-end. When a defect appe
 
 ```mermaid
 flowchart TB
-    URL["Incoming URL<br/>(e.g. from raindrop export)"] --> Router{routeSite(url)<br/>walks SITES[]<br/>returns first match}
+    URL["Incoming URL<br/>(e.g. from raindrop export)"] --> Router["routeSite(url)<br/>walks SITES[]<br/>returns first match<br/>(TOTAL — never null)"]
 
-    Router -->|"matched"| SM["site.fetch(url, opts)"]
-    Router -->|"no match"| Legacy["DISPATCH_RULES lookup<br/>(fetch-raw.ts)"]
-
-    SM --> Bucket{Source bucket<br/>per §1}
+    Router --> Bucket{Source bucket<br/>per §1 — chosen<br/>by site module}
     Bucket -->|"A: API"| FetchAPI["curl + JSON<br/>(github)"]
-    Bucket -->|"B: Raw MD"| FetchRaw["curl raw URL<br/>(huggingface)"]
-    Bucket -->|"C: Stable HTML"| FetchHTML["curl + JSDOM<br/>(article-site factory)"]
+    Bucket -->|"B: Raw MD"| FetchRaw["curl raw URL<br/>(huggingface/blog)"]
+    Bucket -->|"C: Stable HTML"| FetchHTML["curl + JSDOM<br/>(article-site factory<br/>+ catch-all _default)"]
     Bucket -->|"D: SPA"| FetchBrowser["opencli<br/>browser open + eval<br/>→ outerHTML<br/>(xhs, weixin, zhihu)"]
+    Bucket -->|"Stub-only"| FetchStub["templated stub<br/>(feishu, x-twitter,<br/>reddit, qwen-ai)"]
 
     FetchAPI --> Conv["per-host converter.ts<br/>pure function:<br/>raw → §2 markdown"]
     FetchRaw --> Conv
     FetchHTML --> Conv
     FetchBrowser --> Conv
+    FetchStub --> Result
 
-    Conv --> Result1["Result {markdown,<br/>imagesToDownload,<br/>metadata, flags}"]
+    Conv --> Result["Result {markdown,<br/>imagesToDownload,<br/>metadata, flags}"]
 
-    Legacy --> Adapter{"web-read adapter<br/>(case 'web-read')"}
-    Adapter -->|"opencli web-read"| Lossy["lossy markdown<br/>(opencli's converter)"]
-    Lossy --> PP["applyPostProcessors<br/>(regex pipeline)"]
-    PP --> Result2["§2 markdown<br/>(after cleanups)"]
+    Result --> Cleanup["applyPostCleanups<br/>(8 host-agnostic<br/>cross-cutting cleanups)"]
 
-    Result1 --> Final["raw/2026/<slug>/content.md"]
-    Result2 --> Final
+    Cleanup --> Final["raw/2026/&lt;slug&gt;/content.md"]
 
+    style Router fill:#dfd,stroke:#0a0
     style FetchBrowser fill:#dfd,stroke:#0a0
     style FetchHTML fill:#dfd,stroke:#0a0
     style FetchRaw fill:#dfd,stroke:#0a0
     style FetchAPI fill:#dfd,stroke:#0a0
+    style FetchStub fill:#dfd,stroke:#0a0
     style Conv fill:#dfd,stroke:#0a0
-    style Legacy fill:#fdd,stroke:#f00
-    style Adapter fill:#fdd,stroke:#f00
-    style Lossy fill:#fdd,stroke:#f00
-    style PP fill:#fdd,stroke:#f00
+    style Cleanup fill:#dfd,stroke:#0a0
+    style Result fill:#dfd,stroke:#0a0
 ```
 
-The router is the single entry point. If a site module matches, the URL never reaches the legacy path. The legacy path exists only for hosts not yet migrated (or that genuinely belong there — see §6).
+**Routing is total.** `routeSite()` returns the catch-all `tools/sites/_default/` for any URL no host-specific module claimed. There is no legacy fallback path; the historical `case "web-read":` branch in `fetch-raw.ts` and `applyPostProcessors`'s host-scoped processors have all been retired.
+
+After every site module returns a `Result`, `applyPostCleanups()` runs 8 host-agnostic markdown cleanups (relative-URL resolution, single-H1 enforcement, color-tag stripping, etc. — see `tools/sites/_shared/post-cleanup.ts`) and writes the final markdown.
 
 **Critical:** site modules using browser-eval (xhs, weixin, zhihu) **are on the green path**. They are not legacy. The defining question is who owns the HTML→Markdown conversion, not which subprocess fetched the bytes.
 
@@ -167,71 +164,45 @@ This split is what makes the architecture *testable*: a 99% byte-equal converter
 
 ---
 
-## 6. When to migrate, when to leave on the legacy path
+## 6. Adding a new host module
 
-The migration target is **the legacy path's red boxes get smaller over time**, not zero. Migration is gated by *payoff*, not driven to completion.
+The migration is **complete** — every URL now flows through a site module under `tools/sites/<host>/`. Adding a new dedicated module is a refinement of the catch-all (`_default`) when one of these triggers:
 
-Migrate a host when ANY of:
+- The catch-all's permissive selectors return < 200 chars (typical SPA shell) — promote to a browser-eval module like xhs / weixin / zhihu.
+- The host has a cleaner source-of-truth (REST API / raw mirror / hydration JSON / DOM attrs / linked downloads) — write a module that uses it.
+- The catch-all's chrome dropSelectors leak host-specific footer / nav / share widgets — add a per-host module with tighter selectors.
+- The bookmark count is high enough that the per-host config pays back its cost (see `tools/sites/MIGRATION.md` §0).
 
-- The legacy `web-read` produced an unfixable defect (lost code blocks / tables / mermaid; doubled markers; paragraph collapse) and the fix needs structural work, not regex patches.
-- The host has a cleaner source-of-truth (REST API / raw mirror / hydration JSON / DOM attrs / linked downloads) the legacy path doesn't use.
-- The host shares a content engine with an already-migrated host.
-- The bookmark count is high enough that consolidating logic in one place pays back the migration cost (see `tools/sites/MIGRATION.md` §0).
-
-Legitimately *don't* migrate when:
-
-- The host is a simple article and `web-read + smallChromeCleanup` already produces clean output. Forcing it into a site module adds code without adding quality. (This was the pre-redesign failure mode — pattern-purity ahead of payoff.)
-- The host produces only stubs (auth-gated, removed pages) and the existing stub-producing post-processor is correct. Examples: `*.feishu.cn`, `notion.so`, parts of `x.com`, parts of `reddit.com`.
-- The host is a one-off in the bookmark set (≤2 entries) and the legacy output is acceptable.
-
-The active legacy-path hosts as of the most recent migration sweep:
-
-| Host | Why it stays | Migration plausibility |
-|---|---|---|
-| `qwen.ai` | JS-only SPA shell — needs browser-eval. Real Qwen blog content lives at `qwenlm.github.io` (already migrated). | Medium — needs a browser-eval site module |
-| `x.com` / `twitter.com` | Substantial conversion logic in `xMetadataStub` (auth-gated stub + visible-content card layout) | High — would be a rewrite, not a port |
-| `reddit.com` | `redditReformat` handles deleted/blocked stubs + thread cleanup | Medium |
-| `*.feishu.cn` | Auth-gated stub — substantive content not extractable without lark-hirono | Low value |
-| `anthropic.com` | Single-purpose SVG-explosion stripper | Low effort, low priority |
-| `sebastianraschka.com` (non-gallery) | Scoped post-processor for the blog area | Could move to factory |
-| `huggingface.co` (non-`/blog/`) | Model card / dataset page chrome | Different shape per page kind |
-| `arxiv.org` (non-`/abs/`, `/pdf/`) | Listing pages + PDFs | PDFs need extraction, not conversion |
-| `*.readthedocs.io/.org` | Generic Sphinx-anchor stripper | Could move to factory |
+The recipe is in `tools/sites/MIGRATION.md`. Most new hosts are 15-line factory configs.
 
 ---
 
-## 7. The post-processor pipeline today
+## 7. The post-cleanup pipeline
 
-Even with the migrations, `tools/hirono/shared/post-process.ts` still exists and runs. Three categories of processors live there:
+After every site module returns its `Result.markdown`, a single host-agnostic cleanup pass runs via `applyPostCleanups()` in `tools/sites/_shared/post-cleanup.ts`. The pipeline contains 8 cross-cutting processors:
 
 ```mermaid
 flowchart TB
-    SiteOutput["Site module output<br/>(or legacy web-read output)"] --> PP["applyPostProcessors"]
+    SiteOutput["Site module Result.markdown"] --> Cleanup["applyPostCleanups(md, url)"]
 
-    PP --> P1["GENERIC: cross-host primitives<br/>match: () => true<br/>strip-empty-anchor-links<br/>resolve-relative-image-urls<br/>enforce-single-h1<br/>strip-color-tags"]
+    Cleanup --> Steps["**resolveRelativeImageUrls** — /img.png → absolute<br/>**stripEmptyAnchorLinks** — [](#anchor) chrome<br/>**stripDecorativeEmojiImages** — twemoji refs → :shortcode:<br/>**stripTrailingTagList** — [tag1][tag2] footers<br/>**stripShareWidgetLines** — Twitter/LinkedIn/Share<br/>**unescapeBracketsInLinks** — \\[ref\\] → [ref]<br/>**stripColorTags** — &lt;text color=...&gt; → bare text<br/>**enforceSingleH1** — exactly one # per doc"]
 
-    P1 --> P2["LEGACY: scoped to<br/>not-yet-migrated hosts<br/>match: (u, h) => h === '...'<br/>arxivStripTrailingChrome<br/>redditReformat<br/>xMetadataStub<br/>anthropicStripSvgExplosion"]
+    Steps --> Final["finalMarkdown"]
 
-    P2 --> P3["RETIRED: match returns false<br/>kept as referenceable code<br/>blogGoogleCleanup<br/>lmsysCleanup<br/>intuitionlabsCleanup<br/>sspaiCleanup<br/>substackReformat"]
-
-    P3 --> Out["finalMarkdown"]
-
-    style P1 fill:#dfd,stroke:#0a0
-    style P2 fill:#fec,stroke:#fa0
-    style P3 fill:#eee,stroke:#888
+    style Cleanup fill:#dfd,stroke:#0a0
+    style Steps fill:#dfd,stroke:#0a0
+    style Final fill:#dfd,stroke:#0a0
 ```
 
-- **Generic** processors (`match: () => true`): apply to every URL regardless of source. These are universally useful (e.g. resolving relative image URLs to absolute, enforcing one H1 per document). They run on site-module output too — which is fine, because the operations are idempotent and don't mangle correct input.
-- **Legacy-host-scoped**: still active for hosts not yet migrated. As migrations land, these flip to `match: () => false`.
-- **Retired**: `match: () => false` but the transform code is preserved. They live on as reference material in case a similar shape resurfaces on a new host.
+These are universal, idempotent, host-agnostic — they run unconditionally on every URL's output. There are no host-scoped post-processors anymore; host-specific cleanup happens inside each site module's converter at the DOM level (where defects can be fixed at their source rather than patched in markdown afterwards).
 
-The tests in `__tests__/post-process-fixtures.test.ts` cover all three categories. Retired processors keep their tests so the regression coverage doesn't drift.
+The implementations live in `tools/hirono/shared/post-process.ts` (a small file containing only the 8 transforms + 2 helpers); `applyPostCleanups()` composes them into the public pipeline.
 
 ---
 
 ## 8. Putting it together: the universal pattern restated
 
-For any URL, the question to ask is:
+For any URL, the question to ask when adding a new module is:
 
 > Where does the cleanest source of this content live?
 
@@ -240,9 +211,9 @@ In order of preference:
 1. **Structured API or raw markdown** (buckets A, B above) — use it directly. opencli does not enter the picture.
 2. **Server-rendered HTML with a stable selector** (bucket C) — `curl` it, run our own JSDOM + turndown. Use the article-site factory for blog-shape pages; write a custom converter for richer shapes (catalog tables, gallery cards, mermaid-heavy wikis).
 3. **SPA / auth-gated dynamic content** (bucket D) — use `opencli browser open + eval` to get the rendered DOM, then run our own converter on the `outerHTML`.
-4. **Last resort, no good source available** — `opencli web-read` (the legacy path). Acceptable only when 1–3 are all impossible AND the lossy markdown is good enough for the host's content. Migrate out if a defect appears.
+4. **No useful content** — emit an `intentional-stub` deterministically from the URL alone (see `feishu`, `x-twitter`, `qwen-ai` for examples).
 
-The architecture's promise: **defects in a site's output have a single clear owner — the site's own converter** (or, for buckets A/B, the API/mirror itself, which is upstream of us). Cross-cutting regex pipelines patching opaque opencli output are no longer an acceptable answer for new defects.
+The architecture's promise: **defects in a site's output have a single clear owner — the site's own converter** (or, for buckets A/B, the API/mirror itself, which is upstream of us). Cross-cutting regex pipelines patching opaque opencli output are no longer how this codebase works.
 
 ---
 
@@ -253,9 +224,12 @@ The architecture's promise: **defects in a site's output have a single clear own
 - [`tools/sites/_shared/article-site-factory.ts`](../tools/sites/_shared/article-site-factory.ts) — the 15-line per-host factory for bucket C.
 - [`tools/sites/_shared/article-converter.ts`](../tools/sites/_shared/article-converter.ts) — the shared converter the factory drives.
 - [`tools/sites/_shared/types.ts`](../tools/sites/_shared/types.ts) — the `Site` contract every module exports.
+- [`tools/sites/_shared/post-cleanup.ts`](../tools/sites/_shared/post-cleanup.ts) — `applyPostCleanups()` and the 8 cross-cutting cleanups.
+- [`tools/sites/_default/`](../tools/sites/_default/) — the catch-all module that fields any URL no host-specific module claimed.
 - Reference modules to read end-to-end before writing your first one:
   - `tools/sites/aleksagordic/` — simplest factory user (15-line config)
   - `tools/sites/huggingface/` — bucket B (raw markdown mirror)
   - `tools/sites/github/` — bucket A (REST API)
   - `tools/sites/xhs/` — bucket D (browser-eval SPA)
   - `tools/sites/deepwiki-com/` — bucket C with mermaid splice + table splice (the recipe-heavy end of the spectrum)
+  - `tools/sites/feishu/`, `tools/sites/x-twitter/`, `tools/sites/qwen-ai/` — stub-only modules for auth-gated or SPA-shell hosts

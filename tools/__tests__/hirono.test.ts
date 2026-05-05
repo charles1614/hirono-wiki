@@ -16,13 +16,11 @@ import { tmpdir } from "node:os";
 
 import {
   resolveRelativeImageUrls,
-  anthropicStripSvgExplosion,
   stripColorTags,
   extractRelativeImageRefs,
   resolveAgainstOrigin,
-  applyPostProcessors,
-  PROCESSORS,
 } from "../hirono/shared/post-process.ts";
+import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
 import { buildReport, formatReport, type Cache } from "../hirono/raindrop/check.ts";
 import { resolveIdentifier } from "../hirono/raindrop/export.ts";
 import { slugifyTitle, deriveSlug, buildPlan } from "../hirono/raindrop/fetch-all.ts";
@@ -139,55 +137,9 @@ test("resolveRelativeImageUrls: no-op when all URLs absolute", () => {
 //  in commit ad97f75; the strip processor and its 2 tests have no
 //  callers and were deleted.)
 
-// ---------------------------------------------------------------------------
-// anthropicStripSvgExplosion
-// ---------------------------------------------------------------------------
-
-test("anthropicStripSvgExplosion: collapses 8+ short-line blocks into placeholder", () => {
-  const md = [
-    "Intro text.",
-    "",
-    "How",
-    "",
-    "Anthropic",
-    "",
-    "teams",
-    "",
-    "use",
-    "",
-    "Claude",
-    "",
-    "Code",
-    "",
-    "is",
-    "",
-    "amazing",
-    "",
-    "Back to regular paragraphs with many more than four words per line.",
-  ].join("\n");
-  const r = anthropicStripSvgExplosion.transform(md, "https://anthropic.com/blog/x");
-  assert.ok(r.md.includes("[SVG figure — see source for visual content]"));
-  assert.ok(!r.md.includes("How\n\nAnthropic\n\nteams"));
-  assert.ok(r.md.includes("Back to regular paragraphs"));
-  assert.equal(r.notes[0], "anthropic: collapsed 1 exploded-SVG text block(s)");
-});
-
-test("anthropicStripSvgExplosion: leaves short lists alone (not 8+ run)", () => {
-  const md = [
-    "Lead para.",
-    "",
-    "point one",
-    "",
-    "point two",
-    "",
-    "point three",
-    "",
-    "back to prose.",
-  ].join("\n");
-  const r = anthropicStripSvgExplosion.transform(md, "https://anthropic.com/");
-  assert.ok(!r.md.includes("[SVG figure"));
-  assert.deepEqual(r.notes, []);
-});
+// (anthropicStripSvgExplosion retired with the legacy post-processor
+//  pipeline. The anthropic site module under tools/sites/anthropic/
+//  now handles SVG figures at the DOM level via `replaceSelectors`.)
 
 // ---------------------------------------------------------------------------
 // stripColorTags
@@ -208,30 +160,23 @@ test("stripColorTags: no-op on clean markdown", () => {
 });
 
 // ---------------------------------------------------------------------------
-// applyPostProcessors pipeline
+// applyPostCleanups pipeline (replaces the legacy applyPostProcessors)
 // ---------------------------------------------------------------------------
 
-test("applyPostProcessors: relative-image resolver fires for any host", () => {
+test("applyPostCleanups: relative-image resolver fires for any host", () => {
   const md = "# Article\n\nBody with ![diag](/assets/d.png).";
-  const r = applyPostProcessors(md, "https://wiki.litenext.digital/wiki/repo?file=01");
+  const r = applyPostCleanups(md, "https://wiki.litenext.digital/wiki/repo?file=01");
   assert.ok(r.md.includes("https://wiki.litenext.digital/assets/d.png"));
   assert.ok(r.appliedNames.includes("resolve-relative-image-urls"));
   assert.equal(r.newAbsoluteImageUrls.length, 1);
 });
 
-test("applyPostProcessors: runs match-filtered processors only", () => {
+test("applyPostCleanups: every cross-cutting cleanup runs unconditionally", () => {
   const md = `![](/img.png)`;
-  const r = applyPostProcessors(md, "https://example.com/");
-  // anthropic processor should be skipped; resolver + color-tags should run
-  assert.ok(!r.appliedNames.includes("anthropic-strip-svg-explosion"));
+  const r = applyPostCleanups(md, "https://example.com/");
+  // No host-scoped match check anymore — every Bucket A cleanup is in
+  // the pipeline. Resolver fires because we passed a relative ref.
   assert.ok(r.appliedNames.includes("resolve-relative-image-urls"));
-});
-
-test("PROCESSORS pipeline order: URL resolver runs before color-tag strip", () => {
-  const resolveIdx = PROCESSORS.findIndex((p) => p.name === "resolve-relative-image-urls");
-  const colorIdx = PROCESSORS.findIndex((p) => p.name === "strip-color-tags");
-  assert.ok(resolveIdx >= 0 && colorIdx >= 0);
-  assert.ok(resolveIdx < colorIdx, "URL resolver should run before color-tag strip");
 });
 
 // ---------------------------------------------------------------------------

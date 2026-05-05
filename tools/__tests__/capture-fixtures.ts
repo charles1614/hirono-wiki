@@ -64,10 +64,11 @@ function writeFixture(
 }
 
 /**
- * Generic web-fetch capture: replays the same selector cascade that
- * `tools/fetch-raw.ts:fetchWebReadViaAdapter` uses, then runs
- * `convertGenericHtml` on the result. The fixture directory is the
- * hostname (e.g., `web-arxiv-org`, `web-sspai-com`).
+ * Generic web-fetch capture: curl + the article-converter selector
+ * cascade (see `tools/sites/_shared/article-converter.ts`). Used for
+ * legacy fixture dirs whose host has been migrated to a site module
+ * (those new fixtures use the per-host module's capture hook directly).
+ * The fixture directory is the hostname (e.g., `web-arxiv-org`).
  */
 function captureWebFetch(hostKey: string, name: string, url: string): void {
   console.log(`[capture web-fetch:${hostKey}] ${url}`);

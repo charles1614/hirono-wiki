@@ -3,10 +3,18 @@
  * `match(url)` returns true. The router has no per-site knowledge —
  * sites are self-describing via the contract in `_shared/types.ts`.
  *
- * Hosts not yet migrated to a site module fall through to the legacy
- * dispatch in `tools/fetch-raw.ts` (DISPATCH_RULES + per-adapter switch).
- * Each migration moves one host into `tools/sites/<host>/` and registers
- * it here; the legacy dispatch shrinks as a side effect.
+ * Routing is **total**. The catch-all `_default` site module is
+ * registered LAST with `match: () => true`, so `routeSite(url)` never
+ * returns null. Every URL flows through some site module. There is no
+ * legacy fallback path. See `docs/fetcher-architecture.md`.
+ *
+ * To add a new host module:
+ *   1. Build `tools/sites/<host>/{index.ts,test-hooks.ts}` (most use
+ *      the article-site factory in `_shared/article-site-factory.ts`).
+ *   2. Import + register here BEFORE `_default` (specific wins over
+ *      catch-all).
+ *   3. Register the test hooks in `tools/sites/test-hooks-registry.ts`.
+ *   4. Capture fixture + snapshot via `tools/__tests__/approve.ts`.
  */
 
 import type { Site } from "./_shared/types.ts";

@@ -1,23 +1,21 @@
 /**
- * Thin re-export layer for the adapter-dispatch logic. Today the canonical
- * definitions live in tools/fetch-raw.ts — hirono subcommands import from
- * here so when we eventually migrate the source of truth into this module,
- * only one file needs to change.
+ * Thin re-export layer for site-router classification. Hirono subcommands
+ * use `classifyCoverage` to bucket bookmarked URLs by handler.
+ *
+ * Under the unified architecture (`docs/fetcher-architecture.md`) the
+ * legacy DISPATCH_RULES / OpencliAdapter / web-read wait-overrides are
+ * gone — every URL maps to a site module under `tools/sites/<host>/`.
+ * The catch-all `tools/sites/_default/` claims everything no
+ * host-specific module fielded.
  */
 import {
-  lookupDispatch as _lookupDispatch,
   hostnameOf as _hostnameOf,
 } from "../../fetch-raw.ts";
 import { routeSite } from "../../sites/index.ts";
 
 export {
-  DISPATCH_RULES,
-  lookupDispatch,
   hostnameOf,
   isArticleLikeUrl,
-  getPreferredWaitSeconds,
-  DEFAULT_WEB_READ_WAIT_SECONDS,
-  type OpencliAdapter,
 } from "../../fetch-raw.ts";
 
 /**

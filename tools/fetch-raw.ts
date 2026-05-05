@@ -122,137 +122,11 @@ export interface FetchError extends Error {
 }
 
 // ---------------------------------------------------------------------------
-// domain dispatch
+// hostname helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Dispatch: pick the right opencli adapter for a URL.
- *
- * opencli ships native adapters that know each domain's DOM, handle auth
- * via the Chrome cookie session, and download images for us. Using these
- * adapters directly beats a generic browser+selector approach — opencli
- * maintainers keep them current with each site's DOM changes.
- */
-export type OpencliAdapter =
-  | "xiaohongshu"       // xhs posts + images
-  | "zhihu-article"     // zhuanlan.zhihu.com/p/<id>
-  | "zhihu-question"    // www.zhihu.com/question/<id>
-  | "weixin"            // mp.weixin.qq.com/s/<id>
-  | "web-read";         // generic fallback (opencli web read)
-
-interface DispatchRule {
-  match: (url: string, host: string) => boolean;
-  adapter: OpencliAdapter;
-  friendlyName: string;
-}
-
-export const DISPATCH_RULES: DispatchRule[] = [
-  // ── Native opencli adapters ──────────────────────────────────────────────
-  {
-    match: (_u, h) => /(?:^|\.)xiaohongshu\.com$/i.test(h) || h === "xhslink.com",
-    adapter: "xiaohongshu",
-    friendlyName: "xiaohongshu",
-  },
-  {
-    match: (_u, h) => h === "zhuanlan.zhihu.com",
-    adapter: "zhihu-article",
-    friendlyName: "zhihu-article",
-  },
-  {
-    match: (u, h) => /(?:^|\.)zhihu\.com$/i.test(h) && /\/question\//.test(u),
-    adapter: "zhihu-question",
-    friendlyName: "zhihu-question",
-  },
-  {
-    match: (_u, h) => h === "mp.weixin.qq.com",
-    adapter: "weixin",
-    friendlyName: "wechat",
-  },
-
-  // ── Group 1: web-read + existing post-processors ─────────────────────────
-  { match: (_u, h) => h === "github.com",            adapter: "web-read", friendlyName: "github-web" },
-  { match: (_u, h) => h === "arxiv.org",             adapter: "web-read", friendlyName: "arxiv-web" },
-  { match: (_u, h) => h === "wiki.litenext.digital", adapter: "web-read", friendlyName: "deepwiki-litenext" },
-  { match: (_u, h) => h === "deepwiki.com",          adapter: "web-read", friendlyName: "deepwiki-com" },
-
-  // ── Group 2: Substack newsletters ────────────────────────────────────────
-  { match: (_u, h) => h === "newsletter.semianalysis.com",    adapter: "web-read", friendlyName: "substack-semianalysis" },
-  { match: (_u, h) => h === "magazine.sebastianraschka.com",  adapter: "web-read", friendlyName: "substack-sebastianraschka" },
-  { match: (_u, h) => h === "sebastianraschka.com",           adapter: "web-read", friendlyName: "sebastianraschka-blog" },
-
-  // ── Group 3: Forums ───────────────────────────────────────────────────────
-  { match: (_u, h) => h === "linux.do",   adapter: "web-read", friendlyName: "linux-do-discourse" },
-  { match: (_u, h) => h === "reddit.com" || h === "www.reddit.com", adapter: "web-read", friendlyName: "reddit-web" },
-
-  // ── Group 4: Twitter / X (auth-gated — post-processor produces stub) ──────
-  { match: (_u, h) => h === "x.com" || h === "twitter.com", adapter: "web-read", friendlyName: "x-metadata-stub" },
-
-  // ── Group 5: Feishu internal wikis ───────────────────────────────────────
-  { match: (_u, h) => /\.feishu\.cn$/i.test(h), adapter: "web-read", friendlyName: "feishu-wiki" },
-
-  // ── Group 6: Generic article / blog / research sites ─────────────────────
-  { match: (_u, h) => h === "intuitionlabs.ai",       adapter: "web-read", friendlyName: "intuitionlabs-blog" },
-  { match: (_u, h) => h === "sspai.com",              adapter: "web-read", friendlyName: "sspai-blog" },
-  { match: (_u, h) => h === "nvidianews.nvidia.com",  adapter: "web-read", friendlyName: "nvidia-news" },
-  { match: (_u, h) => h === "qwen.ai",                adapter: "web-read", friendlyName: "qwen-blog" },
-  { match: (_u, h) => h === "lmsys.org",              adapter: "web-read", friendlyName: "lmsys-blog" },
-  { match: (_u, h) => h === "epoch.ai",               adapter: "web-read", friendlyName: "epoch-research" },
-  { match: (_u, h) => h === "developer.nvidia.com",   adapter: "web-read", friendlyName: "nvidia-dev" },
-  { match: (_u, h) => h === "blog.google",            adapter: "web-read", friendlyName: "google-blog" },
-  { match: (_u, h) => h === "aleksagordic.com" || h === "www.aleksagordic.com", adapter: "web-read", friendlyName: "aleksagordic-blog" },
-  { match: (_u, h) => h === "huggingface.co",         adapter: "web-read", friendlyName: "huggingface-web" },
-  { match: (_u, h) => h === "blog.csdn.net",          adapter: "web-read", friendlyName: "csdn-blog" },
-  { match: (_u, h) => h === "01.me",                  adapter: "web-read", friendlyName: "blog-01me" },
-  { match: (_u, h) => h === "docs.nvidia.com",        adapter: "web-read", friendlyName: "nvidia-docs" },
-  { match: (_u, h) => h === "sohu.com" || h === "www.sohu.com", adapter: "web-read", friendlyName: "sohu-news" },
-];
 
 export function hostnameOf(url: string): string {
   try { return new URL(url).hostname; } catch { return ""; }
-}
-
-export function lookupDispatch(url: string): DispatchRule | null {
-  const host = hostnameOf(url);
-  if (!host) return null;
-  for (const r of DISPATCH_RULES) if (r.match(url, host)) return r;
-  return null;
-}
-
-/**
- * Per-host wait overrides for the generic `opencli web read` path. Some
- * client-rendered SPAs don't hydrate their article body in the default 10s
- * window we allow; bumping to 20s at fetch time beats relying on the 60s
- * auto-retry (which pays the first-try cost anyway).
- *
- * Separate from DISPATCH_RULES because DISPATCH_RULES routes to native
- * adapters (xhs/zhihu/wechat) that don't take a `--wait` flag. These
- * overrides apply only to the web-read fallback.
- */
-interface WaitOverride {
-  match: (url: string, host: string) => boolean;
-  waitSeconds: number;
-}
-
-const WEB_READ_WAIT_OVERRIDES: WaitOverride[] = [
-  // DeepWiki — client-rendered, ~20s to hydrate article body on cold cache
-  { match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com", waitSeconds: 20 },
-  // Notion (personal + team workspaces) — heavy client rendering
-  { match: (_u, h) => h === "notion.so" || /\.notion\.so$/i.test(h), waitSeconds: 20 },
-  // Vercel preview deployments — typically next.js SSG+hydration
-  { match: (_u, h) => /\.vercel\.app$/i.test(h), waitSeconds: 20 },
-  // Qwen blog / epoch.ai — React SPAs, slow hydration
-  { match: (_u, h) => h === "qwen.ai" || h === "epoch.ai", waitSeconds: 20 },
-];
-
-export const DEFAULT_WEB_READ_WAIT_SECONDS = 10;
-
-export function getPreferredWaitSeconds(url: string): number {
-  const host = hostnameOf(url);
-  if (!host) return DEFAULT_WEB_READ_WAIT_SECONDS;
-  for (const o of WEB_READ_WAIT_OVERRIDES) {
-    if (o.match(url, host)) return o.waitSeconds;
-  }
-  return DEFAULT_WEB_READ_WAIT_SECONDS;
 }
 
 /** Convenience used by the L3 redirect detector: is a given URL on a known article path? */
@@ -1585,415 +1459,6 @@ function findFreshXhsUrl(titleHint: string, originalUrl: string): string | null 
 }
 
 
-/** Native zhihu question adapter: www.zhihu.com/question/<id> — prints structured answers to stdout. */
-function fetchZhihuQuestionViaAdapter(url: string): AdapterResult {
-  const m = url.match(/\/question\/(\d+)/);
-  if (!m) throw makeError("parse-failure", "L3", `could not extract zhihu question id from ${url}`);
-  const qid = m[1];
-
-  // The opencli zhihu adapter ONLY returns the answers table — no question
-  // title, no §2 frontmatter. Run an extra browser pass to grab the title
-  // (`.QuestionHeader-title`) so the wrapped output satisfies §2 with a
-  // real H1 instead of "question id <N>".
-  let questionTitle = "";
-  let browserOpened = false;
-  try {
-    // Always navigate to the canonical question URL (strip any /answer/<aid>
-    // suffix and tracking params) — the title selector loads faster on the
-    // bare question page than on a deep-linked answer view.
-    const titleUrl = `https://www.zhihu.com/question/${qid}`;
-    const openRes = spawnSync("opencli", ["browser", "open", titleUrl], {
-      encoding: "utf8",
-      timeout: browserTimeoutMs("open"),
-    });
-    if (openRes.status === 0) {
-      browserOpened = true;
-      // 5s — empirically the threshold for `.QuestionHeader-title` to be
-      // populated; less leaves it unattached and the eval returns the
-      // fallback "Zhihu question <qid>" title.
-      sleepMs(5000);
-      const evalRes = spawnSync(
-        "opencli",
-        ["browser", "eval", `(() => JSON.stringify((document.querySelector('.QuestionHeader-title, h1.QuestionHeader-title, h1')?.textContent || '').trim()))()`],
-        { encoding: "utf8", timeout: browserTimeoutMs("eval"), maxBuffer: 4 * 1024 * 1024 },
-      );
-      if (evalRes.status === 0) {
-        // The eval wraps the title in JSON quotes for safe parsing across
-        // CJK + opencli's stdout decoration.
-        const out = evalRes.stdout || "";
-        const match = out.match(/"((?:[^"\\]|\\.)*)"/);
-        if (match) {
-          try { questionTitle = JSON.parse('"' + match[1] + '"'); } catch { questionTitle = match[1]; }
-        }
-      }
-    }
-  } catch { /* fall through to no-title path */ }
-  finally {
-    if (browserOpened) {
-      try { closeBrowser(); } catch { /* best-effort */ }
-    }
-  }
-
-  const tableMd = runOpencli(
-    ["zhihu", "question", qid, "-f", "md", "--limit", "10"],
-    { timeoutMs: 120_000 },
-  );
-
-  const h1 = questionTitle || `Zhihu question ${qid}`;
-  const wrappedMd =
-    `# ${h1}\n\n` +
-    `> 原文链接: ${url}\n\n` +
-    `---\n\n` +
-    `*下表为该问题排名前 10 的回答（按点赞数排序）。每行一个回答，content 列已合并自原文段落。*\n\n` +
-    tableMd.trim() + "\n";
-
-  return {
-    markdown: wrappedMd,
-    imageFiles: [],
-    rawMetadata: {
-      question_id: qid,
-      question_title: questionTitle || null,
-    },
-  };
-}
-
-
-
-/**
- * Generic web fetch — works for any URL the user can read in their
- * logged-in Chrome. Replaces the old `opencli web read` flow whose
- * built-in HTML-to-markdown converter destroyed `<table>` (flattened to
- * one-line-per-cell text) and `<pre><code>` (rendered as numbered lists).
- *
- * New flow:
- *   1. opencli browser open <url>
- *   2. sleepMs(waitSeconds * 1000)  — let SPA hydrate (DeepWiki, Vercel, Notion)
- *   3. opencli browser eval <selector cascade> — extracts main-content outerHTML
- *   4. jsdom + turndown + GFM  — produces proper `|`-delimited tables + fenced code
- *   5. download images via downloadImage()
- *   6. compose §2 frontmatter
- *
- * Retry-on-short-body and HuggingFace GitHub-fallback logic stay below
- * unchanged — they just see better input now.
- *
- * Note: wiki.litenext.digital + deepwiki.com are handled by
- * tools/sites/deepwiki-{litenext,com}/ and never reach this function
- * (the case "web-read" dispatch routes through routeSite() first).
- */
-function fetchWebReadViaAdapter(url: string, slugDir: string, downloadImages: boolean, waitSeconds = 10): AdapterResult {
-  mkdirSync(slugDir, { recursive: true });
-  const adapterNotesLocal: string[] = [];
-  const adapterFlagsLocal: string[] = [];
-
-  let resultMarkdown = "";
-  const imageFiles: string[] = [];
-  let pageTitle = "";
-  let finalUrl: string | undefined;
-
-  let browserOpened = false;
-  try {
-    const openRes = spawnSync(
-      "opencli",
-      ["browser", "open", url],
-      { encoding: "utf8", timeout: browserTimeoutMs("open") },
-    );
-    if (openRes.status !== 0) {
-      adapterFlagsLocal.push("web-fetch-browser-open-failed");
-      adapterNotesLocal.push(`web-fetch: browser open failed (${(openRes.stderr || "").slice(0, 160)})`);
-    } else {
-      browserOpened = true;
-      sleepMs(Math.max(1, waitSeconds) * 1000);
-
-      // Selector cascade: prefer semantic article containers, fall back to
-      // common blog/docs class names, then `document.body`. Within each
-      // selector we pick the matched element with the longest textContent —
-      // beats picking the first match when a page has nested matches (e.g.
-      // a small <article> inside a larger <main>).
-      const evalScript = `(() => {
-        // Evaluate ALL candidate selectors and pick the matched element
-        // with the longest textContent. Earlier impl broke out on the
-        // first selector that had ANY match, which on some sites (01.me)
-        // resolved to a tiny .markdown-body decorative element while a
-        // later selector (.content) held the real article.
-        const SELECTORS = [
-          'article',
-          'main',
-          '[role="main"]',
-          '.post-content',
-          '.article-body',
-          '.entry-content',
-          '.post-body',
-          '.content-body',
-          '.markdown-body',
-          '#content',
-          '.content',
-          '.post',
-          '.entry'
-        ];
-        let best = null;
-        let bestLen = 0;
-        for (const sel of SELECTORS) {
-          for (const el of document.querySelectorAll(sel)) {
-            const len = (el.textContent || '').length;
-            if (len > bestLen) { best = el; bestLen = len; }
-          }
-        }
-        // Sanity floor: a winning selector should hold a meaningful chunk
-        // of the page. Below 500 chars we assume the cascade picked a
-        // decorative shell and fall back to <body>.
-        if (!best || bestLen < 500) best = document.body;
-        return JSON.stringify({
-          contentHtml: best ? best.outerHTML : '',
-          title: (document.title || '').replace(/\\s+\\|\\s+[^|]*$/, '').trim(),
-          finalUrl: window.location.href
-        });
-      })()`;
-
-      const evalRes = spawnSync(
-        "opencli",
-        ["browser", "eval", evalScript],
-        { encoding: "utf8", timeout: browserTimeoutMs("eval"), maxBuffer: 64 * 1024 * 1024 },
-      );
-      if (evalRes.status !== 0) {
-        adapterFlagsLocal.push("web-fetch-eval-failed");
-        adapterNotesLocal.push(`web-fetch: browser eval failed (${(evalRes.stderr || "").slice(0, 160)})`);
-      } else {
-        const parsed = extractJsonFromEvalStdout(evalRes.stdout || "") as {
-          contentHtml?: string;
-          title?: string;
-          finalUrl?: string;
-        } | null;
-        if (!parsed || !parsed.contentHtml) {
-          adapterFlagsLocal.push("web-fetch-empty-content");
-          adapterNotesLocal.push("web-fetch: eval returned no content HTML");
-        } else {
-          pageTitle = (parsed.title || "").trim();
-          finalUrl = parsed.finalUrl;
-          // Filename prefix derived from hostname so per-host image files
-          // don't collide when multiple slugs share a slugDir during sweep.
-          const host = hostnameOf(finalUrl || url) || "webread";
-          const imagePrefix = host.replace(/[^a-z0-9]+/gi, "-").toLowerCase().replace(/^-+|-+$/g, "");
-          const conv = convertGenericHtml({
-            html: parsed.contentHtml,
-            url: finalUrl || url,
-            imagePrefix: imagePrefix || "webread",
-          });
-
-          // Track which local refs got real bytes vs. failed downloads, so
-          // we can rewrite the markdown to point failed refs back at the
-          // remote URL (graceful degradation: image still renders if read
-          // online, even though we couldn't archive it).
-          const failedLocalToRemote = new Map<string, string>();
-          if (downloadImages) {
-            for (const img of conv.imagesToDownload) {
-              const dest = join(slugDir, img.localFilename);
-              const bytes = downloadImage(img.remoteUrl, dest, undefined, finalUrl || url);
-              if (bytes > 0) imageFiles.push(img.localFilename);
-              else failedLocalToRemote.set(img.localFilename, img.remoteUrl);
-            }
-          }
-
-          // Compose §2-contract frontmatter. Caller can later inject
-          // additional metadata (author, date) via post-processors.
-          const titleLine = pageTitle ? pageTitle : `Page: ${url}`;
-          let body = conv.body || "";
-          if (failedLocalToRemote.size > 0) {
-            // Replace each failed local ref with the original remote URL.
-            for (const [local, remote] of failedLocalToRemote) {
-              const escaped = local.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-              body = body.replace(new RegExp(`\\(${escaped}\\)`, "g"), `(${remote})`);
-            }
-          }
-          resultMarkdown =
-            `# ${titleLine}\n\n` +
-            `> 原文链接: ${url}\n\n` +
-            `---\n\n` +
-            (body ? body + "\n" : "");
-
-          adapterNotesLocal.push(
-            `web-fetch: own jsdom+turndown — ${conv.stats.tables} table line(s), ` +
-            `${conv.stats.codeFences} code fence(s), ` +
-            `${imageFiles.length}/${conv.imagesToDownload.length} image(s) downloaded`,
-          );
-        }
-      }
-    }
-  } catch (e) {
-    adapterFlagsLocal.push("web-fetch-threw");
-    adapterNotesLocal.push(`web-fetch: ${e instanceof Error ? e.message : String(e)}`);
-  } finally {
-    if (browserOpened) {
-      try { closeBrowser(); } catch { /* best-effort */ }
-    }
-  }
-
-  const result: AdapterResult = {
-    markdown: resultMarkdown,
-    title: pageTitle || undefined,
-    imageFiles,
-    rawMetadata: { source: "web-fetch-own-turndown", finalUrl },
-    adapterNotes: adapterNotesLocal.length > 0 ? adapterNotesLocal : undefined,
-    extraFlags: adapterFlagsLocal.length > 0 ? adapterFlagsLocal : undefined,
-  };
-
-  // Heuristic retry: if we got a suspiciously-short result or explicit
-  // "Loading…" skeleton (common on client-rendered SPAs), retry ONCE with
-  // a 60-second wait. Bounded to one retry — avoids pathological delays.
-  if (waitSeconds < 60) {
-    const q = classifyQuality(result.markdown, { originUrl: url });
-    const suspiciousForRetry =
-      q.flags.includes("short-body") ||
-      q.flags.includes("loading-skeleton") ||
-      q.flags.includes("below-host-expected-size");
-    if (suspiciousForRetry) {
-      // Clear harvested files so the retry has a clean slate (but keep source.json if already written)
-      try {
-        for (const f of readdirSync(slugDir, { withFileTypes: true })) {
-          if (f.name === "source.json") continue;
-          rmSync(join(slugDir, f.name), { recursive: true, force: true });
-        }
-      } catch {}
-      return fetchWebReadViaAdapter(url, slugDir, downloadImages, 60);
-    }
-  }
-
-  // Final fallback for HuggingFace blog posts: every HF blog post has its
-  // source markdown committed to github.com/huggingface/blog (the "Update on
-  // GitHub" button on the rendered page links to it). If opencli extraction
-  // still misfired after the 60-second retry, bypass the DOM entirely and
-  // pull the authoritative markdown source from GitHub's raw endpoint.
-  //
-  // This covers cases like `huggingface.co/blog/moe` where a prominent
-  // "Collections" sidebar card above the article body confuses opencli's
-  // readability heuristic and it returns the card's description instead of
-  // `.blog-content`.
-  if (waitSeconds >= 60 && /^https?:\/\/huggingface\.co\/blog\/[^?#/]+/.test(url)) {
-    const q = classifyQuality(result.markdown, { originUrl: url });
-    const stillBad =
-      q.flags.includes("short-body") ||
-      q.flags.includes("below-host-expected-size");
-    if (stillBad) {
-      const ghResult = fetchHuggingFaceBlogFromGithub(url, slugDir, downloadImages);
-      if (ghResult) {
-        // Clear any partial opencli harvest before replacing with GitHub source.
-        // (Preserve the images dir the GH adapter just populated, if any.)
-        try {
-          for (const f of readdirSync(slugDir, { withFileTypes: true })) {
-            if (f.name === "source.json" || ghResult.imageFiles.includes(f.name)) continue;
-            rmSync(join(slugDir, f.name), { recursive: true, force: true });
-          }
-        } catch {}
-        return ghResult;
-      }
-    }
-  }
-
-  // GitHub URLs are now handled by `tools/sites/github/` via the sites
-  // router (intercepted before the legacy switch reaches this function);
-  // the previous fallback ladder (release API, raw file, PR/issue REST
-  // augmentation) is gone. See commits introducing tools/sites/github/
-  // for the migration.
-
-  return result;
-}
-
-
-/**
- * HuggingFace-blog-specific fallback: fetch the authoritative markdown source
- * from github.com/huggingface/blog. Returns null when the GitHub copy isn't
- * available (404, network error, or URL isn't an HF blog post).
- *
- * Image paths in the GitHub source are typically site-relative
- * (`/blog/assets/moe/foo.png`); they get resolved to absolute HF URLs by
- * `resolveRelativeImageUrls` downstream, then downloaded by `processImages`.
- * YAML frontmatter is stripped and its `title` / `authors` fields are
- * rewritten as the content's H1 and a `> **Authors:** ...` callout, matching
- * the shape produced by the opencli-path `huggingfaceBlogReformat` processor
- * (so the downstream post-processing pipeline sees a consistent format).
- */
-function fetchHuggingFaceBlogFromGithub(
-  url: string,
-  slugDir: string,
-  downloadImages: boolean,
-): AdapterResult | null {
-  const m = url.match(/^https?:\/\/huggingface\.co\/blog\/([^?#/]+)/);
-  if (!m) return null;
-  const slug = m[1];
-  const ghUrl = `https://raw.githubusercontent.com/huggingface/blog/main/${slug}.md`;
-  const res = spawnSync("curl", ["-sfL", "-A", "Mozilla/5.0", ghUrl], {
-    encoding: "utf8",
-    timeout: 30_000,
-  });
-  if (res.status !== 0 || !res.stdout || res.stdout.length < 500) return null;
-
-  let body = res.stdout;
-  let title: string | undefined;
-  const authorHandles: string[] = [];
-
-  // Parse YAML frontmatter if present (opening `---` on the first line).
-  const fmMatch = body.match(/^---\n([\s\S]*?)\n---\n/);
-  if (fmMatch) {
-    body = body.slice(fmMatch[0].length);
-    const fm = fmMatch[1];
-    const titleMatch = fm.match(/^title:\s*["']?(.+?)["']?\s*$/m);
-    if (titleMatch) title = titleMatch[1].trim();
-    for (const line of fm.split("\n")) {
-      const am = line.match(/^\s*-\s*user:\s*(\S+)/);
-      if (am) authorHandles.push(am[1]);
-    }
-  }
-
-  let bodyMd = body.trim() + "\n";
-  // Strip the body's leading H1 if present — we'll emit our own preamble H1.
-  bodyMd = bodyMd.replace(/^#\s+[^\n]+\n+/, "");
-
-  // Build the standard preamble: # title \n\n > 原文链接 \n (optional > Authors)
-  // \n\n --- \n\n (body). Matches §2 output contract so enforceSingleH1
-  // and the downstream checks have a real `\n---\n` anchor.
-  const finalTitle = title || "HuggingFace Blog Post";
-  const preambleLines: string[] = [`# ${finalTitle}`, "", `> 原文链接: ${url}`];
-  if (authorHandles.length > 0) {
-    const label = authorHandles.length === 1 ? "Author" : "Authors";
-    const rendered = authorHandles
-      .map((h) => `[@${h}](https://huggingface.co/${h})`)
-      .join(", ");
-    preambleLines.push(`> **${label}:** ${rendered}`);
-  }
-  preambleLines.push("", "---", "", "");
-  let markdown = preambleLines.join("\n") + bodyMd;
-
-  // Resolve site-relative image paths (/blog/assets/...) to absolute HF URLs so
-  // processImages can download them. Matches both markdown `![](/path)` and
-  // HTML `<img src="/path">` forms.
-  markdown = markdown.replace(
-    /(!\[[^\]]*\]\()(\/[^)\s]+)(\))/g,
-    (_m, pre, path, post) => `${pre}https://huggingface.co${path}${post}`,
-  );
-  markdown = markdown.replace(
-    /(<img\b[^>]*\bsrc=["'])(\/[^"']+)(["'])/g,
-    (_m, pre, path, post) => `${pre}https://huggingface.co${path}${post}`,
-  );
-
-  // Download the images referenced in the markdown. processImages extracts
-  // both `![](url)` and `<img src="url">`, filters to http(s), downloads via
-  // curl, and rewrites each URL in-place to the local filename.
-  const imageFiles: string[] = [];
-  if (downloadImages) {
-    const r = processImages(markdown, slugDir, true);
-    markdown = r.content;
-    for (const rec of r.images) imageFiles.push(rec.local);
-  }
-
-  return {
-    markdown,
-    title,
-    imageFiles,
-    rawMetadata: { source: "github-raw", ghUrl, slug },
-    adapterNotes: [
-      `huggingface: opencli extraction failed; fell back to GitHub raw (${res.stdout.length} chars, ${authorHandles.length} author(s), ${imageFiles.length} image(s))`,
-    ],
-  };
-}
 
 // ---------------------------------------------------------------------------
 // fetcher: lark-hirono
@@ -2080,30 +1545,20 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     }
   }
 
-  // Skip the opencli extension-online check for URLs handled by a
-  // site module — many site modules (arxiv, intuitionlabs, sspai,
-  // aleksagordic, etc.) use plain curl with no browser dependency.
-  // The legacy `case "web-read"` path does require opencli, so we
-  // still enforce when no site matches.
-  const earlyMatchedSite = routeSite(opts.url);
-  if (!earlyMatchedSite && !opencliDoctorOk()) {
-    throw makeError(
-      "extension-offline", "L3",
-      "opencli Chrome extension not connected",
-      { remediation: "run `opencli doctor`, install / re-enable the extension, retry" },
-    );
-  }
-
   const slugDir = rawDirFor(opts.slug);
   mkdirSync(slugDir, { recursive: true });
 
-  const dispatch = lookupDispatch(opts.url);
-  const adapter: OpencliAdapter = dispatch ? dispatch.adapter : "web-read";
+  // Routing is total under the unified architecture: every URL maps to
+  // a site module under `tools/sites/<host>/`, with `tools/sites/_default/`
+  // catching anything no host-specific module claimed. There is no
+  // legacy fallback path. See `docs/fetcher-architecture.md` for the
+  // architectural rationale.
+  const matchedSite = routeSite(opts.url);
   const fetcherReason: FetcherReason = opts.viaBrowser
     ? "forced-via-browser"
-    : dispatch
-    ? "domain-override"
-    : "direct";
+    : matchedSite.name === "_default"
+    ? "direct"
+    : "domain-override";
 
   // Acquire the per-slug fetch lock BEFORE the machine-wide browser lock.
   // This catches the case where two processes both target the same slug —
@@ -2114,114 +1569,29 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
   const releaseSlugLock = acquireSlugLock(slugDir, opts.slug);
   try {
 
-  // Acquire the machine-wide opencli browser lock. opencli drives ONE shared
-  // Chrome tab per machine via the extension; two concurrent fetchers would
-  // corrupt each other's navigation. Fail-fast on contention per plan H1.2.
-  // Release happens in the outer finally below so even a throw in an adapter
-  // cleanly frees the lock for the next caller.
-  const releaseBrowserLock = acquireBrowserLock(`fetchUrlAndStore:${adapter}`, opts.slug);
+  // Acquire the machine-wide opencli browser lock. Site modules that use
+  // browser-eval (xhs, weixin, zhihu) drive one shared Chrome tab via the
+  // opencli extension; concurrent runs would corrupt each other's
+  // navigation. Modules that use plain curl don't need it but acquiring
+  // is cheap. Released in the outer finally below.
+  const releaseBrowserLock = acquireBrowserLock(`fetchUrlAndStore:${matchedSite.name}`, opts.slug);
   try {
 
   let result: AdapterResult;
-  const extraNotes: string[] = [];
-  if (dispatch) extraNotes.push(`opencli adapter: ${dispatch.friendlyName}`);
+  const extraNotes: string[] = [`site module: ${matchedSite.name}`];
 
-  // Check sites router FIRST. If a per-host site module matches the URL,
-  // use it and skip the legacy switch below. This is the migration path
-  // for the universal pattern (CLAUDE.md §5a) — each host that gets a
-  // tools/sites/<host>/ module starts being routed here. The switch
-  // continues to serve unmigrated hosts.
-  const matchedSite = routeSite(opts.url);
-  const skipLegacyDispatch = matchedSite && matchedSite.name !== "xhs";
-  // Note: xhs is already handled inside `case "xiaohongshu"` below for
-  // historical reasons (the dispatch case was migrated incrementally);
-  // we leave that path so the existing routing still works.
-
-  switch (adapter) {
-    case "xiaohongshu": {
-      // Routed through the new sites/ router (xhs is the first per-host
-      // site module migrated to the target architecture). The legacy
-      // `fetchXhsViaAdapter` body now lives in tools/sites/xhs/index.ts.
-      const matchedSite = routeSite(opts.url);
-      if (!matchedSite) {
-        throw makeError("dispatch-mismatch", "L3",
-          `xiaohongshu adapter dispatch did not find matching site for ${opts.url}`);
-      }
-      const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
-      result = {
-        markdown: sr.markdown,
-        title: sr.title,
-        imageFiles: sr.images,
-        rawMetadata: sr.metadata,
-        extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
-        adapterNotes: sr.notes,
-      };
-      break;
-    }
-    case "zhihu-article": {
-      // Routed through sites/zhihu/ (universal pattern — opencli for browser
-      // session only, conversion owned by us). Replaces the previous
-      // fetchZhihuArticleViaAdapter which consumed opencli's lossy MD.
-      const matchedSite = routeSite(opts.url);
-      if (!matchedSite) {
-        throw makeError("dispatch-mismatch", "L3",
-          `zhihu-article adapter dispatch did not find matching site for ${opts.url}`);
-      }
-      const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
-      result = {
-        markdown: sr.markdown,
-        title: sr.title,
-        imageFiles: sr.images,
-        rawMetadata: sr.metadata,
-        extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
-        adapterNotes: sr.notes,
-      };
-      break;
-    }
-    case "zhihu-question": result = fetchZhihuQuestionViaAdapter(opts.url); break;
-    case "weixin": {
-      // Routed through sites/weixin/ (universal pattern). The legacy
-      // fetchWechatViaAdapter body now lives in tools/sites/weixin/index.ts.
-      const matchedSite = routeSite(opts.url);
-      if (!matchedSite) {
-        throw makeError("dispatch-mismatch", "L3",
-          `weixin adapter dispatch did not find matching site for ${opts.url}`);
-      }
-      const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
-      result = {
-        markdown: sr.markdown,
-        title: sr.title,
-        imageFiles: sr.images,
-        rawMetadata: sr.metadata,
-        extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
-        adapterNotes: sr.notes,
-      };
-      break;
-    }
-    case "web-read": {
-      if (skipLegacyDispatch && matchedSite) {
-        // Site router matched (e.g. github.com). Use it instead of web-read.
-        const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
-        result = {
-          markdown: sr.markdown,
-          title: sr.title,
-          imageFiles: sr.images,
-          rawMetadata: sr.metadata,
-          extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
-          adapterNotes: sr.notes,
-        };
-        break;
-      }
-      // Domain-aware initial wait. Known SPAs get more time so the default
-      // first attempt succeeds; the 60s auto-retry inside fetchWebReadViaAdapter
-      // is still the safety net for everything else.
-      const wait = getPreferredWaitSeconds(opts.url);
-      if (wait !== DEFAULT_WEB_READ_WAIT_SECONDS) {
-        extraNotes.push(`web-read: used domain-override wait=${wait}s`);
-      }
-      result = fetchWebReadViaAdapter(opts.url, slugDir, opts.downloadImages, wait);
-      break;
-    }
+  // Single dispatch point. The site module owns the full pipeline
+  // (fetch + convert + image download) and returns a §2-shaped Result.
+  {
+    const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
+    result = {
+      markdown: sr.markdown,
+      title: sr.title,
+      imageFiles: sr.images,
+      rawMetadata: sr.metadata,
+      extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
+      adapterNotes: sr.notes,
+    };
   }
 
   // Images are already on disk (the adapter saved them). Convert to our ImageRecord shape.
@@ -2477,13 +1847,13 @@ export function remediationFor(flags: string[], originUrl: string = ""): string 
     return "xhs image session exhausted — wait ~10 min, or refresh the xhs login cookie, then refetch";
   }
   if (flags.includes("loading-skeleton")) {
-    return "SPA didn't fully render — either add a domain override in WEB_READ_WAIT_OVERRIDES, or refetch (auto-retries at 60s)";
+    return "SPA didn't fully render — promote the host to a dedicated site module under tools/sites/<host>/ that uses opencli browser-eval (see xhs/weixin/zhihu for reference)";
   }
   if (flags.includes("short-body")) {
     return "content looks truncated — check the source URL in a browser; if genuinely short, add the slug to Meta/fetch-decisions.md";
   }
   if (flags.includes("images-declared-but-none-downloaded")) {
-    return "adapter left image references but downloaded none — refetch, or add a domain selector in DISPATCH_RULES";
+    return "site module emitted image refs but downloaded none — refetch, or fix the module's image-download loop";
   }
   if (flags.includes("app-only-url")) {
     return "content is app-only and can't be fetched — add slug to Meta/fetch-decisions.md to suppress";

@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   hostnameOf,
-  lookupDispatch,
   isArticleLikeUrl,
   classifyQuality,
   LOGIN_WALL_KEYWORDS,
@@ -13,8 +12,6 @@ import {
   extractImageUrls,
   localNameFor,
   yearForSlug,
-  getPreferredWaitSeconds,
-  DEFAULT_WEB_READ_WAIT_SECONDS,
   parseFetchDecisions,
   loadFetchDecisions,
   listRawSlugs,
@@ -23,6 +20,7 @@ import {
   remediationFor,
   browserTimeoutMs,
 } from "../fetch-raw.ts";
+import { routeSite } from "../sites/index.ts";
 
 // ---------------------------------------------------------------------------
 // hostnameOf
@@ -36,43 +34,30 @@ test("hostnameOf: extracts host", () => {
 });
 
 // ---------------------------------------------------------------------------
-// opencli-adapter dispatch
+// site-router dispatch (replaces the legacy DISPATCH_RULES + lookupDispatch)
 // ---------------------------------------------------------------------------
 
-test("lookupDispatch: xhs variants route to xiaohongshu adapter", () => {
-  assert.equal(lookupDispatch("http://xhslink.com/o/abc")?.adapter, "xiaohongshu");
-  assert.equal(lookupDispatch("https://www.xiaohongshu.com/discovery/item/x")?.adapter, "xiaohongshu");
-  assert.equal(lookupDispatch("https://xiaohongshu.com/explore/x")?.adapter, "xiaohongshu");
+test("routeSite: xhs variants route to the xhs site module", () => {
+  assert.equal(routeSite("http://xhslink.com/o/abc").name, "xhs");
+  assert.equal(routeSite("https://www.xiaohongshu.com/discovery/item/x").name, "xhs");
+  assert.equal(routeSite("https://xiaohongshu.com/explore/x").name, "xhs");
 });
 
-test("lookupDispatch: zhuanlan.zhihu.com → zhihu-article adapter", () => {
-  assert.equal(lookupDispatch("https://zhuanlan.zhihu.com/p/123")?.adapter, "zhihu-article");
+test("routeSite: zhuanlan.zhihu.com → zhihu-article site module", () => {
+  assert.equal(routeSite("https://zhuanlan.zhihu.com/p/123").name, "zhihu-article");
 });
 
-test("lookupDispatch: www.zhihu.com/question/ → zhihu-question adapter", () => {
-  assert.equal(lookupDispatch("https://www.zhihu.com/question/42")?.adapter, "zhihu-question");
-  assert.equal(lookupDispatch("https://zhihu.com/question/42")?.adapter, "zhihu-question");
+test("routeSite: mp.weixin.qq.com → weixin site module", () => {
+  assert.equal(routeSite("https://mp.weixin.qq.com/s/abc").name, "weixin");
 });
 
-test("lookupDispatch: www.zhihu.com without /question/ → no adapter (falls to web-read)", () => {
-  // We intentionally don't route bare zhihu.com/ answers to a specific adapter;
-  // `web read` handles them.
-  assert.equal(lookupDispatch("https://www.zhihu.com/answer/7"), null);
-});
-
-test("lookupDispatch: mp.weixin.qq.com → weixin adapter", () => {
-  assert.equal(lookupDispatch("https://mp.weixin.qq.com/s/abc")?.adapter, "weixin");
-});
-
-test("lookupDispatch: unmatched domains return null (falls to web-read)", () => {
-  // Hosts NOT in DISPATCH_RULES get null and fall through to generic web-read.
-  // Pick obscure hosts that we deliberately don't have a friendlyName for.
-  // (newsletter.semianalysis.com / github.com / arxiv.org / etc. are now
-  // explicitly listed in DISPATCH_RULES — see fetch-raw.ts:146.)
-  assert.equal(lookupDispatch("https://example.com/post"), null);
-  assert.equal(lookupDispatch("https://gist.github.com/x/y"), null);
-  // Guard against host-suffix spoofing (mp.weixin.qq.example.com should NOT match)
-  assert.equal(lookupDispatch("https://mp.weixin.qq.example.com/fake"), null);
+test("routeSite: unmatched domains fall through to _default catch-all", () => {
+  // Routing is total — every URL matches some module. Hosts without a
+  // dedicated module get the _default catch-all.
+  assert.equal(routeSite("https://example.com/post").name, "_default");
+  assert.equal(routeSite("https://gist.github.com/x/y").name, "_default");
+  // Host-suffix spoofing must NOT trick the xhs/weixin matchers.
+  assert.equal(routeSite("https://mp.weixin.qq.example.com/fake").name, "_default");
 });
 
 test("isArticleLikeUrl: recognizes the patterns we guard with L3 redirect detection", () => {
@@ -305,31 +290,9 @@ test("classifyQuality: loading-skeleton flag fires", () => {
   assert.ok(r.flags.includes("loading-skeleton"));
 });
 
-// ---------------------------------------------------------------------------
-// per-domain wait overrides
-// ---------------------------------------------------------------------------
-
-test("getPreferredWaitSeconds: default for unknown hosts", () => {
-  assert.equal(getPreferredWaitSeconds("https://github.com/x/y"), DEFAULT_WEB_READ_WAIT_SECONDS);
-  assert.equal(getPreferredWaitSeconds("https://newsletter.semianalysis.com/p/foo"), DEFAULT_WEB_READ_WAIT_SECONDS);
-});
-
-test("getPreferredWaitSeconds: DeepWiki gets 20s (client-rendered SPA)", () => {
-  assert.equal(getPreferredWaitSeconds("https://wiki.litenext.digital/wiki/jax?file=01-overview"), 20);
-});
-
-test("getPreferredWaitSeconds: notion + vercel subdomain overrides", () => {
-  assert.equal(getPreferredWaitSeconds("https://charles.notion.so/page"), 20);
-  assert.equal(getPreferredWaitSeconds("https://notion.so/page"), 20);
-  assert.equal(getPreferredWaitSeconds("https://foo.vercel.app/docs"), 20);
-});
-
-test("getPreferredWaitSeconds: doesn't match suffix spoofing", () => {
-  assert.equal(
-    getPreferredWaitSeconds("https://notion.so.evil.example.com/"),
-    DEFAULT_WEB_READ_WAIT_SECONDS,
-  );
-});
+// (per-domain wait overrides retired with the legacy web-read path —
+//  site modules that need slow-hydration browser handling drive their
+//  own wait timing inside fetcher.ts files now.)
 
 // ---------------------------------------------------------------------------
 // Meta/fetch-decisions.md parser

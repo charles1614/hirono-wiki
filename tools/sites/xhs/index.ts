@@ -165,15 +165,16 @@ export const site: Site = {
       }
     }
 
-    // Assemble stub markdown — xhsReformatNoteTable post-processor will
-    // convert this `| field | value |` table to §2 layout.
+    // Assemble §2-shaped stub markdown directly (no post-processor reformat
+    // needed — the legacy xhsReformatNoteTable converter is gone).
     const title = opts.titleHint?.trim() || "(Xiaohongshu note — title unavailable)";
     let markdown =
-      `| field | value |\n` +
-      `| --- | --- |\n` +
-      `| title | ${title} |\n` +
-      `| source_url | ${url} |\n` +
-      `| note | Text body unavailable — xhs requires fresh xsec_token, saved bookmarks use stale tokens. Images fetched below where possible. |\n`;
+      `# ${title}\n\n` +
+      `> 原文链接: ${url}\n` +
+      `> Status: text-body-unavailable — xhs requires a fresh xsec_token; saved bookmarks use stale tokens.\n\n` +
+      `---\n\n` +
+      `*This entry is a metadata stub. Text body could not be extracted; ` +
+      `images are fetched below where possible.*\n`;
     if (imageFiles.length > 0) {
       markdown += "\n## Images\n\n";
       imageFiles.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
