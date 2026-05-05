@@ -698,12 +698,11 @@ export const arxivPdfNote: PostProcessor = {
 
 export const sebastianraschkaBlogCleanup: PostProcessor = {
   name: "sebastianraschka-blog-cleanup",
-  // Scoped 2026-04-28: the `/llm-architecture-gallery/` path is owned
-  // by `tools/sites/sebastianraschka-gallery/`, which produces clean
-  // structured output that doesn't need this generic blog chrome strip.
-  // Other paths (regular blog posts) still use the legacy web-fetch
-  // pipeline and benefit from this cleanup.
-  match: (u, h) => h === "sebastianraschka.com" && !/\/llm-architecture-gallery\//.test(u),
+  // Retired 2026-05-05: sebastianraschka.com (non-gallery paths)
+  // migrated to tools/sites/sebastianraschka-blog/. The site module
+  // strips chrome via DOM-level dropSelectors. Transform kept here
+  // as referenceable code; deleted in C12.
+  match: () => false,
   transform: (md, _originUrl) => {
     const lines = md.split("\n");
     const chromePatterns: RegExp[] = [

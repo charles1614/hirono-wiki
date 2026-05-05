@@ -45,6 +45,7 @@ import { testHooks as anthropicHooks } from "./anthropic/test-hooks.ts";
 import { testHooks as readthedocsHooks } from "./readthedocs/test-hooks.ts";
 import { testHooks as feishuHooks } from "./feishu/test-hooks.ts";
 import { testHooks as redditHooks } from "./reddit/test-hooks.ts";
+import { testHooks as sebastianraschkaBlogHooks } from "./sebastianraschka-blog/test-hooks.ts";
 import { testHooks as defaultHooks } from "./_default/test-hooks.ts";
 
 export const TEST_HOOKS: readonly SiteTestHooks[] = [
@@ -76,6 +77,7 @@ export const TEST_HOOKS: readonly SiteTestHooks[] = [
   readthedocsHooks,
   feishuHooks,
   redditHooks,
+  sebastianraschkaBlogHooks,
   defaultHooks,
 ];
 

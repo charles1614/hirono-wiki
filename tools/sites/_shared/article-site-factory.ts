@@ -65,8 +65,12 @@ function plainFetch(url: string): { html: string; finalUrl: string; error?: stri
       [
         "-sfL",
         "--max-time", "30",
-        "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9",
+        // Full Chrome User-Agent — some hosts (Cloudflare-fronted, mod_security)
+        // 406-reject our minimal UA but accept a fuller one. Treating the
+        // wider UA as the default since it's strictly more compatible.
+        "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+        "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "-H", "Accept-Language: en-US,en;q=0.9",
         url,
       ],
       { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 },

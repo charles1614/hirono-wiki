@@ -38,6 +38,7 @@ import { site as anthropic } from "./anthropic/index.ts";
 import { site as readthedocs } from "./readthedocs/index.ts";
 import { site as feishu } from "./feishu/index.ts";
 import { site as reddit } from "./reddit/index.ts";
+import { site as sebastianraschkaBlog } from "./sebastianraschka-blog/index.ts";
 import { site as defaultSite } from "./_default/index.ts";
 
 export const SITES: readonly Site[] = [
@@ -112,6 +113,10 @@ export const SITES: readonly Site[] = [
   // + bot blocking + JS-heavy modern UI. Stub-emitting site module —
   // detects deleted/removed/blocked posts and emits page-removed stubs.
   reddit,
+  // sebastianraschka.com (excluding the `/llm-architecture-gallery/`
+  // path, which is handled by the gallery module above). Static blog
+  // posts; chrome stripped at the DOM level via dropSelectors.
+  sebastianraschkaBlog,
   // CATCH-ALL: must be LAST. Fields any URL no host-specific module
   // claimed. Plain curl + JSDOM with permissive selectors; emits
   // `intentional-stub` if extraction returns < 200 chars (typical

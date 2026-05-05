@@ -1,0 +1,32 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://sebastianraschka.com/images/blog/2025/dgx-impressions/01.webp",
+      "localFilename": "sebastianraschka-img-001.webp"
+    },
+    {
+      "remoteUrl": "https://sebastianraschka.com/images/blog/2025/dgx-impressions/02.webp",
+      "localFilename": "sebastianraschka-img-002.webp"
+    },
+    {
+      "remoteUrl": "https://sebastianraschka.com/images/blog/2025/dgx-impressions/03.webp",
+      "localFilename": "sebastianraschka-img-003.webp"
+    },
+    {
+      "remoteUrl": "https://sebastianraschka.com/images/blog/2025/dgx-impressions/04.webp",
+      "localFilename": "sebastianraschka-img-004.webp"
+    }
+  ],
+  "metadata": {
+    "title": "DGX Spark and Mac Mini for Local PyTorch Development",
+    "description": "The DGX Spark for local LLM inferencing and fine-tuning was a pretty popular discussion topic recently. I got to play with one myself, primarily working…",
+    "publishedAt": "2025-10-29T00:06:00+00:00",
+    "authors": [
+      "Sebastian Raschka"
+    ]
+  },
+  "stats": {
+    "bodyChars": 9179,
+    "images": 4
+  }
+}
