@@ -4,6 +4,8 @@
 > An in-depth analysis of the $300B Oracle-OpenAI cloud computing deal, updated through April 2026. Covers the operational Abilene flagship, $122B OpenAI funding round, Oracle's $523B backlog, Stargate expansion to 7 GW, and IPO preparations.
 
 ---
+![Oracle & OpenAI's \$300B Deal: AI Infrastructure Analysis](intuitionlabs-ai-snap-oracle-openai-images/intuitionlabs-img-001.jpg)
+
 **\[Revised April 11, 2026\]**
 
 ## Executive Summary

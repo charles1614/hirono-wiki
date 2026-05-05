@@ -61,6 +61,48 @@ export function convertIntuitionlabs(opts: IntuitionlabsConvertOpts): Intuitionl
     };
   }
 
+  // Hero image extraction: intuitionlabs's article banner sits in
+  // `<article>` BUT outside `.prose` (Next.js layout). Pull the first
+  // `<img>` in `<article>` that's NOT inside `.prose` and NOT inside
+  // any `<section>` (the related-articles rail at the bottom is also
+  // outside `.prose` and we don't want those). Prepend it to the body.
+  //
+  // Next.js wraps images in `/_next/image?url=%2F<path>&w=<size>&q=75`;
+  // unwrap to the original `/<path>` so we get the unscaled .avif.
+  const articleEl = doc.querySelector("article");
+  let heroEl: Element | null = null;
+  if (articleEl) {
+    for (const img of Array.from(articleEl.querySelectorAll("img"))) {
+      if (bodyEl.contains(img)) continue;
+      // Skip if inside any <section> (related-articles rail).
+      let inSection = false;
+      let p: Element | null = img;
+      while (p && p !== articleEl) {
+        if (p.tagName === "SECTION") { inSection = true; break; }
+        p = p.parentElement;
+      }
+      if (inSection) continue;
+      heroEl = img;
+      break;
+    }
+  }
+  if (heroEl) {
+    const rawSrc = heroEl.getAttribute("src") || "";
+    // Unwrap Next.js Image proxy: /_next/image?url=%2Fpath&w=...&q=...
+    let unwrapped = rawSrc;
+    const m = rawSrc.match(/^\/_next\/image\?url=([^&]+)/);
+    if (m) {
+      try { unwrapped = decodeURIComponent(m[1]); } catch { /* keep as-is */ }
+    }
+    // Inject as the first child of the body so the converter localizes it.
+    const heroImg = doc.createElement("img");
+    heroImg.setAttribute("src", unwrapped);
+    heroImg.setAttribute("alt", heroEl.getAttribute("alt") || "");
+    const wrap = doc.createElement("p");
+    wrap.appendChild(heroImg);
+    bodyEl.insertBefore(wrap, bodyEl.firstChild);
+  }
+
   // Demote every body heading by 1 level (h1 → h2, h2 → h3, ..., h5 → h6,
   // h6 stays h6). Tailwind .prose theme puts in-page section titles at
   // h1; our §2 contract reserves `# ` for the frontmatter title.

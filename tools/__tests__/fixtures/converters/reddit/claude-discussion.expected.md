@@ -1,6 +1,6 @@
 # Reddit post (unreachable)
 
-> 原文链接: https://www.reddit.com/r/ClaudeAI/comments/1g8b3kl/the_anthropic_api_is_amazing/
+> 原文链接: https://www.reddit.com/r/ClaudeAI/s/UgkMOt8PZn
 > Status: fetch-blocked — Reddit did not return post content (rate-limit or anti-bot gate).
 
 ---
