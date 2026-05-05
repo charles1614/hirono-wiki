@@ -88,7 +88,7 @@ Discussion replies use `> replied on ...` (distinct from `> commented on ...` so
 - **Avatars: strip.** Three DOM shapes (below). For `/username`-style relative links with no non-image text, DROP the whole unit. For external links (badges, shields), keep `[alt](url)` so the label survives.
 - **Images: all local.** Never ship a `![](https://...)` remote URL. Any URL surviving to final output means `processImages` didn't see it. New adapters must pipe their markdown through `processImages` before returning.
 - **Stubs are a deliberate output, not a failure.** Auth-gated, interactive-app, or page-removed pages produce a stub template (below) AND the processor emits `extraFlags: ["intentional-stub"]`. classifyQuality strips the flag and suppresses size-based flags.
-- **Raw files are user-visible too.** `raw/<slug>/content.md` is not an internal cache — it's opened for inspection. Don't defer chrome removal to a downstream post-processor; do it in the adapter (e.g. `fetchWebReadViaAdapter` calls `deepwikiStripNav.transform` before splicing) so the raw file is clean at the moment it's written. Post-processors that also run later must be idempotent so double-application is safe.
+- **Raw files are user-visible too.** `raw/<slug>/content.md` is not an internal cache — it's opened for inspection. Defects belong in the host's converter under `tools/sites/<host>/converter.ts` (DOM level, before turndown), NOT as downstream regex patches. The shared post-cleanup pipeline (`tools/sites/_shared/post-cleanup.ts`) does host-agnostic cosmetic fixes only.
 - **Splicer insertions must self-check spacing.** When inserting a block between existing content, the result should have exactly one blank line on each side — not zero, not two. Don't blindly prepend `\n\n`: if the preceding chunk already ends with `\n` (e.g. `insertAt` is right after a heading line), one `\n` is enough. Same for trailing. A `\n\n + block + \n` inserted after `...Heading\n\nintro...` produces `Heading\n\n\nblock\n\nintro` → triple newline. Reason through the surrounding whitespace before choosing the glue.
 - **Removals must check boundaries.** After deleting a span, inspect the line immediately before the cut (might now be an orphan label like `**Component Roles:**` with no body) and the line immediately after (stray blank? merged paragraph?). Extend the removal range to swallow the orphan when it's clearly tied to the removed content.
 
@@ -181,42 +181,9 @@ encoded there; reference implementations for any new Layer-4 host.
 | SVG diagrams flattened to garbage | WeChat embeds mermaid-rendered flowcharts as inline `<svg>` with `<foreignObject>` labels, not `<text>`. Source recovery is INFEASIBLE — mdnice strips every `class` and `id` from the rendered SVG, leaving anonymous `<g>`/`<rect>`/`<path>` with no semantic structure to reconstruct mermaid from. Save SVG-as-image. | `processSvgs(doc, root, originalSvgs)`: real (≥2KB OR has `aria-roledescription` matching flowchart/sequence/diagram/graph) → save as `weixin-svg-NNN.svg` standalone file + `<img data-local-svg="1" src="…">` placeholder; decorative (~500-byte 3-ellipse dots) → drop. CRITICAL: harvest pristine SVG bytes BEFORE the style-strip pass, otherwise the saved file renders as black-on-white wireframe with broken markers (mermaid's visual semantics live entirely in inline styles) |
 | SVG placeholder removed by `normalizeImages` | The placeholder `<img src="weixin-svg-001.svg">` has a relative URL → `normalizeImages`'s http-only filter treats it as a tracking pixel | Tag SVG placeholders with `data-local-svg="1"`; `normalizeImages` checks for it and skips |
 
-### x.com / Twitter conversation cleanup
+### x.com / Twitter
 
-`xMetadataStub` has two paths. **Auth-gated** (body < 800 chars OR contains "Sign in to X" / "Don't miss what's happening" / etc.) → emits the metadata stub template + `intentional-stub` flag. **Visible-content** (web-read got the conversation through pre-login skim) → cleans nav chrome and re-shapes into a per-tweet card layout.
-
-The web-read output for an x.com thread is structurally regular: each tweet is a 3–4 paragraph stew of `[\n\n![](avatar)\n\n](/handle)`, `[\n\nDisplay Name\n![](badge)\n\n](/handle)`, `[\n\n@handle\n\n](/handle)`, optional `[\n\nNN.NM\n\n查看](.../analytics)` view-count blocks, plus a date link `[4月10日](/handle/status/N)` (relative URL). The cleanup pipeline strips and re-collapses in this order:
-
-```
-1.  truncate trailing trends sidebar  (`## 当前趋势` / `What's happening` → end)
-2.  drop view-count metric blocks    (BEFORE generic unwrappers — see ordering note)
-3.  unwrap inline photo links        (`[\n\n![图像](url)\n\n](.../photo/N)` → `![](url)`)
-4.  drop avatar-only link blocks     (`[\n\n![](img)\n\n](/handle)`)
-5.  unwrap name + verified-badge     (`[\n\nName\n![](badge)\n\n](/handle)` → `Name`)
-6.  unwrap text-only profile links   (`[\n\n@handle\n\n](/handle)` — single-segment paths only)
-6b. flatten multi-line link cards    (`[\n\n![](thumb)\n\nTitle\n\n](url)` → `![](thumb)\n\n[Title](url)`)
-6c. flatten plain text wrappers      (`[\n\nText\n\n](url)` → `[Text](url)`)
-7.  drop quote-count link            (`[查看引用](...)`)
-8.  line-filter — `·`, `发布你的回复`, `点击 订阅 到 X` chrome
-9.  drop `[来自 github.com](...)` link-card source-of footers
-10. drop empty `## 帖子` heading when followed by another `##`
-11. resolve relative status/date links to absolute `https://x.com/...`
-11b. collapse byline:                 `Name\n@handle\n[date](url)` → `**Name** [@handle](profile) · [date](url)`
-                                     (and `Name\n@handle$` → `**Name** [@handle](profile)` for OP shape)
-11c. insert `---` between tweets     (anchored on `**…** [@…]` byline; drop leading `---` under `## 对话`)
-12. collapse runs of blank lines
-13. replace bloated H1 with `# @<handle> on X` (handle from origin URL)
-```
-
-**Ordering is load-bearing.**
-
-- **View-count strip BEFORE generic unwrap.** Step 2 looks for `[...].../analytics`. If the generic profile-unwrap (step 6, `[\n\nText\n\n](/path)`) runs first, it eats the analytics block and leaves a bare `3.3万` floating in the middle of replies.
-- **Photo unwrap BEFORE avatar drop.** Step 3 looks for `.../photo/N`. If the avatar drop (step 4, `[\n\n![](img)\n\n](*)`) runs first, it strips the photo embed entirely because `[\n\n![](url)\n\n](url)` matches both shapes — the generic rule cannibalizes the specific one. **General principle: when a specific rule and a generic rule overlap, the specific one runs first.**
-- **Step 6 restricts to single-segment paths** (`\(\/[^/)]+\)`) so date links to `/handle/status/N` are NOT unwrapped — those need to survive into step 11 for absolute-URL resolution and step 11b for byline collapse.
-
-The byline regex (step 11b) tolerates `\n+` (one or more newlines) between `Name` and `@handle` because the upstream unwrappers leave them either single- or paragraph-separated depending on input shape. Don't tighten to `\n\n`.
-
-Reference output: `sweep-results/x.com/sample.md` — read this before changing the cleaner. Tests assert byline shape (`/\*\*Foo Bar\*\* \[@foo\]\(https:\/\/x\.com\/foo\)/`), not substring presence (see "substring tests are not UI tests" in §before-shipping).
+`tools/sites/x-twitter/` emits a deterministic stub for every URL — Twitter/X requires login to render content reliably. Visible-content extraction is preserved in git history (the legacy `xMetadataStub`'s 13-step pipeline) and can be revived if/when authenticated fetching becomes practical, but the active path is stub-only.
 
 ### KaTeX triple-rendered math (HuggingFace blog)
 
@@ -283,58 +250,52 @@ A regex that fails because its input shape differs from expectation is usually a
 
 ## 5. New-URL / new-host protocol
 
-### 5a. The universal pattern (target architecture)
+### 5a. The universal pattern (the only architecture)
 
-**Target (codified 2026-04-26):** every host that needs custom logic gets a self-contained site module under `tools/sites/<host>/`. The module owns the FULL pipeline from URL to clean §2 markdown. opencli is used for browser session + auth ONLY (or not at all if a structured source exists); we never consume opencli's lossy markdown output as the canonical content. References: `tools/sites/weixin/`, `tools/sites/xhs/`, `tools/sites/sebastianraschka-gallery/`.
+Every URL flows through a self-contained site module under `tools/sites/<host>/`. The module owns the full pipeline from URL to clean §2 markdown. opencli is used for browser session + auth ONLY (or not at all if a structured source exists); we never consume opencli's lossy markdown output as the canonical content.
 
-**Current state (partial adoption — 2026-04-28):** ~10 of ~32 verified hosts are migrated. The rest live on the legacy `web-read + post-processor` path under `tools/hirono/shared/post-process.ts`. Migration is *gated by payoff*, not driven to completion — see [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) §0 for the bookmark-count + defect-severity gate. Don't read §5a as "everything is migrated"; it isn't.
+Routing is **total**: `tools/sites/_default/` is registered last in the router with `match: () => true`, so `routeSite(url)` always returns a Site (never null). There is no legacy fallback path. After every `site.fetch()` returns a Result, `applyPostCleanups()` runs 8 host-agnostic cosmetic fixes — see `tools/sites/_shared/post-cleanup.ts`. That's the entire pipeline.
 
-**Migrate a host when ANY of:**
+References for new modules:
+- Simplest article-shape host: `tools/sites/aleksagordic/` (15-line factory config)
+- API source: `tools/sites/github/` (REST + raw-URL paths)
+- Raw-markdown mirror: `tools/sites/huggingface/` (GitHub mirror for /blog/)
+- Browser-eval SPA: `tools/sites/weixin/`, `tools/sites/xhs/`, `tools/sites/zhihu/`
+- Stub-only: `tools/sites/feishu/`, `tools/sites/x-twitter/`, `tools/sites/qwen-ai/`
+- Catch-all: `tools/sites/_default/` (permissive selectors + chrome dropSelectors)
 
-- The legacy path produced an unfixable defect (lost code blocks / tables, mermaid flattened, doubled markers, paragraph collapse, etc.) and the fix needs structural work, not regex patches.
-- The host has a cleaner source-of-truth (REST API / raw mirror / hydration JSON / DOM attrs / linked downloads — see §5e.v) that the legacy path doesn't use.
-- The host shares a content engine with an already-migrated host (e.g. substack-family hosts can share one module that path-matches all of them).
-- The bookmark count is high enough (≥10 per MIGRATION.md §0) that consolidating the host's logic in one place pays back the migration cost.
+Architecture doc: [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md). Migration recipe: [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md).
 
-**Don't migrate just for pattern consistency.** Simple article hosts where `web-read + smallChromeCleanup` already produces clean output (aleksagordic, blog.google, blog.csdn, intuitionlabs, lmsys, qwen, sspai, sohu, etc.) are *valid* on the legacy path. Forcing them into `tools/sites/<host>/` adds code without adding quality, and that's exactly the failure mode §5e was added to prevent.
-
-The wrong way (the legacy "Layer 1/2/3/4" ladder framing as a TARGET, treating it as the path of least resistance for new defects) is to take opencli's MD output and patch it with downstream post-processors. That approach repeatedly produced unfixable defects (doubled list markers, lost inline code in tables, paragraph collapse, SVG flattening, activity-event leakage, etc.) because the upstream conversion is opaque. We never do this for new hosts when the migrate-when criteria above fire; existing hosts on this path are migrated when one of the criteria fires for them.
-
-**Source-of-truth selection** for the site's `fetcher.ts` — pick the cleanest available source for the host:
+**Source-of-truth selection** for the site's fetcher — pick the cleanest available source:
 
 | Source available | Use it via | Examples |
 |---|---|---|
-| **REST / GraphQL API** that returns structured data | `curl` or `fetch` directly; convert JSON → markdown ourselves | github.com (issue/PR/discussion/release APIs), twitter API |
-| **Raw markdown** in a public repo or CDN | `curl raw URL`; pass through with image localization | github.com/<org>/<repo>/blob/, huggingface.co/blog (mirrors at github.com/huggingface/blog) |
-| **Structured page DOM** (rendered HTML with reliable selectors) | `opencli browser open` + `browser eval` for the relevant outerHTML/textContent; jsdom + turndown + per-site rules | mp.weixin.qq.com (`#js_content`), xhs (`#detail-desc`), zhihu article `#root` |
-| **Rendered page only, no API or stable selectors** | Last resort: opencli `web-read`. Treat its output as INPUT to our own conversion; do not rely on it being clean. | rare; most hosts have one of the above |
+| **REST / GraphQL API** that returns structured data | `curl` or `fetch` directly; convert JSON → markdown ourselves | github (issue/PR/discussion/release APIs) |
+| **Raw markdown** in a public repo or CDN | `curl raw URL`; pass through with image localization | huggingface /blog (`raw.githubusercontent.com/huggingface/blog`) |
+| **Server-rendered HTML with stable selectors** | plain `curl` + JSDOM + per-host rules — usually via the article-site factory | aleksagordic, lmsys, qwenlm.github.io, arxiv abstracts, sebastianraschka, anthropic |
+| **JS-rendered SPA / auth-gated** | `opencli browser open` + `browser eval` to extract `outerHTML`; then own the conversion | xhs, weixin, zhihu |
+| **No usable content** | emit `intentional-stub` deterministically from the URL | feishu, x.com, reddit, qwen.ai |
 
-The site module dispatches internally by URL pattern when needed — e.g. github routes `/pull/<n>` to PR-API path, `/blob/` to raw-URL path, `/releases/tag/` to release-API path, all within `sites/github/`.
+When adding a new host module, defects belong in the site's own `converter.ts` (DOM-level, before turndown), NOT in cross-cutting cleanup. The cross-cutting pipeline only does 8 universal fixes (color tags, single-H1, relative-URL resolution, etc.) — anything host-specific is the host module's responsibility.
 
-**Steps to add or migrate a host:**
+**Steps to add a new host module** (see [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) for the full recipe):
 
 ```
-   ├─ Step 1: Pick the source per the table above. opencli's lossy MD
-   │   path is NOT a valid source choice for a new host.
+   ├─ Step 1: Pick the source per the table above.
    ├─ Step 2: Build tools/sites/<host>/:
-   │     index.ts     — { name, match(url), fetch(url, opts) ⇒ Result }
-   │     fetcher.ts   — acquire raw content (HTTP / browser eval / API)
-   │     converter.ts — raw → §2 markdown (pure function, fixture-testable)
-   │     metadata.ts  — title / author / date selectors / API field mapping
-   ├─ Step 3: Register the site in tools/sites/index.ts (router).
-   ├─ Step 4: Wire dispatch — fetch-raw.ts dispatch case calls routeSite()
-   │   for this host. Delete any legacy adapter / post-processor code now
-   │   superseded by the site module.
-   ├─ Step 5: Generate fresh markdown for ≥3 representative URLs. EYE-READ
+   │     index.ts       — { name, match(url), fetch(url, opts) ⇒ Result }
+   │     test-hooks.ts  — re-export from index.ts (factory does it for you)
+   │     converter.ts   — only if not using the factory (custom DOM logic)
+   │   Most blog-shape hosts are 15-line `makeArticleSite({...})` configs.
+   ├─ Step 3: Register the site in tools/sites/index.ts (BEFORE _default)
+   │   AND tools/sites/test-hooks-registry.ts.
+   ├─ Step 4: Generate fresh markdown for ≥3 representative URLs. EYE-READ
    │   each (do not skip). Show to the user for approval before locking.
-   ├─ Step 6 (AFTER user approves md quality): capture converter fixtures
-   │   for byte-equal regression detection (CLAUDE.md §6b workflow):
-   │     npx tsx tools/__tests__/capture-fixtures.ts <host> <name> <url>
+   ├─ Step 5 (AFTER user approves md quality): capture fixture + snapshot:
+   │     npx tsx tools/__tests__/approve.ts --site <host> --name <slug>
+   │       --url <url> --slug <host>-snap-<slug> --yes
    │   Capture ≥3 fixtures covering distinct content shapes.
-   ├─ Step 7: Capture per-host snapshots for the multi-layer test suite:
-   │     npx tsx tools/__tests__/snapshot-create.ts <url> --slug <slug>
-   │   Refuses on hard-rule defects; eye-read top + tail before commit.
-   └─ Step 8: Run npm test (must be green) + commit (one host per commit).
+   └─ Step 6: Run npm test (must be green) + commit (one host per commit).
 ```
 
 **Do NOT** add fixtures or snapshot-tests until the user has eye-read the markdown and approved the quality. Locking in tests around bad output silently bakes regressions in.
@@ -349,11 +310,18 @@ Don't guess the quality bar — preferences (what's content vs chrome, formattin
 
 ### 5d. Where code lives (universal pattern)
 
-- **All per-host code** → `tools/sites/<host>/{index,fetcher,converter,metadata}.ts` + co-located `snapshots/`. Every host module owns its full pipeline (fetcher + converter + metadata extraction).
-- **Cross-site primitives** that genuinely apply to N+ hosts → `tools/sites/_shared/{browser,http,markdown,quality,snapshot}.ts`. Kept small; expand only when a second host actually needs the helper.
+- **All per-host code** → `tools/sites/<host>/{index,fetcher,converter,metadata}.ts` + fixtures under `tools/__tests__/fixtures/converters/<host>/` and snapshots under `tools/__tests__/snapshots/<host>/`. Every host module owns its full pipeline.
+- **Cross-site primitives** → `tools/sites/_shared/`:
+  - `article-site-factory.ts` + `article-converter.ts` — the 15-line config pattern most hosts use
+  - `post-cleanup.ts` — `applyPostCleanups()` and the 8 host-agnostic cosmetic cleanups
+  - `markdown-cleanups.ts` — bold-spacing walker + quad-asterisk collapse (used by converters before turndown output is finalized)
+  - `generic-converter.ts` — JSDOM + turndown plumbing
+  - `types.ts` — the `Site` contract every module exports
+  - `test-hooks-types.ts` — `SiteTestHooks` contract
+  - `browser-eval-json.ts` — opencli browser-eval helpers (only for D-bucket modules)
 - **Recipes for non-obvious patterns** (auth walls, hidden APIs, multi-step extraction) → §4 of this file.
 
-The legacy locations (`tools/hirono/processors/`, `tools/hirono/shared/post-process.ts` for site-specific cleanups) are being drained as their hosts migrate to `tools/sites/<host>/`. Do NOT add new code to the legacy locations.
+There is no legacy location for new code. All host-specific cleanup belongs in the host's site module; only host-agnostic cosmetic fixes belong in `_shared/post-cleanup.ts`.
 
 ### 5e. Direction-finding for new hosts (cross-host patterns)
 
@@ -420,17 +388,17 @@ If the sample fails any item: fix the cleanup, regenerate, scan again. Don't sho
 
 #### 5e.v. Where cleaner data may hide (source-of-truth detection)
 
-Before settling for opencli's rendered-MD path, check these alternatives in order. They're listed by frequency of yielding cleaner data on the verified hosts:
+For a new host, check these alternatives in order before settling for plain rendered-HTML extraction. Listed by frequency of yielding cleaner data on the verified hosts:
 
 1. **REST / GraphQL API** of the host returning structured JSON we can convert ourselves. *Used by:* github (issue/PR/discussion/release APIs).
 2. **Raw markdown mirror** in a public repo or CDN. *Used by:* huggingface blog (mirrored at `github.com/huggingface/blog`); github file/repo content via `raw.githubusercontent.com`.
 3. **Inline hydration JSON** in `<script>` tags. Next.js / React SPAs often ship the page state as `self.__next_f.push([...])` or `__NEXT_DATA__`. *Used by:* deepwiki.com (mermaid sources live in hydration).
 4. **DOM attribute data** for embedded widgets. *Used by:* wiki.litenext.digital deepwiki (`.mermaid[data-original-text]`).
 5. **Linked downloads** (CSV, JSON, PDF). *Used by:* epoch.ai (`<a href="*.csv">` for the actual dataset).
-6. **`<meta>` tags** for shape and metadata hints — `og:type` (article / video / website), `og:url`, `article:author`, `article:published_time`. Always cheap to read; useful for shape classification (5e.i).
+6. **`<meta>` tags** for shape and metadata hints — `og:type`, `og:url`, `article:author`, `article:published_time`. Always cheap to read; useful for shape classification (5e.i).
 7. **`<head>` `<title>`** as last-resort title fallback when body extraction misses the title.
 
-If any of these returns cleaner data than the rendered HTML, the site module's `fetcher.ts` should use *that* source — not patch opencli's output downstream. The "lossy MD + N post-processors" path is what produced the unfixable defects we migrated away from (§5a).
+If any of these returns cleaner data than the rendered HTML, the site module's fetcher should use *that* source. The site module owns the conversion either way — what changes is just which input it reads from.
 
 ## 6. Regression set
 
@@ -451,7 +419,7 @@ Before committing post-processor/adapter changes, re-export these AND check each
 | `mp.weixin.qq.com/s/PcyKi5q8zT-tJ_9rzgKSqg` (Anthropic Skills) | Layer 4 raw-HTML, 30 fences, 0 doubled markers, 0 unbalanced bold runs, YAML body intact | good · ~6KB |
 | `mp.weixin.qq.com/s/FcK3QmzudPZzqsz85odFlQ` (GPU container) | Layer 4 raw-HTML, 14 fences, 21 table rows, 1 SVG diagram preserved as `weixin-snap-gpu-container-images/weixin-svg-001.svg` (with inline styles), all multi-line code blocks intact | good · ~6KB + 20KB SVG |
 | `mp.weixin.qq.com/s/44_UrbaQu2U1EAB9OrGNxQ` (Xiaomi interview) | Layer 4 raw-HTML, image-heavy interview, 15 images downloaded, `**作者丨何煦阳**` properly merged from adjacent strongs | good · ~12KB |
-| `x.com/garrytan/status/2042497872114090069` | xMetadataStub visible-content path: `# @<handle> on X`, per-tweet card layout (`**Name** [@handle](profile) · [date](url)` byline + `---` separator), zero avatar-only link blocks, zero view-count metric blocks, no multi-line `[\n![` wrappers | good · ~3KB |
+| `x.com/garrytan/status/2042497872114090069` | tools/sites/x-twitter/ stub: `# Tweet / X post` + `intentional-stub` flag — Twitter/X auth-gates content | stub · ~500B |
 
 **Block-ship one-liner** (anything > 0 for remote_imgs/activity, or FM == 0, or feature < contract → DO NOT SHIP):
 
@@ -556,39 +524,41 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
 
 ## 8. Code pointers
 
-- **`tools/fetch-raw.ts`**:
+- **`tools/fetch-raw.ts`** — single dispatch point:
   - `AUTO_SKIP_RULES` — URL refuse-list (currently HF Spaces, L2 skip)
   - `HOST_MIN_BODY_SIZES` — per-host+URL-path size bands
-  - `DISPATCH_RULES` — host → opencli adapter routing (line ~146)
   - `classifyQuality` — flag assembly; consumes `intentional-stub`
-  - `fetchWebReadViaAdapter` — opencli wrapper + fallback ladder (60s retry → HF blog GitHub-raw → GitHub release API → GitHub file/repo raw → GitHub PR/issue/discussion REST API augmentation)
-  - Fallback adapters: `fetchHuggingFaceBlogFromGithub`, `fetchGithubReleaseFromApi`, `fetchGithubRawFile`, `augmentGithubPrIssueWithApi` (handles all 3 conversation kinds)
-- **`tools/opencli/`** — in-repo home of opencli adapters (Layer 2):
+  - `fetchUrlAndStore` — calls `routeSite(url).fetch()`, runs image processing + post-cleanup, writes raw archive. The whole legacy adapter switch + DISPATCH_RULES is gone — there's exactly one site-module call now.
+  - xhs helpers (`extractXhsFullContent`, `extractXhsImageUrlsInOrder`, `closeBrowser`, etc.) are still here for historical reasons; they could eventually move to `tools/sites/xhs/` but it's a substantial mechanical refactor with no functional payoff.
+- **`tools/sites/`** — every host module:
+  - `<host>/index.ts` — `Site` contract export with `match(url)` + `fetch(url, opts)`
+  - `<host>/test-hooks.ts` — re-export from index.ts (factory does it for you)
+  - `<host>/converter.ts` — only for hosts with custom DOM logic (e.g. weixin, xhs, deepwiki); factory hosts inline this
+  - `index.ts` — `routeSite(url) → Site` (TOTAL — never null thanks to `_default`)
+  - `test-hooks-registry.ts` — central registry of every module's test hooks
+  - `_default/` — catch-all module, registered LAST
+  - `_shared/article-site-factory.ts` — `makeArticleSite({...})` for blog-shape hosts
+  - `_shared/article-converter.ts` — selector-driven JSDOM extractor
+  - `_shared/post-cleanup.ts` — `applyPostCleanups()` + 8 host-agnostic cosmetic cleanups
+  - `_shared/markdown-cleanups.ts` — bold-spacing walker + quad-asterisk collapse
+  - `_shared/generic-converter.ts` — JSDOM + turndown plumbing
+  - `_shared/types.ts` + `_shared/test-hooks-types.ts` — contracts
+  - `_shared/browser-eval-json.ts` — opencli browser-eval helpers
+- **`tools/opencli/`** — in-repo home of opencli adapters used by the browser-eval site modules (xhs, weixin, zhihu):
   - `clis/<site>/<name>.js` — adapter source (git-tracked)
   - `sites/<site>/` — recon notes, fixtures, endpoint refs per site
-  - `install-symlinks.sh` — idempotent bootstrap that links into `~/.opencli/clis/` so opencli's loader sees in-repo source
-  - `community-adapter-audit.md` — per-host record of Layer-1 community coverage
+  - `install-symlinks.sh` — idempotent bootstrap that links into `~/.opencli/clis/`
   - `host-counts.json` — graduation watchdog snapshot (used by `hirono raindrop check`)
-- **`tools/hirono/processors/`** — site-specific post-processors (per-host file):
-  - `<host>.ts` — one file per host with site-specific chrome cleanups; localizes blast radius
-  - `index.ts` — re-exports `siteSpecificProcessors[]` for the pipeline composer
-- **`tools/hirono/<host>/raw-html-converter.ts`** — Layer-4 own-converter modules:
-  - `weixin/raw-html-converter.ts` — first reference implementation. Pure function (no I/O): takes `(contentHtml, metadata, originUrl)` → `{markdown, imagesToDownload, svgFiles, metadata, stats}`. The fetcher does the actual `downloadImage` + `writeFileSync` for SVGs.
-  - Pipeline order inside the converter: `extractOriginalSvgs(rawHtml)` (BEFORE style strip — preserves inline styles for the saved SVG file) → CSS strip → JSDOM parse → `processSvgs` → `stripListMarkerPrefixes` → `unwrapInertSpans` → `normalizeEmphasis` → `normalizeImages` → turndown → post-turndown regex cleanups → §2 frontmatter assembly
-- **`tools/hirono/shared/post-process.ts`** — generic / cross-site processors only (truly N+ host applicability):
-  - `PROCESSORS` — ordered pipeline (site-specific first, then generic cross-site)
-  - `enforceSingleH1`, `stripDecorativeEmojiImages`, `stripTrailingTagList`, `stripShareWidgetLines`, `processImages`, `resolveRelativeImageUrls`, `unescapeBracketsInLinks`, `stripEmptyAnchorLinks`, `stripColorTags`
-  - **Legacy** site-specific processors (substackReformat, deepwikiStripNav, githubStripUIChrome, huggingfaceBlogReformat, etc.) still live here pending migration to `tools/hirono/processors/<host>.ts` as their hosts move to community-adapter coverage
-  - `applyPostProcessors` — aggregates `extraFlags` including `intentional-stub`
 - **`tools/__tests__/`**:
-  - `post-process-fixtures.test.ts` — fixture pairs for each processor (47 cases)
+  - `coverage-gate.test.ts` — every registered site module must have ≥1 fixture + ≥1 snapshot
   - `per-host-snapshot.test.ts` — per-host snapshot regression suite (sidecar match + hard-rule defects + image-ref existence)
-  - `converter-fixtures.test.ts` — byte-equal regression test for converters (frozen input → frozen `expected.md`). The true gate against silent converter drift; see §6b.
-  - `capture-fixtures.ts` — one-shot script to capture/refresh a converter fixture from a live URL
-  - `snapshot-create.ts` — fetch + bundle images + write snapshot. Refuses to write if hard-rule defects present.
-  - `snapshot-helpers.ts` — `countFeatures` + invariants I/O + CLI for capturing invariants
+  - `converter-fixtures.test.ts` — byte-equal regression test for converters (frozen input → frozen `expected.md`)
+  - `post-process-fixtures.test.ts` — fixture pairs for each cross-cutting cleanup
+  - `structural-rules.ts` — defect-shape validators (no-quad-asterisk-runs, no-multi-line-link-wrappers, etc.)
+  - `approve.ts` — unified capture command (fetch → eye-read → diff → fixture + snapshot)
+  - `capture-fixtures.ts`, `snapshot-create.ts`, `snapshot-helpers.ts` — capture primitives
   - `snapshots/<host>/<slug>.{md,invariants.json}` + `<slug>-images/` — per-host snapshots
-  - `fixtures/converters/<host>/<name>.{input.json,expected.md,expected.json}` — frozen converter regression fixtures
+  - `fixtures/converters/<host>/<name>.{input.json,expected.md,expected.json}` — frozen converter fixtures
 
 ## Keeping this file fresh
 

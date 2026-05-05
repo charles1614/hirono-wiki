@@ -19,8 +19,8 @@ import {
   stripColorTags,
   extractRelativeImageRefs,
   resolveAgainstOrigin,
-} from "../hirono/shared/post-process.ts";
-import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
+  applyPostCleanups,
+} from "../sites/_shared/post-cleanup.ts";
 import { buildReport, formatReport, type Cache } from "../hirono/raindrop/check.ts";
 import { resolveIdentifier } from "../hirono/raindrop/export.ts";
 import { slugifyTitle, deriveSlug, buildPlan } from "../hirono/raindrop/fetch-all.ts";

@@ -1,15 +1,15 @@
 /**
- * Fixture-based tests for the post-processors that survive in
- * `tools/hirono/shared/post-process.ts`. Each test case pairs a canned
+ * Fixture-based tests for the cross-cutting cleanups in
+ * `tools/sites/_shared/post-cleanup.ts`. Each test case pairs a canned
  * "dirty" markdown input with the expected "clean" output. Asserts on
  * SUBSTRINGS rather than exact whole-file matches so the tests tolerate
  * unrelated cosmetic touch-ups (newline collapsing, etc.).
  *
- * Retired processors (substackReformat, intuitionlabsCleanup, sspaiCleanup,
- * lmsysCleanup, blogGoogleCleanup) had their tests removed when the
- * transforms were deleted on 2026-05-04 — their hosts migrated to per-host
- * site modules whose converters own the cleanup logic now (and have their
- * own byte-equal fixture coverage under __tests__/fixtures/converters/).
+ * Retired host-scoped processors had their tests removed when their
+ * transforms were deleted as part of the single-arch migration — their
+ * hosts now live in per-host site modules under `tools/sites/<host>/`
+ * with their own byte-equal fixture coverage under
+ * `__tests__/fixtures/converters/<host>/`.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -20,8 +20,8 @@ import {
   stripTrailingTagList,
   stripShareWidgetLines,
   unescapeBracketsInLinks,
-} from "../hirono/shared/post-process.ts";
-import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
+  applyPostCleanups,
+} from "../sites/_shared/post-cleanup.ts";
 import { validateStructure, formatViolations } from "./structural-rules.ts";
 
 /**
