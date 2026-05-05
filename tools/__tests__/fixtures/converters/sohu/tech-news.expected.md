@@ -9,7 +9,7 @@
 
 2026-04-29 20:57
 
-24万
+25万
 
 ![](sohu-img-001.jpg)
 
@@ -128,110 +128,5 @@
 声明： 本文由入驻搜狐公众平台的作者撰写，除搜狐官方账号外，观点仅代表作者本人，不代表搜狐立场。
 
 [回首页看更多汽车资讯](//auto.sohu.com)
-
-评论（174）
-
-文明上网理性发言，请遵守[《搜狐我来说两句用户公约》](#)
-
-0/100 [发表评论](#)
-
-![](sohu-img-003.gif)
-
-大白兔
-
-[0](javascript:;)
-
-把广告牌识别成车修复了吗？
-
-昨天 01:45
-
-黑龙江
-
-[回复](javascript:;)
-
-0/100 [发表评论](#)
-
-![](sohu-img-004.gif)
-
-大白兔 小子
-
-[0](javascript:;)
-
--   ![](sohu-img-005.gif)
-
-    大白兔TGXprpqJZGM
-
-    -   ![](sohu-img-006.gif)
-
-        大白兔TGXprpqJZGM
-
-        把广告牌识别成车修复了吗？
-
-    把广告牌识别成车修复了吗？
-
-把广告牌识别成车修复了吗？
-
-昨天 01:45
-
-黑龙江
-
-[关闭回复](javascript:;)
-
-0/100 [发表评论](#)
-
-查看更多 374 条评论
-
-评论(374)
-
-请遵守[《搜狐我来说两句用户公约》](#)
-
-[](#)
-
-0/100 [发表评论](#)
-
-{{item.userObj.user\_name}} {{ item.parents[0].userObj.user\_name }}
-
-{{item.userObj.user\_name}}
-
-[{{ item.like\_count }}](javascript:;)
-
--   {{ item.parents[0].userObj.user\_name }}
-
-    {{ item.parents[0].content }}
-
-{{ item.content }}
-
-{{ item.location }}
-
-[{{item.showReplyInput? '关闭回复': '回复'}}](javascript:;)
-
-0/100 [发表评论](#)
-
-查看更多 {{commentStore.commentObj.participation\_sum}} 条评论
-
-### 登录
-
--   请输入手机号
--    请输入右侧的数字/字母
--    请输入短信验证码 [获取验证码](javascript:void\(0\);)
--   下次自动登录
-
-    [登录](javascript:void\(0\);)
-
--   [回首页
-
-    回汽车首页
-
-    ](//auto.sohu.com/)
--   [反馈
-
-    意见反馈
-
-    ](//www.sohu.com/feedback?articleUrl=https%3A%2F%2Fwww.sohu.com%2Fa%2F1016393915_477212)
--   [回顶部
-
-    返回顶部
-
-    ](<javascript: void\(0\)>)
 
 [](#)

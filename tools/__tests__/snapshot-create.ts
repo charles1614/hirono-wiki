@@ -136,8 +136,12 @@ for (const m of scrubbed.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
   if (ref.startsWith("data:")) continue;
   localRefs.add(ref);
 }
+// Clean the images dir unconditionally so re-captures don't leave
+// orphan files from the previous capture. (Previously this only
+// fired when localRefs.size > 0, which left old images behind when
+// the new converter output had zero image refs.)
+rmSync(snapImageDir, { recursive: true, force: true });
 if (localRefs.size > 0) {
-  rmSync(snapImageDir, { recursive: true, force: true });
   mkdirSync(snapImageDir, { recursive: true });
   for (const ref of localRefs) {
     const src = join(slugDir, ref);

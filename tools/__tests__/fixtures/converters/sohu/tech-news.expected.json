@@ -7,22 +7,6 @@
     {
       "remoteUrl": "https://m1.auto.itc.cn/appImage/sohu-default.png",
       "localFilename": "sohu-img-002.png"
-    },
-    {
-      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
-      "localFilename": "sohu-img-003.gif"
-    },
-    {
-      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
-      "localFilename": "sohu-img-004.gif"
-    },
-    {
-      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
-      "localFilename": "sohu-img-005.gif"
-    },
-    {
-      "remoteUrl": "http://p0.itc.cn/q_70/images03/20210130/989cc73c4bbf4cd6ac1bcc38ae7b797a.gif",
-      "localFilename": "sohu-img-006.gif"
     }
   ],
   "metadata": {
@@ -32,7 +16,7 @@
     "authors": []
   },
   "stats": {
-    "bodyChars": 4887,
-    "images": 6
+    "bodyChars": 3657,
+    "images": 2
   }
 }
