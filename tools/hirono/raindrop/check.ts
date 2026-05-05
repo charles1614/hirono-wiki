@@ -23,7 +23,31 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalizeUrl } from "../../build-sources-index.ts";
-import { classifyCoverage } from "../shared/dispatch.ts";
+import { hostnameOf } from "../../fetch-raw.ts";
+import { routeSite } from "../../sites/index.ts";
+
+/**
+ * Classify a URL's routing handler. Two real categories under the
+ * unified architecture (`docs/fetcher-architecture.md`):
+ *
+ *   - `site:<name>` (label `dedicated-adapter`) — host-specific module.
+ *   - `site:_default` (label `web-read-fallback`) — catch-all module
+ *     fields the URL. Hosts here are candidates for promotion to a
+ *     dedicated module.
+ *
+ * Returns "unknown" for URLs that fail to parse at all.
+ */
+type CoverageLabel = "dedicated-adapter" | "web-read-fallback" | "unknown";
+
+function classifyCoverage(url: string): { label: CoverageLabel; handler?: string } {
+  const host = hostnameOf(url);
+  if (!host) return { label: "unknown" };
+  const site = routeSite(url);
+  if (site.name === "_default") {
+    return { label: "web-read-fallback", handler: "site:_default" };
+  }
+  return { label: "dedicated-adapter", handler: `site:${site.name}` };
+}
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..", "..");

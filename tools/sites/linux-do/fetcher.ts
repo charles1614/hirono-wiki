@@ -15,7 +15,7 @@
  */
 
 import { execSync, spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 
 const MAX_POSTS_DEFAULT = 50;
 const POSTS_PER_PAGE = 20;

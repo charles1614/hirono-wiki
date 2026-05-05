@@ -24,7 +24,8 @@ import {
   inspectSymlink,
   listLocalAdapters,
 } from "./shared/adapter-paths.ts";
-import { opencliDoctorOk, listRawSlugs } from "../fetch-raw.ts";
+import { listRawSlugs } from "../fetch-raw.ts";
+import { opencliDoctorOk } from "../sites/_shared/browser-helpers.ts";
 
 export interface DoctorOpts {
   fix?: boolean;

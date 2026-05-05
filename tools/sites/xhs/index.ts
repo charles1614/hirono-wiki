@@ -30,11 +30,10 @@ import {
   extractXhsFullContent,
   extractXhsNoteId,
   downloadImageToPath,
-  runOpencli,
-  sleepMs,
   collectXhsAssets,
   reorderXhsImagesByDomPosition,
-} from "../../fetch-raw.ts";
+} from "./browser-extract.ts";
+import { runOpencli, sleepMs } from "../_shared/browser-helpers.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }

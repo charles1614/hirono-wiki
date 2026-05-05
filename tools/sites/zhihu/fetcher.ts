@@ -7,7 +7,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 
 export interface ZhihuFullContent {
   contentHtml: string;

@@ -7,12 +7,8 @@
  */
 
 import { spawnSync } from "node:child_process";
-import {
-  sleepMs,
-  closeBrowser,
-  browserTimeoutMs,
-  makeError as makeFetchError,
-} from "../../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { makeError as makeFetchError } from "../../fetch-raw.ts";
 
 export interface WeixinFullContent {
   contentHtml: string;

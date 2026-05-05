@@ -8,7 +8,7 @@ import { spawnSync } from "node:child_process";
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
 import { convertWeixinHtml } from "./converter.ts";
 import { extractJsonFromEvalStdout } from "../_shared/browser-eval-json.ts";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 
 function runFromFixture(input: InputDoc): { markdown: string; rest: Record<string, unknown> } {
   if (input.fn !== "convertWeixinHtml") {

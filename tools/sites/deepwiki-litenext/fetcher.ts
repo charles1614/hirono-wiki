@@ -10,7 +10,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 import { extractJsonFromEvalStdout } from "../_shared/browser-eval-json.ts";
 
 export interface DeepwikiLitenextContent {

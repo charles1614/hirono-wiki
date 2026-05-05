@@ -33,7 +33,7 @@ import { spawnSync } from "node:child_process";
 import { findHooksByName } from "../sites/test-hooks-registry.ts";
 import { convertGenericHtml } from "../sites/_shared/generic-converter.ts";
 import { extractJsonFromEvalStdout } from "../sites/_shared/browser-eval-json.ts";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../fetch-raw.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs } from "../sites/_shared/browser-helpers.ts";
 
 const FIXTURES_ROOT = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "converters");
 

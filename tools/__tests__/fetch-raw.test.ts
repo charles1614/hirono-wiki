@@ -18,8 +18,8 @@ import {
   buildStatusReport,
   buildSyncPlan,
   remediationFor,
-  browserTimeoutMs,
 } from "../fetch-raw.ts";
+import { browserTimeoutMs } from "../sites/_shared/browser-helpers.ts";
 import { routeSite } from "../sites/index.ts";
 
 // ---------------------------------------------------------------------------

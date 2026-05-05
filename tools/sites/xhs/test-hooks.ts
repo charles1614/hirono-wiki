@@ -5,7 +5,7 @@
 
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
 import { convertXhsHtml } from "./converter.ts";
-import { extractXhsFullContent } from "../../fetch-raw.ts";
+import { extractXhsFullContent } from "./browser-extract.ts";
 
 function runFromFixture(input: InputDoc): { markdown: string; rest: Record<string, unknown> } {
   if (input.fn !== "convertXhsHtml") {
