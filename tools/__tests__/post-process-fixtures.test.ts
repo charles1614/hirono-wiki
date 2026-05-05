@@ -27,8 +27,8 @@ import {
   redditReformat,
   unescapeBracketsInLinks,
   xMetadataStub,
-  applyPostProcessors,
 } from "../hirono/shared/post-process.ts";
+import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
 import { validateStructure, formatViolations } from "./structural-rules.ts";
 
 /**
@@ -589,15 +589,13 @@ test("arxivPdfNote: substantial PDF fetch keeps body + adds abstract note", () =
 //  TOC, so the post-processor stripping them is no longer needed.)
 
 // ---------------------------------------------------------------------------
-// Pipeline composition: applyPostProcessors with the new processors
+// Pipeline composition: applyPostCleanups (the unified-architecture entry)
 // ---------------------------------------------------------------------------
 
-
-test("applyPostProcessors: cross-host processors run on substack-like input (substack-reformat retired — site module owns it)", () => {
-  // substack hosts now flow through `tools/sites/substack/`; the legacy
-  // `substackReformat` post-processor's match() returns false. The
-  // cross-host processors below (strip-color-tags, unescape-brackets,
-  // strip-empty-anchor-links) still run because they apply to ANY host.
+test("applyPostCleanups: runs every cross-cutting cleanup unconditionally", () => {
+  // Under the unified architecture, host-scoped cleanup lives in each
+  // site module's converter; only host-agnostic cleanups run centrally
+  // (color-tag strip, bracket unescape, empty-anchor strip, etc.).
   const md = [
     "# Our synthesized title",
     "",
@@ -611,15 +609,12 @@ test("applyPostProcessors: cross-host processors run on substack-like input (sub
     "",
     "Final paragraph.",
   ].join("\n");
-  const r = applyPostProcessors(md, "https://newsletter.semianalysis.com/p/x");
+  const r = applyPostCleanups(md, "https://newsletter.semianalysis.com/p/x");
   assert.doesNotMatch(r.md, /<text color/);
   assert.doesNotMatch(r.md, /\\\[ref\\\]/, "escaped brackets should be unescaped");
   assert.doesNotMatch(r.md, /\[\]\(#empty-anchor\)/);
   assert.match(r.md, /Body text with blue color tag/);
-  // substack-reformat is retired — the site module handles substack URLs
-  assert.ok(!r.appliedNames.includes("substack-reformat"),
-    "substack-reformat should be retired; site module handles substack hosts now");
-  // Cross-host processors still apply
+  // Bucket A processors fire without a match check
   assert.ok(r.appliedNames.includes("strip-color-tags"));
   assert.ok(r.appliedNames.includes("unescape-brackets-in-links"));
   assert.ok(r.appliedNames.includes("strip-empty-anchor-links"));

@@ -21,7 +21,7 @@
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync, copyFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { applyPostProcessors } from "../hirono/shared/post-process.ts";
+import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
 import { countFeatures, writeInvariants } from "./snapshot-helpers.ts";
 
 const args = process.argv.slice(2);
@@ -103,8 +103,8 @@ if (!isStub && (qStatus !== "good" || cLen < minLen)) {
   process.exit(1);
 }
 
-console.log(`[3/4] apply post-processors`);
-const r = applyPostProcessors(rawMd, originUrl);
+console.log(`[3/4] apply post-cleanups`);
+const r = applyPostCleanups(rawMd, originUrl);
 console.log(`     applied: ${r.appliedNames.join(", ") || "(none)"}`);
 
 const snapDir = `tools/__tests__/snapshots/${host}`;

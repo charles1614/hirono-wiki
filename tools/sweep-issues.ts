@@ -6,7 +6,7 @@
 
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { applyPostProcessors } from "./hirono/shared/post-process.ts";
+import { applyPostCleanups } from "./sites/_shared/post-cleanup.ts";
 
 interface Issue { slug: string; host: string; problems: string[]; status: string }
 
@@ -40,7 +40,7 @@ for (const slug of entries) {
   ]);
   const intentionalStub = flags.some((f) => stubLikeFlags.has(f));
 
-  const r = applyPostProcessors(md, url);
+  const r = applyPostCleanups(md, url);
   const final = r.md;
 
   const problems: string[] = [];

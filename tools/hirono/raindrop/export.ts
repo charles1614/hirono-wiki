@@ -27,7 +27,7 @@ import {
   yearForSlug,
   rawDirFor,
 } from "../../fetch-raw.ts";
-import { applyPostProcessors } from "../shared/post-process.ts";
+import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
 import type { CachedBookmark, Cache } from "./check.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -142,12 +142,12 @@ export function runExport(opts: ExportOpts): { source: SourceJson; slug: string 
     // Pass --force on the CLI to overwrite.
     force: opts.force ?? false,
     transformMarkdown: (md, originUrl) => {
-      const r = applyPostProcessors(md, originUrl);
+      const r = applyPostCleanups(md, originUrl);
       return {
         md: r.md,
         extraNotes: [
           ...(r.appliedNames.length > 0
-            ? [`hirono post-processors: ${r.appliedNames.join(", ")}`]
+            ? [`post-cleanups: ${r.appliedNames.join(", ")}`]
             : []),
           ...r.notes,
         ],

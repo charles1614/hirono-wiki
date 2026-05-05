@@ -27,7 +27,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fetchUrlAndStore, rawDirFor, listRawSlugs } from "../../fetch-raw.ts";
 import { normalizeUrl } from "../../build-sources-index.ts";
-import { applyPostProcessors } from "../shared/post-process.ts";
+import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
 import type { Cache, CachedBookmark } from "./check.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -280,11 +280,11 @@ export async function runFetchAll(opts: FetchAllOpts = {}): Promise<FetchAllResu
         force: false,  // append-only; don't clobber good content on retry
         titleHint: item.title,
         transformMarkdown: (md, originUrl) => {
-          const r = applyPostProcessors(md, originUrl);
+          const r = applyPostCleanups(md, originUrl);
           return {
             md: r.md,
             extraNotes: [
-              ...(r.appliedNames.length > 0 ? [`hirono post-processors: ${r.appliedNames.join(", ")}`] : []),
+              ...(r.appliedNames.length > 0 ? [`post-cleanups: ${r.appliedNames.join(", ")}`] : []),
               ...r.notes,
             ],
             extraImageUrls: r.newAbsoluteImageUrls,
