@@ -74,6 +74,8 @@ const stubFlags = new Set([
   "xhs-text-body-unavailable",
   "auto-skipped-hf-space",
   "feishu-auth-gated",
+  "reddit-deleted",
+  "reddit-blocked",
 ]);
 const isStub = flags.some((f: string) => stubFlags.has(f));
 // Per-host minimum content lengths. Micro-post hosts (xhs, x.com) are

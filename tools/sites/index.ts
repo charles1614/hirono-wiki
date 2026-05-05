@@ -37,6 +37,7 @@ import { site as qwenlmGithubIo } from "./qwenlm-github-io/index.ts";
 import { site as anthropic } from "./anthropic/index.ts";
 import { site as readthedocs } from "./readthedocs/index.ts";
 import { site as feishu } from "./feishu/index.ts";
+import { site as reddit } from "./reddit/index.ts";
 import { site as defaultSite } from "./_default/index.ts";
 
 export const SITES: readonly Site[] = [
@@ -107,6 +108,10 @@ export const SITES: readonly Site[] = [
   // *.feishu.cn: auth-gated wiki/docs. Stub-only — emits a stub with
   // lark-hirono fetch instructions. No fetch attempted.
   feishu,
+  // reddit.com / www.reddit.com / old.reddit.com: aggressive rate-limits
+  // + bot blocking + JS-heavy modern UI. Stub-emitting site module —
+  // detects deleted/removed/blocked posts and emits page-removed stubs.
+  reddit,
   // CATCH-ALL: must be LAST. Fields any URL no host-specific module
   // claimed. Plain curl + JSDOM with permissive selectors; emits
   // `intentional-stub` if extraction returns < 200 chars (typical

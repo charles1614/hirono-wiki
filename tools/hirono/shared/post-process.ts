@@ -1278,7 +1278,12 @@ export const articleCleanup: PostProcessor = {
  */
 export const redditReformat: PostProcessor = {
   name: "reddit-reformat",
-  match: (_u, h) => h === "reddit.com" || h === "www.reddit.com",
+  // Retired 2026-05-05: reddit.com migrated to tools/sites/reddit/.
+  // The site module fetches old.reddit.com directly and emits stubs
+  // for deleted/removed/rate-limited posts (which is nearly every
+  // bookmarked URL given Reddit's bot-blocking). Transform kept here
+  // as referenceable code; deleted in C12.
+  match: () => false,
   transform: (md, originUrl) => {
     const notes: string[] = [];
 
