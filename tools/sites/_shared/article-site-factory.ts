@@ -29,6 +29,12 @@ export interface ArticleSiteConfig {
   name: string;
   /** Hostnames the site matches (e.g. `["qwen.ai"]`). Ignored when `matchAll` is true. */
   hosts: string[];
+  /**
+   * Optional regex against the URL's hostname. Matches in addition to
+   * `hosts` (logical OR). Use for wildcard subdomain families like
+   * `*.readthedocs.io` where there's no fixed hostname list.
+   */
+  hostPattern?: RegExp;
   /** Optional path-prefix filter. Match returns true only when URL path starts with this. */
   pathPrefix?: string;
   /**
@@ -97,7 +103,8 @@ export function makeArticleSite(cfg: ArticleSiteConfig): { site: Site; testHooks
     match: (url: string) => {
       if (cfg.matchAll) return true;
       const h = hostOf(url);
-      if (!cfg.hosts.includes(h)) return false;
+      const hostHit = cfg.hosts.includes(h) || (cfg.hostPattern?.test(h) ?? false);
+      if (!hostHit) return false;
       if (cfg.pathPrefix && !pathOf(url).startsWith(cfg.pathPrefix)) return false;
       return true;
     },

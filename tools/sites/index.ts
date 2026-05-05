@@ -35,6 +35,7 @@ import { site as sohu } from "./sohu/index.ts";
 import { site as huggingface } from "./huggingface/index.ts";
 import { site as qwenlmGithubIo } from "./qwenlm-github-io/index.ts";
 import { site as anthropic } from "./anthropic/index.ts";
+import { site as readthedocs } from "./readthedocs/index.ts";
 import { site as defaultSite } from "./_default/index.ts";
 
 export const SITES: readonly Site[] = [
@@ -98,6 +99,10 @@ export const SITES: readonly Site[] = [
   // with a placeholder paragraph at the DOM level, avoiding the
   // character-per-line "explosion" the legacy post-processor patched.
   anthropic,
+  // *.readthedocs.io / *.readthedocs.org: Sphinx-built docs. Wildcard
+  // host pattern. Strips the `<a class="headerlink">` chrome each
+  // heading gets in the default Sphinx theme.
+  readthedocs,
   // CATCH-ALL: must be LAST. Fields any URL no host-specific module
   // claimed. Plain curl + JSDOM with permissive selectors; emits
   // `intentional-stub` if extraction returns < 200 chars (typical

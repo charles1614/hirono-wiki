@@ -1132,10 +1132,11 @@ const ARTICLE_CLEANUP_HOSTS = new Set([
  */
 export const sphinxHeadingAnchorCleanup: PostProcessor = {
   name: "sphinx-heading-anchor-cleanup",
-  // docs.nvidia.com migrated to tools/sites/docs-nvidia/. Other Sphinx-built
-  // sites (readthedocs.io / readthedocs.org) still go through the legacy
-  // path, so the heading-anchor stripper is kept for them.
-  match: (_u, h) => /\.readthedocs\.(io|org)$/.test(h),
+  // Retired 2026-05-05: docs.nvidia.com migrated to tools/sites/docs-nvidia/
+  // and *.readthedocs.io/.org migrated to tools/sites/readthedocs/. Both
+  // strip `<a class="headerlink">` at the DOM level via dropSelectors.
+  // Transform kept here as referenceable code; will be deleted in C12.
+  match: () => false,
   transform: (md, _originUrl) => {
     let stripped = 0;
     const out = md.split("\n").map((l) => {

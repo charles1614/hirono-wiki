@@ -42,6 +42,7 @@ import { testHooks as sohuHooks } from "./sohu/test-hooks.ts";
 import { testHooks as huggingfaceHooks } from "./huggingface/test-hooks.ts";
 import { testHooks as qwenlmGithubIoHooks } from "./qwenlm-github-io/test-hooks.ts";
 import { testHooks as anthropicHooks } from "./anthropic/test-hooks.ts";
+import { testHooks as readthedocsHooks } from "./readthedocs/test-hooks.ts";
 import { testHooks as defaultHooks } from "./_default/test-hooks.ts";
 
 export const TEST_HOOKS: readonly SiteTestHooks[] = [
@@ -70,6 +71,7 @@ export const TEST_HOOKS: readonly SiteTestHooks[] = [
   huggingfaceHooks,
   qwenlmGithubIoHooks,
   anthropicHooks,
+  readthedocsHooks,
   defaultHooks,
 ];
 
