@@ -48,7 +48,7 @@ try {
 const slugDir = `raw/2026/${slug}`;
 console.log(`[1/4] fetch ${url} → ${slugDir}`);
 try {
-  execSync(`npx tsx tools/fetch-raw.ts fetch-url "${url.replace(/"/g, '\\"')}" --slug ${slug} --force`, { stdio: "inherit" });
+  execSync(`npx tsx tools/bin/fetch-raw.ts fetch-url "${url.replace(/"/g, '\\"')}" --slug ${slug} --force`, { stdio: "inherit" });
 } catch (e) {
   console.error(`[fetch] failed`);
   process.exit(1);

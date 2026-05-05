@@ -351,6 +351,52 @@ export const stripColorTags: PostProcessor = {
 };
 
 /**
+ * Strip `**bold**` (and `***bold-italic***`) wrappers INSIDE markdown
+ * headings. CLAUDE.md §3 contract: "No `**bold**` inside headings or
+ * already-emphasized text — when everything is bold, nothing is
+ * emphasized." Common upstream cause: source HTML like
+ * `<h3><strong>1. Title</strong></h3>` (CSDN, weixin, some Substack
+ * pubs). Turndown produces `### **1. Title**`; we strip the bold
+ * markers, leaving the heading.
+ *
+ * Fence-aware: skips heading-shaped lines inside ``` fenced code
+ * blocks (rare but possible in code-comment examples). Idempotent.
+ */
+export const stripBoldInHeadings: PostProcessor = {
+  name: "strip-bold-in-headings",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    let inFence = false;
+    let stripped = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trimStart();
+      if (trimmed.startsWith("```")) { inFence = !inFence; continue; }
+      if (inFence) continue;
+      const m = lines[i].match(/^(#{1,6}\s+)(.*)$/);
+      if (!m) continue;
+      const prefix = m[1];
+      let body = m[2];
+      // Strip surrounding *** / ** / * wrappers, repeatedly so we handle
+      // nested or stacked emphasis (`### ***Title***`, `### ** Title **`).
+      const before = body;
+      body = body
+        .replace(/\*{1,3}([^*\n]+?)\*{1,3}/g, (_match, inner) => inner)
+        .replace(/^\s+|\s+$/g, "");
+      if (body !== before.trim()) {
+        lines[i] = `${prefix}${body}`;
+        stripped++;
+      }
+    }
+    return {
+      md: lines.join("\n"),
+      newAbsoluteImageUrls: [],
+      notes: stripped > 0 ? [`stripped bold/italic wrappers from ${stripped} heading(s)`] : [],
+    };
+  },
+};
+
+/**
  * Generic: demote every body H1 (after the frontmatter `---` separator) to
  * H2. CLAUDE.md §2 contract: exactly one `# ` in the document — the
  * frontmatter title. Most source pages emit their section titles as H1
@@ -469,6 +515,7 @@ const POST_CLEANUPS: readonly PostProcessor[] = [
   stripShareWidgetLines,
   unescapeBracketsInLinks,
   stripColorTags,
+  stripBoldInHeadings,
   enforceSingleH1,
 ];
 
