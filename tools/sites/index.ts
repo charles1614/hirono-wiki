@@ -34,6 +34,7 @@ import { site as lmsys } from "./lmsys/index.ts";
 import { site as sohu } from "./sohu/index.ts";
 import { site as huggingface } from "./huggingface/index.ts";
 import { site as qwenlmGithubIo } from "./qwenlm-github-io/index.ts";
+import { site as defaultSite } from "./_default/index.ts";
 
 export const SITES: readonly Site[] = [
   xhs,
@@ -92,11 +93,26 @@ export const SITES: readonly Site[] = [
   // qwenlm.github.io: Qwen team's research blog (Hugo on GitHub Pages).
   // qwen.ai itself is an SPA shell; the actual blog content lives here.
   qwenlmGithubIo,
+  // CATCH-ALL: must be LAST. Fields any URL no host-specific module
+  // claimed. Plain curl + JSDOM with permissive selectors; emits
+  // `intentional-stub` if extraction returns < 200 chars (typical
+  // SPA shell). URLs that consistently land here with stub flags
+  // are candidates for promotion to a dedicated site module.
+  defaultSite,
 ];
 
-export function routeSite(url: string): Site | null {
+/**
+ * Resolve a URL to its site module. Routing is **total** — the catch-all
+ * `_default` site module is registered last with `match: () => true`,
+ * so this never returns null. Callers can rely on the non-null result
+ * unconditionally.
+ */
+export function routeSite(url: string): Site {
   for (const s of SITES) {
     if (s.match(url)) return s;
   }
-  return null;
+  // Unreachable in practice (the catch-all matches everything), but the
+  // explicit fallback keeps the function total even if someone reorders
+  // the array and accidentally drops the default last.
+  return defaultSite;
 }

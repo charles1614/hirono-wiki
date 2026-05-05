@@ -27,16 +27,28 @@ import { downloadImage } from "../../fetch-raw.ts";
 export interface ArticleSiteConfig {
   /** Site module name (matches dir, used in fixture paths). */
   name: string;
-  /** Hostnames the site matches (e.g. `["qwen.ai"]`). */
+  /** Hostnames the site matches (e.g. `["qwen.ai"]`). Ignored when `matchAll` is true. */
   hosts: string[];
   /** Optional path-prefix filter. Match returns true only when URL path starts with this. */
   pathPrefix?: string;
+  /**
+   * Match every URL — for the catch-all `_default` module that fields any
+   * URL no host-specific module claimed. The router registers it LAST so
+   * specific modules win first. Mutually exclusive with `hosts`/`pathPrefix`.
+   */
+  matchAll?: boolean;
   /** Converter function name for fixture dispatch (e.g. "convertQwen"). */
   converterName: string;
   /** Article selectors config — body, dropSelectors, etc. */
   selectors: ArticleSelectors;
   /** Optional Referer URL builder for image downloads (default: origin URL). */
   imageReferer?: (url: string) => string;
+  /**
+   * Override the snapshot hosts list (defaults to `cfg.hosts`). Used by
+   * the catch-all `_default` module which has no host predicate but
+   * still needs a snapshot directory under `__tests__/snapshots/`.
+   */
+  snapshotHosts?: string[];
 }
 
 /** Minimal fetcher — plain curl. Most hosts work with this. */
@@ -83,6 +95,7 @@ export function makeArticleSite(cfg: ArticleSiteConfig): { site: Site; testHooks
   const site: Site = {
     name: cfg.name,
     match: (url: string) => {
+      if (cfg.matchAll) return true;
       const h = hostOf(url);
       if (!cfg.hosts.includes(h)) return false;
       if (cfg.pathPrefix && !pathOf(url).startsWith(cfg.pathPrefix)) return false;
@@ -133,7 +146,7 @@ export function makeArticleSite(cfg: ArticleSiteConfig): { site: Site; testHooks
   const testHooks: SiteTestHooks = {
     name: cfg.name,
     converterName: cfg.converterName,
-    snapshotHosts: cfg.hosts,
+    snapshotHosts: cfg.snapshotHosts ?? cfg.hosts,
     runFromFixture(input: InputDoc) {
       if (input.fn !== cfg.converterName) {
         throw new Error(`${cfg.name} test-hooks: unexpected fn ${input.fn}`);

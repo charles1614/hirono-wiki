@@ -1,0 +1,22 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://martinfowler.com/articles/exploring-gen-ai/bb.jpg",
+      "localFilename": "default-img-001.jpg"
+    },
+    {
+      "remoteUrl": "https://martinfowler.com/articles/exploring-gen-ai/donkey-card.png",
+      "localFilename": "default-img-002.png"
+    }
+  ],
+  "metadata": {
+    "title": "Exploring Generative AI",
+    "description": "Notes from my Thoughtworks colleagues on AI-assisted software delivery",
+    "publishedAt": "",
+    "authors": []
+  },
+  "stats": {
+    "bodyChars": 3981,
+    "images": 2
+  }
+}
