@@ -69,7 +69,12 @@ const cLen: number = src.content_length ?? 0;
 
 console.log(`[2/4] sample-validity gate: quality_status=${qStatus} content_length=${cLen}`);
 const flags: string[] = src.quality_flags ?? [];
-const stubFlags = new Set(["intentional-stub", "xhs-text-body-unavailable", "auto-skipped-hf-space"]);
+const stubFlags = new Set([
+  "intentional-stub",
+  "xhs-text-body-unavailable",
+  "auto-skipped-hf-space",
+  "feishu-auth-gated",
+]);
 const isStub = flags.some((f: string) => stubFlags.has(f));
 // Per-host minimum content lengths. Micro-post hosts (xhs, x.com) are
 // LEGITIMATELY short — the gate must accept them. Long-form hosts get

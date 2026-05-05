@@ -1542,7 +1542,11 @@ export const xMetadataStub: PostProcessor = {
 
 export const feishuWikiCleaner: PostProcessor = {
   name: "feishu-wiki-cleaner",
-  match: (_u, h) => /\.feishu\.cn$/i.test(h),
+  // Retired 2026-05-05: *.feishu.cn migrated to tools/sites/feishu/.
+  // Feishu wiki content is effectively all auth-gated; the site module
+  // emits an `intentional-stub` directly from the URL without fetching.
+  // Transform kept here as referenceable code; deleted in C12.
+  match: () => false,
   transform: (md, originUrl) => {
     const notes: string[] = [];
 

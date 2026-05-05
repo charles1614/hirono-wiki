@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "source": "feishu-stub"
+  },
+  "flags": [
+    "intentional-stub",
+    "feishu-auth-gated"
+  ],
+  "notes": [
+    "feishu: auth-gated — emitted stub with lark-hirono fetch instructions"
+  ]
+}
