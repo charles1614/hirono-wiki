@@ -9,7 +9,7 @@ import {
   opencliLockPath,
   acquireSlugLock,
   acquireFileLockAt,
-} from "../hirono/shared/browser-lock.ts";
+} from "../shared/browser-lock.ts";
 
 // Use a per-test ephemeral lockfile via the HIRONO_OPENCLI_LOCK_PATH env var.
 function withEphemeralLock<T>(fn: (lockPath: string) => T): T {

@@ -2,9 +2,9 @@
  * Path helpers for opencli custom-adapter integration.
  *
  * Contract: project-local adapter code lives at
- *   {repo}/tools/opencli-adapters/<site>/<name>.js
+ *   {repo}/tools/opencli/clis/<site>/<name>.js
  * and is discovered by opencli via the symlink
- *   ~/.opencli/clis/wiki-custom -> {repo}/tools/opencli-adapters
+ *   ~/.opencli/clis/wiki-custom -> {repo}/tools/opencli/clis
  *
  * The symlink is created/verified by `hirono doctor --fix`. This module
  * exposes the paths + a check function the doctor invokes; the actual
@@ -21,7 +21,7 @@ const THIS_FILE = fileURLToPath(import.meta.url);
 export const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..", "..");
 
 /** Absolute path to the repo-local opencli adapters directory. */
-export const LOCAL_ADAPTERS_DIR = join(REPO_ROOT, "tools", "opencli-adapters");
+export const LOCAL_ADAPTERS_DIR = join(REPO_ROOT, "tools", "opencli", "clis");
 
 /** Absolute path to the symlink we expect to find in the user's home dir. */
 export const GLOBAL_SYMLINK_PATH = join(homedir(), ".opencli", "clis", "wiki-custom");

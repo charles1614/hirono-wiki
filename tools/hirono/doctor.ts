@@ -3,8 +3,8 @@
  *
  * Verifies:
  *   1. opencli CLI exists + `opencli doctor` reports OK (extension + daemon)
- *   2. ~/.opencli/clis/wiki-custom symlink points to {repo}/tools/opencli-adapters
- *   3. Any .js files under tools/opencli-adapters/<site>/ load without syntax errors
+ *   2. ~/.opencli/clis/wiki-custom symlink points to {repo}/tools/opencli/clis
+ *   3. Any .js files under tools/opencli/clis/<site>/ load without syntax errors
  *   4. raw/ directory status — any `quality_status != good` sources
  *
  * With `--fix`:
@@ -23,7 +23,7 @@ import {
   GLOBAL_SYMLINK_PARENT,
   inspectSymlink,
   listLocalAdapters,
-} from "./shared/adapter-paths.ts";
+} from "./adapter-paths.ts";
 import { listRawSlugs } from "../fetch-raw.ts";
 import { opencliDoctorOk } from "../sites/_shared/browser-helpers.ts";
 

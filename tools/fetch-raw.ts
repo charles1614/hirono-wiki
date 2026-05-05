@@ -45,7 +45,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { writeFileAtomic } from "./shared/atomic-write.ts";
-import { acquireBrowserLock, acquireSlugLock } from "./hirono/shared/browser-lock.ts";
+import { acquireBrowserLock, acquireSlugLock } from "./shared/browser-lock.ts";
 import { routeSite } from "./sites/index.ts";
 import { extractJsonFromEvalStdout } from "./sites/_shared/browser-eval-json.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";

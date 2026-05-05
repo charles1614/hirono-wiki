@@ -236,7 +236,7 @@ When the new site module ships, the old code paths it replaces become dead code:
 
 - Adapter case in `fetch-raw.ts` for the host
 - Site-specific post-processor in `tools/hirono/shared/post-process.ts` (e.g., `githubStripUIChrome` retired in 46c7be0)
-- Adapter file in `tools/opencli-adapters/` if the host had a custom one
+- Custom opencli adapter under `tools/opencli/clis/` if the host had one
 
 Delete them in the same commit as the migration. Carrying them as "just in case" is technical debt that grows.
 

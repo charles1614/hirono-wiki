@@ -22,35 +22,51 @@ tools/opencli/
 
 The bootstrap creates `~/.opencli/clis/<site>/<name>.js → <repo>/tools/opencli/clis/<site>/<name>.js` so opencli's loader sees the in-repo source. Same for `~/.opencli/sites/<site>` ← repo's `sites/<site>`.
 
-## Adapter selection rules (per-host decision tree)
+## When to add a custom adapter
 
-For each host the wiki bookmarks:
+Most hosts go through `tools/sites/<host>/` directly (see
+[`tools/sites/MIGRATION.md`](../sites/MIGRATION.md)). A custom opencli
+adapter under `clis/<site>/` makes sense when:
 
-1. **Built-in/community opencli adapter exists?** → use it (Layer 1). Record the adapter name + version in `community-adapter-audit.md`.
-2. **Else, host has bookmark count ≥ 2?** → write a custom adapter at `clis/<host>/<name>.js` (Layer 2). Symlink via the bootstrap script, wire dispatch in `tools/fetch-raw.ts`.
-3. **Else (count == 1, no community adapter, low ROI)?** → fall back to `web-read` + the generic post-processor pipeline (Layer 3). Out of scope for adapter authoring.
+- The site has a stable XHR / hydration JSON endpoint that's awkward to
+  drive from `browser eval` directly (multi-page pagination, complex
+  cursor protocols).
+- The wiki bookmarks ≥3 URLs on the host AND the per-page extraction
+  has substantial recurring boilerplate that benefits from being
+  packaged as a reusable opencli command.
 
-The graduation watchdog (`hirono raindrop check`) flags any host that crosses from count == 1 to count ≥ 2 so it can be promoted out of Layer 3.
+The graduation watchdog (`hirono raindrop check`) flags hosts that
+cross from one bookmark to several so promotion candidates are
+visible.
 
-## Contributing a new Layer-2 adapter
+## Authoring a Layer-2 adapter
 
 Walk the `opencli-explorer` skill workflow:
 
 1. **Recon** — `opencli browser open <sample-url>` + `opencli browser network` + `opencli browser eval` to find the authoritative endpoint (XHR / hydration JSON / SSR).
 2. **Auth** — pick PUBLIC / COOKIE / HEADER / INTERCEPT.
-3. **Scaffold** — write `tools/opencli/clis/<site>/<name>.js` using the `cli({...})` API. Output must match the wiki's §2 frontmatter contract: `# <Title>\n\n> 原文链接: <url>\n\n[> author/date metadata]\n\n---\n\n<body>`.
+3. **Scaffold** — write `tools/opencli/clis/<site>/<name>.js` using the `cli({...})` API.
 4. **Symlink** — re-run `install-symlinks.sh`.
 5. **Verify** — `opencli browser verify <site>/<name>` (smoke check; project tests are the real gate).
-6. **Wire dispatch** — add a `DISPATCH_RULES` entry in `tools/fetch-raw.ts`.
-7. **Snapshot** — fetch a sample, copy to `tools/__tests__/snapshots/<host>/<slug>.md`, capture invariants sidecar.
-8. **Test** — `npx tsx --test tools/__tests__/per-host-snapshot.test.ts` must pass.
+6. **Wire** — call the adapter from a site module's `fetcher.ts` via
+   `runOpencli([...])` (imported from `tools/sites/_shared/browser-helpers.ts`).
+7. **Snapshot** — fetch a sample via `tools/__tests__/approve.ts`, lock the §2 markdown.
+8. **Test** — `npm test` must pass.
 
 ## Why in-repo + symlink (and not under `~/.opencli/` directly)?
 
 Source-of-truth lives with the wiki tooling so:
 
 - Every machine that clones the repo can reproduce the adapter set with one `bash install-symlinks.sh`
-- Adapters are code-reviewed alongside the dispatch rules they're paired with
+- Adapters are code-reviewed alongside the site modules they're paired with
 - Fork / pin / patch a community adapter into `clis/<site>/` when upstream regresses
 
 Never hand-edit `~/.opencli/clis/<site>/<name>.js` — that's the symlink target, not the source. Edit the in-repo file instead.
+
+## No custom adapters yet
+
+`clis/` is intentionally empty — every host migrated so far works
+either through plain curl (the article-site factory path) or through
+`opencli browser open + eval` driven directly from a site module's
+`fetcher.ts`. The custom-adapter path is reserved for cases where
+neither is sufficient.
