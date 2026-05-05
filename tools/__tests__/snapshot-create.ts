@@ -76,6 +76,8 @@ const stubFlags = new Set([
   "feishu-auth-gated",
   "reddit-deleted",
   "reddit-blocked",
+  "arxiv-pdf",
+  "arxiv-listing",
 ]);
 const isStub = flags.some((f: string) => stubFlags.has(f));
 // Per-host minimum content lengths. Micro-post hosts (xhs, x.com) are

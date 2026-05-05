@@ -293,13 +293,11 @@ export const unescapeBracketsInLinks: PostProcessor = {
  */
 export const arxivStripTrailingChrome: PostProcessor = {
   name: "arxiv-strip-trailing-chrome",
-  // RETIRED 2026-04-28 for `/abs/` URLs: arxiv abstract pages now flow
-  // through `tools/sites/arxiv/` which owns the full pipeline (curl +
-  // selector-based extraction; no chrome to strip). This post-processor
-  // was designed for the legacy web-fetch output that included BibSonomy/
-  // Reddit social bookmarks etc. Match restricted to non-`/abs/` paths
-  // (e.g., `/pdf/` which still uses opencli's PDF reader).
-  match: (u, h) => h === "arxiv.org" && !/\/abs\//.test(u),
+  // Retired 2026-05-05: tools/sites/arxiv/ now claims every arxiv.org URL.
+  // /abs/ goes through full extraction; /pdf/ and listing pages emit
+  // dedicated stubs. Transform kept here as referenceable code; deleted
+  // in C12.
+  match: () => false,
   transform: (md, _originUrl) => {
     const chromeMarkers = [
       // Post-abstract chrome (appears right after Abstract in typical layout)
@@ -352,12 +350,10 @@ export const arxivStripTrailingChrome: PostProcessor = {
  */
 export const arxivStructureImprove: PostProcessor = {
   name: "arxiv-structure-improve",
-  // RETIRED 2026-04-28 for `/abs/` URLs: same reason as
-  // arxivStripTrailingChrome above — `tools/sites/arxiv/` produces
-  // already-structured §2 markdown (Title / metadata callout / Abstract /
-  // Comments / Links). Running this aggressive reformatter on top of
-  // already-clean output strips the abstract body entirely.
-  match: (u, h) => h === "arxiv.org" && !/\/abs\//.test(u),
+  // Retired 2026-05-05: same as arxivStripTrailingChrome — the arxiv
+  // site module now owns the full pipeline for every arxiv.org URL.
+  // Transform kept; deleted in C12.
+  match: () => false,
   transform: (md, originUrl) => {
     // Parse + extract everything we care about in one pass, then rebuild
     // the markdown from scratch. Dropping the append-leftovers approach
@@ -658,7 +654,10 @@ export const stripColorTags: PostProcessor = {
 
 export const arxivPdfNote: PostProcessor = {
   name: "arxiv-pdf-note",
-  match: (u, h) => h === "arxiv.org" && /\/pdf\//.test(u),
+  // Retired 2026-05-05: tools/sites/arxiv/ now emits a dedicated PDF
+  // stub for /pdf/<id> URLs (with abstract-URL link). Transform kept;
+  // deleted in C12.
+  match: () => false,
   transform: (md, originUrl) => {
     const absUrl = originUrl.replace(/\/pdf\//, "/abs/").replace(/\.pdf$/, "");
     // If the PDF fetch produced no real content (Chrome's PDF viewer

@@ -1,18 +1,29 @@
 /**
- * arxiv.org site module — abstract pages only (`/abs/<id>`).
+ * arxiv.org site module — claims every URL on arxiv.org. Behaviour
+ * branches on the path:
  *
- * Replaces the legacy generic-converter fallback for arxiv URLs. The
- * legacy path produced output cluttered with bibliographic chrome (NASA
- * ADS / Google Scholar / Semantic Scholar links, BibSonomy/Reddit
- * social bookmarks, browse navigation, "Loading…" placeholders). The
- * site module strips all that and produces clean §2 markdown with just:
- * title, arXiv ID + categories, authors, submission history, abstract,
- * optional comments, and the canonical PDF/HTML/TeX-source links.
+ *   - `/abs/<id>`   — full extraction: title + categories + authors +
+ *                     submission history + abstract. The canonical case.
+ *   - `/pdf/<id>`   — stub pointing operator at the abstract page (where
+ *                     metadata + body live in HTML). PDF text extraction
+ *                     would require a separate tool and is out of scope.
+ *   - everything else — stub. arxiv listings/browse pages have no
+ *                     useful long-form body to extract.
+ *
+ * Replaces the legacy stack:
+ *   - `arxivStripTrailingChrome` (non-`/abs/` chrome strip)
+ *   - `arxivStructureImprove` (non-`/abs/` rebuild)
+ *   - `arxivPdfNote` (`/pdf/` note)
+ *
+ * All three were operating on opencli web-read output. With the unified
+ * architecture, there's no opencli web-read for arxiv — this module
+ * owns the full pipeline and emits clean stubs for the cases the
+ * legacy code half-heartedly tried to support.
  */
 
 import { mkdirSync } from "node:fs";
 
-import type { Site } from "../_shared/types.ts";
+import type { Site, FetchOpts, Result } from "../_shared/types.ts";
 import { fetchArxiv } from "./fetcher.ts";
 import { convertArxiv } from "./converter.ts";
 
@@ -26,23 +37,102 @@ function pathOf(url: string): string {
   catch { return ""; }
 }
 
+/** Extract `<id>` from an arxiv URL like `/abs/2402.13499` or `/pdf/2402.13499`. */
+function extractArxivId(url: string): string | null {
+  const m = url.match(/\/(?:abs|pdf)\/([0-9]{4}\.[0-9]{4,5}|[a-z\-]+\/[0-9]{7})(?:v\d+)?(?:[\/.]|$)/);
+  return m ? m[1] : null;
+}
+
+function pdfStub(url: string): Result {
+  const id = extractArxivId(url);
+  const abstractUrl = id ? `https://arxiv.org/abs/${id}` : null;
+  const lines = [
+    `# arXiv Paper (PDF URL)`,
+    ``,
+    `> 原文链接: ${url}`,
+  ];
+  if (abstractUrl) {
+    lines.push(`> Abstract: ${abstractUrl}`);
+  }
+  lines.push(
+    ``,
+    `---`,
+    ``,
+    `*This entry is a metadata stub. The URL points at an arXiv PDF;`,
+    `we don't extract PDF text in this pipeline. ${abstractUrl
+      ? `Visit the [abstract page](${abstractUrl}) for HTML metadata.`
+      : "The abstract page (one path level up) has the HTML body."}*`,
+    ``,
+  );
+  return {
+    markdown: lines.join("\n"),
+    images: [],
+    metadata: { source: "arxiv-pdf-stub", arxiv_id: id ?? null, abstract_url: abstractUrl },
+    flags: ["intentional-stub", "arxiv-pdf"],
+    notes: [`arxiv: PDF URL — emitted stub pointing at abstract ${abstractUrl ?? "(unknown id)"}`],
+  };
+}
+
+function listingStub(url: string): Result {
+  return {
+    markdown: [
+      `# arXiv listing page`,
+      ``,
+      `> 原文链接: ${url}`,
+      ``,
+      `---`,
+      ``,
+      `*This entry is a metadata stub. The URL is an arXiv browse / listing page,`,
+      `not an article. Bookmark a specific paper's abstract page (\`/abs/<id>\`)`,
+      `to capture content.*`,
+      ``,
+    ].join("\n"),
+    images: [],
+    metadata: { source: "arxiv-listing-stub" },
+    flags: ["intentional-stub", "arxiv-listing"],
+    notes: [`arxiv: non-/abs/ URL — emitted listing stub`],
+  };
+}
+
+function fetchFailureStub(url: string, reason: string): Result {
+  return {
+    markdown: [
+      `# arXiv abstract page: ${url}`,
+      ``,
+      `> 原文链接: ${url}`,
+      ``,
+      `---`,
+      ``,
+      `*This entry is a metadata stub. ${reason}*`,
+      ``,
+    ].join("\n"),
+    images: [],
+    metadata: { source: "arxiv-stub", reason },
+    flags: ["intentional-stub", "arxiv-fetch-failed"],
+    notes: [`arxiv: stub emitted — ${reason}`],
+  };
+}
+
 export const site: Site = {
   name: "arxiv",
-  match: (url) =>
-    hostOf(url) === "arxiv.org" && pathOf(url).startsWith("/abs/"),
-  fetch: (url, opts) => {
+  match: (url) => hostOf(url) === "arxiv.org",
+  fetch: (url: string, opts: FetchOpts): Result => {
     mkdirSync(opts.slugDir, { recursive: true });
+
+    const path = pathOf(url);
+    if (path.startsWith("/pdf/")) return pdfStub(url);
+    if (!path.startsWith("/abs/")) return listingStub(url);
 
     const r = fetchArxiv(url);
     if (r.error || !r.html) {
-      return stubResult(url, r.error || "empty HTML response");
+      return fetchFailureStub(url, r.error || "empty HTML response");
     }
     const conv = convertArxiv({ html: r.html, url });
     if (!conv.metadata.title || conv.metadata.title === "(arXiv abstract)") {
-      return stubResult(url, "arxiv title selector failed (page format may have changed)");
+      return fetchFailureStub(url, "arxiv title selector failed (page format may have changed)");
     }
     if (conv.stats.abstractChars < 100) {
-      return stubResult(url, `arxiv abstract empty/short (${conv.stats.abstractChars} chars)`);
+      return fetchFailureStub(url, `arxiv abstract empty/short (${conv.stats.abstractChars} chars)`);
     }
     return {
       markdown: conv.markdown,
@@ -69,17 +159,3 @@ export const site: Site = {
     };
   },
 };
-
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# arXiv abstract page: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "arxiv-stub", reason },
-    flags: ["intentional-stub", "arxiv-fetch-failed"],
-    notes: [`arxiv: stub emitted — ${reason}`],
-  };
-}
