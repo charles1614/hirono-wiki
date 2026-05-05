@@ -22,7 +22,7 @@ import {
   bucketOf,
   slugOf,
   walkWikiDocs,
-} from "./link-map.ts";
+} from "../link-map.ts";
 
 const PROMOTION_THRESHOLD = 3;
 const THIS_FILE = fileURLToPath(import.meta.url);

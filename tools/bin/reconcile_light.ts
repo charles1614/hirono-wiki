@@ -24,7 +24,7 @@
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadMap, saveMap, type LinkMap } from "./link-map.ts";
+import { loadMap, saveMap, type LinkMap } from "../link-map.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");

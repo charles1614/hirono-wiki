@@ -7,8 +7,8 @@ import {
   readSourceIndexStrict,
   writeSourceIndex,
   IndexCorruptedError,
-} from "../build-sources-index.ts";
-import { runLint } from "../lint.ts";
+} from "../bin/build-sources-index.ts";
+import { runLint } from "../bin/lint.ts";
 
 // ---------------------------------------------------------------------------
 // readSourceIndexStrict

@@ -12,9 +12,9 @@ comes back flagged and you've decided the flag is **not** fixable (e.g. the
 xhs post is app-only, the newsletter is paywalled and you don't have a
 subscription, the URL has genuinely rotted), list the slug here.
 
-`tools/fetch-raw.ts sync` reads this file and skips any listed slug on
+`tools/bin/fetch-raw.ts sync` reads this file and skips any listed slug on
 subsequent runs — so repeat invocations don't keep retrying the same lost
-causes. `tools/fetch-raw.ts status` groups them under "accepted-as-is
+causes. `tools/bin/fetch-raw.ts status` groups them under "accepted-as-is
 exceptions" rather than "needs attention".
 
 ## Format

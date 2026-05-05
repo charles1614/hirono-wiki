@@ -22,11 +22,11 @@
  */
 
 import { readFileSync, writeFileSync, copyFileSync, existsSync } from "node:fs";
-import { writeFileAtomic } from "./shared/atomic-write.ts";
+import { writeFileAtomic } from "../shared/atomic-write.ts";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
-import { walkWikiDocs, slugOf, bucketOf } from "./link-map.ts";
+import { walkWikiDocs, slugOf, bucketOf } from "../link-map.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");

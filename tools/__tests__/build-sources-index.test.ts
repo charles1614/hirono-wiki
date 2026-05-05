@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildIndex, normalizeUrl } from "../build-sources-index.ts";
+import { buildIndex, normalizeUrl } from "../bin/build-sources-index.ts";
 
 test("normalizeUrl: lowercases scheme/host, drops trailing slash", () => {
   assert.equal(

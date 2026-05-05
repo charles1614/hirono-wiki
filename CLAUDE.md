@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Quality rules and fix recipes for raw-content fetchers (`tools/fetch-raw.ts`, `tools/hirono/shared/post-process.ts`). Scan the checklists, match symptoms to fixes, don't re-derive from scratch.
+Quality rules and fix recipes for raw-content fetchers (`tools/fetch-raw.ts`, `tools/sites/_shared/post-cleanup.ts`). Scan the checklists, match symptoms to fixes, don't re-derive from scratch.
 
 ## Before shipping anything — read this first
 
@@ -524,13 +524,16 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
 
 ## 8. Code pointers
 
-- **`tools/fetch-raw.ts`** — single dispatch point + raw-archive layout:
+- **`tools/fetch-raw.ts`** — library: single dispatch point + raw-archive layout:
   - `AUTO_SKIP_RULES` — URL refuse-list (currently HF Spaces, L2 skip)
   - `HOST_MIN_BODY_SIZES` — per-host+URL-path size bands
   - `classifyQuality` — flag assembly; consumes `intentional-stub`
   - `fetchUrlAndStore` — calls `routeSite(url).fetch()`, runs image processing + post-cleanup, writes raw archive. Exactly one site-module call.
-  - status helpers: `parseFetchDecisions`, `listRawSlugs`, `buildStatusReport`, `buildSyncPlan`, `remediationFor`
-  - CLI subcommands: `cmdStore`, `cmdFetchUrl`, `cmdStatus`, `cmdSync`, `cmdRefetch`, etc.
+  - status helpers: `parseFetchDecisions`, `listRawSlugs`, `buildStatusReport`, `buildSyncPlan`, `remediationFor`, `executeFetchPlanItem`, `printStatusReport`
+- **`tools/bin/`** — CLI entry-point scripts (each starts with shebang):
+  - `fetch-raw.ts` — argument parser + subcommand dispatcher (`store`, `fetch-url`, `fetch-lark`, `verify`, `status`, `sync`, `refetch`); imports the library above
+  - `hirono.ts` — multi-subcommand wiki CLI (raindrop check / export / fetch-all / refresh-cache / doctor)
+  - `lint.ts`, `reindex.ts`, `preprocess.ts`, `sync.ts`, `reconcile_light.ts`, `reconcile_heavy.ts`, `ingest_batch.ts`, `build-sources-index.ts`, `build-mention-map.ts`, `find-dupes.ts`, `sweep-issues.ts`
 - **`tools/sites/`** — every host module:
   - `<host>/index.ts` — `Site` contract export with `match(url)` + `fetch(url, opts)`
   - `<host>/test-hooks.ts` — re-export from index.ts (factory does it for you)

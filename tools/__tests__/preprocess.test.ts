@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { preprocess, splitFrontmatter } from "../preprocess.ts";
+import { preprocess, splitFrontmatter } from "../bin/preprocess.ts";
 
 test("splitFrontmatter: returns empty frontmatter when file has none", () => {
   const { frontmatter, body } = splitFrontmatter("# Title\n\nBody\n");

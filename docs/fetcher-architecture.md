@@ -61,7 +61,7 @@ flowchart LR
 
 **Green path (modern, target):** site module spawns `opencli browser open <url>` to navigate (using opencli's session/login state), then `opencli browser eval '<JS>'` to extract the `outerHTML` of the right container. Our code converts that HTML to markdown using `jsdom` + `turndown` + per-site rules we control. **opencli handed us structured DOM; we own the conversion.**
 
-**Red path (legacy):** `tools/fetch-raw.ts:fetchWebReadViaAdapter` calls `opencli web-read <url>` — opencli's *own* DOM-to-markdown converter runs inside opencli, and we get back markdown that's already been munged. We then apply N regex post-processors (`tools/hirono/shared/post-process.ts`) to undo the worst of opencli's lossy choices. **opencli decided the markdown shape; we patch.**
+**Red path (legacy):** `tools/fetch-raw.ts:fetchWebReadViaAdapter` calls `opencli web-read <url>` — opencli's *own* DOM-to-markdown converter runs inside opencli, and we get back markdown that's already been munged. We then apply N regex post-processors (`tools/sites/_shared/post-cleanup.ts`) to undo the worst of opencli's lossy choices. **opencli decided the markdown shape; we patch.**
 
 The two paths use the same external tool but differ in *who owns the HTML→Markdown conversion*. That ownership question is the architectural axis the redesign turns on.
 
@@ -196,7 +196,7 @@ flowchart TB
 
 These are universal, idempotent, host-agnostic — they run unconditionally on every URL's output. There are no host-scoped post-processors anymore; host-specific cleanup happens inside each site module's converter at the DOM level (where defects can be fixed at their source rather than patched in markdown afterwards).
 
-The implementations live in `tools/hirono/shared/post-process.ts` (a small file containing only the 8 transforms + 2 helpers); `applyPostCleanups()` composes them into the public pipeline.
+The implementations live in `tools/sites/_shared/post-cleanup.ts` (a small file containing only the 8 transforms + 2 helpers); `applyPostCleanups()` composes them into the public pipeline.
 
 ---
 

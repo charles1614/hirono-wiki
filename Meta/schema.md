@@ -39,7 +39,7 @@ tags: [rl, infra]                                   # optional
 highlights: true                                    # raindrop highlighted subset
 ```
 
-**Entities** additionally track reference count (auto-maintained by `tools/reindex.ts`):
+**Entities** additionally track reference count (auto-maintained by `tools/bin/reindex.ts`):
 
 ```yaml
 refs: 2                # number of content pages (Sources+Entities+Topics) that wikilink here
@@ -192,14 +192,14 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 - Pages touched: 7 sources re-linked.
 ```
 
-**Wikilink syntax rule**: always use **bare slugs** — `[[Trainium3]]`, not `[[Entities/Trainium3]]`; `[[aws-trainium3-deep-dive]]`, not `[[Sources/aws-trainium3-deep-dive]]`. Paths are for the filesystem; wiki resolution is by unique slug. `tools/lint.ts` flags path-style wikilinks as errors.
+**Wikilink syntax rule**: always use **bare slugs** — `[[Trainium3]]`, not `[[Entities/Trainium3]]`; `[[aws-trainium3-deep-dive]]`, not `[[Sources/aws-trainium3-deep-dive]]`. Paths are for the filesystem; wiki resolution is by unique slug. `tools/bin/lint.ts` flags path-style wikilinks as errors.
 
 ## Entity tiering rules
 
 - **Tier "seen"** (`Entities/_seen/<Name>.md`): 1–2 incoming references (across the whole repo — sources, entities, topics, meta). Thin stub.
 - **Tier "active"** (`Entities/<Name>.md`): ≥3 incoming references. Full entity page with Synthesis + Observations.
 - **`refs` counts incoming wikilinks** from other pages (self-refs excluded). This matches Lark's graph-view semantics: tier reflects established-ness in the graph, not raw source citations.
-- **Promotion** is automatic: `tools/reindex.ts` runs after every ingest (or on demand), recomputes `refs`, and when a `_seen` entity crosses the threshold, moves the file from `Entities/_seen/` to `Entities/` and rewrites `tier: active`. Wikilinks are slug-based, so no rewriting elsewhere is needed.
+- **Promotion** is automatic: `tools/bin/reindex.ts` runs after every ingest (or on demand), recomputes `refs`, and when a `_seen` entity crosses the threshold, moves the file from `Entities/_seen/` to `Entities/` and rewrites `tier: active`. Wikilinks are slug-based, so no rewriting elsewhere is needed.
 - **Demotion is not automatic** — once active, an entity stays active even if refs drop. (A `refactor |` log entry would document manual demotion.)
 
 ## Do / don't
@@ -218,7 +218,7 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 - **Lark Space 1**: `raw_source: lark://wiki/<space_id>/<node_token>` (custom scheme for unambiguous reference).
 - **Arbitrary URL**: the URL itself.
 
-URL normalization for dedup (see `tools/build-sources-index.ts`): lowercase host, strip tracking params (`utm_*`, `ref`, `fbclid`), strip trailing slash.
+URL normalization for dedup (see `tools/bin/build-sources-index.ts`): lowercase host, strip tracking params (`utm_*`, `ref`, `fbclid`), strip trailing slash.
 
 ## Raw-source archive layer
 
@@ -238,14 +238,14 @@ raw/
         └── <noteid>_N.jpg          # xhs puts flat here
 ```
 
-**Slug contract**: raw dir name = Source summary filename (minus `.md`). `tools/lint.ts`'s `raw-orphan` check enforces the pairing.
+**Slug contract**: raw dir name = Source summary filename (minus `.md`). `tools/bin/lint.ts`'s `raw-orphan` check enforces the pairing.
 
 **Append-only**: re-fetching a source writes `content-rev2.md` (then `-rev3`, etc.); original `content.md` never overwritten. Source summaries stay pointed at the latest revision implicitly — inspect `raw/<slug>/` to see all revisions.
 
 ### The hirono CLI
 
 As of 2026-04-21 the canonical entry point for raw-source operations is
-`tools/hirono.ts`. Previous scripts (`fetch-raw.ts`, `ingest_batch.ts`,
+`tools/bin/hirono.ts`. Previous scripts (`fetch-raw.ts`, `ingest_batch.ts`,
 `build-sources-index.ts`) still work but hirono is the long-term home;
 later phases will fold them under `hirono` subcommands.
 
@@ -281,7 +281,7 @@ later phases will fold them under `hirono` subcommands.
   3. `node --check` on every adapter file under `tools/opencli-adapters/`.
   4. Surface any `raw/<slug>/source.json` whose `quality_status != good`.
 
-**Post-processors** (see `tools/hirono/shared/post-process.ts`):
+**Post-processors** (see `tools/sites/_shared/post-cleanup.ts`):
 
 | Processor | Domain filter | What it does |
 |---|---|---|
@@ -355,7 +355,7 @@ Action: write a stub `content.md` with whatever metadata we captured, append to 
 
 Codes: `extension-offline`, `login-expired`, `captcha-required`, `ip-blocked` (429 without Retry-After), `parse-failure`, `opencli-timeout`, `opencli-error`.
 
-Action: **nothing written to `raw/<slug>/`**. `ingest_batch` entry goes to `errored` with a structured `{ code, domain, remediation }` message. Batch exits non-zero. User handles (re-login / reconnect extension / wait out rate-limit / re-fetch a signed URL from the source app), then `ingest_batch.ts reset <id>` and rerun.
+Action: **nothing written to `raw/<slug>/`**. `ingest_batch` entry goes to `errored` with a structured `{ code, domain, remediation }` message. Batch exits non-zero. User handles (re-login / reconnect extension / wait out rate-limit / re-fetch a signed URL from the source app), then `tools/bin/ingest_batch.ts reset <id>` and rerun.
 
 ### `.wiki-fetch-issues.md` (gitignored, append-only)
 
@@ -501,7 +501,7 @@ Per [[Karpathy]]'s original method, images should ideally be downloaded locally 
 
 - **Default**: preserve image URLs as-is in source page bodies. Lark renders remote images via URL, which works for now.
 - **Summaries are text-only**: the ingest LLM fetches text-level content; visual claims (diagrams, charts) require click-through to the original source. Where an image is central to a source's claim, note it explicitly — e.g. *"See diagram at URL for the two-stage pipeline architecture."*
-- **Optional local download** (`tools/ingest_batch.ts --download-images`, if built) saves images under `raw/assets/<date>-<slug>/`. Off by default; opt in when a specific source's visuals are worth the storage.
+- **Optional local download** (`tools/bin/ingest_batch.ts --download-images`, if built) saves images under `raw/assets/<date>-<slug>/`. Off by default; opt in when a specific source's visuals are worth the storage.
 - **Deferred to v1.5 if needed**: a post-hoc `tools/fetch-images.ts` that walks existing Source pages and backfills any still-remote images. Build when URL rot starts biting.
 
 This is a deliberate trade-off against the cost of storing ~2000 images at v1 scale. Revisit if the text-only summary quality becomes a real limitation.
@@ -510,7 +510,7 @@ This is a deliberate trade-off against the cost of storing ~2000 images at v1 sc
 
 Per Karpathy's three-operation model (ingest · query · lint), **lint** is a periodic health-check of the wiki's internal graph and structure. We do the mechanical parts in code, the judgment parts in session.
 
-**Mechanical checks** (`tools/lint.ts`, no LLM calls):
+**Mechanical checks** (`tools/bin/lint.ts`, no LLM calls):
 
 - `orphans` — entities/topics with 0 incoming content-page refs. WARN severity; may be intentional for query-loop synthesis pages.
 - `dead-wikilinks` — `[[X]]` where slug X doesn't exist as a file. ERROR severity. Scope-excludes Meta/ by default (schema.md's own docstring examples would false-positive); pass `--include-meta` to audit Meta too. Fenced code blocks are never scanned.
@@ -534,7 +534,7 @@ Per Karpathy's three-operation model (ingest · query · lint), **lint** is a pe
 
 v1 (full-corpus init) is **not** a single autonomous 700-source run. It's a sequence of supervised 20–50 source batches, one per session, with lint + review between.
 
-1. **Queue**: `tools/ingest_batch.ts plan <candidates.json>` adds non-duplicate candidates to `.wiki-batch-state.json`.
+1. **Queue**: `tools/bin/ingest_batch.ts plan <candidates.json>` adds non-duplicate candidates to `.wiki-batch-state.json`.
 2. **Work**: per pending item, the ingest LLM fetches content (Raindrop MCP / lark-hirono fetch / WebFetch) and writes source + entity/topic files. Calls `ingest_batch mark-done <id>` or `mark-errored <id> <msg>`.
 3. **Batch close**: run `reindex.ts` → `sync.ts up` → `lint.ts`. Address any lint issues before calling the batch done.
 4. **Commit per batch** (not per item) so `git log` shows batch boundaries cleanly.

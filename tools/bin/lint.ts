@@ -38,7 +38,7 @@ import {
   bucketOf,
   slugOf,
   walkWikiDocs,
-} from "./link-map.ts";
+} from "../link-map.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");

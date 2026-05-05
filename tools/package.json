@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tools for the personal wiki: preprocess, sync, ingest, reconcile. Adapter layer on top of lark-hirono.",
   "scripts": {
-    "preprocess": "tsx preprocess.ts",
+    "preprocess": "tsx bin/preprocess.ts",
     "test": "node --import tsx --test __tests__/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

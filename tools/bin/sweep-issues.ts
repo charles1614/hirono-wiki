@@ -6,7 +6,7 @@
 
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { applyPostCleanups } from "./sites/_shared/post-cleanup.ts";
+import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
 
 interface Issue { slug: string; host: string; problems: string[]; status: string }
 

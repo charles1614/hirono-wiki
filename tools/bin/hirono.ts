@@ -52,22 +52,22 @@ async function main(): Promise<void> {
   if (family === "raindrop") {
     if (!sub) usage();
     if (sub === "check") {
-      const { main } = await import("./hirono/raindrop/check.ts");
+      const { main } = await import("../hirono/raindrop/check.ts");
       main(rest);
       return;
     }
     if (sub === "export") {
-      const { main } = await import("./hirono/raindrop/export.ts");
+      const { main } = await import("../hirono/raindrop/export.ts");
       main(rest);
       return;
     }
     if (sub === "refresh-cache") {
-      const { main } = await import("./hirono/raindrop/refresh-cache.ts");
+      const { main } = await import("../hirono/raindrop/refresh-cache.ts");
       await main(rest);
       return;
     }
     if (sub === "fetch-all") {
-      const { main } = await import("./hirono/raindrop/fetch-all.ts");
+      const { main } = await import("../hirono/raindrop/fetch-all.ts");
       await main(rest);
       return;
     }
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
   }
 
   if (family === "doctor") {
-    const { main } = await import("./hirono/doctor.ts");
+    const { main } = await import("../hirono/doctor.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }

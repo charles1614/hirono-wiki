@@ -3,7 +3,7 @@
  * report:
  *   1. Duplicate URLs (same normalized URL across multiple bookmark IDs)
  *   2. Hostname coverage (`dedicated-adapter` / `web-read-fallback` per
- *      `tools/hirono/shared/dispatch.ts`'s `classifyCoverage`)
+ *      the local `classifyCoverage` helper below)
  *   3. New-hostnames-to-consider — uncovered domains with >1 bookmark
  *      (i.e. landing on the `_default` catch-all site module — candidates
  *      for promotion to a dedicated `tools/sites/<host>/` module)
@@ -22,7 +22,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { normalizeUrl } from "../../build-sources-index.ts";
+import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { hostnameOf } from "../../fetch-raw.ts";
 import { routeSite } from "../../sites/index.ts";
 

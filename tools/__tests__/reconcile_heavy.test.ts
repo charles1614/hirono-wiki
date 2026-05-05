@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { assembleContent } from "../reconcile_heavy.ts";
+import { assembleContent } from "../bin/reconcile_heavy.ts";
 
 // Minimal block fixture builder. block_type values mirror Feishu's:
 //   2 = text, 4 = heading2, 12 = bullet, 19 = callout

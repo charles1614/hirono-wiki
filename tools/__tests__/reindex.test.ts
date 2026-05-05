@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { extractWikilinks, countRefs, countSourceCites, computeReindex } from "../reindex.ts";
+import { extractWikilinks, countRefs, countSourceCites, computeReindex } from "../bin/reindex.ts";
 
 test("extractWikilinks respects code fences", () => {
   const body = `

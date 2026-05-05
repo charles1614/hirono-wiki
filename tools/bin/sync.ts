@@ -38,7 +38,7 @@ import {
   typeForBucket,
   sha256,
   walkWikiDocs,
-} from "./link-map.ts";
+} from "../link-map.ts";
 import { preprocess, type LinkMap as PpLinkMap } from "./preprocess.ts";
 import { buildMentionMap } from "./build-mention-map.ts";
 

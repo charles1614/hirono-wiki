@@ -49,7 +49,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { normalizeUrl, readSourceIndexStrict, type SourceIndex } from "./build-sources-index.ts";
-import { writeFileAtomic } from "./shared/atomic-write.ts";
+import { writeFileAtomic } from "../shared/atomic-write.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");

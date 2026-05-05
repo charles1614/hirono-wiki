@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runLint } from "../lint.ts";
+import { runLint } from "../bin/lint.ts";
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), "lint-"));

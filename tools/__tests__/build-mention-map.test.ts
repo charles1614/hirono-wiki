@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildMentionMap } from "../build-mention-map.ts";
+import { buildMentionMap } from "../bin/build-mention-map.ts";
 import type { LinkMap } from "../link-map.ts";
 
 function makeMap(docs: Record<string, { doc_id: string; obj_token?: string; url: string }>): LinkMap {

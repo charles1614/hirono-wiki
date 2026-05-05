@@ -13,7 +13,7 @@ import {
   cmdStatus,
   cmdPruneDone,
   type Paths,
-} from "../ingest_batch.ts";
+} from "../bin/ingest_batch.ts";
 
 function sandbox(): { paths: Paths; cleanup: () => void; candidatesFile: (c: unknown) => string } {
   const dir = mkdtempSync(join(tmpdir(), "ib-"));
