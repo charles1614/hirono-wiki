@@ -1,7 +1,16 @@
 /**
- * developer.nvidia.com/blog — NVIDIA technical developer blog. Server-
- * rendered WordPress with stable selectors (`<article>` / `entry-content`).
- * Strips author/share/related chrome.
+ * developer.nvidia.com — NVIDIA technical developer site. Two URL
+ * shapes share the same WordPress-style stable selectors
+ * (`<article>` / `.entry-content`):
+ *
+ *   - `/blog/<slug>/`   — Technical Blog posts (the bulk of bookmarks)
+ *   - `/cuda/<page>`    — Reference pages (e.g. `/cuda/gpus` Compute
+ *                         Capability table). Same WordPress shape;
+ *                         body lives in `<main>` when `.entry-content`
+ *                         is absent.
+ *
+ * No path filter — the module claims every developer.nvidia.com URL
+ * and the body-selector cascade picks whichever container exists.
  */
 
 import { makeArticleSite } from "../_shared/article-site-factory.ts";
@@ -9,7 +18,6 @@ import { makeArticleSite } from "../_shared/article-site-factory.ts";
 export const { site, testHooks } = makeArticleSite({
   name: "developer-nvidia",
   hosts: ["developer.nvidia.com"],
-  pathPrefix: "/blog/",
   converterName: "convertDeveloperNvidia",
   selectors: {
     bodySelectors: [
@@ -18,7 +26,7 @@ export const { site, testHooks } = makeArticleSite({
       "article",
       "main",
     ],
-    titleSuffix: /\s*\|\s*NVIDIA\s+Technical\s+Blog\s*$/,
+    titleSuffix: /\s*\|\s*NVIDIA(?:\s+(?:Technical\s+Blog|Developer))?\s*$/,
     dropSelectors: [
       ".entry-meta",
       ".author-bio",
