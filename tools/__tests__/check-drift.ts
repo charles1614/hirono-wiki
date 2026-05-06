@@ -84,6 +84,7 @@ function findHooksForUrl(url: string): SiteTestHooks | null {
   let host: string;
   try {
     host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    if (/\.feishu\.cn$/i.test(host)) host = "feishu.cn";
   } catch {
     return null;
   }

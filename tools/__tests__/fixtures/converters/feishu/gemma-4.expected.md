@@ -50,14 +50,9 @@ Gemma 4 的视觉编码器基于ViT，使用NaViT风格的2D-RoPE，支持可变
 
 音频编码器沿用 [Gemma-3n](https://deepmind.google/models/gemma/gemma-3n/) 的 USM-style-conformer。
 
-  
-    ![](feishu-img-002.png)
+![](feishu-img-002.png)
 
-  
-  
-    ![](feishu-img-003.png)
-
-  
+![](feishu-img-003.png)
 
 视觉编码器中值得注意的几个模块：
 

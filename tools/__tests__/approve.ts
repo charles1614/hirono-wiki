@@ -84,7 +84,9 @@ function parseArgs(): Args {
 }
 
 function hostOf(url: string): string {
-  return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  let h = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  if (/\.feishu\.cn$/i.test(h)) h = "feishu.cn";
+  return h;
 }
 
 function diffLines(a: string, b: string, label: string): string {

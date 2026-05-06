@@ -40,6 +40,11 @@ if (!url || !slug) {
 let host: string;
 try {
   host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  // Feishu wikis are hosted under per-tenant subdomains (e.g.
+  // d0a901er7io.feishu.cn, scnajei2ds6y.feishu.cn). Treat the whole
+  // .feishu.cn family as a single host bucket for snapshot organization
+  // so they don't sprawl across one dir per tenant.
+  if (/\.feishu\.cn$/i.test(host)) host = "feishu.cn";
 } catch {
   console.error(`bad url: ${url}`);
   process.exit(2);

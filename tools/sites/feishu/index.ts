@@ -190,6 +190,21 @@ function convertImages(md: string): { md: string; images: FeishuImageDownload[] 
   return { md: out, images };
 }
 
+function dedent(s: string): string {
+  // Drop the smallest common leading-space indent across non-blank lines.
+  // Lark column/grid children typically arrive with 2 or 4 leading spaces.
+  const lines = s.split("\n");
+  let minIndent = Infinity;
+  for (const ln of lines) {
+    if (!ln.trim()) continue;
+    const m = ln.match(/^( *)/);
+    const n = m ? m[1].length : 0;
+    if (n < minIndent) minIndent = n;
+  }
+  if (!isFinite(minIndent) || minIndent === 0) return s;
+  return lines.map((ln) => ln.slice(minIndent)).join("\n");
+}
+
 function applyMiscLarkCleanups(md: string): string {
   let out = md;
   // Strip Lark color tags: `## Heading {color="DarkRedBackground"}` → `## Heading`
@@ -205,8 +220,15 @@ function applyMiscLarkCleanups(md: string): string {
   // — we don't have the resolved URL handy; keeping the link text preserves
   // the reader's understanding of what was cited.
   out = out.replace(/<mention-doc\b[^>]*>([\s\S]*?)<\/mention-doc>/g, "$1");
-  // Drop layout-only Lark wrappers; the table converter has already run so
-  // any remaining lark-* tags are stray (defensive).
+  // Lark layout wrappers (<grid>, <column>) — replace each block with its
+  // dedented inner content so embedded images / paragraphs render at top
+  // level. Naive tag-strip would leave the 4-space indentation that Lark's
+  // exporter applies to column children, causing markdown to render those
+  // lines as code blocks.
+  out = out.replace(/<grid\b[^>]*>([\s\S]*?)<\/grid>/g, (_m, inner: string) => dedent(inner));
+  out = out.replace(/<column\b[^>]*>([\s\S]*?)<\/column>/g, (_m, inner: string) => dedent(inner));
+  // Drop any stray opening/closing layout tag that fell outside the block
+  // matchers above (defensive).
   out = out.replace(/<\/?(?:column|grid)\b[^>]*>/g, "");
   out = out.replace(/<\/?lark-[a-z-]+\b[^>]*>/g, "");
   return out;
@@ -392,13 +414,9 @@ export const site: Site = {
 export const testHooks: SiteTestHooks = {
   name: "feishu",
   converterName: "convertFeishu",
-  snapshotHosts: [
-    "swfvqxo30ma.feishu.cn",
-    "d0a901er7io.feishu.cn",
-    "scnajei2ds6y.feishu.cn",
-    "upiwgvvcb4.feishu.cn",
-    "my.feishu.cn",
-  ],
+  // All *.feishu.cn tenants share a single snapshot bucket (snapshot-create
+  // collapses the per-tenant subdomain to feishu.cn so we don't sprawl).
+  snapshotHosts: ["feishu.cn"],
   runFromFixture(input: InputDoc) {
     if (input.fn !== "convertFeishu") {
       throw new Error(`feishu test-hooks: unexpected fn ${input.fn}`);
