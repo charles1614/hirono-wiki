@@ -1,10 +1,5 @@
 {
-  "imagesToDownload": [
-    {
-      "remoteUrl": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Jeff_Dean_Photo_1.max-244x184.format-webp.webp",
-      "localFilename": "blog-google-img-001.webp"
-    }
-  ],
+  "imagesToDownload": [],
   "metadata": {
     "title": "Introducing Pathways: A next-generation AI architecture",
     "description": "Too often, machine learning systems overspecialize at individual tasks, when they could excel at many. That’s why we’re building Pathways—a new AI architecture that will…",
@@ -12,7 +7,7 @@
     "authors": []
   },
   "stats": {
-    "bodyChars": 10194,
-    "images": 1
+    "bodyChars": 7689,
+    "images": 0
   }
 }

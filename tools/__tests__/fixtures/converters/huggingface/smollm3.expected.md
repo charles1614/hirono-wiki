@@ -12,9 +12,7 @@ Small language models are becoming increasingly important as users seek capable 
 
 **SmolLM3 sits in the efficiency sweet spot.** Our 3B model outperforms Llama-3.2-3B and Qwen2.5-3B while staying competitive with larger 4B alternatives (Qwen3 & Gemma3). Beyond the performance numbers, we're sharing exactly how we built it using public datasets and training frameworks.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(17).png" alt=""  style="width: 80%; height: auto;"><br>
-</p>
+![](huggingface-001.png)
 
 Model summary:
 
@@ -25,9 +23,7 @@ Model summary:
 
 **The complete recipe:** We're releasing SmolLM3 with our engineering blueprint. It includes architecture details, exact data mixtures showing how we progressively boost performance across domains in a three-stage pretraining approach, and the methodology for building a hybrid reasoning model. Usually, achieving these results would require months of reverse engineering. Instead, we're providing the full methodology.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/smollm3-whiteprint.png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-002.png)
 
 Whether you're building your own models or want to understand what drives performance at this scale, this blueprint shows the engineering story behind competitive 3B performance.
 
@@ -39,9 +35,7 @@ SmolLM3 both changed the architecture and data mixture over its predecessors. Le
 
 ## **Architecture and training details**
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(18).png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-003.png)
 
 SmolLM3 follows a transformer decoder architecture with tied embedding similar to SmolLM2, building on Llama architecture with some key modifications optimized for efficiency and long context performance.
 
@@ -57,9 +51,7 @@ All these changes were validated through ablations using the same 3B architectur
 
 Training Configuration: We use a global batch size of 2.36M tokens with 4096 sequence length, a learning rate of 2e-4, and the AdamW optimizer (beta1: 0.9, beta2: 0.95) with weight decay of 0.1 and gradient clipping of 1. We use the WSD (Warmup-Stable-Decay) scheduler, with 2000  warmup steps, and a linear decay to 0 in the final 10% training steps. We use [nanotron](https://github.com/huggingface/nanotron) framework for the training, [datatrove](https://github.com/huggingface/datatrove) for data processing and [lighteval](https://github.com/huggingface/lighteval) for evaluation. The model was trained on 384 H100 GPUs for 24 days. You can see the distributed training setup in the following figure.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(19).png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-004.png)
 
 In addition to architecture changes we also ablated and improved the training recipe. Let’s have a closer look.
 
@@ -67,9 +59,7 @@ In addition to architecture changes we also ablated and improved the training re
 
 Following SmolLM2's multi-stage approach, we train SmolLM3 on 11.2T tokens using a three-stage training strategy that mixes web, math, and code data with evolving proportions. We conducted extensive ablations on 3B models trained on 50B to 100B tokens to determine the data mixture and ratios.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(20).png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-005.png)
 
 The pretraining consists of these stages, also shown in the figure above:
 
@@ -96,9 +86,7 @@ We call the long context adaptation and reasoning adaptation “mid-training”.
 
 ## **Long Context extension**
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(21).png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-006.png)
 
 After the main pretraining, we trained SmolLM3 on an additional 100B tokens to extend its context length. We sequentially extended the context window in two stages for 50B tokens each: first transitioning from 4k to 32k context with RoPE theta increased to 1.5M, then from 32k to 64k context with RoPE theta increased to 5M. Both stages upsampled math, code, and reasoning data. During ablations, we found that upsampling specific long context data such as code repositories, books, and long web pages (beyond the naturally long samples in our mixture) didn't further boost performance on RULER and HELMET benchmarks. Using NoPE and training on the decay mixture with longer sequences and increased RoPE theta values was sufficient to achieve competitive long context performance up to 64k. 
 
@@ -116,9 +104,7 @@ The release of reasoning models like [DeepSeek R1](https://arxiv.org/abs/2501.12
 
 In this section, we explain how we tackled these challenges and share our complete recipe for building a dual instruction model. We detail how we balance performance between reasoning and non-reasoning modes through a carefully designed training pipeline that includes mid-training for general reasoning capabilities, supervised fine-tuning with synthetic data generation, and alignment using Anchored Preference Optimization (APO) - a recent variant of DPO.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(22).png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-007.png)
 
 ## **Building the Chat Template**
 
@@ -134,9 +120,7 @@ Following the reasoning mid-training stage, where we trained the model on 140B t
 
 The primary challenge we encountered when building the reasoning mode dataset was the scarcity of datasets containing reasoning traces for certain domains. To address this gap, we generated synthetic data by prompting [Qwen3-32B](https://huggingface.co/Qwen/Qwen3-32B) in reasoning mode with prompts from existing non-reasoning datasets. This allowed us to improve performance in domains where the model initially struggled in reasoning mode, such as multi-turn conversations, multilinguality, and everyday conversations.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(23).png" alt=""  style="width: 80%; height: auto;"><br>
-</p>
+![](huggingface-008.png)
 
 Our final data mixture was the result of extensive ablations examining the optimal ratio of reasoning to non-reasoning tokens and the composition within each mode. The resulting SFT dataset contains 1.8B tokens: 1B in non-reasoning mode and 0.8B in reasoning mode, comprising 12 non-reasoning datasets and 10 datasets with reasoning traces. We trained for 4 epochs (~8B tokens) using [BFD (best-fit decreasing) packing](https://github.com/huggingface/trl/pull/3521) with the loss masked on user turns and the results from tool calls.
 
@@ -146,27 +130,19 @@ We will release this data mixture along with our full training scripts to enable
 
 After the SFT step, we performed a round of model alignment using a combination of the [Tulu3 preference dataset](https://huggingface.co/datasets/allenai/llama-3.1-tulu-3-8b-preference-mixture) for non-reasoning mode and new synthetic preference pairs for reasoning mode, that we generated from Qwen3-32B and Qwen3-0.6B. To ensure full coverage of all domains in the non-thinking dataset, we generated complementing thinking mode preference pairs. We selected generations from Qwen3-32B as “chosen” and responses from Qwen3-0.6B as “rejected” for alignment with Anchored Preference Optimization.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(24).png" alt=""  style="width: 80%; height: auto;"><br>
-</p>
+![](huggingface-009.png)
 
 [Anchored Preference Optimization](https://arxiv.org/abs/2408.06266) (APO) is a variant of [Direct Preference Optimization](https://arxiv.org/abs/2305.18290) (DPO) that provides a more stable optimization objective. In DPO, the reward function  r_θ(x,y) measures the log-ratio of the probability of the sequence during training compared to the model at the start of training, the reference model:
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(25).png" alt=""  style="width: 30%; height: auto;"><br>
-</p>
+![](huggingface-010.png)
 
 Here  β controls how much the model being optimized can change relative to the reference model. The DPO loss optimizes triplets of prompts x, chosen y_w and rejected y_l responses:
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(26).png" alt=""  style="width: 50%; height: auto;"><br>
-</p>
+![](huggingface-011.png)
 
 The APO objective has been shown to be more stable, and we also observed higher downstream performance in our internal ablations.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(27).png" alt=""  style="width: 50%; height: auto;"><br>
-</p>
+![](huggingface-012.png)
 
 While downstream evaluations showed improvements across mathematics, science, instruction following, coding, chat, and multilingual tasks, we observed performance degradation on long context benchmarks like RULER. We traced this degradation back to the reasoning mid-training stage, where the focus on reasoning capabilities impacted long context performance. Additionally, the APO training data was limited to 24k tokens since the vast majority of our reasoning dataset fell below this length. 
 
@@ -193,21 +169,15 @@ The plot below shows SmolLM3's win rate across 12 popular benchmarks evaluating 
 
 Evaluation benchmarks used for the win rate: HellaSwag, ARC, Winogrande, CommonsenseQA, MMLU-CF, MMLU Pro CF, PIQA, OpenBookQA, GSM8K, MATH, HumanEval+, MBPP+
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(28).png" alt=""  style="width: 80%; height: auto;"><br>
-</p>
+![](huggingface-013.png)
 
 SmolLM3 achieves first or second place on knowledge and reasoning benchmarks (HellaSwag, ARC, BoolQ), demonstrating strong performance in these core capabilities. Math and coding performance is competitive within the 3B class. Long-context performance on Ruler 64k shows the model can handle extended sequences effectively.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(33).png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-014.png)
 
 The model demonstrates strong multilingual performance across five major European languages when evaluated on multilingual benchmarks including Global MMLU, MLMM HellaSwag, Flores-200, Belebele, testing knowledge, commonsense reasoning, text understanding, and translation. This shows SmolLM3 maintains consistent performance beyond English.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(30).png" alt=""  style="width: 70%; height: auto;"><br>
-</p>
+![](huggingface-015.png)
 
 In summary, the base model shows very strong performance across many domains. Let’s see how this translates to the instruct model’s performance. 
 
@@ -219,9 +189,7 @@ Since SmolLM3 has both an instruct and reasoning mode we need to evaluate the mo
 
 We evaluate SmolLM3 against other 3B non-reasoning models and compare it to Qwen3 reasoning models in no thinking mode across multiple benchmarks. As shown in the performance chart, SmolLM3 outperforms other 3B non-reasoning models including Llama3.2 3B Instruct and Qwen2.5 3B Instruct and sits at an efficiency sweet spot between reasoning models, significantly outperforming Qwen3 1.7B while getting close to the 4B model performance at a lower computational cost.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(31).png" alt=""  style="width: 90%; height: auto;"><br>
-</p>
+![](huggingface-016.png)
 
 So the instruct model sits right at the pareto front of performance and cost. Let’s see how the reasoning model does!
 
@@ -231,9 +199,7 @@ When evaluating SmolLM3's reasoning capabilities with extended thinking enabled,
 
 While Qwen3 4B generally achieves the highest scores across both thinking and non-thinking modes, SmolLM3 demonstrates competitive performance within the 3B parameter class, particularly excelling in mathematical reasoning and complex problem-solving tasks. The model's dual-mode capability allows users to choose between faster inference without reasoning or more thorough analysis with extended thinking.
 
-<p align="center">
- <img src="https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(32).png" alt=""  style="width: 80%; height: auto;"><br>
-</p>
+![](huggingface-017.png)
 
 So the last question is: how can you use the model?
 

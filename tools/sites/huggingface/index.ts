@@ -105,29 +105,49 @@ function convertHf(opts: HfFixtureArgs): HfConvertResult {
     (_m, pre, p, post) => `${pre}https://huggingface.co${p}${post}`,
   );
 
-  // Extract image URLs and pre-allocate local filenames. Runtime
-  // downloads them; the converter is a pure function.
+  // Extract image URLs from BOTH markdown ![](url) and HTML <img src="url">
+  // forms — HF's raw markdown frequently uses <img> for sized images.
   const imagesToDownload: { remoteUrl: string; localFilename: string }[] = [];
   const seen = new Set<string>();
   let counter = 0;
-  const imgRegex = /!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/g;
-  let mm;
-  while ((mm = imgRegex.exec(markdown)) !== null) {
-    const url = mm[1];
-    if (seen.has(url)) continue;
+  const collect = (url: string) => {
+    if (seen.has(url)) return;
     seen.add(url);
     counter++;
     const ext = (url.match(/\.([a-zA-Z0-9]{2,5})(?:\?|#|$)/)?.[1] || "png").toLowerCase();
     const localFilename = `huggingface-${String(counter).padStart(3, "0")}.${ext}`;
     imagesToDownload.push({ remoteUrl: url, localFilename });
-  }
+  };
+  const mdRegex = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
+  let mm;
+  while ((mm = mdRegex.exec(markdown)) !== null) collect(mm[2]);
+  const htmlRegex = /<img\b[^>]*\bsrc=["'](https?:\/\/[^"']+)["'][^>]*>/g;
+  while ((mm = htmlRegex.exec(markdown)) !== null) collect(mm[1]);
 
-  // Rewrite to local filenames in markdown.
+  // Rewrite both forms to local filenames. <img> with sizing attrs
+  // collapses to plain ![alt](local).
   for (const dl of imagesToDownload) {
     const escaped = dl.remoteUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    markdown = markdown.replace(new RegExp(`!\\[([^\\]]*)\\]\\(${escaped}\\)`, "g"), `![$1](${dl.localFilename})`);
+    markdown = markdown.replace(
+      new RegExp(`!\\[([^\\]]*)\\]\\(${escaped}\\)`, "g"),
+      `![$1](${dl.localFilename})`,
+    );
+    markdown = markdown.replace(
+      new RegExp(`<img\\b[^>]*\\bsrc=["']${escaped}["'][^>]*>`, "g"),
+      (tag) => {
+        const altMatch = tag.match(/\balt=["']([^"']*)["']/);
+        const alt = altMatch ? altMatch[1] : "";
+        return `![${alt}](${dl.localFilename})`;
+      },
+    );
   }
 
+  // Unwrap residual HTML around images: <p align="center">…</p>, stray <br>, <br/>.
+  markdown = markdown.replace(
+    /<p\b[^>]*>\s*([\s\S]*?)\s*<\/p>/g,
+    (_m, inner) => `\n${inner.replace(/<br\s*\/?>/gi, "").trim()}\n`,
+  );
+  markdown = markdown.replace(/<br\s*\/?>/gi, "");
   markdown = markdown.replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
 
   return {

@@ -1,5 +1,74 @@
 {
-  "imagesToDownload": [],
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(17).png",
+      "localFilename": "huggingface-001.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/smollm3-whiteprint.png",
+      "localFilename": "huggingface-002.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(18).png",
+      "localFilename": "huggingface-003.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(19).png",
+      "localFilename": "huggingface-004.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(20).png",
+      "localFilename": "huggingface-005.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(21).png",
+      "localFilename": "huggingface-006.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(22).png",
+      "localFilename": "huggingface-007.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(23).png",
+      "localFilename": "huggingface-008.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(24).png",
+      "localFilename": "huggingface-009.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(25).png",
+      "localFilename": "huggingface-010.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(26).png",
+      "localFilename": "huggingface-011.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(27).png",
+      "localFilename": "huggingface-012.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(28).png",
+      "localFilename": "huggingface-013.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(33).png",
+      "localFilename": "huggingface-014.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(30).png",
+      "localFilename": "huggingface-015.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(31).png",
+      "localFilename": "huggingface-016.png"
+    },
+    {
+      "remoteUrl": "https://huggingface.co/datasets/HuggingFaceTB/images/resolve/main/smollm3/image%20(32).png",
+      "localFilename": "huggingface-017.png"
+    }
+  ],
   "metadata": {
     "title": "SmolLM3: smol, multilingual, long-context reasoner",
     "authors": [
@@ -30,6 +99,6 @@
   },
   "stats": {
     "bodyChars": 27141,
-    "images": 0
+    "images": 17
   }
 }

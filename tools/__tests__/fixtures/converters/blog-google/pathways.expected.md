@@ -5,28 +5,6 @@
 > Too often, machine learning systems overspecialize at individual tasks, when they could excel at many. That’s why we’re building Pathways—a new AI architecture that will…
 
 ---
-# Introducing Pathways: A next-generation AI architecture
-
-Oct 28, 2021
-
-·
-
-Share
-
-[](https://twitter.com/intent/tweet?text=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture%20%40google&url=https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/)[](https://www.facebook.com/sharer/sharer.php?caption=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture&u=https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/)[](https://www.linkedin.com/shareArticle?mini=true&url=https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/&title=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture)[](<mailto:?subject=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture&body=Check out this article on the Keyword:%0A%0AIntroducing%20Pathways%3A%20A%20next-generation%20AI%20architecture%0A%0Ahttps://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/>)
-
-Too often, machine learning systems overspecialize at individual tasks, when they could excel at many. That’s why we’re building Pathways—a new AI architecture that will handle many tasks at once, learn new tasks quickly and reflect a better understanding of the world.
-
-  [![Jeff Dean](blog-google-img-001.webp)
-
-Jeff Dean
-
-Google Senior Fellow and SVP, Google Research](https://blog.google/authors/jeff-dean/)
-
-Share
-
-[](https://twitter.com/intent/tweet?text=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture%20%40google&url=https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/)[](https://www.facebook.com/sharer/sharer.php?caption=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture&u=https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/)[](https://www.linkedin.com/shareArticle?mini=true&url=https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/&title=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture)[](<mailto:?subject=Introducing%20Pathways%3A%20A%20next-generation%20AI%20architecture&body=Check out this article on the Keyword:%0A%0AIntroducing%20Pathways%3A%20A%20next-generation%20AI%20architecture%0A%0Ahttps://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/>)
-
 When I reflect on the past two decades of computer science research, few things inspire me more than the remarkable progress we’ve seen in the field of artificial intelligence.
 
 In 2001, some colleagues sitting just a few feet away from me at Google realized they could use an obscure technique called machine learning to help correct misspelled Search queries. (I remember I was amazed to see it work on everything from “ayambic pitnamiter” to “unnblevaiabel”). Today, AI augments many of the things that we do, whether that’s helping you [capture a nice selfie](https://ai.googleblog.com/2021/06/take-all-your-pictures-to-cleaners-with.html), or providing [more useful search results](https://blog.google/products/search/how-ai-making-information-more-useful/), or warning hundreds of millions of people [when and where flooding will occur](https://ai.googleblog.com/2020/09/the-technology-behind-our-recent.html). Twenty years of advances in research have helped elevate AI from a promising idea to an indispensable aid in billions of people’s daily lives. And for all that progress, I’m still excited about its as-yet-untapped potential – AI is poised to help humanity confront some of the toughest challenges we’ve ever faced, from persistent problems like illness and inequality to emerging threats like climate change.
@@ -70,5 +48,3 @@ So to recap: today’s machine learning models tend to overspecialize at individ
 That’s why we’re building Pathways. Pathways will enable a single AI system to generalize across thousands or millions of tasks, to understand different types of data, and to do so with remarkable efficiency – advancing us from the era of single-purpose models that merely recognize patterns to one in which more general-purpose intelligent systems reflect a deeper understanding of our world and can adapt to new needs.
 
 That last point is crucial. We’re familiar with many of today’s biggest global challenges, and working on technologies to [help address them](https://blog.google/outreach-initiatives/sustainability/sustainability-2021/). But we’re also sure there are major future challenges we haven’t yet anticipated, and many will demand urgent solutions. So, with great care, and always in line with our AI Principles, we’re crafting the kind of next-generation AI system that can quickly adapt to new needs and solve new problems all around the world as they arise, helping humanity make the most of the future ahead of us.
-
-POSTED IN:
