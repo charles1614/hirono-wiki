@@ -29,15 +29,21 @@ Designed to power sub‑agents, Nemotron 3 Nano Omni powers perception, context 
 
 The following benchmarks evaluate performance under a fixed interactivity threshold—the points at which each user continues to experience responsive, real‑time interactions. Rather than maximizing raw concurrency, the evaluations hold per‑user throughput (tokens per second per user) constant on the x‑axis and measure how much total system throughput can be sustained without degrading the user experience.
 
+![A Pareto curve showing more efficient system capacity for a video use case for Nemotron 3 Nano Omni compared to an alternative open omni model. ](developer-nvidia-img-001.webp)
+
 *Figure 1. Total system throughput sustained by each model at a fixed per‑user interactivity threshold (tokens/sec/user)*
 
 For video reasoning at the same interactivity threshold, Nemotron 3 Nano Omni sustains higher aggregate throughput, translating into up to ~9.2× greater effective system capacity compared to alternative open omni models.
+
+![A Pareto curve showing more efficient system capacity for a multi-document use case for Nemotron 3 Nano Omni compared to an alternative open omni model. ](developer-nvidia-img-002.webp)
 
 For multi-document reasoning at the same interactivity threshold, Nemotron 3 Nano Omni sustains higher aggregate throughput, translating into up to ~7.4× greater effective system capacity compared to alternative open omni models.
 
 On Blackwell GPUs, Nemotron 3 Nano Omni with NVFP4 quantization achieves the highest throughput among open omnimodal models for enterprise‑grade workloads involving complex documents, long‑horizon reasoning, and large video batches. These features make it well‑suited for agentic applications in finance, healthcare, scientific discovery, media and entertainment, and ad‑tech platforms that process high volumes of video and audio content at scale.
 
 This improvement is not a synthetic benchmark artifact. It reflects the architectural efficiency of Nemotron 3 Nano Omni when deployed in real agentic workloads. By unifying multimodal perception into a single model loop and activating only the required experts per modality, it converts raw model efficiency into more concurrent agents, higher throughput, and lower cost per task—without sacrificing accuracy or responsiveness.
+
+![A chart showing accuracy improvements across various industry-leading benchmarks for the previous model version, Nemotron Nano VL V2, compared to the new Nemotron 3 Nano Omni model, highlighting high performance for complex document intelligence, and video and audio reasoning.](developer-nvidia-img-003.webp)
 
 *Figure 3. Multimodal accuracy improved across industry-leading benchmarks from the previous Nemotron Nano VL V2 model to Nemotron 3 Nano Omni*
 
@@ -58,6 +64,8 @@ The Nemotron 3 Nano Omni architecture brings multimodal perception and rea
     -   **Visual**: C-RADIOv4-H and Encoder-based Video Summarization
         To handle high-resolution images and dynamic video, Nemotron 3 Nano Omni uses a tiered compression strategy.
         -   [C-RADIOv4-H](https://huggingface.co/nvidia/C-RADIOv4-H): Images are processed at high resolution using the C-RADIOv4-H foundation model. This serves as a robust vision encoder balancing high-resolution detail with efficient computation. It can focus on specific patches of a full image to maintain OCR precision.  
+
+![Nemotron 3 Nano Omni hybrid MoE architecture showing text, audio, and visual inputs combined into a single language model.](developer-nvidia-img-004.webp)
 
 *Figure 4. Nemotron 3 Nano Omni Hybrid MoE Architecture for cross-modal integration*
 

@@ -80,12 +80,27 @@ export function convertGenericHtml(opts: GenericConvertOpts): GenericConvertResu
     if ((a.textContent || "").trim() === "") a.remove();
   }
 
-  // 2. Localize images. Drop `data:` URIs and missing-src.
+  // 2. Localize images. Handle the common lazy-loading pattern: `src=`
+  // is a data:URI SVG placeholder while the real URL sits in `data-src=`
+  // / `data-lazy-src=` / `data-original=`. Try those alternatives BEFORE
+  // accepting `src` so we don't end up with a placeholder forever.
   const imagesToDownload: GenericImageDownload[] = [];
   let imgCounter = 0;
+  const isLazyPlaceholder = (s: string): boolean =>
+    !s || s.startsWith("data:") || s === "about:blank";
   for (const img of Array.from(root.querySelectorAll("img"))) {
-    const src = img.getAttribute("src") || img.getAttribute("data-src") || "";
-    if (!src || src.startsWith("data:")) {
+    const candidates = [
+      img.getAttribute("data-src"),
+      img.getAttribute("data-lazy-src"),
+      img.getAttribute("data-original"),
+      img.getAttribute("src"),
+    ];
+    let src = "";
+    for (const c of candidates) {
+      const v = (c || "").trim();
+      if (v && !isLazyPlaceholder(v)) { src = v; break; }
+    }
+    if (!src) {
       img.remove();
       continue;
     }

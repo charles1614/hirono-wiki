@@ -1,5 +1,22 @@
 {
-  "imagesToDownload": [],
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://developer-blogs.nvidia.com/wp-content/uploads/2026/04/Video.webp",
+      "localFilename": "developer-nvidia-img-001.webp"
+    },
+    {
+      "remoteUrl": "https://developer-blogs.nvidia.com/wp-content/uploads/2026/04/Multi-documents.webp",
+      "localFilename": "developer-nvidia-img-002.webp"
+    },
+    {
+      "remoteUrl": "https://developer-blogs.nvidia.com/wp-content/uploads/2026/04/Mutlimodal-Benchmarks-Nano-Omni.webp",
+      "localFilename": "developer-nvidia-img-003.webp"
+    },
+    {
+      "remoteUrl": "https://developer-blogs.nvidia.com/wp-content/uploads/2026/04/Nemotron-3-Nano-Workflow.webp",
+      "localFilename": "developer-nvidia-img-004.webp"
+    }
+  ],
   "metadata": {
     "title": "NVIDIA Nemotron 3 Nano Omni Powers Multimodal Agent Reasoning in a Single Efficient Open Model",
     "description": "Agentic systems often reason across screens, documents, audio, video, and text within a single perception‑to‑action loop. However, they still rely on fragmented model chains—separate stacks for vision…",
@@ -7,7 +24,7 @@
     "authors": []
   },
   "stats": {
-    "bodyChars": 22925,
-    "images": 0
+    "bodyChars": 23765,
+    "images": 4
   }
 }
