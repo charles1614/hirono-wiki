@@ -47,40 +47,56 @@ function wikiIdFromUrl(url: string): string | null {
   return m ? m[1] : null;
 }
 
-function fetchViaLarkHirono(wikiId: string): { markdown: string; title: string; error?: string } {
-  // Call lark-cli directly with --format json to recover BOTH the title
-  // (data.title) and the markdown body (data.markdown). lark-hirono's
-  // `fetch` command emits only the markdown to stdout, dropping the
-  // doc-level title.
+interface FetchResult { markdown: string; title: string; identity: string; error?: string }
+
+function tryFetchAs(wikiId: string, as: "user" | "bot"): FetchResult {
   try {
     const res = spawnSync(
       "lark-cli",
-      ["docs", "+fetch", "--doc", wikiId, "--format", "json"],
+      ["docs", "+fetch", "--doc", wikiId, "--as", as, "--format", "json"],
       { encoding: "utf8", timeout: 60_000, maxBuffer: 32 * 1024 * 1024 },
     );
     const stdout = res.stdout || "";
-    const stderr = res.stderr || "";
-    const combined = stdout + "\n" + stderr;
-    if (res.status !== 0) {
-      const reasonMatch = combined.match(/forBidden|resource deleted|Network temporarily unavailable/i);
-      const reason = reasonMatch ? reasonMatch[0] : `lark-cli exited ${res.status}`;
-      return { markdown: "", title: "", error: reason };
+    if (res.status !== 0 && !stdout.trim()) {
+      return { markdown: "", title: "", identity: as, error: `lark-cli exited ${res.status}` };
     }
     let parsed: { ok?: boolean; data?: { markdown?: string; title?: string }; error?: { message?: string } };
     try { parsed = JSON.parse(stdout); }
-    catch (e) { return { markdown: "", title: "", error: `JSON parse failed: ${e instanceof Error ? e.message : e}` }; }
+    catch (e) { return { markdown: "", title: "", identity: as, error: `JSON parse failed: ${e instanceof Error ? e.message : e}` }; }
     if (parsed.ok === false) {
       const msg = parsed.error?.message || "lark-cli reported ok=false";
-      const reasonMatch = msg.match(/forBidden|resource deleted|Network temporarily unavailable/i);
-      return { markdown: "", title: "", error: reasonMatch ? reasonMatch[0] : msg.slice(0, 200) };
+      const reasonMatch = msg.match(/need_user_authorization|forBidden|resource deleted|Network temporarily unavailable/i);
+      return { markdown: "", title: "", identity: as, error: reasonMatch ? reasonMatch[0] : msg.slice(0, 200) };
     }
     const md = parsed.data?.markdown || "";
     const title = parsed.data?.title || "";
-    if (!md.trim()) return { markdown: "", title: "", error: "lark-cli returned empty markdown" };
-    return { markdown: md, title };
+    if (!md.trim()) return { markdown: "", title: "", identity: as, error: "empty markdown" };
+    return { markdown: md, title, identity: as };
   } catch (e) {
-    return { markdown: "", title: "", error: e instanceof Error ? e.message : String(e) };
+    return { markdown: "", title: "", identity: as, error: e instanceof Error ? e.message : String(e) };
   }
+}
+
+function fetchViaLarkHirono(wikiId: string): { markdown: string; title: string; identity?: string; error?: string } {
+  // Try user identity first (broader read access on foreign tenants where
+  // the user has been granted permission via the Feishu UI). Fall back to
+  // bot identity (OAuth tenant token) when user auth isn't configured.
+  const userTry = tryFetchAs(wikiId, "user");
+  if (!userTry.error) return userTry;
+
+  // Skip the bot fallback if the failure is a hard "doc gone" — bot
+  // identity won't recover deleted resources either.
+  if (/resource deleted/i.test(userTry.error)) return userTry;
+
+  const botTry = tryFetchAs(wikiId, "bot");
+  if (!botTry.error) return botTry;
+
+  // Surface the more informative of the two errors. need_user_authorization
+  // tells the operator they should run `lark-cli auth login`.
+  const combinedMsg = /need_user_authorization/i.test(userTry.error)
+    ? "need_user_authorization (run: lark-cli auth login)"
+    : `user: ${userTry.error}; bot: ${botTry.error}`;
+  return { markdown: "", title: "", error: combinedMsg };
 }
 
 function convertLarkTables(md: string): { md: string; tables: number } {
@@ -152,12 +168,13 @@ export function convertFeishu(opts: FeishuConvertArgs): FeishuConvertResult {
   };
 }
 
-function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-tool" | "extraction-failed"): Result {
+function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-tool" | "extraction-failed" | "user-auth-required"): Result {
   const titleMap = {
     "auth-gated": "Feishu wiki page (auth-gated)",
     "deleted": "Feishu wiki page (deleted)",
     "no-tool": "Feishu wiki page (lark-hirono unavailable)",
     "extraction-failed": "Feishu wiki page (fetch failed)",
+    "user-auth-required": "Feishu wiki page (user auth required)",
   } as const;
   return {
     markdown: [
@@ -200,6 +217,7 @@ export const site: Site = {
     const r = fetchViaLarkHirono(wikiId);
     if (r.error) {
       const kind = /resource deleted/i.test(r.error) ? "deleted"
+                 : /need_user_authorization/i.test(r.error) ? "user-auth-required"
                  : /forBidden/i.test(r.error) ? "auth-gated"
                  : "extraction-failed";
       return stub(url, r.error.slice(0, 160), kind);
