@@ -100,6 +100,13 @@ export function convertGenericHtml(opts: GenericConvertOpts): GenericConvertResu
       const v = (c || "").trim();
       if (v && !isLazyPlaceholder(v)) { src = v; break; }
     }
+    // Reject malformed src that picked up neighboring text (whitespace,
+    // newlines, or a `)` after the path). Seen on qwen.ai where image
+    // alt-text bleeds into the src attribute.
+    if (src && /[\s)]/.test(src)) {
+      img.remove();
+      continue;
+    }
     if (!src) {
       img.remove();
       continue;

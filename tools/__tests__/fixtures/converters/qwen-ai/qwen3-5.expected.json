@@ -1,0 +1,137 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate-overseas.aliyuncs.com/3.5banner.png",
+      "localFilename": "qwen-ai-img-001.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3.5/Figures/qwen3.5_397b_a17b_score.png",
+      "localFilename": "qwen-ai-img-002.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3.5/Figures/qwen3.5_397b_a17b_scaling.png",
+      "localFilename": "qwen-ai-img-003.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3.5/Figures/qwen3.5_397b_a17b_inference.png",
+      "localFilename": "qwen-ai-img-004.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3.5/Figures/qwen3.5_397b_a17b_infra.jpg",
+      "localFilename": "qwen-ai-img-005.jpg"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-006.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-007.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Intelligent_Driving/ad/ad_1.jpg",
+      "localFilename": "qwen-ai-img-008.jpg"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Intelligent_Driving/ad/ad_2.jpg",
+      "localFilename": "qwen-ai-img-009.jpg"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Intelligent_Driving/ad/ad_3.jpg",
+      "localFilename": "qwen-ai-img-010.jpg"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Intelligent_Driving/ad/ad_4.jpg",
+      "localFilename": "qwen-ai-img-011.jpg"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Intelligent_Driving/ad/ad_5.jpg",
+      "localFilename": "qwen-ai-img-012.jpg"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-013.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/cotground/vstar_180.png",
+      "localFilename": "qwen-ai-img-014.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/cotground/vstar_180.png",
+      "localFilename": "qwen-ai-img-015.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-016.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-017.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/cotground/vstar_180_res.png",
+      "localFilename": "qwen-ai-img-018.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/complicated_maze.jpg",
+      "localFilename": "qwen-ai-img-019.jpg"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/complicated_maze.jpg",
+      "localFilename": "qwen-ai-img-020.jpg"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-021.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/0e5fa726-72e2-4b96-9709-6aa7270a9983.png",
+      "localFilename": "qwen-ai-img-022.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-023.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/a2529aad-b91c-4992-bfe5-0903d2b4ef33.png",
+      "localFilename": "qwen-ai-img-024.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-025.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/10c97490-e7b0-441b-b0cf-4d7a4e95812c.png",
+      "localFilename": "qwen-ai-img-026.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-027.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/Thinking_with_image/10c97490-e7b0-441b-b0cf-4d7a4e95812c.png",
+      "localFilename": "qwen-ai-img-028.png"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/STEM/stem-case11.jpeg",
+      "localFilename": "qwen-ai-img-029.jpg"
+    },
+    {
+      "remoteUrl": "https://qianwen-res.oss-accelerate.aliyuncs.com/Qwen3.5/demo/STEM/stem-case11.jpeg",
+      "localFilename": "qwen-ai-img-030.jpg"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01B9mlGG1msAz3fxxWL_!!6000000005009-2-tps-84-84.png",
+      "localFilename": "qwen-ai-img-031.png"
+    }
+  ],
+  "metadata": {
+    "title": "Qwen3.5: Towards Native Multimodal Agents",
+    "description": "QWEN CHAT GitHub Hugging Face ModelScope DISCORD\nWe are delighted to announce the official release of Qwen3.5, introducing the open-weight of the first model in the Qwen3.5 series, namely Qwen3.5-397B-A17B. As a native vision-language model, Qwen3.5-397B-A17B demonstrates outstanding results across a full range of benchmark evaluations, including reasoning, coding, agent capabilities, and multimodal understanding, empowering developers and enterprises to achieve significantly greater productivity. Built on an innovative hybrid architecture that fuses linear attention (via Gated Delta Networks) with a sparse mixture-of-experts, the model attains remarkable inference efficiency: although it comprises 397 billion total parameters, just 17 billion are activated per forward pass, optimizing both speed and cost without sacrificing capability.",
+    "publishedAt": "2026-02-14T04:00:00+08:00"
+  },
+  "stats": {
+    "bodyChars": 105783,
+    "images": 31
+  }
+}
