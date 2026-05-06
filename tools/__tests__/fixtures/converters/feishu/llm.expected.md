@@ -1,9 +1,11 @@
-# Communication Pattern Modeling
+# LLM
 
 > 原文链接: https://d0a901er7io.feishu.cn/wiki/RMTLwJwfgic9orkzXX5cg00GnKc
 > Source: lark-hirono (authenticated Feishu API)
 
 ---
+### Communication Pattern Modeling
+
 The system models different collective communication patterns based on training parallelism strategies:
 
 | Operation | Description | Typical Use Case |

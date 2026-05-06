@@ -25,6 +25,8 @@ import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hoo
 interface FeishuConvertArgs {
   url: string;
   rawMarkdown: string;
+  /** Doc-level title from the Lark API; takes precedence over body inference. */
+  docTitle: string;
 }
 
 interface FeishuConvertResult {
@@ -45,27 +47,39 @@ function wikiIdFromUrl(url: string): string | null {
   return m ? m[1] : null;
 }
 
-function fetchViaLarkHirono(wikiId: string): { markdown: string; error?: string } {
+function fetchViaLarkHirono(wikiId: string): { markdown: string; title: string; error?: string } {
+  // Call lark-cli directly with --format json to recover BOTH the title
+  // (data.title) and the markdown body (data.markdown). lark-hirono's
+  // `fetch` command emits only the markdown to stdout, dropping the
+  // doc-level title.
   try {
-    const res = spawnSync("lark-hirono", ["fetch", "--doc", wikiId], {
-      encoding: "utf8",
-      timeout: 60_000,
-      maxBuffer: 32 * 1024 * 1024,
-    });
+    const res = spawnSync(
+      "lark-cli",
+      ["docs", "+fetch", "--doc", wikiId, "--format", "json"],
+      { encoding: "utf8", timeout: 60_000, maxBuffer: 32 * 1024 * 1024 },
+    );
     const stdout = res.stdout || "";
     const stderr = res.stderr || "";
-    // lark-hirono writes diagnostic text to stderr on failure; check for
-    // known failure markers in either stream.
     const combined = stdout + "\n" + stderr;
-    if (res.status !== 0 || /Failed to fetch document|forBidden|resource deleted/i.test(combined)) {
+    if (res.status !== 0) {
       const reasonMatch = combined.match(/forBidden|resource deleted|Network temporarily unavailable/i);
-      const reason = reasonMatch ? reasonMatch[0] : `lark-hirono exited ${res.status}`;
-      return { markdown: "", error: reason };
+      const reason = reasonMatch ? reasonMatch[0] : `lark-cli exited ${res.status}`;
+      return { markdown: "", title: "", error: reason };
     }
-    if (!stdout.trim()) return { markdown: "", error: "lark-hirono returned empty output" };
-    return { markdown: stdout };
+    let parsed: { ok?: boolean; data?: { markdown?: string; title?: string }; error?: { message?: string } };
+    try { parsed = JSON.parse(stdout); }
+    catch (e) { return { markdown: "", title: "", error: `JSON parse failed: ${e instanceof Error ? e.message : e}` }; }
+    if (parsed.ok === false) {
+      const msg = parsed.error?.message || "lark-cli reported ok=false";
+      const reasonMatch = msg.match(/forBidden|resource deleted|Network temporarily unavailable/i);
+      return { markdown: "", title: "", error: reasonMatch ? reasonMatch[0] : msg.slice(0, 200) };
+    }
+    const md = parsed.data?.markdown || "";
+    const title = parsed.data?.title || "";
+    if (!md.trim()) return { markdown: "", title: "", error: "lark-cli returned empty markdown" };
+    return { markdown: md, title };
   } catch (e) {
-    return { markdown: "", error: e instanceof Error ? e.message : String(e) };
+    return { markdown: "", title: "", error: e instanceof Error ? e.message : String(e) };
   }
 }
 
@@ -90,11 +104,12 @@ function convertLarkTables(md: string): { md: string; tables: number } {
   return { md: out, tables };
 }
 
-function inferTitle(md: string, url: string): string {
-  // Look at the first heading line.
+function inferTitle(md: string, url: string, docTitle: string): string {
+  // Doc-level title from the Lark API is authoritative. Body-heading
+  // inference is only a last-resort fallback.
+  if (docTitle && docTitle.trim()) return docTitle.trim();
   const m = md.match(/^#{1,6}\s+(.+?)\s*$/m);
   if (m) return m[1].trim();
-  // Fall back to the wiki ID for a deterministic title.
   const id = wikiIdFromUrl(url);
   return id ? `Feishu wiki ${id}` : "Feishu wiki page";
 }
@@ -102,11 +117,10 @@ function inferTitle(md: string, url: string): string {
 export function convertFeishu(opts: FeishuConvertArgs): FeishuConvertResult {
   const wikiId = wikiIdFromUrl(opts.url) || "";
   let body = opts.rawMarkdown;
-  // Demote the highest heading in the body to make space for the §2 H1.
-  // lark-hirono emits the first content heading at H3 typically; if there
-  // happens to be an H1 in the body, demote it so we don't double-H1.
-  const title = inferTitle(body, opts.url);
-  // Strip the title heading from the body if it appears as a top-level line.
+  const title = inferTitle(body, opts.url, opts.docTitle);
+  // If the body opens with a heading whose text matches the title, drop
+  // it so we don't double-H1. (This usually only fires when we fell
+  // back to the body-heading inference path.)
   const titleLine = new RegExp(`^#{1,6}\\s+${title.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\s*$`, "m");
   body = body.replace(titleLine, "").replace(/^\n+/, "");
 
@@ -194,7 +208,7 @@ export const site: Site = {
       return stub(url, "lark-hirono returned empty output", "extraction-failed");
     }
 
-    const conv = convertFeishu({ url, rawMarkdown: r.markdown });
+    const conv = convertFeishu({ url, rawMarkdown: r.markdown, docTitle: r.title });
     return {
       markdown: conv.markdown,
       title: conv.metadata.title,
@@ -238,7 +252,7 @@ export const testHooks: SiteTestHooks = {
     const r = fetchViaLarkHirono(wikiId);
     if (r.error) throw new Error(`feishu capture: ${r.error}`);
     if (!r.markdown.trim()) throw new Error(`feishu capture: empty lark-hirono output`);
-    const args: [FeishuConvertArgs] = [{ url, rawMarkdown: r.markdown }];
+    const args: [FeishuConvertArgs] = [{ url, rawMarkdown: r.markdown, docTitle: r.title }];
     const result = convertFeishu(args[0]);
     const { markdown, ...rest } = result;
     return {
