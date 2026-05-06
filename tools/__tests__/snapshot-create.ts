@@ -94,9 +94,12 @@ const MICRO_POST_HOSTS = new Set([
 // (especially small bug-fix PRs). 1000-char floor catches genuinely empty
 // pages without false-rejecting normal short PRs.
 const GITHUB_HOSTS = new Set(["github.com"]);
+// Feishu wiki pages can be legitimately short (focused fragments, glossary
+// entries, single-table reference pages). 1000-char floor.
+const isFeishu = /\.feishu\.cn$/i.test(host);
 const minLen = MICRO_POST_HOSTS.has(host) || MICRO_POST_HOSTS.has(`www.${host}`)
   ? 500
-  : GITHUB_HOSTS.has(host) ? 1000 : 2000;
+  : GITHUB_HOSTS.has(host) || isFeishu ? 1000 : 2000;
 if (!isStub && (qStatus !== "good" || cLen < minLen)) {
   console.error(`[gate] sample fails validity (need status=good AND length>${minLen}, OR intentional-stub)`);
   console.error(`       got status=${qStatus} length=${cLen} flags=${flags.join(",")}`);
