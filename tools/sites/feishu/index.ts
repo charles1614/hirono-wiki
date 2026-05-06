@@ -29,10 +29,18 @@ interface FeishuConvertArgs {
   docTitle: string;
 }
 
+interface FeishuImageDownload {
+  /** Lark media token; downloaded via `lark-cli docs +media-preview --token`. */
+  token: string;
+  /** Local filename to save under (e.g. `feishu-img-001.png`). */
+  localFilename: string;
+}
+
 interface FeishuConvertResult {
   markdown: string;
+  imagesToDownload: FeishuImageDownload[];
   metadata: { source: string; wikiId: string; title: string };
-  stats: { bodyChars: number; tables: number };
+  stats: { bodyChars: number; tables: number; images: number };
 }
 
 const HOST_PATTERN = /\.feishu\.cn$/i;
@@ -130,6 +138,80 @@ function inferTitle(md: string, url: string, docTitle: string): string {
   return id ? `Feishu wiki ${id}` : "Feishu wiki page";
 }
 
+// Lark callout emoji codes → unicode glyphs we render as the blockquote
+// lead. Falls back to a generic 📌 when the code isn't in the table.
+const CALLOUT_EMOJI: Record<string, string> = {
+  pushpin: "📌", bulb: "💡", bookmark: "🔖", gift: "🎁",
+  rocket: "🚀", star: "⭐", warning: "⚠️", fire: "🔥",
+  info: "ℹ️", question: "❓", check: "✅", x: "❌",
+  notebook: "📓", book: "📚", chart: "📊", clock: "⏰",
+};
+
+function decodeEncodedHrefs(md: string): string {
+  // lark-hirono percent-encodes link targets (https%3A%2F%2F…). Decode
+  // any `](...)` whose target looks like a percent-encoded URL.
+  return md.replace(
+    /(\]\()((?:https?%3A%2F%2F|http%3A%2F%2F)[^)]+)(\))/gi,
+    (_m, l, target, r) => {
+      try { return `${l}${decodeURIComponent(target)}${r}`; }
+      catch { return _m; }
+    },
+  );
+}
+
+function convertCallouts(md: string): string {
+  return md.replace(
+    /<callout\b([^>]*)>([\s\S]*?)<\/callout>/g,
+    (_m, attrs: string, inner: string) => {
+      const emojiMatch = attrs.match(/emoji="([^"]+)"/);
+      const code = emojiMatch ? emojiMatch[1] : "";
+      const glyph = CALLOUT_EMOJI[code] || "📌";
+      const innerLines = inner.trim().split("\n");
+      const quoted = innerLines.map((ln) => (ln.length > 0 ? `> ${ln}` : ">")).join("\n");
+      return `\n> ${glyph}\n${quoted}\n`;
+    },
+  );
+}
+
+function convertImages(md: string): { md: string; images: FeishuImageDownload[] } {
+  const images: FeishuImageDownload[] = [];
+  let counter = 0;
+  const out = md.replace(
+    /<image\b[^>]*\btoken="([^"]+)"[^>]*\/?>/g,
+    (_m, token: string) => {
+      counter++;
+      // Default to .png; the actual extension is detected at download time
+      // and the file name + reference are rewritten then.
+      const localFilename = `feishu-img-${String(counter).padStart(3, "0")}.png`;
+      images.push({ token, localFilename });
+      return `![](${localFilename})`;
+    },
+  );
+  return { md: out, images };
+}
+
+function applyMiscLarkCleanups(md: string): string {
+  let out = md;
+  // Strip Lark color tags: `## Heading {color="DarkRedBackground"}` → `## Heading`
+  out = out.replace(/\s*\{color="[^"]+"\}/g, "");
+  // Unwrap `<text color="X">INNER</text>` (color metadata is lost, content kept).
+  out = out.replace(/<text\b[^>]*>([\s\S]*?)<\/text>/g, "$1");
+  // Wrap inline `<equation>X</equation>` content in `$X$` for LaTeX rendering.
+  out = out.replace(/<equation>\s*([\s\S]*?)\s*<\/equation>/g, (_m, inner: string) => {
+    const t = inner.trim();
+    return t ? `$${t}$` : "";
+  });
+  // Unwrap `<mention-doc token="X" type="Y">TEXT</mention-doc>` to plain text
+  // — we don't have the resolved URL handy; keeping the link text preserves
+  // the reader's understanding of what was cited.
+  out = out.replace(/<mention-doc\b[^>]*>([\s\S]*?)<\/mention-doc>/g, "$1");
+  // Drop layout-only Lark wrappers; the table converter has already run so
+  // any remaining lark-* tags are stray (defensive).
+  out = out.replace(/<\/?(?:column|grid)\b[^>]*>/g, "");
+  out = out.replace(/<\/?lark-[a-z-]+\b[^>]*>/g, "");
+  return out;
+}
+
 export function convertFeishu(opts: FeishuConvertArgs): FeishuConvertResult {
   const wikiId = wikiIdFromUrl(opts.url) || "";
   let body = opts.rawMarkdown;
@@ -140,13 +222,22 @@ export function convertFeishu(opts: FeishuConvertArgs): FeishuConvertResult {
   const titleLine = new RegExp(`^#{1,6}\\s+${title.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\s*$`, "m");
   body = body.replace(titleLine, "").replace(/^\n+/, "");
 
-  // Collapse Lark XML tables into markdown.
-  const conv = convertLarkTables(body);
-  body = conv.md;
+  body = decodeEncodedHrefs(body);
 
-  // Strip stray standalone <lark-*> tags that didn't fall under the table
-  // converter (none expected today, defensive).
-  body = body.replace(/<\/?lark-[a-z-]+\b[^>]*>/g, "");
+  // Collapse Lark XML tables into markdown.
+  const tableConv = convertLarkTables(body);
+  body = tableConv.md;
+
+  // Convert <callout> blocks (need to run BEFORE generic-XML strip).
+  body = convertCallouts(body);
+
+  // Extract <image token="X"/> placeholders into download list and rewrite
+  // to standard `![](localFilename)` markdown.
+  const imageConv = convertImages(body);
+  body = imageConv.md;
+
+  // Misc: strip color tags, unwrap <text>, convert <equation>, mention-doc, layout tags.
+  body = applyMiscLarkCleanups(body);
 
   // Compose §2 frontmatter.
   const fm: string[] = [
@@ -163,9 +254,38 @@ export function convertFeishu(opts: FeishuConvertArgs): FeishuConvertResult {
 
   return {
     markdown,
+    imagesToDownload: imageConv.images,
     metadata: { source: "feishu", wikiId, title },
-    stats: { bodyChars: body.length, tables: conv.tables },
+    stats: { bodyChars: body.length, tables: tableConv.tables, images: imageConv.images.length },
   };
+}
+
+function downloadFeishuMedia(token: string, slugDir: string, localFilename: string, identity: "user" | "bot"): { ok: boolean; finalFilename: string; bytes: number } {
+  // lark-cli's media-preview refuses absolute output paths; spawn from
+  // inside slugDir and pass a relative `./<filename>`. Auto-detect the
+  // extension via response content-type; lark-cli overwrites the path with
+  // the right ext if it differs.
+  const res = spawnSync(
+    "lark-cli",
+    ["docs", "+media-preview", "--token", token, "--output", `./${localFilename}`, "--as", identity, "--overwrite"],
+    { encoding: "utf8", cwd: slugDir, timeout: 60_000, maxBuffer: 4 * 1024 * 1024 },
+  );
+  if (res.status !== 0) return { ok: false, finalFilename: localFilename, bytes: 0 };
+  // lark-cli media-preview prefixes a status line ("Previewing: …") before
+  // the JSON body. Slice from the first `{` so JSON.parse works.
+  const stdout = res.stdout || "";
+  const start = stdout.indexOf("{");
+  if (start < 0) return { ok: false, finalFilename: localFilename, bytes: 0 };
+  let parsed: { ok?: boolean; data?: { saved_path?: string; content_type?: string; size_bytes?: number } };
+  try { parsed = JSON.parse(stdout.slice(start)); }
+  catch { return { ok: false, finalFilename: localFilename, bytes: 0 }; }
+  if (!parsed.ok || !parsed.data?.saved_path) {
+    return { ok: false, finalFilename: localFilename, bytes: 0 };
+  }
+  // saved_path is absolute; recover the basename so the markdown ref
+  // matches whatever extension lark-cli decided (.png, .jpeg, .gif, …).
+  const finalFilename = parsed.data.saved_path.split("/").pop() || localFilename;
+  return { ok: true, finalFilename, bytes: parsed.data.size_bytes || 0 };
 }
 
 function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-tool" | "extraction-failed" | "user-auth-required"): Result {
@@ -227,19 +347,43 @@ export const site: Site = {
     }
 
     const conv = convertFeishu({ url, rawMarkdown: r.markdown, docTitle: r.title });
+
+    // Download embedded images via lark-cli docs +media-preview. Track
+    // the per-image identity (user first, fall back to bot on 403).
+    let markdown = conv.markdown;
+    const images: string[] = [];
+    let imgFailed = 0;
+    for (const dl of conv.imagesToDownload) {
+      let res = downloadFeishuMedia(dl.token, opts.slugDir, dl.localFilename, "user");
+      if (!res.ok) res = downloadFeishuMedia(dl.token, opts.slugDir, dl.localFilename, "bot");
+      if (res.ok) {
+        if (res.finalFilename !== dl.localFilename) {
+          // Rewrite the markdown ref to the final filename (extension fixed).
+          const escaped = dl.localFilename.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          markdown = markdown.replace(new RegExp(`\\(${escaped}\\)`, "g"), `(${res.finalFilename})`);
+        }
+        images.push(res.finalFilename);
+      } else {
+        imgFailed++;
+      }
+    }
+
+    const flags: string[] = imgFailed > 0 ? ["feishu-image-download-partial"] : [];
     return {
-      markdown: conv.markdown,
+      markdown,
       title: conv.metadata.title,
-      images: [],
+      images,
       metadata: {
         source: "feishu",
         wiki_id: conv.metadata.wikiId,
         title: conv.metadata.title,
         stats: conv.stats,
       },
-      flags: [],
+      flags,
       notes: [
-        `feishu: ${conv.stats.bodyChars} body chars, ${conv.stats.tables} table(s) converted from <lark-table>`,
+        `feishu: ${conv.stats.bodyChars} body chars, ${conv.stats.tables} table(s) converted from <lark-table>, ` +
+        `${images.length}/${conv.imagesToDownload.length} image(s) downloaded` +
+        (imgFailed > 0 ? ` (${imgFailed} failed)` : ""),
       ],
     };
   },

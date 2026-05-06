@@ -1,0 +1,34 @@
+{
+  "imagesToDownload": [
+    {
+      "token": "HPLKbwC1uoytpbxgnKAcrlJ0nnh",
+      "localFilename": "feishu-img-001.png"
+    },
+    {
+      "token": "JDrCbgIMYoGbA8x7bmYcuSTwnOc",
+      "localFilename": "feishu-img-002.png"
+    },
+    {
+      "token": "JHSFbh5KLoRMMkxDL9YcYQAhnIe",
+      "localFilename": "feishu-img-003.png"
+    },
+    {
+      "token": "DkRWbjjzuoATWnxAjexcB3YMnTc",
+      "localFilename": "feishu-img-004.png"
+    },
+    {
+      "token": "RBtgb7UBKougo3xt9zucQhZSnGf",
+      "localFilename": "feishu-img-005.png"
+    }
+  ],
+  "metadata": {
+    "source": "feishu",
+    "wikiId": "AuzLwXbwNiw5WTkXlMJcQmtZnRD",
+    "title": "Gemma 4"
+  },
+  "stats": {
+    "bodyChars": 18989,
+    "tables": 3,
+    "images": 5
+  }
+}
