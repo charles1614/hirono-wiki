@@ -55,9 +55,17 @@ test("routeSite: unmatched domains fall through to _default catch-all", () => {
   // Routing is total — every URL matches some module. Hosts without a
   // dedicated module get the _default catch-all.
   assert.equal(routeSite("https://example.com/post").name, "_default");
-  assert.equal(routeSite("https://gist.github.com/x/y").name, "_default");
   // Host-suffix spoofing must NOT trick the xhs/weixin matchers.
   assert.equal(routeSite("https://mp.weixin.qq.example.com/fake").name, "_default");
+});
+
+test("routeSite: gist.github.com URLs route to site:github", () => {
+  // The github module claims gist.github.com so gist URLs go through
+  // the structured Gist API path rather than the catch-all.
+  assert.equal(
+    routeSite("https://gist.github.com/alirezarezvani/a0f6e0a984d4a4adc4842bbe124c5935").name,
+    "github",
+  );
 });
 
 test("isArticleLikeUrl: recognizes the patterns we guard with L3 redirect detection", () => {

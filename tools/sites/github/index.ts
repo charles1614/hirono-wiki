@@ -22,11 +22,13 @@ import {
   fetchRaw,
   fetchTreeReadme,
   fetchRepoReadme,
+  fetchGist,
 } from "./fetcher.ts";
 import {
   convertGithubPrIssue,
   convertGithubRelease,
   convertGithubRaw,
+  convertGithubGist,
   type GithubImageDownload,
 } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
@@ -59,7 +61,10 @@ function hostOf(url: string): string {
 
 export const site: Site = {
   name: "github",
-  match: (url) => hostOf(url) === "github.com",
+  match: (url) => {
+    const h = hostOf(url);
+    return h === "github.com" || h === "gist.github.com";
+  },
   fetch: (url, opts) => {
     mkdirSync(opts.slugDir, { recursive: true });
 
@@ -68,6 +73,49 @@ export const site: Site = {
       return stubResult(url, "github URL parse failed");
     }
     const { kind, org, repo } = parsed;
+
+    // ── Gist ──────────────────────────────────────────────────────────
+    if (kind === "gist") {
+      const gist = fetchGist(repo); // `repo` carries the gist id
+      if (!gist) {
+        return stubResult(url, `github gist API fetch failed for ${repo} (rate limit? auth? 404?)`);
+      }
+      const conv = convertGithubGist({
+        id: gist.id,
+        description: gist.description,
+        owner: gist.owner,
+        created_at: gist.created_at,
+        updated_at: gist.updated_at,
+        files: gist.files.map((f) => ({
+          filename: f.filename,
+          language: f.language,
+          type: f.type,
+          content: f.content,
+        })),
+        originUrl: url,
+      });
+      const { images, failed } = downloadAll(conv.imagesToDownload, opts.slugDir);
+      return {
+        markdown: conv.markdown,
+        images,
+        title: gist.description || `gist:${gist.id.slice(0, 8)}`,
+        metadata: {
+          source: "github-gist",
+          gist_id: gist.id,
+          owner: gist.owner,
+          file_count: gist.files.length,
+          public: gist.public,
+          updated_at: gist.updated_at,
+        },
+        flags: failed > 0 ? ["github-image-download-partial"] : [],
+        notes: [
+          `github: gist ${gist.id.slice(0, 8)} via REST API ` +
+          `(${gist.files.length} file(s), ${gist.files.reduce((a, f) => a + f.content.length, 0)} chars` +
+          `${images.length > 0 ? `, ${images.length}/${conv.imagesToDownload.length} image(s) downloaded` : ""}` +
+          `${failed > 0 ? ` (${failed} failed)` : ""}` + `)`,
+        ],
+      };
+    }
 
     // ── PR / issue / discussion ──────────────────────────────────────
     if (kind === "pr" || kind === "issue" || kind === "discussion") {

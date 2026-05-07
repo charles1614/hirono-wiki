@@ -532,3 +532,91 @@ export function convertGithubRaw(input: RawConvertInput): GithubConvertResult {
   const markdown = (fm.join("\n") + body.trim() + "\n").replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
   return localizeMarkdownImages(markdown, "github");
 }
+
+// ───────────────────────── Gist ─────────────────────────
+
+export interface GistFileInput {
+  filename: string;
+  language: string | null;
+  type?: string;
+  content: string;
+}
+
+export interface GistConvertInput {
+  id: string;
+  description: string;
+  owner: string;
+  created_at?: string;
+  updated_at?: string;
+  files: GistFileInput[];
+  originUrl: string;
+}
+
+/**
+ * Markdown extension list — files with one of these extensions are
+ * embedded as-is (post-image-resolution) rather than wrapped in a code
+ * fence.
+ */
+const MD_EXTS = new Set(["md", "markdown", "mdown", "mkd", "mdx"]);
+
+/** Map a `<code class="language-X">` style hint into a fence info-string. */
+function fenceLangFor(file: GistFileInput): string {
+  // GitHub's `language` is human-friendly ("Python", "JavaScript", "Go");
+  // markdown fences expect lowercase short names (`python`, `javascript`,
+  // `go`). Lower-case + strip the obvious " (long form)" suffix.
+  if (file.language) return file.language.toLowerCase().replace(/\s.*$/, "").replace(/[^a-z0-9+-]/g, "");
+  // Fall back to the filename extension.
+  const ext = file.filename.includes(".") ? file.filename.split(".").pop()!.toLowerCase() : "";
+  return ext;
+}
+
+export function convertGithubGist(input: GistConvertInput): GithubConvertResult {
+  // Title: gist description, else first filename, else "Gist <short-id>".
+  const titlePart = input.description
+    || input.files[0]?.filename
+    || `Gist ${input.id.slice(0, 8)}`;
+  const title = input.owner
+    ? `${input.owner}/gist: ${titlePart}`
+    : `gist: ${titlePart}`;
+
+  const fm: string[] = [
+    `# ${title}`,
+    "",
+    `> 原文链接: ${input.originUrl}`,
+  ];
+  if (input.owner) fm.push(`> 作者: [@${input.owner}](https://github.com/${input.owner})`);
+  if (input.updated_at) fm.push(`> 更新于: ${input.updated_at.slice(0, 10)}`);
+  if (input.description && titlePart !== input.description) {
+    // Title fell back to a filename — surface description as a callout.
+    fm.push(`> ${input.description}`);
+  }
+  fm.push("", "---", "", "");
+
+  const sections: string[] = [];
+  for (const file of input.files) {
+    const ext = file.filename.includes(".") ? file.filename.split(".").pop()!.toLowerCase() : "";
+    const isMarkdown = MD_EXTS.has(ext) || file.type === "text/markdown" || (file.language || "").toLowerCase() === "markdown";
+
+    sections.push(`## \`${file.filename}\``);
+    sections.push("");
+    if (isMarkdown) {
+      // Demote any in-file H1 by one level so the §2 frontmatter H1 stays
+      // unique. Strip a leading H1 entirely if it duplicates the filename.
+      let content = file.content;
+      // Demote h1..h5 by one level.
+      content = content.replace(/^(#{1,5})\s+/gm, "#$1 ");
+      sections.push(content.trimEnd());
+    } else {
+      const lang = fenceLangFor(file);
+      // Use a 4-backtick fence in case the file content contains 3-backticks.
+      sections.push("````" + lang);
+      sections.push(file.content.trimEnd());
+      sections.push("````");
+    }
+    sections.push("");
+  }
+
+  let markdown = fm.join("\n") + sections.join("\n");
+  markdown = markdown.replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
+  return localizeMarkdownImages(markdown, "github");
+}

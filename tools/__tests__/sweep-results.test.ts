@@ -60,6 +60,7 @@ const EXPECTED: Record<string, {
     minChars: 500, notes: "_default browser-eval fallback — LeetGPU SPA shell empty under curl",
     allowFlags: ["_default-used-browser-fallback"],
   },
+  "gist.github.com": { minChars: 5000, notes: "site:github gist API — markdown gist embedded as-is" },
 };
 
 function listHostSamples(): Array<{ host: string; mdPath: string; sourceJson?: string }> {

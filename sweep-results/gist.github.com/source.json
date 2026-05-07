@@ -1,0 +1,16 @@
+{
+  "fetched_at": "2026-05-07T02:30:37.512Z",
+  "origin": "url:https://gist.github.com/alirezarezvani/a0f6e0a984d4a4adc4842bbe124c5935",
+  "origin_url": "https://gist.github.com/alirezarezvani/a0f6e0a984d4a4adc4842bbe124c5935",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "8596cf9e22915408c6e6048c89a927a1e9e5e19e80bfd0ca6995611582c61abb",
+  "content_length": 19540,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "site module: github",
+    "github: gist a0f6e0a9 via REST API (1 file(s), 19057 chars)"
+  ]
+}

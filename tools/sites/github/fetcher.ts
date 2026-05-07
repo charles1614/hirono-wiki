@@ -37,8 +37,10 @@ function curlJson<T>(apiUrl: string): T | null {
 }
 
 export interface ParsedGithubUrl {
-  kind: "pr" | "issue" | "discussion" | "release" | "blob" | "tree" | "repo" | "unknown";
+  kind: "pr" | "issue" | "discussion" | "release" | "blob" | "tree" | "repo" | "gist" | "unknown";
+  /** Org or gist owner. Empty string for anonymous gists. */
   org: string;
+  /** Repo name. For gists this is the gist id. */
   repo: string;
   /** Issue/PR/discussion number, or release tag, or branch name. */
   ref?: string;
@@ -49,8 +51,15 @@ export interface ParsedGithubUrl {
 }
 
 export function parseGithubUrl(url: string): ParsedGithubUrl | null {
+  // gist.github.com/<user>/<id>  or  gist.github.com/<id>  (anonymous)
+  // The id is hex (≥20 chars). Owner is optional; if missing we treat as
+  // anonymous and pass an empty string. The fetcher only needs the id.
+  let m = url.match(/^https?:\/\/gist\.github\.com\/([^/]+)\/([0-9a-f]{20,})/i);
+  if (m) return { kind: "gist", org: m[1], repo: m[2] };
+  m = url.match(/^https?:\/\/gist\.github\.com\/([0-9a-f]{20,})/i);
+  if (m) return { kind: "gist", org: "", repo: m[1] };
   // /pull/<n>
-  let m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+  m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
   if (m) return { kind: "pr", org: m[1], repo: m[2], ref: m[3] };
   // /issues/<n>
   m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/);
@@ -165,4 +174,62 @@ export function fetchTreeReadme(org: string, repo: string, branch: string, subpa
 /** For repo-root URLs: fetch README from the default branch (HEAD). */
 export function fetchRepoReadme(org: string, repo: string): RawFetchResult | null {
   return fetchRaw(org, repo, "HEAD", "README.md");
+}
+
+// ───────────────────────── Gists ─────────────────────────
+
+export interface GistFile {
+  filename: string;
+  language: string | null;
+  /** GitHub guesses a Linguist type; "Markdown" | "Python" | "JSON" | … */
+  type?: string;
+  size?: number;
+  truncated?: boolean;
+  content: string;
+}
+
+export interface GistFetchResult {
+  id: string;
+  description: string;
+  owner: string;
+  /** ISO timestamps from the API. */
+  created_at?: string;
+  updated_at?: string;
+  /** Public/secret. Secret gists are still readable by id without auth. */
+  public?: boolean;
+  files: GistFile[];
+  htmlUrl: string;
+}
+
+export function fetchGist(id: string): GistFetchResult | null {
+  const apiUrl = `https://api.github.com/gists/${id}`;
+  const data = curlJson<{
+    id: string;
+    description: string | null;
+    owner?: { login?: string } | null;
+    created_at?: string;
+    updated_at?: string;
+    public?: boolean;
+    html_url?: string;
+    files: Record<string, { filename: string; language: string | null; type?: string; size?: number; truncated?: boolean; content?: string }>;
+  }>(apiUrl);
+  if (!data || !data.files) return null;
+  const files: GistFile[] = Object.values(data.files).map((f) => ({
+    filename: f.filename,
+    language: f.language,
+    type: f.type,
+    size: f.size,
+    truncated: f.truncated,
+    content: f.content || "",
+  }));
+  return {
+    id: data.id,
+    description: (data.description || "").trim(),
+    owner: data.owner?.login || "",
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    public: data.public,
+    files,
+    htmlUrl: data.html_url || `https://gist.github.com/${data.owner?.login || ""}/${data.id}`.replace(/\/\//g, "/").replace(":/", "://"),
+  };
 }
