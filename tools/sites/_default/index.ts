@@ -82,24 +82,78 @@ const BROWSER_FALLBACK_THRESHOLD = 500;
 /** Below this after BOTH paths, emit a stub. */
 const STUB_THRESHOLD = 200;
 
-function plainFetch(url: string): { html: string; error?: string } {
+interface PlainFetchResult {
+  /** Body as utf-8 (or whatever curl wrote — may be binary garbage for PDFs). */
+  html: string;
+  /** Content-Type from the response, lowercased + leading-token only. */
+  contentType?: string;
+  error?: string;
+}
+
+function plainFetch(url: string): PlainFetchResult {
   try {
-    const html = execFileSync(
-      "curl",
-      [
-        "-sfL",
-        "--max-time", "30",
-        "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-        "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "-H", "Accept-Language: en-US,en;q=0.9",
-        url,
-      ],
-      { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 },
-    );
-    return { html };
+    // Use -D to write response headers to a separate file so we can
+    // recover Content-Type without polluting the body. The body still
+    // streams to stdout.
+    const headerFile = `/tmp/_default-headers-${process.pid}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    let html = "";
+    try {
+      html = execFileSync(
+        "curl",
+        [
+          "-sfL",
+          "--max-time", "30",
+          "-D", headerFile,
+          "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+          "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+          "-H", "Accept-Language: en-US,en;q=0.9",
+          url,
+        ],
+        { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 },
+      );
+    } catch (e) {
+      try { require("node:fs").unlinkSync(headerFile); } catch {}
+      return { html: "", error: e instanceof Error ? e.message : String(e) };
+    }
+    // Parse last block of headers (after the last blank line — covers
+    // redirect chains where curl -L records every hop's headers).
+    let contentType: string | undefined;
+    try {
+      const fs = require("node:fs") as typeof import("node:fs");
+      const headers = fs.readFileSync(headerFile, "utf8");
+      fs.unlinkSync(headerFile);
+      const blocks = headers.split(/\r?\n\r?\n/).filter(b => b.trim());
+      const last = blocks[blocks.length - 1] || "";
+      const m = last.match(/^content-type:\s*([^;\r\n]+)/im);
+      if (m) contentType = m[1].trim().toLowerCase();
+    } catch { /* best-effort */ }
+    return { html, contentType };
   } catch (e) {
     return { html: "", error: e instanceof Error ? e.message : String(e) };
   }
+}
+
+/**
+ * Detect non-HTML responses we shouldn't try to JSDOM-parse:
+ *   - Content-Type starts with "application/pdf" or "application/octet-stream"
+ *   - Body starts with "%PDF-" magic bytes (PDF served as misc content-type)
+ *   - Content-Type is image/*, video/*, audio/*
+ *
+ * Returns the matched reason, or null if the response looks like HTML.
+ */
+function detectNonHtml(body: string, contentType: string | undefined): string | null {
+  if (body.startsWith("%PDF-")) return "PDF magic bytes (%PDF-) at body start";
+  if (!contentType) return null;
+  const ct = contentType.toLowerCase();
+  if (ct === "application/pdf" || ct.startsWith("application/pdf")) return `Content-Type: ${ct}`;
+  if (ct.startsWith("image/")) return `Content-Type: ${ct}`;
+  if (ct.startsWith("video/")) return `Content-Type: ${ct}`;
+  if (ct.startsWith("audio/")) return `Content-Type: ${ct}`;
+  if (ct === "application/octet-stream") return `Content-Type: ${ct} (binary)`;
+  if (ct.startsWith("application/zip") || ct.startsWith("application/x-tar") || ct.startsWith("application/x-gzip")) {
+    return `Content-Type: ${ct} (archive)`;
+  }
+  return null;
 }
 
 /**
@@ -181,6 +235,26 @@ function stubResult(url: string, summary: string, errorDetail?: string): Result 
   });
 }
 
+/**
+ * Non-HTML stub — emitted when the curl response is a PDF / binary /
+ * media file we can't extract markdown from. Distinct kind from
+ * `fetch-failed` so the failure-kind classifier can label it
+ * `upstream-not-html` directly.
+ */
+function nonHtmlStub(url: string, summary: string, errorDetail?: string): Result {
+  return makeStub({
+    url,
+    module: "_default",
+    kind: "non-html",
+    title: "_default: non-HTML response",
+    summary,
+    advice:
+      "The URL returned a non-HTML response (PDF, image, archive, or binary stream). " +
+      "_default doesn't extract markdown from these — use a separate tool (e.g. PDF→text) or skip.",
+    errorDetail,
+  });
+}
+
 export const site: Site = {
   name: "_default",
   match: () => true,
@@ -196,7 +270,20 @@ export const site: Site = {
     let curlBodyChars = 0;
     let browserError: string | undefined;
 
+    // Short-circuit non-HTML responses (PDF, binary, media). JSDOM-parsing
+    // them produces nonsense markdown ("good" status with random ASCII
+    // from PDF binary bytes). Detect via Content-Type header AND the
+    // %PDF- magic bytes in the body.
     if (!curlR.error && html) {
+      const nonHtml = detectNonHtml(html, curlR.contentType);
+      if (nonHtml) {
+        const detail = [
+          `[curl] response: ${html.length} bytes, content-type: ${curlR.contentType ?? "(none)"}`,
+          `[non-html detection] ${nonHtml}`,
+          `[browser fallback] not attempted (content-type indicates non-HTML)`,
+        ].join("\n");
+        return nonHtmlStub(url, `${nonHtml}, ${html.length} bytes binary`, detail);
+      }
       conv = runConverter({ html, url });
       curlBytes = html.length;
       curlBodyChars = conv.stats.bodyChars;

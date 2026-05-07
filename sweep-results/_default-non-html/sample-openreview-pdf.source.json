@@ -1,0 +1,19 @@
+{
+  "fetched_at": "2026-05-07T07:05:46.337Z",
+  "origin": "url:https://openreview.net/pdf?id=sIOgOQttFQ",
+  "origin_url": "https://openreview.net/pdf?id=sIOgOQttFQ",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "43b200e56b3038f8680b1a586b6428852ecfc2cead042b84dd892ed3262275dc",
+  "content_length": 533,
+  "quality_flags": [
+    "_default-non-html"
+  ],
+  "quality_status": "flagged",
+  "images": [],
+  "notes": [
+    "site module: _default",
+    "_default: stub emitted — non-html: PDF magic bytes (%PDF-) at body start, 1334831 bytes binary"
+  ],
+  "error_detail": "PDF magic bytes (%PDF-) at body start, 1334831 bytes binary\n\n[curl] response: 1334831 bytes, content-type: (none)\n[non-html detection] PDF magic bytes (%PDF-) at body start\n[browser fallback] not attempted (content-type indicates non-HTML)"
+}
