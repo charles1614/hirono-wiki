@@ -1,0 +1,18 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://iprsoftwaremedia.com/219/files/202603/69b83bf73d6332289074debc_vera-cpu-rack/vera-cpu-rack_mid.png",
+      "localFilename": "nvidianews-img-001.png"
+    }
+  ],
+  "metadata": {
+    "title": "NVIDIA Launches Vera CPU, Purpose-Built for Agentic AI",
+    "subtitle": "NVIDIA Vera CPU Delivers the Highest Performance and Energy Efficiency for Data Processing, AI Training and Agentic Inference at Scale",
+    "date": "March 16, 2026"
+  },
+  "stats": {
+    "images": 1,
+    "paragraphs": 23,
+    "codeFences": 0
+  }
+}
