@@ -31,6 +31,18 @@ batch-*-candidates.json
 # don't pollute the repo.
 Meta/_archive/
 
+# Raw fetched content. Per-bookmark slug dirs under raw/raindrop/<host>/<slug>/
+# are large (often 10-100MB after image downloads), regenerable from
+# Raindrop bookmarks via `hirono raindrop fetch-all`, and contain
+# personal-source content that doesn't belong in version control.
+# `_index.json` is a generated sidecar; also derived state.
+raw/
+.fetch-all.log
+
+# Per-host sweep snapshots written by the bulk-fetch monitor and
+# health-check tooling. Audit artefacts, derived from raw/.
+sweep-results/_health/
+
 # Editor
 .vscode/
 .idea/

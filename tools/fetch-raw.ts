@@ -372,16 +372,21 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   if (ctx.xhsDownloadSilentFail) flags.push("xhs-download-silent-fail");
   if (ctx.extraFlags) {
     for (const f of ctx.extraFlags) {
-      // `intentional-stub` is a control signal consumed above (to skip
-      // size-based flags). It is NOT a quality problem and should not
-      // appear in the output flags list or cause `status=flagged`.
-      if (f === "intentional-stub") continue;
       if (f && !flags.includes(f)) flags.push(f);
     }
   }
+  // `intentional-stub` is a control signal consumed above (to skip
+  // size-based flags). It is NOT a quality problem so it should not
+  // cause `status=flagged` on its own — but we DO keep it in the
+  // output flags list so downstream consumers (failure-kind classifier,
+  // reclassifyRawSlug) can recognize stub-shaped slugs by inspecting
+  // source.json without re-running every adapter. The suspiciousness
+  // check below excludes it explicitly.
   // Dedupe (caller's extraFlags may overlap with our detections)
   const uniq = [...new Set(flags)];
-  const suspicious = uniq.length > 0;
+  // `intentional-stub` is a marker flag, not a quality problem. A slug
+  // whose ONLY flag is `intentional-stub` is still `quality_status=good`.
+  const suspicious = uniq.some((f) => f !== "intentional-stub");
   const quality_status: QualityStatus = suspicious ? "flagged" : "good";
   return { suspicious, flags: uniq, quality_status };
 }
@@ -1223,10 +1228,22 @@ export function reclassifyRawSlug(slug: string): SourceJson | null {
   const md = readFileSync(contentPath, "utf8");
   const declaredImageCount = extractImageUrls(md).length;
   const downloadedImageCount = src.images?.length ?? 0;
-  // Preserve any adapter-only flags that classifyQuality can't re-derive
-  // (xhs-download-silent-fail, image-download-failed from earlier runs).
-  const preservedFlags = (src.quality_flags ?? []).filter((f) =>
-    f === "xhs-download-silent-fail" || f === "image-download-failed"
+  // classifyQuality only emits a small fixed set of flags from content
+  // alone. Every OTHER flag came from the adapter / site module and
+  // can't be recovered from content.md. Preserve them across reclassify
+  // so we don't strip intentional-stub markers (xhs-text-body-unavailable,
+  // _default-used-browser-fallback, weixin-image-download-partial, etc.)
+  // and silently re-classify auth-gated stubs as `content-too-short`.
+  const CLASSIFIER_EMITTED_FLAGS = new Set([
+    "short-body",
+    "below-host-expected-size",
+    "no-headings-in-body",
+    "login-wall-keyword",
+    "loading-skeleton",
+    "images-declared-but-none-downloaded",
+  ]);
+  const preservedFlags = (src.quality_flags ?? []).filter(
+    (f) => !CLASSIFIER_EMITTED_FLAGS.has(f),
   );
   const { flags, quality_status } = classifyQuality(md, {
     declaredImageCount,

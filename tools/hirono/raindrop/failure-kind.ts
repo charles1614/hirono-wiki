@@ -180,9 +180,11 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
     if (flagSet.has("huggingface-space") || flagSet.has("qwen-ai-non-article")) {
       return "intentional-stub-app-only";
     }
-    // Auth-gated kinds
+    // Auth-gated kinds. xhs-text-body-unavailable: post body is
+    // app-only / login-walled by xiaohongshu — image-only stub is the
+    // deliberate output, NOT a fetch failure.
     if (flagSet.has("feishu-auth-gated") || flagSet.has("feishu-user-auth-required") ||
-        flagSet.has("x-twitter-auth-required")) {
+        flagSet.has("x-twitter-auth-required") || flagSet.has("xhs-text-body-unavailable")) {
       return "upstream-auth-gated";
     }
     // Deleted upstream
