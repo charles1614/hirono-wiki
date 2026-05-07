@@ -95,15 +95,15 @@ const ADVICE: Record<FailureKind, string> = {
   "upstream-not-html":
     "URL is not an HTML page (PDF, CSV, app-store listing, API endpoint). Use a different extraction tool (e.g. PDF→text) or skip.",
   "upstream-fetch-failed":
-    "Network or extraction error. Retry: `fetch-raw sync --retry-kind upstream-fetch-failed`. Investigate if it persists.",
+    "Network or extraction error. Retry: `hirono raindrop sync --retry-kind upstream-fetch-failed`. Investigate if it persists.",
   "host-lan-only":
     "URL points at a private network address unreachable from the public internet. The bookmark was saved on a different network.",
   "host-malformed":
     "URL doesn't parse cleanly (broken share-link, encoding mishap). Fix the bookmark in Raindrop.",
   "host-throttled":
-    "Host returned 429 / Too Many Requests. Wait and retry: `fetch-raw sync --retry-kind host-throttled`.",
+    "Host returned 429 / Too Many Requests. Wait and retry: `hirono raindrop sync --retry-kind host-throttled`.",
   "content-incomplete-images":
-    "Body extraction worked but some image downloads failed (cross-origin denials, transient 403s). Retry: `fetch-raw sync --retry-kind content-incomplete-images`.",
+    "Body extraction worked but some image downloads failed (cross-origin denials, transient 403s). Retry: `hirono raindrop sync --retry-kind content-incomplete-images`.",
   "content-incomplete-images-zero":
     "Markdown references images but none were downloaded. The adapter declared images then failed to fetch any. Investigate the host.",
   "content-too-short":

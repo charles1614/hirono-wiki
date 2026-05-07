@@ -219,7 +219,7 @@ export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
         severity: "error",
         path: s.repo_path,
         detail: `Sources/.../${s.slug}.md has no raw archive at raw/.../${s.slug}/content.md`,
-        hint: "run tools/fetch-raw.ts to populate raw/, or remove the Source summary",
+        hint: "run `hirono raindrop fetch <slug>` to populate raw/, or remove the Source summary",
       });
     }
   }

@@ -7,8 +7,11 @@
 //   npx tsx tools/__tests__/snapshot-create.ts <url> --slug <slug>
 //
 // Effects:
-//   - Calls fetch-raw.ts fetch-url to land raw output under raw/2026/<slug>/
-//     (intentionally the legacy CLI — see comment near the execSync call)
+//   - Calls `hirono raindrop fetch` to land raw output under raw/2026/<slug>/.
+//     The fetch path applies applyPostCleanups via transformMarkdown (see
+//     hirono/raindrop/export.ts); we then run applyPostCleanups again at
+//     line 127 below — both passes are idempotent so the snapshot is the
+//     same as if we'd applied cleanups once.
 //   - Reads back, runs applyPostCleanups against origin URL
 //   - Derives host from URL → tools/__tests__/snapshots/<host>/<slug>.md
 //   - Writes <slug>.invariants.json sidecar
@@ -54,17 +57,9 @@ try {
 const slugDir = `raw/2026/${slug}`;
 console.log(`[1/4] fetch ${url} → ${slugDir}`);
 try {
-  // Use the legacy fetch-raw fetch-url path here (NOT `hirono raindrop fetch`)
-  // because `hirono raindrop fetch` routes to the export.ts implementation,
-  // which applies an extra applyPostCleanups pass via transformMarkdown.
-  // The existing snapshots were captured against the non-cleanup path; the
-  // byte-equal fixture tests assume that. Switching this caller to the new
-  // CLI is a deliberate behavior change (would re-baseline all snapshots)
-  // — out of scope for the CLI-rename. Suppress the deprecation notice so
-  // the test runner output stays clean.
   execSync(
-    `npx tsx tools/bin/fetch-raw.ts fetch-url "${url.replace(/"/g, '\\"')}" --slug ${slug} --force`,
-    { stdio: "inherit", env: { ...process.env, FETCH_RAW_NO_DEPRECATION_NOTICE: "1" } },
+    `npx tsx tools/bin/hirono.ts raindrop fetch "${url.replace(/"/g, '\\"')}" --slug ${slug} --force`,
+    { stdio: "inherit" },
   );
 } catch (e) {
   console.error(`[fetch] failed`);

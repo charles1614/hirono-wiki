@@ -19,10 +19,6 @@
  *      lint,find-dupes,sweep-issues}.ts` operate on Sources/Entities/
  *      Topics tree, not on raw/ or Raindrop state.
  *
- * The legacy `tools/bin/fetch-raw.ts` CLI still works (deprecation
- * notice on use). Every fetch-raw subcommand has a matching
- * `hirono raindrop <subcommand>` form.
- *
  * For subcommand-specific help:  hirono <subcommand> --help
  *                                hirono raindrop <subcommand> --help
  */
@@ -40,7 +36,7 @@ Raindrop fetch pipeline (raw export):
   raindrop refresh-cache                  pull all bookmarks from Raindrop API → cache
   raindrop new                            list bookmarks not yet in the sources index
   raindrop fetch <url|slug|id> [--slug]   fetch one source → raw/<slug>/
-                                          (alias: 'export', kept for backwards compat)
+                                          (alias: 'export')
   raindrop refetch <slug>                 force re-fetch using saved origin
                                           (preserves append-only: writes content-rev2.md)
   raindrop sync                           idempotent (re)fetch over raw/ + ingest queue
@@ -73,42 +69,42 @@ Wiki ingest + maintenance live in separate binaries (intentional layering):
 }
 
 async function dispatchRaindropFetchSubcommands(sub: string, rest: string[]): Promise<boolean> {
-  // Subcommands that delegate to fetch-raw library / cli helpers.
-  // Returns true if the subcommand was handled.
+  // Subcommands that handle the raw-archive lifecycle. Handlers live in
+  // `tools/fetch-raw-handlers.ts`. Returns true if the subcommand was
+  // handled.
   if (sub === "fetch" || sub === "export") {
-    // 'fetch' is the canonical name; 'export' is the legacy alias.
-    // Both route to the same enriched implementation in hirono/raindrop/export.ts.
+    // 'fetch' is the canonical name; 'export' is kept as an alias because
+    // the existing `hirono/raindrop/export.ts` implementation has slightly
+    // richer semantics (post-cleanup pipeline) than the bare cmdFetchUrl
+    // handler — both names route to it.
     const { main } = await import("../hirono/raindrop/export.ts");
     main(rest);
     return true;
   }
+  const { withFetchErrorHandling, cmdRefetch, cmdSync, cmdVerify, cmdStore, cmdFetchLark } =
+    await import("../fetch-raw-handlers.ts");
   if (sub === "refetch") {
-    const { cmdRefetch } = await import("./fetch-raw.ts");
     const positional = rest.filter(a => !a.startsWith("--"));
-    cmdRefetch(positional, rest);
+    withFetchErrorHandling(() => cmdRefetch(positional, rest));
     return true;
   }
   if (sub === "sync") {
-    const { cmdSync } = await import("./fetch-raw.ts");
-    cmdSync(rest);
+    withFetchErrorHandling(() => cmdSync(rest));
     return true;
   }
   if (sub === "verify") {
-    const { cmdVerify } = await import("./fetch-raw.ts");
     const positional = rest.filter(a => !a.startsWith("--"));
-    cmdVerify(positional);
+    withFetchErrorHandling(() => cmdVerify(positional));
     return true;
   }
   if (sub === "store") {
-    const { cmdStore } = await import("./fetch-raw.ts");
     const positional = rest.filter(a => !a.startsWith("--"));
-    cmdStore(positional, rest);
+    withFetchErrorHandling(() => cmdStore(positional, rest));
     return true;
   }
   if (sub === "fetch-lark") {
-    const { cmdFetchLark } = await import("./fetch-raw.ts");
     const positional = rest.filter(a => !a.startsWith("--"));
-    cmdFetchLark(positional, rest);
+    withFetchErrorHandling(() => cmdFetchLark(positional, rest));
     return true;
   }
   return false;
@@ -159,7 +155,7 @@ async function main(): Promise<void> {
       return;
     }
 
-    // Subcommands that consolidate fetch-raw's CLI under raindrop/.
+    // Subcommands that consolidate the raw-archive CLI.
     if (await dispatchRaindropFetchSubcommands(sub, rest)) return;
 
     console.error(`unknown raindrop subcommand: ${sub}`);

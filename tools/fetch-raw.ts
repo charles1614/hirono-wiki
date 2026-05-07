@@ -15,8 +15,10 @@
  *   - Type contracts: `SourceJson`, `FetcherKind`, `ImageRecord`,
  *     `FetchUrlOpts`, `StatusReport`, etc.
  *
- * The CLI driver lives in `tools/bin/fetch-raw.ts` — invoke as
- * `tsx tools/bin/fetch-raw.ts <subcommand>`.
+ * Invoked from the CLI via `hirono raindrop <subcommand>` (see
+ * `tools/bin/hirono.ts` + `tools/fetch-raw-handlers.ts`). The
+ * standalone `tools/bin/fetch-raw.ts` binary was removed when the
+ * fetch pipeline was consolidated under the hirono namespace.
  *
  * Error escalation (per the codified protocol in Meta/schema.md):
  *   L1 (auto-retry transient): network timeout, 5xx, 429 w/ Retry-After
@@ -1043,7 +1045,7 @@ export function remediationFor(flags: string[], originUrl: string = ""): string 
   const host = hostnameOf(originUrl);
   if (flags.includes("login-wall-keyword")) {
     if (/xiaohongshu|xhslink/.test(host)) {
-      return "log into xiaohongshu.com in the opencli-connected Chrome, verify `opencli doctor`, then `fetch-raw.ts refetch <slug>`";
+      return "log into xiaohongshu.com in the opencli-connected Chrome, verify `opencli doctor`, then `hirono raindrop refetch <slug>`";
     }
     if (/zhihu/.test(host)) {
       return "log into zhihu.com in that Chrome and retry";

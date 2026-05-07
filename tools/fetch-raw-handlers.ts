@@ -1,22 +1,20 @@
-#!/usr/bin/env node
 /**
- * `fetch-raw` CLI — entry point for the raw-source acquisition tooling.
- * Library code lives in `tools/fetch-raw.ts`; this file is just the
- * argument parser + subcommand dispatcher.
+ * CLI handler library for the Raindrop fetch pipeline.
  *
- * Subcommands:
- *   fetch-raw store <slug> --origin <id> --raw-md <path> [--no-images]
- *   fetch-raw fetch-lark <slug> --node <token>
- *   fetch-raw fetch-url <slug> --url <https://...> [--via-browser] [--force]
- *   fetch-raw verify <slug>
- *   fetch-raw status [--json]
- *   fetch-raw sync [--apply] [--limit N]
- *   fetch-raw refetch <slug> [--via-browser] [--no-images]
+ * These functions are dispatched by `tools/bin/hirono.ts` for the
+ * `hirono raindrop {fetch, refetch, sync, verify, status, store,
+ * fetch-lark}` subcommands. They handle argv parsing + console output;
+ * the underlying side-effecting logic lives in `tools/fetch-raw.ts`
+ * (the library).
+ *
+ * No binary entry point — invoke via `hirono raindrop <subcommand>`.
+ *
+ * (Predecessor: `tools/bin/fetch-raw.ts`. Removed when the CLI was
+ * consolidated under `hirono raindrop`.)
  */
 
-import { existsSync, readFileSync, readSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 import {
   type FetchError,
@@ -37,10 +35,7 @@ import {
   reclassifyRawSlug,
   writeRawArchive,
   yearForSlug,
-} from "../fetch-raw.ts";
-
-const THIS_FILE = fileURLToPath(import.meta.url);
-
+} from "./fetch-raw.ts";
 
 function argVal(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);
@@ -51,34 +46,8 @@ function argFlag(args: string[], name: string): boolean {
   return args.includes(name);
 }
 
-function usage(): never {
-  console.error(`usage:
-  tsx fetch-raw.ts store <slug> --origin <origin> --origin-url <url> \\
-       [--input <path> | (default stdin)] [--title <title>] \\
-       [--raindrop-meta <path>] [--lark-meta <path>] [--no-images] [--force]
-  tsx fetch-raw.ts fetch-lark <node-token> --slug <slug> [--no-images] [--force]
-  tsx fetch-raw.ts fetch-url <url> --slug <slug> [--via-browser] [--no-images] [--force]
-  tsx fetch-raw.ts verify <slug>
-  tsx fetch-raw.ts status [--quiet]
-       Walk raw/ + Meta/fetch-decisions.md; group slugs by quality; print
-       actionable remediation hints.
-  tsx fetch-raw.ts sync [--limit N] [--retry-flagged] [--retry-kind <kind>] \\
-       [--retry-prefix <prefix>] [--check-stale] [--max-age <days>] \\
-       [--only <slug,...>] [--dry-run] [--reclassify] [--no-images]
-       Idempotent (re)fetch over raw/ + ingest_batch pending queue.
-       Skips good slugs + decisions; only --retry-flagged touches flagged
-       slugs that have no decision. --dry-run shows the plan.
-
-       --retry-kind X       retry slugs whose computed failure_kind equals X
-       --retry-prefix P     retry slugs whose failure_kind starts with P
-                            (e.g. --retry-prefix upstream- catches all
-                            upstream-* kinds: auth-gated, deleted, fetch-failed)
-       --check-stale        for good slugs older than --max-age, HEAD-check
-                            upstream; re-fetch if etag/last-modified changed
-       --max-age N          default 90 (days). Only relevant with --check-stale.
-  tsx fetch-raw.ts refetch <slug> [--no-images]
-       Force single-slug re-fetch using the origin recorded in source.json.
-       Preserves append-only semantics (writes content-rev2.md, etc.).`);
+function fail(msg: string): never {
+  console.error(msg);
   process.exit(2);
 }
 
@@ -86,7 +55,6 @@ function readAll(path: string | undefined): string {
   if (path) return readFileSync(resolve(path), "utf8");
   // stdin
   const chunks: Buffer[] = [];
-  let data: Buffer | null;
   const fs = require("node:fs") as typeof import("node:fs");
   const fd = 0;
   try {
@@ -102,10 +70,10 @@ function readAll(path: string | undefined): string {
 
 export function cmdStore(positional: string[], args: string[]): void {
   const slug = positional[0];
-  if (!slug) usage();
+  if (!slug) fail("hirono raindrop store: missing <slug>");
   const origin = argVal(args, "--origin");
   const originUrl = argVal(args, "--origin-url");
-  if (!origin || !originUrl) usage();
+  if (!origin || !originUrl) fail("hirono raindrop store: --origin and --origin-url required");
   const input = argVal(args, "--input");
   const title = argVal(args, "--title");
   const raindropMetaPath = argVal(args, "--raindrop-meta");
@@ -115,7 +83,7 @@ export function cmdStore(positional: string[], args: string[]): void {
 
   const rawMarkdown = readAll(input);
   if (!rawMarkdown.trim()) {
-    console.error("fetch-raw store: empty input — nothing to write");
+    console.error("hirono raindrop store: empty input — nothing to write");
     process.exit(2);
   }
 
@@ -149,9 +117,9 @@ export function cmdStore(positional: string[], args: string[]): void {
 
 export function cmdFetchLark(positional: string[], args: string[]): void {
   const nodeToken = positional[0];
-  if (!nodeToken) usage();
+  if (!nodeToken) fail("hirono raindrop fetch-lark: missing <node-token>");
   const slug = argVal(args, "--slug");
-  if (!slug) usage();
+  if (!slug) fail("hirono raindrop fetch-lark: --slug required");
   const downloadImages = !argFlag(args, "--no-images");
   const force = argFlag(args, "--force");
 
@@ -172,9 +140,9 @@ export function cmdFetchLark(positional: string[], args: string[]): void {
 
 export function cmdFetchUrl(positional: string[], args: string[]): void {
   const url = positional[0];
-  if (!url) usage();
+  if (!url) fail("hirono raindrop fetch: missing <url>");
   const slug = argVal(args, "--slug");
-  if (!slug) usage();
+  if (!slug) fail("hirono raindrop fetch: --slug required");
   const viaBrowser = argFlag(args, "--via-browser");
   const downloadImages = !argFlag(args, "--no-images");
   const force = argFlag(args, "--force");
@@ -188,7 +156,7 @@ export function cmdFetchUrl(positional: string[], args: string[]): void {
 
 export function cmdVerify(positional: string[]): void {
   const slug = positional[0];
-  if (!slug) usage();
+  if (!slug) fail("hirono raindrop verify: missing <slug>");
   const dir = rawDirFor(slug);
   const probs: string[] = [];
   if (!existsSync(dir)) probs.push(`dir missing: ${dir}`);
@@ -206,21 +174,16 @@ export function cmdVerify(positional: string[]): void {
     console.log(`[verify] ✓ ${slug}`);
     return;
   }
-  for (const p of probs) console.log(`[verify] ✗ ${slug}: ${p}`);
+  console.error(`[verify] ✗ ${slug}`);
+  for (const p of probs) console.error(`  - ${p}`);
   process.exit(1);
 }
 
 export function cmdStatus(args: string[]): void {
-  if (argFlag(args, "--quiet")) process.env.FETCH_RAW_STATUS_QUIET = "1";
-  // Always re-classify on status — cheap, and makes the report reflect any
-  // classifier-logic changes since last fetch.
-  for (const info of listRawSlugs()) {
-    if (info.hasContent) reclassifyRawSlug(info.slug);
-  }
-  const report = buildStatusReport();
-  printStatusReport(report);
-  // Exit non-zero if anything needs attention — caller can treat this like
-  // lint: any needsAttention → fail the batch close.
+  const quiet = argFlag(args, "--quiet");
+  const report: StatusReport = buildStatusReport();
+  if (!quiet) printStatusReport(report);
+  // Exit 1 when there are slugs needing attention (suitable for CI/script gates).
   if (report.needsAttention.length > 0) process.exit(1);
 }
 
@@ -311,17 +274,19 @@ export function cmdSync(args: string[]): void {
       }
     }
   }
-  console.log(`\n[sync] done: ${ok} ok, ${failed} failed, ${skipped} skipped`);
+
+  console.log(`\n[sync] complete: ${ok} ok, ${failed} failed`);
+  if (failed > 0) process.exit(1);
 }
 
 export function cmdRefetch(positional: string[], args: string[]): void {
   const slug = positional[0];
-  if (!slug) usage();
+  if (!slug) fail("hirono raindrop refetch: missing <slug>");
   const downloadImages = !argFlag(args, "--no-images");
   const slugDir = rawDirFor(slug);
   const sourcePath = join(slugDir, "source.json");
   if (!existsSync(sourcePath)) {
-    console.error(`[refetch] no source.json at ${sourcePath} — use fetch-url / fetch-lark first`);
+    console.error(`[refetch] no source.json at ${sourcePath} — use 'hirono raindrop fetch' first`);
     process.exit(2);
   }
   const src = JSON.parse(readFileSync(sourcePath, "utf8")) as SourceJson;
@@ -343,69 +308,21 @@ export function cmdRefetch(positional: string[], args: string[]): void {
   );
 }
 
-function main(): void {
-  const [cmd, ...rest] = process.argv.slice(2);
-  const positional: string[] = [];
-  const flags: string[] = [];
-  for (let i = 0; i < rest.length; i++) {
-    const a = rest[i];
-    if (a.startsWith("--")) {
-      flags.push(a);
-      // Peek next arg — consume if not another flag
-      if (i + 1 < rest.length && !rest[i + 1].startsWith("--")) {
-        flags.push(rest[++i]);
-      }
-    } else {
-      positional.push(a);
-    }
-  }
-
-  // Deprecation notice — every fetch-raw subcommand now has a matching
-  // `hirono raindrop <subcommand>` form. Map the legacy name to the
-  // canonical hirono form and print a single line to stderr. Behavior is
-  // unchanged; this is informational only. Suppressed via env var so test
-  // suites that invoke fetch-raw stay quiet.
-  if (cmd && !process.env.FETCH_RAW_NO_DEPRECATION_NOTICE) {
-    const NEW_NAME: Record<string, string> = {
-      "store": "store",
-      "fetch-lark": "fetch-lark",
-      "fetch-url": "fetch",   // canonical name in the new namespace
-      "verify": "verify",
-      "status": "status",
-      "sync": "sync",
-      "refetch": "refetch",
-    };
-    const newSub = NEW_NAME[cmd];
-    if (newSub) {
-      console.error(
-        `[deprecated] fetch-raw ${cmd}: use 'hirono raindrop ${newSub}' instead. ` +
-        `(set FETCH_RAW_NO_DEPRECATION_NOTICE=1 to silence)`,
-      );
-    }
-  }
-
+/**
+ * Wrap a CLI handler so FetchError instances are surfaced with their
+ * level / code / remediation, and non-FetchError throws propagate.
+ * Used by `hirono raindrop` dispatch in `tools/bin/hirono.ts`.
+ */
+export function withFetchErrorHandling(fn: () => void): void {
   try {
-    switch (cmd) {
-      case "store":       cmdStore(positional, flags); break;
-      case "fetch-lark":  cmdFetchLark(positional, flags); break;
-      case "fetch-url":   cmdFetchUrl(positional, flags); break;
-      case "verify":      cmdVerify(positional); break;
-      case "status":      cmdStatus(flags); break;
-      case "sync":        cmdSync(flags); break;
-      case "refetch":     cmdRefetch(positional, flags); break;
-      default:            usage();
-    }
+    fn();
   } catch (err) {
     const fe = err as FetchError;
     if (fe.level && fe.code) {
-      console.error(`[fetch-raw] ${fe.level} ${fe.code}: ${fe.message}`);
+      console.error(`[hirono raindrop] ${fe.level} ${fe.code}: ${fe.message}`);
       if (fe.remediation) console.error(`  remediation: ${fe.remediation}`);
       process.exit(fe.level === "L1" ? 2 : fe.level === "L2" ? 0 : 1);
     }
     throw err;
   }
 }
-
-const isEntryPoint =
-  process.argv[1] !== undefined && THIS_FILE === resolve(process.argv[1]);
-if (isEntryPoint) main();

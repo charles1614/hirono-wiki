@@ -530,9 +530,15 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
   - `classifyQuality` — flag assembly; consumes `intentional-stub`
   - `fetchUrlAndStore` — calls `routeSite(url).fetch()`, runs image processing + post-cleanup, writes raw archive. Exactly one site-module call.
   - status helpers: `parseFetchDecisions`, `listRawSlugs`, `buildStatusReport`, `buildSyncPlan`, `remediationFor`, `executeFetchPlanItem`, `printStatusReport`
+- **`tools/fetch-raw-handlers.ts`** — CLI handler library for the
+  raindrop fetch pipeline (`fetch`, `refetch`, `sync`, `verify`,
+  `status`, `store`, `fetch-lark`). Dispatched from
+  `tools/bin/hirono.ts`; imports from `tools/fetch-raw.ts`.
 - **`tools/bin/`** — CLI entry-point scripts (each starts with shebang):
-  - `fetch-raw.ts` — argument parser + subcommand dispatcher (`store`, `fetch-url`, `fetch-lark`, `verify`, `status`, `sync`, `refetch`); imports the library above
-  - `hirono.ts` — multi-subcommand wiki CLI (raindrop check / export / fetch-all / refresh-cache / doctor)
+  - `hirono.ts` — single entry point. Subcommands:
+    - `raindrop {check, refresh-cache, new, fetch, refetch, sync, verify,`
+      `status, history, diff, fetch-all, store, fetch-lark, export}`
+    - `doctor`
   - `lint.ts`, `reindex.ts`, `preprocess.ts`, `sync.ts`, `reconcile_light.ts`, `reconcile_heavy.ts`, `ingest_batch.ts`, `build-sources-index.ts`, `build-mention-map.ts`, `find-dupes.ts`, `sweep-issues.ts`
 - **`tools/sites/`** — every host module:
   - `<host>/index.ts` — `Site` contract export with `match(url)` + `fetch(url, opts)`

@@ -9,10 +9,12 @@
  *   - Slug: `2026-04-21-deepwiki-slime-overview`
  *     → looks up origin from existing raw/<slug>/source.json (refetch)
  *
- * Improvement over `fetch-raw.ts fetch-url` / `refetch`: runs the hirono
- * POST_PROCESSORS pipeline between adapter output and writeRawArchive,
- * which strips UI chrome, resolves relative image URLs, and applies
- * other site-specific cleanups.
+ * Difference from the lower-level `cmdFetchUrl` handler in
+ * `tools/fetch-raw-handlers.ts`: this command runs the
+ * `applyPostCleanups` pipeline between adapter output and
+ * writeRawArchive, which resolves relative image URLs, strips UI
+ * chrome, etc. The `hirono raindrop fetch` and `hirono raindrop
+ * export` subcommands both route through here.
  *
  * Usage:
  *   hirono raindrop export <id|url|slug> [--slug <slug>] [--force] [--no-images]
@@ -163,7 +165,8 @@ export function main(argv: string[]): void {
   const positional = argv.filter((a) => !a.startsWith("--"));
   const identifier = positional[0];
   if (!identifier) {
-    console.error(`usage: hirono raindrop export <id|url|slug> [--slug <slug>] [--force] [--no-images]`);
+    console.error(`usage: hirono raindrop fetch <id|url|slug> [--slug <slug>] [--force] [--no-images]
+       (legacy alias: hirono raindrop export ...)`);
     process.exit(2);
   }
 

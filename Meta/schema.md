@@ -262,16 +262,15 @@ later phases will fold them under `hirono` subcommands.
   `--token`, `$RAINDROP_TOKEN`, or `~/.config/hirono/raindrop-token`
   (get one at https://app.raindrop.io/settings/integrations).
 
-- `hirono raindrop export <id|url|slug> [--slug <s>] [--force] [--no-images]` —
+- `hirono raindrop fetch <id|url|slug> [--slug <s>] [--force] [--no-images]` —
   fetch a single source into `raw/<year>/<slug>/`. Accepts (a) a
   Raindrop bookmark ID (`123` or `raindrop:123`; looked up in cache),
   (b) a raw URL with explicit `--slug`, or (c) an existing slug which
-  triggers a refetch. Improvement over `fetch-raw fetch-url` /
-  `refetch`: runs the **POST_PROCESSORS pipeline** between adapter
-  output and `writeRawArchive`, which strips UI chrome, resolves
-  relative image URLs, collapses exploded SVG text, and strips HTML
-  color tags. **Append-only by default** — refetches write
-  `content-revN.md` rather than clobbering (helpful when a second
+  triggers a refetch. Runs the `applyPostCleanups` pipeline between
+  adapter output and `writeRawArchive`, which strips UI chrome,
+  resolves relative image URLs, collapses exploded SVG text, and
+  strips HTML color tags. **Append-only by default** — refetches
+  write `content-revN.md` rather than clobbering (helpful when a second
   fetch is worse, e.g. SPA cold-cache). `--force` overwrites.
 
 - `hirono doctor [--fix]` — health check:
@@ -316,19 +315,16 @@ snapshot. Refreshed by `hirono raindrop refresh-cache`. Read by
 `hirono raindrop check` (for the full-corpus view) and
 `hirono raindrop export <id>` (for ID-based lookup).
 
-### Fetch-raw workflow (legacy entry points)
+### Fetch pipeline entry points
 
-`tools/fetch-raw.ts` still exposes three CLIs for backward compatibility
-(and hirono delegates into its helpers under the hood):
+The raw-archive lifecycle commands all live under `hirono raindrop`:
 
-- `fetch-raw.ts fetch-url <url> --slug <slug>` — fetches any URL via opencli, dispatched:
-  - `*.xiaohongshu.com` + `xhslink.com` → `opencli xiaohongshu note` + `opencli xiaohongshu download`
-  - `zhuanlan.zhihu.com/p/*` → `opencli zhihu download`
-  - `*.zhihu.com/question/*` → `opencli zhihu question`
-  - `mp.weixin.qq.com/*` → `opencli weixin download`
-  - Everything else → `opencli web read` (generic)
-- `fetch-raw.ts fetch-lark <node-token> --slug <slug>` — for Lark Space 1 nodes.
-- `fetch-raw.ts store <slug> --origin <origin> --origin-url <url>` — stores pre-fetched content from stdin / `--input`; used by Claude when piping MCP output (Raindrop MCP is Claude-side).
+- `hirono raindrop fetch <url|slug|id> [--slug <slug>]` — fetches one URL via the routed site module.
+- `hirono raindrop fetch-lark <node-token> --slug <slug>` — for Lark Space 1 nodes.
+- `hirono raindrop store <slug> --origin <origin> --origin-url <url>` — stores pre-fetched content from stdin / `--input`; used by Claude when piping MCP output (Raindrop MCP is Claude-side).
+- `hirono raindrop sync` / `refetch` / `verify` / `status` — incremental + ad-hoc operations.
+
+The library lives at `tools/fetch-raw.ts`; the CLI handler shims at `tools/fetch-raw-handlers.ts`. The standalone `tools/bin/fetch-raw.ts` binary was removed when the pipeline was consolidated under `hirono`.
 
 **Prerequisite** (one-time per workstation):
 1. Install opencli Chrome extension (`opencli doctor` to verify `[OK] Extension: connected`)
@@ -337,7 +333,7 @@ snapshot. Refreshed by `hirono raindrop refresh-cache`. Read by
 
 ### Error escalation protocol (applies to v1 + every incremental ingest, forever)
 
-fetch-raw classifies failures into three severity levels. Codified here so future sessions follow the same protocol.
+The fetch pipeline classifies failures into three severity levels. Codified here so future sessions follow the same protocol.
 
 **L1 — Auto-retry (transient, no user action):**
 
@@ -390,13 +386,13 @@ three-level summary derived from `quality_flags`:
 | `flagged` | raw saved, but at least one quality issue | login-wall, short-body, loading-skeleton, image-download-failed, xhs-download-silent-fail, images-declared-but-none-downloaded |
 | `failed` | no usable content on disk at all | L3 abort; adapter never wrote content.md |
 
-`quality_status` is what `fetch-raw.ts status` + `sync` dispatch on. Raw
+`quality_status` is what `hirono raindrop status` + `sync` dispatch on. Raw
 `quality_flags` stay as the fine-grained signal for debugging / filtering.
 
 #### Scan-able status view
 
 ```
-tsx fetch-raw.ts status
+tsx tools/bin/hirono.ts raindrop status
 ```
 
 Walks `raw/` + reads `Meta/fetch-decisions.md`, re-classifies each slug (cheap
@@ -411,7 +407,7 @@ Exit code: 1 if anything in `needs attention`, 0 otherwise. Hook into CI / batch
 #### Idempotent re-fetch: `sync`
 
 ```
-tsx fetch-raw.ts sync [--limit N] [--retry-flagged] [--only <slug,...>] [--dry-run] [--verbose]
+tsx tools/bin/hirono.ts raindrop sync [--limit N] [--retry-flagged] [--only <slug,...>] [--dry-run] [--verbose]
 ```
 
 Walks `raw/` + `.wiki-batch-state.json` pending entries. For each candidate slug, decides:
@@ -438,7 +434,7 @@ Key invariants:
 #### Force-refetch a single slug
 
 ```
-tsx fetch-raw.ts refetch <slug>
+tsx tools/bin/hirono.ts raindrop refetch <slug>
 ```
 
 Reads `source.json` to get the origin, re-runs the fetcher. Useful after a
@@ -475,13 +471,13 @@ Anything else — H2 titles, narrative, HTML-commented examples — is ignored.
 npx tsx ingest_batch.ts plan candidates-batch-1.json
 
 # 2. Pre-fetch raw content for everything pending (idempotent — skips good)
-npx tsx fetch-raw.ts sync --limit 20
+npx tsx tools/bin/hirono.ts raindrop sync --limit 20
 
 # 3. Check quality; fix any L3 issues the report names
-npx tsx fetch-raw.ts status
+npx tsx tools/bin/hirono.ts raindrop status
 
 # 4. Retry anything that came back flagged after fixing issues
-npx tsx fetch-raw.ts sync --retry-flagged
+npx tsx tools/bin/hirono.ts raindrop sync --retry-flagged
 
 # 5. Accept genuinely can't-fix cases by editing Meta/fetch-decisions.md
 #    (then re-run status to confirm they moved to "accepted-as-is")

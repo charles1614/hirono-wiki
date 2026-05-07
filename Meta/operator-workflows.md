@@ -20,9 +20,7 @@ Raindrop fetch pipeline. Wiki ingest (`ingest_batch.ts`) and wiki
 maintenance (`reindex.ts`, `build-sources-index.ts`, `lint.ts`,
 etc.) live in separate top-level binaries by design — they operate
 on `Sources/` / `Entities/` / `Topics/`, not on `raw/` or Raindrop
-state. The legacy `fetch-raw.ts` CLI still works but each subcommand
-prints a deprecation notice and points to the equivalent
-`hirono raindrop ...` form.
+state.
 
 Jump to:
 
@@ -677,14 +675,12 @@ Run before every commit that touches `tools/sites/` or
 | `store <slug>` | Write pre-fetched markdown into `raw/<slug>/` (low-level; piped from MCP). | `--origin <id>` `--origin-url <url>` `--input <path>` |
 | `fetch-lark <token>` | Fetch via lark-hirono node token (low-level). | `--slug <slug>` `--no-images` |
 
-### Legacy `fetch-raw ...` CLI (deprecated; aliases retained)
+### Removed: legacy `fetch-raw` CLI
 
-The old `tools/bin/fetch-raw.ts <subcommand>` invocations continue to
-work but print a one-line deprecation notice on use. Set the env var
-`FETCH_RAW_NO_DEPRECATION_NOTICE=1` to silence (used by internal test
-helpers). Migration map:
+The previous `tools/bin/fetch-raw.ts <subcommand>` binary has been
+removed. Every subcommand now lives under `hirono raindrop`:
 
-| Legacy | Use instead |
+| Removed | Use instead |
 |---|---|
 | `fetch-raw fetch-url <url> --slug <slug>` | `hirono raindrop fetch <url> --slug <slug>` |
 | `fetch-raw refetch <slug>` | `hirono raindrop refetch <slug>` |
