@@ -40,6 +40,8 @@ subcommands:
   raindrop fetch-all          bulk fetch one copy of every unique URL → raw/
   raindrop status             join corpus + index + raw/; classify failures
   raindrop new                list bookmarks not yet in the sources index
+  raindrop history <slug>     list all revisions for a slug
+  raindrop diff <slug>        unified diff between two revisions of a slug
   doctor                      environment + adapter health check
 
 For subcommand-specific help: hirono <subcommand> --help`);
@@ -83,8 +85,18 @@ async function main(): Promise<void> {
       main(rest);
       return;
     }
+    if (sub === "history") {
+      const { main } = await import("../hirono/raindrop/history.ts");
+      main(rest);
+      return;
+    }
+    if (sub === "diff") {
+      const { main } = await import("../hirono/raindrop/diff.ts");
+      main(rest);
+      return;
+    }
     console.error(`unknown raindrop subcommand: ${sub}`);
-    console.error(`valid: check, export, refresh-cache, fetch-all, status, new`);
+    console.error(`valid: check, export, refresh-cache, fetch-all, status, new, history, diff`);
     process.exit(2);
   }
 

@@ -36,6 +36,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { writeFileAtomic } from "./shared/atomic-write.ts";
 import { acquireBrowserLock, acquireSlugLock } from "./shared/browser-lock.ts";
+import { appendRevision, nextRev, type RevisionRow } from "./shared/revisions.ts";
 import { routeSite } from "./sites/index.ts";
 import { extractJsonFromEvalStdout } from "./sites/_shared/browser-eval-json.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
@@ -604,6 +605,41 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
     lark_meta: args.larkMeta,
   };
   writeFileAtomic(join(slugDir, "source.json"), JSON.stringify(src, null, 2) + "\n");
+
+  // Append a row to revisions.jsonl. Compute the next rev number from
+  // the existing log; the content file we just wrote may be content.md
+  // (first fetch) or content-revN.md (append-only refetch).
+  try {
+    const rev = nextRev(slugDir);
+    let failureKind: string | undefined;
+    try {
+      failureKind = classifyFromInput({
+        url: args.originUrl,
+        quality_status: src.quality_status,
+        flags: src.quality_flags,
+        isFetched: true,
+      });
+    } catch { /* classifier never throws, but be defensive */ }
+    const row: RevisionRow = {
+      rev,
+      fetched_at: src.fetched_at,
+      content_file: contentFile,
+      content_sha: src.content_sha,
+      content_length: src.content_length,
+      quality_status: src.quality_status,
+      quality_flags: src.quality_flags,
+      failure_kind: failureKind,
+      image_count: images.length,
+      fetcher: src.fetcher,
+      fetcher_reason: src.fetcher_reason,
+    };
+    appendRevision(slugDir, row);
+  } catch (e) {
+    // Don't fail the whole fetch if the audit-log append breaks; just
+    // log a warning. The canonical source.json + content.md are already
+    // on disk.
+    console.error(`[revisions] failed to append: ${e instanceof Error ? e.message : e}`);
+  }
 
   if (suspicious) {
     logL2Issue(args.slug, qualityFlags.join(","), args.originUrl);
