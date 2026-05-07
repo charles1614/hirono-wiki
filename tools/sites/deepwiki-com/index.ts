@@ -14,6 +14,7 @@ import type { Site } from "../_shared/types.ts";
 import { extractDeepwikiComContent } from "./fetcher.ts";
 import { convertDeepwikiComHtml } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -77,16 +78,11 @@ function fetchDeepwiki(url: string, opts: { slugDir: string; titleHint?: string 
   };
 }
 
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# DeepWiki.com page: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "deepwiki-com-stub", reason },
-    flags: ["intentional-stub", "deepwiki-com-fetch-failed"],
-    notes: [`deepwiki-com: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "deepwiki-com", kind: "fetch-failed",
+    title: "DeepWiki.com page (fetch failed)",
+    summary: reason,
+    errorDetail,
+  });
 }

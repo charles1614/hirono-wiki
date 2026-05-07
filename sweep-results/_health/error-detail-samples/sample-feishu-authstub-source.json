@@ -1,0 +1,19 @@
+{
+  "fetched_at": "2026-05-07T06:43:29.702Z",
+  "origin": "url:https://upiwgvvcb4.feishu.cn/wiki/RT9hw9alFi3vkAkv9mhcmuq8nBf",
+  "origin_url": "https://upiwgvvcb4.feishu.cn/wiki/RT9hw9alFi3vkAkv9mhcmuq8nBf",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "3560659a72a9bcda3cffb05307212b3280b36bf5dba07911b2a66edb5a60a30c",
+  "content_length": 1537,
+  "quality_flags": [
+    "feishu-auth-gated"
+  ],
+  "quality_status": "flagged",
+  "images": [],
+  "notes": [
+    "site module: feishu",
+    "feishu: stub emitted — auth-gated: user: forBidden; bot: forBidden"
+  ],
+  "error_detail": "user: forBidden; bot: forBidden\n\n[lark-cli --as user]\n{\n  \"ok\": false,\n  \"identity\": \"user\",\n  \"error\": {\n    \"type\": \"mcp_error\",\n    \"message\": \"MCP: [NETWORK:5002] Failed to get child blocks\\n💡 Suggestion: Network temporarily unavailable, please try again later\\n📍 Context: api=/open-apis/docx/v1/documents/RT9hw9alFi3vkAkv9mhcmuq8nBf/blocks/RT9hw9alFi3vkAkv9mhcmuq8nBf/children, documentID=RT9hw9alFi3vkAkv9mhcmuq8nBf\\n🔗 Caused by: forBidden\"\n  },\n  \"_notice\": {\n    \"update\": {\n      \"current\": \"1.0.14\",\n      \"latest\": \"1.0.24\",\n      \"message\": \"lark-cli 1.0.24 available, current 1.0.14\"\n    }\n  }\n}\n\n[lark-cli --as bot]\n{\n  \"ok\": false,\n  \"identity\": \"bot\",\n  \"error\": {\n    \"type\": \"mcp_error\",\n    \"message\": \"MCP: [NETWORK:5002] Failed to get child blocks\\n💡 Suggestion: Network temporarily unavailable, please try again later\\n📍 Context: api=/open-apis/docx/v1/documents/RT9hw9alFi3vkAkv9mhcmuq8nBf/blocks/RT9hw9alFi3vkAkv9mhcmuq8nBf/children, documentID=RT9hw9alFi3vkAkv9mhcmuq8nBf\\n🔗 Caused by: forBidden\"\n  },\n  \"_notice\": {\n    \"update\": {\n      \"current\": \"1.0.14\",\n      \"latest\": \"1.0.24\",\n      \"message\": \"lark-cli 1.0.24 available, current 1.0.14\"\n    }\n  }\n}"
+}

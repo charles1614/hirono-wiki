@@ -21,6 +21,7 @@ import { spawnSync } from "node:child_process";
 
 import type { Site, FetchOpts, Result } from "../_shared/types.ts";
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 interface FeishuConvertArgs {
   url: string;
@@ -55,7 +56,14 @@ function wikiIdFromUrl(url: string): string | null {
   return m ? m[1] : null;
 }
 
-interface FetchResult { markdown: string; title: string; identity: string; error?: string }
+interface FetchResult {
+  markdown: string;
+  title: string;
+  identity: string;
+  error?: string;
+  /** Full lark-cli error JSON / stderr trace for diagnostics. */
+  rawError?: string;
+}
 
 function tryFetchAs(wikiId: string, as: "user" | "bot"): FetchResult {
   try {
@@ -64,62 +72,62 @@ function tryFetchAs(wikiId: string, as: "user" | "bot"): FetchResult {
       ["docs", "+fetch", "--doc", wikiId, "--as", as, "--format", "json"],
       { encoding: "utf8", timeout: 60_000, maxBuffer: 32 * 1024 * 1024 },
     );
-    // lark-cli writes the success JSON to stdout, but on failure (exit != 0)
-    // it writes the structured error JSON to STDERR with stdout empty. Try
-    // stdout first; if empty, fall back to stderr so the operator sees the
-    // real error (forBidden, resource deleted, etc.) instead of a generic
-    // "exited 1".
     const raw = (res.stdout && res.stdout.trim()) ? res.stdout : (res.stderr || "");
     if (!raw.trim()) {
-      return { markdown: "", title: "", identity: as, error: `lark-cli exited ${res.status} with no output` };
+      const rawError = `[lark-cli --as ${as}] exit=${res.status}, stdout empty, stderr empty`;
+      return { markdown: "", title: "", identity: as, error: `lark-cli exited ${res.status} with no output`, rawError };
     }
     let parsed: { ok?: boolean; data?: { markdown?: string; title?: string }; error?: { message?: string } };
     try { parsed = JSON.parse(raw); }
-    catch (e) { return { markdown: "", title: "", identity: as, error: `JSON parse failed: ${e instanceof Error ? e.message : e}` }; }
+    catch (e) {
+      const rawError = `[lark-cli --as ${as}] JSON parse failed: ${e instanceof Error ? e.message : e}\n${raw.slice(0, 1500)}`;
+      return { markdown: "", title: "", identity: as, error: `JSON parse failed: ${e instanceof Error ? e.message : e}`, rawError };
+    }
     if (parsed.ok === false) {
       const msg = parsed.error?.message || "lark-cli reported ok=false";
-      // Order matters: "Caused by:" is lark-cli's actual root cause line.
-      // Match it first; the boilerplate "Network temporarily unavailable"
-      // is just generic suggestion text and would otherwise mask the real
-      // failure (forBidden / resource deleted / etc.).
+      const rawError = `[lark-cli --as ${as}]\n${JSON.stringify(parsed, null, 2)}`;
       const causedBy = msg.match(/Caused by:\s*([^\n]+)/i);
       if (causedBy) {
         const cause = causedBy[1].trim();
         const known = cause.match(/need_user_authorization|forBidden|resource deleted|forbidden/i);
-        return { markdown: "", title: "", identity: as, error: known ? known[0] : cause.slice(0, 100) };
+        return { markdown: "", title: "", identity: as, error: known ? known[0] : cause.slice(0, 100), rawError };
       }
       const reasonMatch = msg.match(/need_user_authorization|forBidden|resource deleted/i);
-      return { markdown: "", title: "", identity: as, error: reasonMatch ? reasonMatch[0] : msg.slice(0, 200) };
+      return { markdown: "", title: "", identity: as, error: reasonMatch ? reasonMatch[0] : msg.slice(0, 200), rawError };
     }
     const md = parsed.data?.markdown || "";
     const title = parsed.data?.title || "";
-    if (!md.trim()) return { markdown: "", title: "", identity: as, error: "empty markdown" };
+    if (!md.trim()) {
+      return { markdown: "", title: "", identity: as, error: "empty markdown", rawError: `[lark-cli --as ${as}] ok=true but data.markdown empty` };
+    }
     return { markdown: md, title, identity: as };
   } catch (e) {
-    return { markdown: "", title: "", identity: as, error: e instanceof Error ? e.message : String(e) };
+    return {
+      markdown: "", title: "", identity: as,
+      error: e instanceof Error ? e.message : String(e),
+      rawError: `[lark-cli --as ${as}] threw: ${e instanceof Error ? e.stack || e.message : String(e)}`,
+    };
   }
 }
 
-function fetchViaLarkHirono(wikiId: string): { markdown: string; title: string; identity?: string; error?: string } {
-  // Try user identity first (broader read access on foreign tenants where
-  // the user has been granted permission via the Feishu UI). Fall back to
-  // bot identity (OAuth tenant token) when user auth isn't configured.
+function fetchViaLarkHirono(wikiId: string): { markdown: string; title: string; identity?: string; error?: string; rawError?: string } {
   const userTry = tryFetchAs(wikiId, "user");
   if (!userTry.error) return userTry;
 
-  // Skip the bot fallback if the failure is a hard "doc gone" — bot
-  // identity won't recover deleted resources either.
   if (/resource deleted/i.test(userTry.error)) return userTry;
 
   const botTry = tryFetchAs(wikiId, "bot");
   if (!botTry.error) return botTry;
 
-  // Surface the more informative of the two errors. need_user_authorization
-  // tells the operator they should run `lark-cli auth login`.
   const combinedMsg = /need_user_authorization/i.test(userTry.error)
     ? "need_user_authorization (run: lark-cli auth login)"
     : `user: ${userTry.error}; bot: ${botTry.error}`;
-  return { markdown: "", title: "", error: combinedMsg };
+  const rawError = [
+    userTry.rawError ?? "[lark-cli --as user] (no raw trace captured)",
+    "",
+    botTry.rawError ?? "[lark-cli --as bot] (no raw trace captured)",
+  ].join("\n");
+  return { markdown: "", title: "", error: combinedMsg, rawError };
 }
 
 function convertLarkTables(md: string): { md: string; tables: number } {
@@ -330,7 +338,7 @@ function downloadFeishuMedia(token: string, slugDir: string, localFilename: stri
   return { ok: true, finalFilename, bytes: parsed.data.size_bytes || 0 };
 }
 
-function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-tool" | "extraction-failed" | "user-auth-required"): Result {
+function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-tool" | "extraction-failed" | "user-auth-required", errorDetail?: string): Result {
   const titleMap = {
     "auth-gated": "Feishu wiki page (no read access)",
     "deleted": "Feishu wiki page (deleted upstream)",
@@ -338,7 +346,6 @@ function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-
     "extraction-failed": "Feishu wiki page (fetch failed)",
     "user-auth-required": "Feishu wiki page (user identity required)",
   } as const;
-  // Per-kind operator advice — distinct so the failure mode isn't ambiguous.
   const adviceMap = {
     "auth-gated":
       "Neither your user identity nor the bot has read access to this " +
@@ -358,23 +365,15 @@ function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-
       "Your user-identity OAuth token has expired or was cleared. " +
       "Run `lark-cli auth login` to renew, then re-fetch.",
   } as const;
-  return {
-    markdown: [
-      `# ${titleMap[kind]}`,
-      ``,
-      `> 原文链接: ${url}`,
-      `> Status: ${reason}`,
-      ``,
-      `---`,
-      ``,
-      `*This entry is a metadata stub. ${adviceMap[kind]}*`,
-      ``,
-    ].join("\n"),
-    images: [],
-    metadata: { source: "feishu-stub", reason, kind },
-    flags: ["intentional-stub", `feishu-${kind}`],
-    notes: [`feishu: stub emitted — ${kind}: ${reason}`],
-  };
+  return makeStub({
+    url,
+    module: "feishu",
+    kind,
+    title: titleMap[kind],
+    summary: reason,
+    advice: adviceMap[kind],
+    errorDetail,
+  });
 }
 
 export const site: Site = {
@@ -399,10 +398,10 @@ export const site: Site = {
                  : /need_user_authorization/i.test(r.error) ? "user-auth-required"
                  : /forBidden/i.test(r.error) ? "auth-gated"
                  : "extraction-failed";
-      return stub(url, r.error.slice(0, 160), kind);
+      return stub(url, r.error.slice(0, 160), kind, r.rawError);
     }
     if (!r.markdown.trim()) {
-      return stub(url, "lark-hirono returned empty output", "extraction-failed");
+      return stub(url, "lark-hirono returned empty output", "extraction-failed", r.rawError);
     }
 
     const conv = convertFeishu({ url, rawMarkdown: r.markdown, docTitle: r.title });

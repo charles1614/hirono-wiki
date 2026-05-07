@@ -1,0 +1,35 @@
+site	status	chars	flags	error_detail_first_line
+huggingface	good	25744		
+github	good	11023		
+arxiv	good	1839		
+zhihu	good	10558		
+qwenlm-github-io	good	18074		
+deepwiki-litenext	flagged	3403	images-declared-but-none-downloaded,deepwiki-image-download-partial	
+deepwiki-com	good	7642		
+linux-do	flagged	1133	login-wall-keyword	
+nvidianews	flagged	273	nvidianews-fetch-failed	nvidianews extraction failed: .article container not found
+epoch-ai	good	5322		
+intuitionlabs	flagged	443	intuitionlabs-fetch-failed	fetchIntuitionlabs: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Maci
+sspai	good	5507		
+substack	flagged	430	substack-fetch-failed	fetchSubstack: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Macintosh
+aleksagordic	flagged	761	aleksagordic-fetch-failed	curl fetch failed: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Macin
+blog-google	good	8039		
+01-me	good	8328		
+docs-nvidia	good	24962		
+developer-nvidia	flagged	925	developer-nvidia-fetch-failed	curl fetch failed: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Macin
+sebastianraschka-blog	flagged	829	sebastianraschka-blog-fetch-failed	curl fetch failed: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Macin
+sohu	flagged	561	sohu-fetch-failed	body empty/too small (43 chars)
+blog-csdn	flagged	795	blog-csdn-fetch-failed	curl fetch failed: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Macin
+anthropic	good	26943		
+lmsys	good	9051		
+qwen-ai	good	106678		
+x-twitter	good	4373		
+reddit	good	20286		
+feishu	good	1841		
+defaultlongtailA	good	19186		
+defaultlongtailB	flagged	1006	_default-used-browser-fallback	
+defaultlongtailC	NO_OUTPUT	0	-	(fetch threw)
+defaultLAN	flagged	528	_default-fetch-failed	body empty/too small (150 chars after browser path)
+defaultLAN	flagged	528	_default-fetch-failed	body empty/too small (150 chars after browser path)
+defaultPDF	good	1155515		
+defaultlongtailC	SKIPPED	0	-	(HN; killed mid-fetch — too many spacer GIFs to be useful)

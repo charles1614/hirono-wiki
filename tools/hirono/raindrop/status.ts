@@ -70,6 +70,8 @@ export interface StatusRow {
   kind: FailureKind;
   pinned: boolean;
   advice: string;
+  /** Structured upstream error trace for stub rows; absent on clean rows. */
+  error_detail?: string;
 }
 
 interface Options {
@@ -253,6 +255,7 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
       kind: cls.kind,
       pinned: cls.pinned,
       advice: cls.advice,
+      error_detail: rawInfo?.source?.error_detail,
     });
   }
 
@@ -282,6 +285,7 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
       kind: cls.kind,
       pinned: cls.pinned,
       advice: `[orphan: bookmark deleted from Raindrop] ${cls.advice}`,
+      error_detail: raw.source?.error_detail,
     });
   }
 
@@ -326,15 +330,26 @@ function renderMd(rows: StatusRow[]): string {
     if (!list || list.length === 0) continue;
     lines.push(`## ${kind} (${list.length})`);
     lines.push("");
-    lines.push(`| host | bookmark | slug | last_fetched | flags |`);
+    lines.push(`| host | bookmark | slug | last_fetched | error_detail (first line) |`);
     lines.push(`|---|---|---|---|---|`);
     for (const r of list) {
       const url = r.url.length > 60 ? r.url.slice(0, 57) + "..." : r.url;
       const slug = r.slug ?? "—";
       const date = r.last_fetched ? r.last_fetched.slice(0, 10) : "—";
-      const flagStr = r.flags.length > 0 ? "`" + r.flags.join("`, `") + "`" : "—";
       const pinMark = r.pinned ? " 📌" : "";
-      lines.push(`| ${r.host} | [link](${r.url}) ${url}${pinMark} | ${slug} | ${date} | ${flagStr} |`);
+      // First line of error_detail when present; falls back to flag list
+      // for clean rows + back-compat when older source.json has no
+      // error_detail field.
+      let detailCell: string;
+      if (r.error_detail) {
+        const firstLine = r.error_detail.split("\n", 1)[0].slice(0, 100);
+        detailCell = `_${escapeMd(firstLine)}_`;
+      } else if (r.flags.length > 0) {
+        detailCell = "`" + r.flags.join("`, `") + "`";
+      } else {
+        detailCell = "—";
+      }
+      lines.push(`| ${r.host} | [link](${r.url}) ${url}${pinMark} | ${slug} | ${date} | ${detailCell} |`);
     }
     lines.push("");
     lines.push(`> Advice: ${list[0].advice}`);
@@ -343,14 +358,19 @@ function renderMd(rows: StatusRow[]): string {
   return lines.join("\n");
 }
 
+function escapeMd(s: string): string {
+  return s.replace(/\|/g, "\\|").replace(/\n/g, " ");
+}
+
 function renderJson(rows: StatusRow[]): string {
   return rows.map(r => JSON.stringify(r)).join("\n");
 }
 
 function renderCsv(rows: StatusRow[]): string {
-  const cols = ["kind", "host", "url", "slug", "last_fetched", "quality_status", "flags", "pinned", "bookmark_id"];
+  const cols = ["kind", "host", "url", "slug", "last_fetched", "quality_status", "flags", "pinned", "bookmark_id", "error_detail_first_line"];
   const out = [cols.join(",")];
   for (const r of rows) {
+    const firstLine = r.error_detail ? r.error_detail.split("\n", 1)[0] : "";
     const cells = [
       r.kind,
       r.host,
@@ -361,6 +381,7 @@ function renderCsv(rows: StatusRow[]): string {
       `"${r.flags.join(";")}"`,
       r.pinned ? "true" : "false",
       r.bookmark_id?.toString() ?? "",
+      `"${firstLine.replace(/"/g, '""').slice(0, 200)}"`,
     ];
     out.push(cells.join(","));
   }

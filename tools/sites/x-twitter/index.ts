@@ -29,6 +29,7 @@ import { spawnSync } from "node:child_process";
 import type { Site, FetchOpts, Result } from "../_shared/types.ts";
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { makeStub } from "../_shared/stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 
 interface XMediaRef {
@@ -370,7 +371,7 @@ export function convertXTwitter(opts: XConvertArgs): XConvertResult {
   };
 }
 
-function stub(url: string, kind: "auth-required" | "empty" | "extraction-failed", reason: string): Result {
+function stub(url: string, kind: "auth-required" | "empty" | "extraction-failed", reason: string, errorDetail?: string): Result {
   const titleMap = {
     "auth-required": "Tweet / X post (sign-in required)",
     "empty": "Tweet / X post (no content extracted)",
@@ -388,23 +389,15 @@ function stub(url: string, kind: "auth-required" | "empty" | "extraction-failed"
       "Browser eval did not return parseable JSON. Could be a transient " +
       "opencli/Chrome issue; retry the fetch.",
   } as const;
-  return {
-    markdown: [
-      `# ${titleMap[kind]}`,
-      ``,
-      `> 原文链接: ${url}`,
-      `> Status: ${reason}`,
-      ``,
-      `---`,
-      ``,
-      `*This entry is a metadata stub. ${adviceMap[kind]}*`,
-      ``,
-    ].join("\n"),
-    images: [],
-    metadata: { source: "x-twitter-stub", reason, kind },
-    flags: ["intentional-stub", `x-twitter-${kind}`],
-    notes: [`x-twitter: stub emitted — ${kind}: ${reason}`],
-  };
+  return makeStub({
+    url,
+    module: "x-twitter",
+    kind,
+    title: titleMap[kind],
+    summary: reason,
+    advice: adviceMap[kind],
+    errorDetail,
+  });
 }
 
 export const site: Site = {
@@ -414,17 +407,25 @@ export const site: Site = {
     mkdirSync(opts.slugDir, { recursive: true });
 
     const x = extractXTwitter(url);
-    if (x.error) return stub(url, "extraction-failed", x.error.slice(0, 160));
-    if (!x.signedIn) return stub(url, "auth-required", "browser session is not signed in to x.com");
-
+    if (x.error) {
+      return stub(url, "extraction-failed", x.error.slice(0, 160),
+        `[opencli browser-eval] ${x.error}\n\nfinalUrl: ${x.finalUrl}\nshape: ${x.shape}\nsignedIn: ${x.signedIn}`);
+    }
+    if (!x.signedIn) {
+      return stub(url, "auth-required", "browser session is not signed in to x.com",
+        `signedIn=false detected via a[href="/login"] or a[href="/i/flow/login"] selector\nfinalUrl: ${x.finalUrl}\ntitle: ${x.title}\nshape: ${x.shape}`);
+    }
     if (x.shape === "status" && x.tweets.length === 0) {
-      return stub(url, "empty", "no tweet articles in hydrated DOM");
+      return stub(url, "empty", "no tweet articles in hydrated DOM",
+        `signedIn: true\nfinalUrl: ${x.finalUrl}\ntitle: ${x.title}\narticle[data-testid="tweet"] count: 0\n(possible causes: deleted tweet, suspended/protected account, throttled view)`);
     }
     if (x.shape === "profile" && !x.profile) {
-      return stub(url, "empty", "profile header missing in hydrated DOM");
+      return stub(url, "empty", "profile header missing in hydrated DOM",
+        `signedIn: true\nfinalUrl: ${x.finalUrl}\ntitle: ${x.title}\n[data-testid="UserName"] not found`);
     }
     if (x.shape === "unknown") {
-      return stub(url, "empty", `unrecognized URL shape (path=${pathOf(url)})`);
+      return stub(url, "empty", `unrecognized URL shape (path=${pathOf(url)})`,
+        `URL path doesn't match /<user>/status/<id> or /<user>; got: ${pathOf(url)}`);
     }
 
     const conv = convertXTwitter({

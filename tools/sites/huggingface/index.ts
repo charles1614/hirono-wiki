@@ -18,6 +18,7 @@ import type { Site, FetchOpts, Result } from "../_shared/types.ts";
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 interface HfFixtureArgs {
   rawMd: string;
@@ -158,29 +159,22 @@ function convertHf(opts: HfFixtureArgs): HfConvertResult {
   };
 }
 
-function stub(url: string, reason: string, kind: "blog-fetch-failed" | "non-blog" | "space" = "blog-fetch-failed"): Result {
-  const flag = kind === "non-blog" ? "huggingface-non-blog"
-    : kind === "space" ? "huggingface-space"
-    : "huggingface-fetch-failed";
-  const titleHint = kind === "non-blog" ? "HuggingFace page"
+function stub(url: string, reason: string, kind: "blog-fetch-failed" | "non-blog" | "space" = "blog-fetch-failed", errorDetail?: string): Result {
+  const titleHint = kind === "non-blog" ? "HuggingFace page (non-blog)"
     : kind === "space" ? "HuggingFace Space"
-    : "HuggingFace blog";
-  return {
-    markdown: [
-      `# ${titleHint}: ${url}`,
-      ``,
-      `> 原文链接: ${url}`,
-      ``,
-      `---`,
-      ``,
-      `*This entry is a metadata stub. ${reason}*`,
-      ``,
-    ].join("\n"),
-    images: [],
-    metadata: { source: `huggingface-${kind}-stub`, reason },
-    flags: ["intentional-stub", flag],
-    notes: [`huggingface: stub emitted — ${reason}`],
-  };
+    : "HuggingFace blog (fetch failed)";
+  const advice = kind === "space"
+    ? "HuggingFace Spaces are interactive demos rendered client-side; no static content to extract."
+    : kind === "non-blog"
+    ? "Model cards, dataset pages, and papers have heavily dynamic HTML. Visit the URL directly."
+    : "GitHub mirror at github.com/huggingface/blog may be temporarily unavailable, or the slug may not exist on the mirror.";
+  return makeStub({
+    url, module: "huggingface", kind,
+    title: titleHint,
+    summary: reason,
+    advice,
+    errorDetail,
+  });
 }
 
 export const site: Site = {
@@ -212,7 +206,10 @@ export const site: Site = {
     if (!slug) return stub(url, "could not extract slug from URL");
 
     const r = fetchRawMarkdown(slug);
-    if (r.error || !r.rawMd) return stub(url, r.error || "raw.githubusercontent fetch returned empty");
+    if (r.error || !r.rawMd) {
+      return stub(url, r.error || "raw.githubusercontent fetch returned empty", "blog-fetch-failed",
+        `slug: ${slug}\nresolved URL: https://raw.githubusercontent.com/huggingface/blog/main/${slug}.md\n\n[curl] ${r.error || "ok but rawMd empty"}`);
+    }
 
     const conv = convertHf({ rawMd: r.rawMd, url });
 

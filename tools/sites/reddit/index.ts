@@ -28,6 +28,7 @@ import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hoo
 import { convertGenericHtml } from "../_shared/generic-converter.ts";
 import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { makeStub } from "../_shared/stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 
 interface RedditCommentRaw {
@@ -269,31 +270,27 @@ export function convertReddit(opts: RedditConvertArgs): RedditConvertResult {
   };
 }
 
-function stub(url: string, kind: "deleted" | "blocked" | "extraction-failed", reason: string): Result {
+function stub(url: string, kind: "deleted" | "blocked" | "extraction-failed", reason: string, errorDetail?: string): Result {
   const title = kind === "deleted"
     ? "Reddit post (deleted or removed)"
     : kind === "blocked"
     ? "Reddit post (unreachable)"
     : "Reddit post (extraction failed)";
-  const status = kind === "deleted"
+  const summary = kind === "deleted"
     ? "page-removed — the post was deleted by its author or removed by moderators."
     : `${kind} — ${reason}`;
   const advice = kind === "deleted"
     ? "The original content is no longer available."
     : "Open the URL in a browser to read the thread.";
-  return {
-    markdown: [
-      `# ${title}`, ``,
-      `> 原文链接: ${url}`,
-      `> Status: ${status}`,
-      ``, `---`, ``,
-      `*This entry is a metadata stub. ${advice}*`, ``,
-    ].join("\n"),
-    images: [],
-    metadata: { source: "reddit-stub", reason },
-    flags: ["intentional-stub", `reddit-${kind}`],
-    notes: [`reddit: stub emitted — ${reason}`],
-  };
+  return makeStub({
+    url,
+    module: "reddit",
+    kind,
+    title,
+    summary,
+    advice,
+    errorDetail,
+  });
 }
 
 export const site: Site = {
@@ -305,10 +302,17 @@ export const site: Site = {
   fetch: (url: string, opts: FetchOpts): Result => {
     mkdirSync(opts.slugDir, { recursive: true });
     const x = extractReddit(url);
-    if (x.error) return stub(url, "extraction-failed", x.error.slice(0, 120));
-    if (x.deleted) return stub(url, "deleted", `title=${x.title}`);
+    if (x.error) {
+      return stub(url, "extraction-failed", x.error.slice(0, 120),
+        `[opencli browser-eval] ${x.error}\nfinalUrl: ${x.finalUrl}`);
+    }
+    if (x.deleted) {
+      return stub(url, "deleted", `title=${x.title}`,
+        `finalUrl: ${x.finalUrl}\ntitle: ${x.title}\n(Reddit's "[deleted by user]" / "[removed]" marker detected on the post header)`);
+    }
     if (!x.bodyHtml && x.comments.length === 0) {
-      return stub(url, "blocked", "no body and no comments extracted");
+      return stub(url, "blocked", "no body and no comments extracted",
+        `finalUrl: ${x.finalUrl}\ntitle: ${x.title}\nbody html length: 0\ncomment count: 0`);
     }
 
     const conv = convertReddit({

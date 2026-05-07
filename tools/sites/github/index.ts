@@ -15,6 +15,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 
 import type { Site } from "../_shared/types.ts";
+import { makeStub } from "../_shared/stub.ts";
 import {
   parseGithubUrl,
   fetchPrIssue,
@@ -242,16 +243,15 @@ export const site: Site = {
 };
 
 /** Build a §2-contract stub when fetching fails (auth/rate-limit/404). */
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# GitHub: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "github-stub", reason },
-    flags: ["intentional-stub", "github-fetch-failed"],
-    notes: [`github: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "github", kind: "fetch-failed",
+    title: "GitHub (fetch failed)",
+    summary: reason,
+    advice:
+      "Possible causes: rate limit (60/hr unauth, 5000/hr with GITHUB_TOKEN), " +
+      "404 on a renamed/deleted repo, or a private repo your token can't see. " +
+      "Set GITHUB_TOKEN if it isn't already and retry.",
+    errorDetail,
+  });
 }

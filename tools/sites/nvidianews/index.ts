@@ -15,6 +15,7 @@ import type { Site } from "../_shared/types.ts";
 import { extractNvidianewsContent } from "./fetcher.ts";
 import { convertNvidianewsHtml } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -74,16 +75,11 @@ export const site: Site = {
   },
 };
 
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# NVIDIA Newsroom: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "nvidianews-stub", reason },
-    flags: ["intentional-stub", "nvidianews-fetch-failed"],
-    notes: [`nvidianews: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "nvidianews", kind: "fetch-failed",
+    title: "NVIDIA Newsroom (fetch failed)",
+    summary: reason,
+    errorDetail,
+  });
 }

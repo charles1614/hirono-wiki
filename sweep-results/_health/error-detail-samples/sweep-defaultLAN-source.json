@@ -1,0 +1,19 @@
+{
+  "fetched_at": "2026-05-07T06:43:13.309Z",
+  "origin": "url:http://10.0.62.21:58990",
+  "origin_url": "http://10.0.62.21:58990",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "0cb03d75c64eb7ebb3f2963625581d1b4e5db8570a7c2331c373bd2f6b73ab91",
+  "content_length": 528,
+  "quality_flags": [
+    "_default-fetch-failed"
+  ],
+  "quality_status": "flagged",
+  "images": [],
+  "notes": [
+    "site module: _default",
+    "_default: stub emitted — fetch-failed: body empty/too small (150 chars after browser path)"
+  ],
+  "error_detail": "body empty/too small (150 chars after browser path)\n\ncurl bytes:           0\ncurl body chars:      0\nbrowser path tried:   yes (kept)\nfinal body chars:     150\nstub threshold:       200"
+}

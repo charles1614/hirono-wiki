@@ -117,6 +117,16 @@ export interface SourceJson {
     /** ISO of the last HEAD check (independent from fetched_at). */
     last_checked_at?: string;
   };
+  /**
+   * Structured diagnostic for stub / failure results, surfaced from
+   * `Result.error_detail` produced by the site module. Format:
+   *
+   *   <one-line summary>\n\n<raw upstream trace>
+   *
+   * Capped at ~2KB by `tools/sites/_shared/stub.ts`. Omitted on clean
+   * fetches.
+   */
+  error_detail?: string;
 }
 
 export type ErrorLevel = "L1" | "L2" | "L3";
@@ -547,6 +557,12 @@ interface WriteArgs {
   /** Images already saved to slugDir by an upstream adapter; merged into source.json.images as-is. */
   preExistingImages?: ImageRecord[];
   force: boolean;
+  /**
+   * Structured upstream error trace for stub results — surfaced from
+   * `Result.error_detail` produced by the site module. Persisted as
+   * `source.json.error_detail`.
+   */
+  errorDetail?: string;
 }
 
 export function writeRawArchive(args: WriteArgs): SourceJson {
@@ -605,6 +621,7 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
     notes: [...(args.extraNotes ?? []), ...imgNotes],
     raindrop_meta: args.raindropMeta,
     lark_meta: args.larkMeta,
+    ...(args.errorDetail ? { error_detail: args.errorDetail } : {}),
   };
   writeFileAtomic(join(slugDir, "source.json"), JSON.stringify(src, null, 2) + "\n");
 
@@ -668,6 +685,8 @@ interface AdapterResult {
   extraFlags?: string[];
   /** Optional human-readable notes (e.g. "xhs Layer-4: 5 paragraphs"). */
   adapterNotes?: string[];
+  /** Optional structured error trace for stub results (Result.error_detail). */
+  errorDetail?: string;
 }
 
 
@@ -805,6 +824,7 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
       rawMetadata: sr.metadata,
       extraFlags: sr.flags.length > 0 ? sr.flags : undefined,
       adapterNotes: sr.notes,
+      errorDetail: sr.error_detail,
     };
   }
 
@@ -874,6 +894,7 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     downloadImages: false,  // already handled above
     force: opts.force,
     preExistingImages: [...images, ...additionalImages],
+    errorDetail: result.errorDetail,
   });
   } finally {
     releaseBrowserLock();

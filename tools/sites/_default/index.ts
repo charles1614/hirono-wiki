@@ -37,6 +37,7 @@ import type { Site, FetchOpts, Result } from "../_shared/types.ts";
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
 import { convertArticle, type ArticleConvertResult, type ArticleSelectors } from "../_shared/article-converter.ts";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { makeStub } from "../_shared/stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 
 interface DefaultFixtureArgs {
@@ -165,18 +166,19 @@ function runConverter(args: DefaultFixtureArgs): ArticleConvertResult {
   return convertArticle({ html: args.html, url: args.url, selectors: SELECTORS });
 }
 
-function stubResult(url: string, reason: string): Result {
-  return {
-    markdown:
-      `# _default article: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "_default-stub", reason },
-    flags: ["intentional-stub", "_default-fetch-failed"],
-    notes: [`_default: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, summary: string, errorDetail?: string): Result {
+  return makeStub({
+    url,
+    module: "_default",
+    kind: "fetch-failed",
+    title: "_default article (fetch failed)",
+    summary,
+    advice:
+      "_default tried plain curl then a browser-eval fallback; both produced too little body. " +
+      "Open the URL in a browser to confirm the page renders. If it does, this host may " +
+      "warrant a dedicated site module (see tools/sites/MIGRATION.md).",
+    errorDetail,
+  });
 }
 
 export const site: Site = {
@@ -217,11 +219,26 @@ export const site: Site = {
     }
 
     if (!conv) {
-      const reason = curlR.error || browserError || "empty HTML response";
-      return stubResult(url, reason);
+      const summary = curlR.error
+        ? `curl fetch failed: ${curlR.error.split("\n")[0].slice(0, 100)}`
+        : "no usable HTML response from either curl or browser-eval";
+      const detail = [
+        curlR.error ? `[curl] ${curlR.error}` : `[curl] ok (${html.length} bytes) but no convertible body`,
+        browserError ? `[browser-eval] ${browserError}` : `[browser-eval] not attempted or returned empty`,
+      ].join("\n");
+      return stubResult(url, summary, detail);
     }
     if (conv.stats.bodyChars < STUB_THRESHOLD) {
-      return stubResult(url, `_default body empty/too small (${conv.stats.bodyChars} chars after ${usedBrowser ? "browser" : "curl"} path)`);
+      const summary = `body empty/too small (${conv.stats.bodyChars} chars after ${usedBrowser ? "browser" : "curl"} path)`;
+      const detail = [
+        `curl bytes:           ${curlBytes}`,
+        `curl body chars:      ${curlBodyChars}`,
+        `browser path tried:   ${conv ? (usedBrowser ? "yes (kept)" : "yes (rejected, smaller than curl)") : "no"}`,
+        browserError ? `browser eval error:   ${browserError}` : "",
+        `final body chars:     ${conv.stats.bodyChars}`,
+        `stub threshold:       ${STUB_THRESHOLD}`,
+      ].filter(Boolean).join("\n");
+      return stubResult(url, summary, detail);
     }
 
     // Image localization

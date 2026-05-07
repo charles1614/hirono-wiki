@@ -17,6 +17,7 @@ import type { Site } from "../_shared/types.ts";
 import { fetchLinuxDoTopic } from "./fetcher.ts";
 import { convertLinuxDoTopic } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -78,16 +79,11 @@ export const site: Site = {
   },
 };
 
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# linux.do topic: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "linux-do-stub", reason },
-    flags: ["intentional-stub", "linux-do-fetch-failed"],
-    notes: [`linux-do: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "linux-do", kind: "fetch-failed",
+    title: "linux.do topic (fetch failed)",
+    summary: reason,
+    errorDetail,
+  });
 }

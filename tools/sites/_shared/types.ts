@@ -48,6 +48,24 @@ export interface Result {
   notes?: string[];
   /** Optional title surfaced for slug-naming + frontmatter. */
   title?: string;
+  /**
+   * Structured diagnostic for stub / failure results. Populated by site
+   * modules when a fetch produces a stub: the underlying upstream error
+   * (curl exit + stderr, lark-cli error JSON, browser-eval signedIn=false,
+   * 4xx body excerpt, etc.). Capped at ~2KB by the writer.
+   *
+   * Shape (free-form text, but conventionally):
+   *   <one-line summary>\n
+   *   \n
+   *   <raw upstream trace, multi-line>
+   *
+   * The first line becomes the `> Status:` callout in the stub's
+   * content.md AND the inline summary in `hirono raindrop status`.
+   * Surfaced verbatim in source.json.error_detail.
+   *
+   * Omitted on clean fetches (no error to capture).
+   */
+  error_detail?: string;
 }
 
 export interface Site {

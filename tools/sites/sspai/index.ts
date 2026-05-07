@@ -15,6 +15,7 @@ import type { Site } from "../_shared/types.ts";
 import { fetchSspai } from "./fetcher.ts";
 import { convertSspai } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -69,16 +70,11 @@ export const site: Site = {
   },
 };
 
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# sspai post: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "sspai-stub", reason },
-    flags: ["intentional-stub", "sspai-fetch-failed"],
-    notes: [`sspai: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "sspai", kind: "fetch-failed",
+    title: "sspai post (fetch failed)",
+    summary: reason,
+    errorDetail,
+  });
 }

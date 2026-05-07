@@ -1,0 +1,19 @@
+{
+  "fetched_at": "2026-05-07T06:44:15.453Z",
+  "origin": "url:https://intuitionlabs.ai/articles/multi-agent-systems-and-mcp",
+  "origin_url": "https://intuitionlabs.ai/articles/multi-agent-systems-and-mcp",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "b31eb9062d7be3110702363db701258d5e95d83db58bd961951f44ea27e6b295",
+  "content_length": 443,
+  "quality_flags": [
+    "intuitionlabs-fetch-failed"
+  ],
+  "quality_status": "flagged",
+  "images": [],
+  "notes": [
+    "site module: intuitionlabs",
+    "intuitionlabs: stub emitted — fetch-failed: fetchIntuitionlabs: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 -H Accept: text/html,application/xhtml+xml,application/xml;q=0.9 https://intuitionlabs.ai/articles/multi-agent-systems-and-mcp"
+  ],
+  "error_detail": "fetchIntuitionlabs: Command failed: curl -sfL --max-time 30 -A Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 -H Accept: text/html,application/xhtml+xml,application/xml;q=0.9 https://intuitionlabs.ai/articles/multi-agent-systems-and-mcp"
+}

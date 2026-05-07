@@ -251,6 +251,40 @@ After every sync, `raindrop status` prints a count of clean / stub /
 fetch-error rows grouped by `failure_kind`. Each kind has a specific
 remediation path.
 
+### `error_detail` — the actual upstream error
+
+Every stub now carries an `error_detail` field in its `source.json`,
+populated by the site module from the underlying upstream error
+(curl stderr, lark-cli error JSON, browser-eval `signedIn=false`,
+HTTP status, etc.). Capped at 2KB.
+
+Three places to find it:
+
+- `raw/<year>/<slug>/source.json`'s `error_detail` field — full text.
+- `raw/<year>/<slug>/content.md`'s `## Error detail` section —
+  fenced block with the raw upstream trace, formatted for reading.
+- `hirono raindrop status`:
+  - **markdown** output: first line of `error_detail` appears inline
+    in the per-row table (under "error_detail (first line)").
+  - **CSV** output: a trailing `error_detail_first_line` column.
+  - **JSON** output: full `error_detail` field on each row.
+
+Example — a foreign feishu tenant the bot has no access to. Status row
+becomes:
+
+```
+| host | bookmark | slug | last_fetched | error_detail (first line) |
+|---|---|---|---|---|
+| upiwgvvcb4.feishu.cn | https://...wiki/... | feishu-... | 2026-05-07 | _user: forBidden; bot: forBidden_ |
+```
+
+Click into `raw/2026/<slug>/content.md` and you see the actual
+lark-cli stderr JSON pinpointing `Caused by: forBidden` —
+authoritative upstream trace, not a generic "needs attention".
+
+When `error_detail` is absent (clean rows, or pre-this-feature
+stubs), the status table falls back to listing `quality_flags`.
+
 ```
               ┌──────────────────────────┐
               │ raindrop status          │

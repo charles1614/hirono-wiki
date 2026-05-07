@@ -22,6 +22,7 @@ import type { Site } from "../_shared/types.ts";
 import { fetchSubstack } from "./fetcher.ts";
 import { convertSubstack } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -89,16 +90,11 @@ export const site: Site = {
   },
 };
 
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# Substack post: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "substack-stub", reason },
-    flags: ["intentional-stub", "substack-fetch-failed"],
-    notes: [`substack: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "substack", kind: "fetch-failed",
+    title: "Substack post (fetch failed)",
+    summary: reason,
+    errorDetail,
+  });
 }

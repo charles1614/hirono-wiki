@@ -23,6 +23,7 @@ import { JSDOM } from "jsdom";
 import { convertGenericHtml } from "../_shared/generic-converter.ts";
 import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { makeStub } from "../_shared/stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 
 interface QwenExtraction {
@@ -188,25 +189,18 @@ export function convertQwenAi(opts: QwenConvertArgs): QwenConvertResult {
   };
 }
 
-function stub(url: string, reason: string): Result {
-  return {
-    markdown: [
-      `# Qwen page`,
-      ``,
-      `> 原文链接: ${url}`,
-      `> Status: ${reason}`,
-      `> The Qwen research blog also publishes at https://qwenlm.github.io/blog/`,
-      ``,
-      `---`,
-      ``,
-      `*This entry is a metadata stub. ${reason}*`,
-      ``,
-    ].join("\n"),
-    images: [],
-    metadata: { source: "qwen-ai-stub", reason },
-    flags: ["intentional-stub", "qwen-ai-extraction-failed"],
-    notes: [`qwen-ai: stub emitted — ${reason}`],
-  };
+function stub(url: string, reason: string, errorDetail?: string): Result {
+  return makeStub({
+    url,
+    module: "qwen-ai",
+    kind: "extraction-failed",
+    title: "Qwen page (extraction failed)",
+    summary: reason,
+    advice: "The Qwen research blog also publishes at https://qwenlm.github.io/blog/. " +
+            "Check whether the page renders interactively in a browser; qwen.ai is a JS SPA " +
+            "that may have changed its DOM shape or dropped this URL.",
+    errorDetail,
+  });
 }
 
 export const site: Site = {
@@ -216,11 +210,18 @@ export const site: Site = {
     mkdirSync(opts.slugDir, { recursive: true });
 
     const x = extractQwenAi(url);
-    if (x.error) return stub(url, `browser extraction failed: ${x.error.slice(0, 120)}`);
-    if (!x.articleHtml || x.articleHtml.length < 500) {
-      return stub(url, `qwen.ai article body empty or too small (${x.articleHtml.length} chars)`);
+    if (x.error) {
+      return stub(url, `browser extraction failed: ${x.error.slice(0, 120)}`,
+        `[opencli browser-eval] ${x.error}`);
     }
-    if (!x.title) return stub(url, "qwen.ai page has no extractable title");
+    if (!x.articleHtml || x.articleHtml.length < 500) {
+      return stub(url, `qwen.ai article body empty or too small (${x.articleHtml.length} chars)`,
+        `articleHtml length: ${x.articleHtml.length}\nthreshold: 500\n(qwen.ai's article.post-single hydrates client-side; if too short, page may have changed shape or this URL isn't an article)`);
+    }
+    if (!x.title) {
+      return stub(url, "qwen.ai page has no extractable title",
+        `articleHtml length: ${x.articleHtml.length}\ntitle: <empty>\n(.post-title selector returned empty; possible DOM change)`);
+    }
 
     const conv = convertQwenAi({
       articleHtml: x.articleHtml,

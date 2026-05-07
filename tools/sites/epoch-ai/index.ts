@@ -10,6 +10,7 @@
 import { mkdirSync } from "node:fs";
 
 import type { Site } from "../_shared/types.ts";
+import { makeStub } from "../_shared/stub.ts";
 import { extractEpochAiContent } from "./fetcher.ts";
 import { convertEpochAiContent } from "./converter.ts";
 
@@ -73,16 +74,11 @@ export const site: Site = {
   },
 };
 
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# epoch.ai page: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "epoch-ai-stub", reason },
-    flags: ["intentional-stub", "epoch-ai-fetch-failed"],
-    notes: [`epoch-ai: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "epoch-ai", kind: "fetch-failed",
+    title: "epoch.ai page (fetch failed)",
+    summary: reason,
+    errorDetail,
+  });
 }

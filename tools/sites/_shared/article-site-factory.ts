@@ -22,6 +22,7 @@ import { execFileSync } from "node:child_process";
 import type { Site, FetchOpts, Result } from "./types.ts";
 import type { SiteTestHooks, InputDoc, CaptureResult } from "./test-hooks-types.ts";
 import { convertArticle, type ArticleSelectors, type ArticleConvertOpts, type ArticleConvertResult } from "./article-converter.ts";
+import { makeStub } from "./stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 
 export interface ArticleSiteConfig {
@@ -115,10 +116,21 @@ export function makeArticleSite(cfg: ArticleSiteConfig): { site: Site; testHooks
     fetch: (url: string, opts: FetchOpts): Result => {
       mkdirSync(opts.slugDir, { recursive: true });
       const r = plainFetch(url);
-      if (r.error || !r.html) return stubResult(cfg, url, r.error || "empty HTML response");
+      if (r.error || !r.html) {
+        const summary = r.error ? `curl fetch failed: ${r.error.split("\n")[0].slice(0, 100)}` : "empty HTML response";
+        const detail = r.error
+          ? `[curl] ${r.error}`
+          : `[curl] ok but response body was empty`;
+        return stubResult(cfg, url, summary, detail);
+      }
       const conv = runConverter({ html: r.html, url });
       if (conv.stats.bodyChars < 200) {
-        return stubResult(cfg, url, `${cfg.name} body empty/too small (${conv.stats.bodyChars} chars)`);
+        const detail =
+          `html length: ${r.html.length}\n` +
+          `extracted body chars: ${conv.stats.bodyChars} (threshold: 200)\n` +
+          `body selectors tried (first match wins): ${cfg.selectors.bodySelectors.join(", ")}\n` +
+          `(possible causes: SPA shell, host DOM change, paywall serving login fragment)`;
+        return stubResult(cfg, url, `body empty/too small (${conv.stats.bodyChars} chars)`, detail);
       }
 
       const images: string[] = [];
@@ -185,16 +197,17 @@ export function makeArticleSite(cfg: ArticleSiteConfig): { site: Site; testHooks
   return { site, testHooks };
 }
 
-function stubResult(cfg: ArticleSiteConfig, url: string, reason: string): Result {
-  return {
-    markdown:
-      `# ${cfg.name} article: ${url}\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: `${cfg.name}-stub`, reason },
-    flags: ["intentional-stub", `${cfg.name}-fetch-failed`],
-    notes: [`${cfg.name}: stub emitted — ${reason}`],
-  };
+function stubResult(cfg: ArticleSiteConfig, url: string, summary: string, errorDetail?: string): Result {
+  return makeStub({
+    url,
+    module: cfg.name,
+    kind: "fetch-failed",
+    title: `${cfg.name} article (fetch failed)`,
+    summary,
+    advice:
+      `${cfg.name}'s site module uses plain curl + JSDOM. ` +
+      `Open the URL in a browser to confirm it renders; if it does, the host may have ` +
+      `changed its DOM and need a converter update.`,
+    errorDetail,
+  });
 }

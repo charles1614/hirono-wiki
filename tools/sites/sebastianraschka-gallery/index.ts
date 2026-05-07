@@ -20,6 +20,7 @@ import type { Site } from "../_shared/types.ts";
 import { fetchRaschkaGallery } from "./fetcher.ts";
 import { convertRaschkaGallery } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { makeStub } from "../_shared/stub.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -93,16 +94,11 @@ export const site: Site = {
   },
 };
 
-function stubResult(url: string, reason: string) {
-  return {
-    markdown:
-      `# LLM Architecture Gallery\n\n` +
-      `> 原文链接: ${url}\n\n` +
-      `---\n\n` +
-      `*This entry is a metadata stub. ${reason}*\n`,
-    images: [],
-    metadata: { source: "raschka-gallery-stub", reason },
-    flags: ["intentional-stub", "raschka-gallery-fetch-failed"],
-    notes: [`raschka-gallery: stub emitted — ${reason}`],
-  };
+function stubResult(url: string, reason: string, errorDetail?: string) {
+  return makeStub({
+    url, module: "raschka-gallery", kind: "fetch-failed",
+    title: "LLM Architecture Gallery (fetch failed)",
+    summary: reason,
+    errorDetail,
+  });
 }
