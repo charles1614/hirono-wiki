@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 
 import { hostnameOf, listRawSlugs, type RawSlugInfo } from "../../fetch-raw.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
+import { routeSite } from "../../sites/index.ts";
 import {
   classify,
   parseOverrides,
@@ -72,6 +73,14 @@ export interface StatusRow {
   advice: string;
   /** Structured upstream error trace for stub rows; absent on clean rows. */
   error_detail?: string;
+  /**
+   * Routing classification: `dedicated` if a per-host site module claims
+   * the URL, `_default` if it falls through to the catch-all. Used by
+   * the host-coverage overview footer to surface graduation candidates.
+   */
+  coverage_class: "dedicated" | "_default";
+  /** Site module name (e.g. "feishu", "_default"). */
+  site_module: string;
 }
 
 interface Options {
@@ -242,6 +251,7 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
       isFetched: !!rawInfo,
     }, overrides);
 
+    const site = routeSite(b.link);
     rows.push({
       url: b.link,
       host: hostnameOf(b.link),
@@ -256,6 +266,8 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
       pinned: cls.pinned,
       advice: cls.advice,
       error_detail: rawInfo?.source?.error_detail,
+      coverage_class: site.name === "_default" ? "_default" : "dedicated",
+      site_module: site.name,
     });
   }
 
@@ -274,6 +286,7 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
       isIngested: true,  // it's in raw/, so was ingested at some point
       isFetched: true,
     }, overrides);
+    const site = routeSite(url);
     rows.push({
       url,
       host: hostnameOf(url),
@@ -286,6 +299,8 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
       pinned: cls.pinned,
       advice: `[orphan: bookmark deleted from Raindrop] ${cls.advice}`,
       error_detail: raw.source?.error_detail,
+      coverage_class: site.name === "_default" ? "_default" : "dedicated",
+      site_module: site.name,
     });
   }
 
@@ -355,6 +370,67 @@ function renderMd(rows: StatusRow[]): string {
     lines.push(`> Advice: ${list[0].advice}`);
     lines.push("");
   }
+
+  // ── Host coverage overview ──────────────────────────────────────────
+  // Surfaces how many hosts are covered by dedicated site modules vs
+  // routed through `_default`. _default-routed hosts that produce a
+  // stub/error are graduation candidates — adding a per-host module
+  // would yield clean output.
+  type HostAgg = {
+    host: string;
+    count: number;
+    coverage: "dedicated" | "_default";
+    module: string;
+    cleanCount: number;
+    stubOrErrorCount: number;
+    sampleKind?: FailureKind;
+  };
+  const STUB_OR_ERROR_KINDS: ReadonlySet<FailureKind> = new Set([
+    "upstream-deleted", "upstream-paywall", "upstream-auth-gated",
+    "upstream-spa-no-content", "upstream-not-html", "intentional-stub-app-only",
+    "host-lan-only", "host-malformed", "host-throttled", "upstream-fetch-failed",
+  ] as FailureKind[]);
+  const hostAgg = new Map<string, HostAgg>();
+  for (const r of rows) {
+    let agg = hostAgg.get(r.host);
+    if (!agg) {
+      agg = { host: r.host, count: 0, coverage: r.coverage_class, module: r.site_module, cleanCount: 0, stubOrErrorCount: 0 };
+      hostAgg.set(r.host, agg);
+    }
+    agg.count++;
+    if (r.kind === "clean") agg.cleanCount++;
+    else if (STUB_OR_ERROR_KINDS.has(r.kind)) {
+      agg.stubOrErrorCount++;
+      if (!agg.sampleKind) agg.sampleKind = r.kind;
+    }
+  }
+  const allHosts = [...hostAgg.values()];
+  const dedicated = allHosts.filter(h => h.coverage === "dedicated");
+  const defaulted = allHosts.filter(h => h.coverage === "_default");
+  const defaultedClean = defaulted.filter(h => h.stubOrErrorCount === 0);
+  const defaultedStubby = defaulted.filter(h => h.stubOrErrorCount > 0);
+  const sumBookmarks = (xs: HostAgg[]) => xs.reduce((s, x) => s + x.count, 0);
+
+  lines.push(`## Host coverage overview`);
+  lines.push("");
+  lines.push(`Total hosts: ${allHosts.length} (${total} bookmark${total === 1 ? "" : "s"})`);
+  lines.push(`- Dedicated-module covered: ${dedicated.length} host${dedicated.length === 1 ? "" : "s"} (${sumBookmarks(dedicated)} bookmark${sumBookmarks(dedicated) === 1 ? "" : "s"})`);
+  lines.push(`- _default-routed: ${defaulted.length} host${defaulted.length === 1 ? "" : "s"} (${sumBookmarks(defaulted)} bookmark${sumBookmarks(defaulted) === 1 ? "" : "s"})`);
+  lines.push(`  - producing clean MD: ${defaultedClean.length} host${defaultedClean.length === 1 ? "" : "s"}`);
+  lines.push(`  - producing stub/error: ${defaultedStubby.length} host${defaultedStubby.length === 1 ? "" : "s"} (graduation candidates)`);
+  if (defaultedStubby.length > 0) {
+    lines.push("");
+    defaultedStubby
+      .sort((a, b) => b.stubOrErrorCount - a.stubOrErrorCount || b.count - a.count || (a.host < b.host ? -1 : 1))
+      .forEach(h => {
+        const kindHint = h.sampleKind ? ` — kind: ${h.sampleKind}` : "";
+        lines.push(`    > ${h.host} (${h.count} bookmark${h.count === 1 ? "" : "s"}, ${h.stubOrErrorCount} stub/error)${kindHint}`);
+      });
+  }
+  lines.push("");
+  lines.push(`> Graduation: a _default-routed host producing stubs/errors is a candidate for a dedicated site module under \`tools/sites/<host>/\` (see CLAUDE.md §5a).`);
+  lines.push("");
+
   return lines.join("\n");
 }
 
