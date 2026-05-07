@@ -1,0 +1,123 @@
+{
+  "fn": "convertXTwitter",
+  "args": [
+    {
+      "url": "https://x.com/karpathy/status/1929597620969951434",
+      "finalUrl": "https://x.com/karpathy/status/1929597620969951434",
+      "shape": "status",
+      "signedIn": true,
+      "tweets": [
+        {
+          "authorRaw": "Andrej Karpathy@karpathy",
+          "displayName": "Andrej Karpathy",
+          "handle": "karpathy",
+          "datetime": "2025-06-02T17:54:57.000Z",
+          "text": "An attempt to explain (current) ChatGPT versions.\n\nI still run into many, many people who don't know that:\n- o3 is the obvious best thing for important/hard things. It is a reasoning model that is much stronger than 4o and if you are using ChatGPT professionally and not using o3 you're ngmi.\n- 4o is different from o4. Yes I know lol. 4o is a good \"daily driver\" for many easy-medium questions. o4 is only available as mini for now, and is not as good as o3, and I'm not super sure why it's out right now.\n\nExample basic \"router\" in my own personal use:\n- Any simple query (e.g. \"what foods are high in fiber\"?) => 4o (about ~40% of my use)\n- Any hard/important enough query where I am willing to wait a bit (e.g. \"help me understand this tax thing...\") => o3 (about ~40% of my use)\n- I am vibe coding (e.g. \"change this code so that...\") => 4.1 (about ~10% of my use)\n- I want to deeply understand one topic - I want GPT to go off for 10 minutes, look at many, many links and summarize a topic for me. (e.g. \"help me understand the rise and fall of Luminar\"). => Deep Research (about ~10% of my use). Note that Deep Research is not a model version to be picked from the model picker (!!!), it is a toggle inside the Tools. Under the hood it is based on o3, but I believe is not fully equivalent of just asking o3 the same query, but I am not sure. \n\nAll of this is only within the ChatGPT universe of models. In practice my use is more complicated because I like to bounce between all of ChatGPT, Claude, Gemini, Grok and Perplexity depending on the task and out of research interest.",
+          "media": [
+            {
+              "remoteUrl": "https://pbs.twimg.com/media/GsdGhFcb0AE7zYb?format=jpg&name=small",
+              "linkedStatus": "/karpathy/status/1929597620969951434/photo/1"
+            }
+          ],
+          "isQuote": false,
+          "isOp": true
+        },
+        {
+          "authorRaw": "Ramez Naam@ramez·Jun 3, 2025",
+          "displayName": "Ramez Naam",
+          "handle": "ramez",
+          "datetime": "2025-06-02T18:07:12.000Z",
+          "text": "Interesting! I use o4-mini a lot. I find it nearly as good as o3, and much faster.",
+          "media": [],
+          "isQuote": false,
+          "isOp": false
+        },
+        {
+          "authorRaw": "Andrej Karpathy@karpathy·Jun 3, 2025",
+          "displayName": "Andrej Karpathy",
+          "handle": "karpathy",
+          "datetime": "2025-06-02T18:17:00.000Z",
+          "text": "Got it! I think I make the decision of whether something is important (and I'm willing to wait) or not that important (and I just want to get a fast sense) and that basically determines if I go to o3 or 4o. It's conceptually easy to just make a binary decision. I'll try it more!",
+          "media": [],
+          "isQuote": false,
+          "isOp": true
+        },
+        {
+          "authorRaw": "alex duffy@alxai_·Jun 3, 2025",
+          "displayName": "alex duffy",
+          "handle": "alxai_",
+          "datetime": "2025-06-02T18:18:39.000Z",
+          "text": "Not as in depth but I like this visual, helps our clients internalize it",
+          "media": [
+            {
+              "remoteUrl": "https://pbs.twimg.com/media/GsdULfDWUAALgZ6?format=jpg&name=small",
+              "linkedStatus": "/alxai_/status/1929603584028545212/photo/1"
+            }
+          ],
+          "isQuote": false,
+          "isOp": false
+        },
+        {
+          "authorRaw": "Andrej Karpathy@karpathy·Jun 3, 2025",
+          "displayName": "Andrej Karpathy",
+          "handle": "karpathy",
+          "datetime": "2025-06-02T18:19:56.000Z",
+          "text": "Like! Basically a good image summary.",
+          "media": [],
+          "isQuote": false,
+          "isOp": false
+        },
+        {
+          "authorRaw": "Mo ShaRaf (sharaf.eth)@MSharafH·Jun 3, 2025",
+          "displayName": "Mo ShaRaf (sharaf.eth)",
+          "handle": "MSharafH",
+          "datetime": "2025-06-02T18:00:50.000Z",
+          "text": "I am using them almost in the same context and scenarios, but what I liked the most is o3 very sophisticated model.\nOne more thing, I’ve used perplexity for deep research along with Grok, perplexity is the best in deep research especially with deep lab",
+          "media": [],
+          "isQuote": false,
+          "isOp": false
+        },
+        {
+          "authorRaw": "Andrej Karpathy@karpathy·Jun 3, 2025",
+          "displayName": "Andrej Karpathy",
+          "handle": "karpathy",
+          "datetime": "2025-06-02T18:06:27.000Z",
+          "text": "I really like Perplexity and use it for anything \"search-like\", though other LLM providers now include search. It's fast and works great, and is also very useful for quick summaries of whatever trending topics there are. (I'm an investor fyi, but <3 for reals).",
+          "media": [],
+          "isQuote": false,
+          "isOp": false
+        },
+        {
+          "authorRaw": "Furkan Gözükara@FurkanGozukara·Jun 3, 2025",
+          "displayName": "Furkan Gözükara",
+          "handle": "FurkanGozukara",
+          "datetime": "2025-06-02T19:20:20.000Z",
+          "text": "Ye but I wonder technical details of differences",
+          "media": [],
+          "isQuote": false,
+          "isOp": false
+        },
+        {
+          "authorRaw": "emily@emnode·Jun 3, 2025",
+          "displayName": "emily",
+          "handle": "emnode",
+          "datetime": "2025-06-03T12:54:26.000Z",
+          "text": "These names are not meaningful. This is like how my boomer mother names files on her laptop",
+          "media": [],
+          "isQuote": false,
+          "isOp": false
+        },
+        {
+          "authorRaw": "James Blackwell@jwblackwell·Jun 3, 2025",
+          "displayName": "James Blackwell",
+          "handle": "jwblackwell",
+          "datetime": "2025-06-02T19:23:48.000Z",
+          "text": "o4 mini is my default. Fantastic with search and doesn’t take too long",
+          "media": [],
+          "isQuote": false,
+          "isOp": false
+        }
+      ]
+    }
+  ]
+}

@@ -21,7 +21,7 @@ Example basic "router" in my own personal use:
 
 All of this is only within the ChatGPT universe of models. In practice my use is more complicated because I like to bounce between all of ChatGPT, Claude, Gemini, Grok and Perplexity depending on the task and out of research interest.
 
-![](x-twitter-img-001.jpg)
+![](x-karpathy-o3-images/x-twitter-img-001.jpg)
 
 ## Replies / Thread context
 
@@ -43,7 +43,7 @@ Got it! I think I make the decision of whether something is important (and I'm w
 
 Not as in depth but I like this visual, helps our clients internalize it
 
-![](x-twitter-img-002.jpg)
+![](x-karpathy-o3-images/x-twitter-img-002.jpg)
 
 ---
 

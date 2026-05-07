@@ -44,7 +44,7 @@ const EXPECTED: Record<string, {
   allowFlags?: string[];
 }> = {
   "reddit.com": { minChars: 100, notes: "page-removed stub — sampled bookmark was deleted upstream", allowFlags: ["intentional-stub"] },
-  "x.com": { minChars: 200, notes: "Twitter/X — auth-gated, content varies by session" },
+  "x.com": { minChars: 1000, notes: "Twitter/X — authenticated browser-eval extraction; karpathy o3-vs-4o explainer" },
   "epoch.ai": { minChars: 200, notes: "interactive data viz — extracted text only" },
   "sebastianraschka.com": { minChars: 1000, notes: "React gallery — best-achievable extraction" },
   // _default hybrid samples (long-tail SPAs + article-shape blogs).

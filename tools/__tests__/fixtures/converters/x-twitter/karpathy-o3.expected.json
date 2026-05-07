@@ -1,0 +1,23 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://pbs.twimg.com/media/GsdGhFcb0AE7zYb?format=jpg&name=small",
+      "localFilename": "x-twitter-img-001.jpg"
+    },
+    {
+      "remoteUrl": "https://pbs.twimg.com/media/GsdULfDWUAALgZ6?format=jpg&name=small",
+      "localFilename": "x-twitter-img-002.jpg"
+    }
+  ],
+  "metadata": {
+    "shape": "status",
+    "handle": "karpathy",
+    "datetime": "2025-06-02T17:54:57.000Z",
+    "tweet_count": 10
+  },
+  "stats": {
+    "bodyChars": 4373,
+    "tweetCount": 10,
+    "mediaCount": 2
+  }
+}

@@ -1,146 +1,28 @@
 {
-  "fetched_at": "2026-04-26T15:35:05.657Z",
-  "origin": "url:https://x.com/garrytan/status/2042497872114090069?s=12&t=NY2Gen7OO07bmDYBV03nRg",
-  "origin_url": "https://x.com/garrytan/status/2042497872114090069?s=12&t=NY2Gen7OO07bmDYBV03nRg",
+  "fetched_at": "2026-05-07T03:11:43.756Z",
+  "origin": "url:https://x.com/karpathy/status/1929597620969951434",
+  "origin_url": "https://x.com/karpathy/status/1929597620969951434",
   "fetcher": "opencli",
   "fetcher_reason": "domain-override",
-  "content_sha": "7fab9e0658c5b4ea0fce010622b2f4a756ef45f9ec1d60c544b15cb12ed5c71c",
-  "content_length": 5274,
+  "content_sha": "c457d2258caee40bf766ce068b76515e945fa01b488d1ce8148c987ecf2f740c",
+  "content_length": 4373,
   "quality_flags": [],
   "quality_status": "good",
   "images": [
     {
-      "local": "x-com-img-001.jpg",
+      "local": "x-twitter-img-001.jpg",
       "remote": "",
-      "bytes": 1959
+      "bytes": 32945
     },
     {
-      "local": "x-com-img-002.png",
+      "local": "x-twitter-img-002.jpg",
       "remote": "",
-      "bytes": 1265
-    },
-    {
-      "local": "x-com-img-003.jpg",
-      "remote": "",
-      "bytes": 19978
-    },
-    {
-      "local": "x-com-img-004.jpg",
-      "remote": "",
-      "bytes": 2187
-    },
-    {
-      "local": "x-com-img-005.png",
-      "remote": "",
-      "bytes": 7190
-    },
-    {
-      "local": "x-com-img-006.jpg",
-      "remote": "",
-      "bytes": 24428
-    },
-    {
-      "local": "x-com-img-007.jpg",
-      "remote": "",
-      "bytes": 1959
-    },
-    {
-      "local": "x-com-img-008.png",
-      "remote": "",
-      "bytes": 1265
-    },
-    {
-      "local": "x-com-img-009.jpg",
-      "remote": "",
-      "bytes": 2263
-    },
-    {
-      "local": "x-com-img-010.jpg",
-      "remote": "",
-      "bytes": 1959
-    },
-    {
-      "local": "x-com-img-011.png",
-      "remote": "",
-      "bytes": 1265
-    },
-    {
-      "local": "x-com-img-012.png",
-      "remote": "",
-      "bytes": 3023
-    },
-    {
-      "local": "x-com-img-013.jpg",
-      "remote": "",
-      "bytes": 1959
-    },
-    {
-      "local": "x-com-img-014.png",
-      "remote": "",
-      "bytes": 1265
-    },
-    {
-      "local": "x-com-img-015.jpg",
-      "remote": "",
-      "bytes": 1883
-    },
-    {
-      "local": "x-com-img-016.jpg",
-      "remote": "",
-      "bytes": 1959
-    },
-    {
-      "local": "x-com-img-017.png",
-      "remote": "",
-      "bytes": 1265
-    },
-    {
-      "local": "x-com-img-018.jpg",
-      "remote": "",
-      "bytes": 92707
-    },
-    {
-      "local": "x-com-img-019.jpg",
-      "remote": "",
-      "bytes": 2035
-    },
-    {
-      "local": "x-com-img-020.jpg",
-      "remote": "",
-      "bytes": 1959
-    },
-    {
-      "local": "x-com-img-021.png",
-      "remote": "",
-      "bytes": 1265
-    },
-    {
-      "local": "x-com-img-022.jpg",
-      "remote": "",
-      "bytes": 1883
-    },
-    {
-      "local": "x-com-img-023.jpg",
-      "remote": "",
-      "bytes": 1959
-    },
-    {
-      "local": "x-com-img-024.png",
-      "remote": "",
-      "bytes": 1265
-    },
-    {
-      "local": "x-com-img-025.jpg",
-      "remote": "",
-      "bytes": 92707
+      "bytes": 39366
     }
   ],
   "notes": [
-    "opencli adapter: x-metadata-stub",
-    "web-fetch: own jsdom+turndown — 0 table line(s), 0 code fence(s), 25/25 image(s) downloaded",
-    "hirono post-processors: strip-empty-anchor-links, unescape-brackets-in-links, enforce-single-h1",
-    "un-escaped brackets in link text",
-    "enforce-single-h1: demoted 2 body H1(s) to H2",
-    "25 images downloaded by adapter"
+    "site module: x-twitter",
+    "x-twitter: status, 10 tweet(s), 2/2 image(s) downloaded",
+    "2 images downloaded by adapter"
   ]
 }
