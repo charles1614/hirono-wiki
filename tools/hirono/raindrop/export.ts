@@ -26,8 +26,8 @@ import { fileURLToPath } from "node:url";
 import {
   fetchUrlAndStore,
   type SourceJson,
-  yearForSlug,
-  rawDirFor,
+  hostnameOf,
+  findRawDir,
 } from "../../fetch-raw.ts";
 import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
 import type { CachedBookmark, Cache } from "./check.ts";
@@ -94,9 +94,15 @@ export function resolveIdentifier(
     return { kind: "url", url: cleaned, slug: opts.slug };
   }
 
-  // Case 3: slug — look up origin from raw/<year>/<slug>/source.json
+  // Case 3: slug — look up origin from raw/raindrop/<host>/<slug>/source.json
   const slug = cleaned;
-  const slugDir = rawDirFor(slug);
+  const slugDir = findRawDir(slug);
+  if (!slugDir) {
+    throw new Error(
+      `slug "${slug}" not found under raw/raindrop/. ` +
+      `For first-time ingest, pass the URL directly with --slug ${slug}.`
+    );
+  }
   const sourcePath = join(slugDir, "source.json");
   if (!existsSync(sourcePath)) {
     throw new Error(
@@ -183,7 +189,7 @@ export function main(argv: string[]): void {
     });
     const flags = source.quality_flags.length > 0 ? source.quality_flags.join(",") : "none";
     console.log(
-      `[export] raw/${yearForSlug(finalSlug)}/${finalSlug}/ ` +
+      `[export] raw/raindrop/${hostnameOf(source.origin_url)}/${finalSlug}/ ` +
       `status=${source.quality_status} (${source.content_length} chars, ${source.images.length} images, flags=${flags})`
     );
     if (source.notes.length > 0) {

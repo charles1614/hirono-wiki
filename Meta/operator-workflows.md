@@ -260,8 +260,8 @@ HTTP status, etc.). Capped at 2KB.
 
 Three places to find it:
 
-- `raw/<year>/<slug>/source.json`'s `error_detail` field — full text.
-- `raw/<year>/<slug>/content.md`'s `## Error detail` section —
+- `raw/raindrop/<host>/<slug>/source.json`'s `error_detail` field — full text.
+- `raw/raindrop/<host>/<slug>/content.md`'s `## Error detail` section —
   fenced block with the raw upstream trace, formatted for reading.
 - `hirono raindrop status`:
   - **markdown** output: first line of `error_detail` appears inline
@@ -278,7 +278,7 @@ becomes:
 | upiwgvvcb4.feishu.cn | https://...wiki/... | feishu-... | 2026-05-07 | _user: forBidden; bot: forBidden_ |
 ```
 
-Click into `raw/2026/<slug>/content.md` and you see the actual
+Click into `raw/raindrop/<host>/<slug>/content.md` and you see the actual
 lark-cli stderr JSON pinpointing `Caused by: forBidden` —
 authoritative upstream trace, not a generic "needs attention".
 
@@ -332,7 +332,7 @@ hirono raindrop status --filter upstream-deleted
 # Verify in a browser. If the page truly is gone:
 #   Option A: keep the local stub (it serves as a tombstone)
 #   Option B: delete the bookmark from Raindrop, refresh-cache,
-#             then prune the orphan slug from raw/2026/<slug>/ manually.
+#             then prune the orphan slug from raw/raindrop/<host>/<slug>/ manually.
 ```
 
 #### `upstream-spa-no-content`
@@ -675,7 +675,7 @@ The parser matches:
 - <slug>: pin-kind=<kind>          # optional rationale comment
 ```
 
-`<slug>` is the directory name under `raw/<year>/`. `<kind>` must be
+`<slug>` is the directory name under `raw/raindrop/<host>/`. `<kind>` must be
 one of the canonical kinds:
 
 ```
@@ -782,10 +782,10 @@ removed. Every subcommand now lives under `hirono raindrop`:
 | Path | Purpose |
 |---|---|
 | `Sources/2026/<slug>.md` | Hand-authored ingest report for a bookmark. The canonical citation target. |
-| `raw/<year>/<slug>/content.md` | Latest fetched markdown for a slug. |
-| `raw/<year>/<slug>/content-rev<N>.md` | Earlier revisions when refetched without `--force`. |
-| `raw/<year>/<slug>/source.json` | Latest fetch metadata (status, flags, etag, etc.). |
-| `raw/<year>/<slug>/revisions.jsonl` | Append-only audit log of every fetch (rev, sha, status, kind). |
+| `raw/raindrop/<host>/<slug>/content.md` | Latest fetched markdown for a slug. |
+| `raw/raindrop/<host>/<slug>/content-rev<N>.md` | Earlier revisions when refetched without `--force`. |
+| `raw/raindrop/<host>/<slug>/source.json` | Latest fetch metadata (status, flags, etag, etc.). |
+| `raw/raindrop/<host>/<slug>/revisions.jsonl` | Append-only audit log of every fetch (rev, sha, status, kind). |
 
 ### State files (gitignored, regenerated)
 

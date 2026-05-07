@@ -21,7 +21,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { rawDirFor } from "../../fetch-raw.ts";
+import { findRawDir } from "../../fetch-raw.ts";
 import { readRevisions, backfillFromSource, type RevisionRow } from "../../shared/revisions.ts";
 
 interface Options {
@@ -168,9 +168,9 @@ function unifiedDiff(fromPath: string, toPath: string, noColor: boolean): string
 
 export function main(argv: string[]): void {
   const opts = parseArgs(argv);
-  const slugDir = rawDirFor(opts.slug);
-  if (!existsSync(slugDir)) {
-    console.error(`[diff] slug directory not found: ${slugDir}`);
+  const slugDir = findRawDir(opts.slug);
+  if (!slugDir) {
+    console.error(`[diff] slug directory not found under raw/raindrop/: ${opts.slug}`);
     process.exit(2);
   }
   backfillFromSource(slugDir);

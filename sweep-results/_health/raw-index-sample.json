@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-07T09:55:56.016Z",
+  "total_slugs": 2,
+  "sample_with_full_metadata": {
+    "slug": "zz-restruct-tagged",
+    "hostname": "magazine.sebastianraschka.com",
+    "year": "2026",
+    "link": "https://magazine.sebastianraschka.com/p/the-big-llm-architecture-comparison",
+    "bookmark_id": 1565003728,
+    "collection_id": 66136335,
+    "tags": [
+      "llm",
+      "llm architecture",
+      "ahead of ai",
+      "blog"
+    ],
+    "created": "2026-01-28T01:07:47.963Z",
+    "title": "The Big LLM Architecture Comparison",
+    "fetched_at": "2026-05-07T09:55:56.005Z",
+    "quality_status": "good"
+  },
+  "sample_no_cache_match": {
+    "slug": "zz-restruct-test",
+    "hostname": "huggingface.co",
+    "year": "2026",
+    "link": "https://huggingface.co/blog/smollm3",
+    "fetched_at": "2026-05-07T09:52:12.779Z",
+    "quality_status": "good"
+  }
+}

@@ -243,10 +243,10 @@ test("buildStatusRows: joins cache + index + raw correctly", () => {
     },
   }));
 
-  // Build a fake raw/2026/<slug>/source.json for two slugs
-  mkdirSync(join(rawDir, "2026", "2026-05-08-blog-post1"), { recursive: true });
-  writeFileSync(join(rawDir, "2026", "2026-05-08-blog-post1", "content.md"), "# Post 1\n");
-  writeFileSync(join(rawDir, "2026", "2026-05-08-blog-post1", "source.json"), JSON.stringify({
+  // Build a fake raw/raindrop/<host>/<slug>/source.json for two slugs
+  mkdirSync(join(rawDir, "raindrop", "blog.example.com", "2026-05-08-blog-post1"), { recursive: true });
+  writeFileSync(join(rawDir, "raindrop", "blog.example.com", "2026-05-08-blog-post1", "content.md"), "# Post 1\n");
+  writeFileSync(join(rawDir, "raindrop", "blog.example.com", "2026-05-08-blog-post1", "source.json"), JSON.stringify({
     fetched_at: "2026-05-08T12:00:00Z",
     origin: "url:https://blog.example.com/post1",
     origin_url: "https://blog.example.com/post1",
@@ -260,9 +260,9 @@ test("buildStatusRows: joins cache + index + raw correctly", () => {
     notes: [],
   }));
 
-  mkdirSync(join(rawDir, "2026", "x-status-123"), { recursive: true });
-  writeFileSync(join(rawDir, "2026", "x-status-123", "content.md"), "# Stub\n");
-  writeFileSync(join(rawDir, "2026", "x-status-123", "source.json"), JSON.stringify({
+  mkdirSync(join(rawDir, "raindrop", "x.com", "x-status-123"), { recursive: true });
+  writeFileSync(join(rawDir, "raindrop", "x.com", "x-status-123", "content.md"), "# Stub\n");
+  writeFileSync(join(rawDir, "raindrop", "x.com", "x-status-123", "source.json"), JSON.stringify({
     fetched_at: "2026-05-08T12:00:00Z",
     origin: "url:https://x.com/user/status/123",
     origin_url: "https://x.com/user/status/123",
@@ -308,9 +308,9 @@ test("buildStatusRows: orphan raw slug surfaces as orphan with [orphan: ...] adv
   writeFileSync(indexPath, JSON.stringify({}));
 
   // raw/ has a slug not in the cache
-  mkdirSync(join(rawDir, "2026", "orphan-slug"), { recursive: true });
-  writeFileSync(join(rawDir, "2026", "orphan-slug", "content.md"), "# Orphan\n");
-  writeFileSync(join(rawDir, "2026", "orphan-slug", "source.json"), JSON.stringify({
+  mkdirSync(join(rawDir, "raindrop", "deleted-bookmark.com", "orphan-slug"), { recursive: true });
+  writeFileSync(join(rawDir, "raindrop", "deleted-bookmark.com", "orphan-slug", "content.md"), "# Orphan\n");
+  writeFileSync(join(rawDir, "raindrop", "deleted-bookmark.com", "orphan-slug", "source.json"), JSON.stringify({
     fetched_at: "2026-04-01T00:00:00Z",
     origin: "url:https://deleted-bookmark.com/post",
     origin_url: "https://deleted-bookmark.com/post",

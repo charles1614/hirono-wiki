@@ -31,10 +31,10 @@ import {
   fetchViaLarkHirono,
   listRawSlugs,
   printStatusReport,
-  rawDirFor,
+  findRawDir,
   reclassifyRawSlug,
   writeRawArchive,
-  yearForSlug,
+  hostnameOf,
 } from "./fetch-raw.ts";
 
 function argVal(args: string[], name: string): string | undefined {
@@ -112,7 +112,7 @@ export function cmdStore(positional: string[], args: string[]): void {
     downloadImages,
     force,
   });
-  console.log(`[store] raw/${yearForSlug(slug)}/${slug}/ (${src.content_length} chars, ${src.images.length} images, flags=${src.quality_flags.join(",") || "none"})`);
+  console.log(`[store] raw/raindrop/${hostnameOf(src.origin_url)}/${slug}/ (${src.content_length} chars, ${src.images.length} images, flags=${src.quality_flags.join(",") || "none"})`);
 }
 
 export function cmdFetchLark(positional: string[], args: string[]): void {
@@ -135,7 +135,7 @@ export function cmdFetchLark(positional: string[], args: string[]): void {
     downloadImages,
     force,
   });
-  console.log(`[fetch-lark] raw/${yearForSlug(slug)}/${slug}/ (${src.content_length} chars, ${src.images.length} images)`);
+  console.log(`[fetch-lark] raw/raindrop/${hostnameOf(src.origin_url)}/${slug}/ (${src.content_length} chars, ${src.images.length} images)`);
 }
 
 export function cmdFetchUrl(positional: string[], args: string[]): void {
@@ -149,7 +149,7 @@ export function cmdFetchUrl(positional: string[], args: string[]): void {
 
   const src = fetchUrlAndStore({ slug, url, viaBrowser, downloadImages, force });
   console.log(
-    `[fetch-url] raw/${yearForSlug(slug)}/${slug}/ ` +
+    `[fetch-url] raw/raindrop/${hostnameOf(src.origin_url)}/${slug}/ ` +
     `(fetcher=${src.fetcher} reason=${src.fetcher_reason} ${src.content_length} chars, ${src.images.length} images, flags=${src.quality_flags.join(",") || "none"})`,
   );
 }
@@ -157,8 +157,12 @@ export function cmdFetchUrl(positional: string[], args: string[]): void {
 export function cmdVerify(positional: string[]): void {
   const slug = positional[0];
   if (!slug) fail("hirono raindrop verify: missing <slug>");
-  const dir = rawDirFor(slug);
+  const dir = findRawDir(slug);
   const probs: string[] = [];
+  if (!dir) {
+    console.log(`✗ ${slug}: dir missing under raw/raindrop/`);
+    process.exit(1);
+  }
   if (!existsSync(dir)) probs.push(`dir missing: ${dir}`);
   if (!existsSync(join(dir, "content.md"))) probs.push(`content.md missing`);
   if (!existsSync(join(dir, "source.json"))) probs.push(`source.json missing`);
@@ -283,7 +287,11 @@ export function cmdRefetch(positional: string[], args: string[]): void {
   const slug = positional[0];
   if (!slug) fail("hirono raindrop refetch: missing <slug>");
   const downloadImages = !argFlag(args, "--no-images");
-  const slugDir = rawDirFor(slug);
+  const slugDir = findRawDir(slug);
+  if (!slugDir) {
+    console.error(`[refetch] no raw/raindrop/<host>/${slug}/ dir — use 'hirono raindrop fetch' first`);
+    process.exit(2);
+  }
   const sourcePath = join(slugDir, "source.json");
   if (!existsSync(sourcePath)) {
     console.error(`[refetch] no source.json at ${sourcePath} — use 'hirono raindrop fetch' first`);
@@ -303,7 +311,7 @@ export function cmdRefetch(positional: string[], args: string[]): void {
     process.exit(1);
   }
   console.log(
-    `[refetch] raw/${yearForSlug(slug)}/${slug}/ ` +
+    `[refetch] raw/raindrop/${hostnameOf(out.origin_url)}/${slug}/ ` +
     `(status=${out.quality_status}, ${out.content_length} chars, ${out.images.length} images, flags=${out.quality_flags.join(",") || "none"})`,
   );
 }

@@ -410,16 +410,27 @@ test("loadFetchDecisions: returns empty map when file missing", () => {
 
 interface TmpTree {
   root: string;
+  /**
+   * Lays down `<root>/raindrop/<hostname>/<slug>/{content.md, source.json}`.
+   * Hostname is derived from `source.origin_url`; the `year` parameter is
+   * kept for call-site readability but is no longer a path component.
+   */
   addSource(slug: string, year: string, source: Record<string, unknown>, contentMd?: string): void;
   cleanup(): void;
+}
+
+function hostFromUrl(u: string): string {
+  try { return new URL(u).hostname.toLowerCase().replace(/^www\./, ""); }
+  catch { return "_unknown"; }
 }
 
 function makeTmpRawTree(): TmpTree {
   const root = mkdtempSync(join(tmpdir(), "fetch-raw-test-"));
   return {
     root,
-    addSource(slug, year, source, contentMd = "A".repeat(1000)) {
-      const dir = join(root, year, slug);
+    addSource(slug, _year, source, contentMd = "A".repeat(1000)) {
+      const host = hostFromUrl((source.origin_url as string) ?? "");
+      const dir = join(root, "raindrop", host, slug);
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, "content.md"), contentMd, "utf8");
       writeFileSync(join(dir, "source.json"), JSON.stringify(source, null, 2), "utf8");
@@ -493,7 +504,7 @@ test("listRawSlugs: legacy source.json without quality_status → classify on th
 test("listRawSlugs: missing content.md → quality_status=failed", () => {
   const root = mkdtempSync(join(tmpdir(), "fetch-raw-test-"));
   try {
-    const dir = join(root, "2026", "2026-04-01-failed");
+    const dir = join(root, "raindrop", "x.example.com", "2026-04-01-failed");
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "source.json"), JSON.stringify({
       origin: "url:https://x.example.com", origin_url: "https://x.example.com",

@@ -13,7 +13,7 @@ import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { rawDirFor } from "../../fetch-raw.ts";
+import { findRawDir } from "../../fetch-raw.ts";
 import { readRevisions, backfillFromSource, type RevisionRow } from "../../shared/revisions.ts";
 
 interface Options {
@@ -50,9 +50,9 @@ Auto-backfills rev 1 from source.json for legacy slugs (pre-feature 3).`);
 }
 
 export function loadHistory(slug: string): RevisionRow[] {
-  const slugDir = rawDirFor(slug);
-  if (!existsSync(slugDir)) {
-    throw new Error(`slug directory not found: ${slugDir}`);
+  const slugDir = findRawDir(slug);
+  if (!slugDir) {
+    throw new Error(`slug directory not found under raw/raindrop/: ${slug}`);
   }
   // Lazy backfill — if revisions.jsonl missing but source.json present,
   // synthesize rev 1 from source.json.

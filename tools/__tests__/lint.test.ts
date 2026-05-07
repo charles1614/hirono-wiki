@@ -175,9 +175,9 @@ test("all checks: a clean fixture produces 0 issues", () => {
     bucketStubs(root);
     writeSource(root, "s1", "citing [[Real]]");
     writeEntity(root, "Real", "body");
-    // also create raw/2026/s1/content.md so raw-orphan passes
-    mkdirSync(join(root, "raw/2026/s1"), { recursive: true });
-    writeFileSync(join(root, "raw/2026/s1/content.md"), "raw body");
+    // also create raw/raindrop/<host>/s1/content.md so raw-orphan passes
+    mkdirSync(join(root, "raw/raindrop/example.com/s1"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/s1/content.md"), "raw body");
     const issues = runLint(root);
     assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
   } finally { rmSync(root, { recursive: true }); }
@@ -204,8 +204,8 @@ test("raw-orphan: raw dir without matching Source → warn", () => {
   const root = tmp();
   try {
     bucketStubs(root);
-    mkdirSync(join(root, "raw/2026/ghost-source"), { recursive: true });
-    writeFileSync(join(root, "raw/2026/ghost-source/content.md"), "body");
+    mkdirSync(join(root, "raw/raindrop/example.com/ghost-source"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/ghost-source/content.md"), "body");
     const issues = runLint(root, { checks: ["raw-orphan"] });
     const warns = issues.filter((i) => i.severity === "warn");
     assert.equal(warns.length, 1);
@@ -218,8 +218,8 @@ test("raw-orphan: Source paired with raw → clean", () => {
   try {
     bucketStubs(root);
     writeSource(root, "2026-04-20-paired", "body");
-    mkdirSync(join(root, "raw/2026/2026-04-20-paired"), { recursive: true });
-    writeFileSync(join(root, "raw/2026/2026-04-20-paired/content.md"), "raw body");
+    mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-paired"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-paired/content.md"), "raw body");
     const issues = runLint(root, { checks: ["raw-orphan"] });
     assert.equal(issues.length, 0);
   } finally { rmSync(root, { recursive: true }); }

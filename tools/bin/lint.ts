@@ -196,53 +196,62 @@ export function checkTierMismatch(docs: DocMeta[]): Issue[] {
 
 /**
  * raw-orphan: every Sources/YYYY/<slug>.md should have a paired
- * raw/YYYY/<slug>/content.md; every raw/YYYY/<slug>/ should be referenced by
- * some Sources/<slug>.md. Missing either side is an error.
+ * raw/raindrop/<host>/<slug>/content.md; every raw/raindrop/<host>/<slug>/
+ * should be referenced by some Sources/<slug>.md. Missing either side
+ * is an error.
  *
- * This exists so scaling v1 doesn't silently accumulate Source summaries whose
- * raw backing disappeared (lost archive), or orphan raw dirs whose summary was
- * deleted (stale archive).
+ * This exists so scaling v1 doesn't silently accumulate Source summaries
+ * whose raw backing disappeared (lost archive), or orphan raw dirs whose
+ * summary was deleted (stale archive).
  */
 export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
   const issues: Issue[] = [];
   const sources = docs.filter((d) => d.bucket === "Sources");
 
-  // Expected raw/<year>/<slug> dirs per Source page
+  // Index existing raw slugs by slug → (host, slugDir).
+  const rawRoot = join(repoRoot, "raw", "raindrop");
+  const rawSlugs = new Map<string, { host: string; slugDir: string }>();
+  if (existsSync(rawRoot)) {
+    for (const host of readdirSync(rawRoot)) {
+      const hostDir = join(rawRoot, host);
+      let st;
+      try { st = statSync(hostDir); } catch { continue; }
+      if (!st.isDirectory()) continue;  // skip _index.json + other sidecar files
+      for (const slug of readdirSync(hostDir)) {
+        const slugDir = join(hostDir, slug);
+        try { if (!statSync(slugDir).isDirectory()) continue; } catch { continue; }
+        rawSlugs.set(slug, { host, slugDir });
+      }
+    }
+  }
+
+  // Expected slugs per Source page
   const expectedRawSlugs = new Set<string>();
   for (const s of sources) {
-    const rawDir = join(repoRoot, "raw", yearForSourcePath(s.repo_path), s.slug);
     expectedRawSlugs.add(s.slug);
-    const content = join(rawDir, "content.md");
-    if (!existsSync(content)) {
+    const rawEntry = rawSlugs.get(s.slug);
+    const content = rawEntry ? join(rawEntry.slugDir, "content.md") : null;
+    if (!content || !existsSync(content)) {
       issues.push({
         kind: "raw-orphan",
         severity: "error",
         path: s.repo_path,
-        detail: `Sources/.../${s.slug}.md has no raw archive at raw/.../${s.slug}/content.md`,
+        detail: `Sources/.../${s.slug}.md has no raw archive at raw/raindrop/<host>/${s.slug}/content.md`,
         hint: "run `hirono raindrop fetch <slug>` to populate raw/, or remove the Source summary",
       });
     }
   }
 
-  // Reverse direction: any raw/YYYY/<slug>/ without a matching Source summary?
-  const rawRoot = join(repoRoot, "raw");
-  if (existsSync(rawRoot)) {
-    for (const year of readdirSync(rawRoot)) {
-      const yearDir = join(rawRoot, year);
-      if (!statSync(yearDir).isDirectory()) continue;
-      for (const slug of readdirSync(yearDir)) {
-        const slugDir = join(yearDir, slug);
-        if (!statSync(slugDir).isDirectory()) continue;
-        if (!expectedRawSlugs.has(slug)) {
-          issues.push({
-            kind: "raw-orphan",
-            severity: "warn",
-            path: `raw/${year}/${slug}/`,
-            detail: `raw dir exists but no Sources/.../${slug}.md references it`,
-            hint: "ingest this source (write a Sources summary) or delete raw/.../" + slug + "/",
-          });
-        }
-      }
+  // Reverse direction: any raw/raindrop/<host>/<slug>/ without a matching Source summary?
+  for (const [slug, { host }] of rawSlugs) {
+    if (!expectedRawSlugs.has(slug)) {
+      issues.push({
+        kind: "raw-orphan",
+        severity: "warn",
+        path: `raw/raindrop/${host}/${slug}/`,
+        detail: `raw dir exists but no Sources/.../${slug}.md references it`,
+        hint: "ingest this source (write a Sources summary) or delete raw/raindrop/" + host + "/" + slug + "/",
+      });
     }
   }
 

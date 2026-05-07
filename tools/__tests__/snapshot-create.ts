@@ -54,7 +54,18 @@ try {
   process.exit(2);
 }
 
-const slugDir = `raw/2026/${slug}`;
+// Compute the raw landing dir using the same hostname-keyed scheme that
+// `tools/fetch-raw.ts` uses for writes: raw/raindrop/<host>/<slug>/.
+// `host` here is already normalized (lowercased, www-stripped, feishu
+// folded). The fetcher uses `hostnameOf(originUrl)`; the two must agree
+// to find the output. For feishu the URL host stays the per-tenant
+// subdomain, so look up via the live host instead of the folded one.
+const fetcherHost = (() => {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch { return host; }
+})();
+const slugDir = `raw/raindrop/${fetcherHost}/${slug}`;
 console.log(`[1/4] fetch ${url} → ${slugDir}`);
 try {
   execSync(

@@ -48,6 +48,22 @@ const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
 const ISSUES_LOG = join(REPO_ROOT, ".wiki-fetch-issues.md");
 const RAW_DIR = join(REPO_ROOT, "raw");
+/**
+ * Raw archive root for raindrop-driven fetches. Layout:
+ *
+ *   raw/raindrop/
+ *     _index.json                       — slug → bookmark metadata
+ *     <hostname>/<slug>/
+ *       content.md, source.json, ...
+ *
+ * Hostname is derived deterministically from origin_url; this is the only
+ * metadata stable enough to serve as a path component (collection_id and
+ * tags are mutable in the Raindrop UI). All other classifiers
+ * (collection_id, tags, created) live in `_index.json`, queryable via jq.
+ */
+const RAINDROP_DIR = join(RAW_DIR, "raindrop");
+const RAW_INDEX_PATH = join(RAINDROP_DIR, "_index.json");
+const RAINDROP_CACHE_PATH = join(REPO_ROOT, ".wiki-raindrop-cache.json");
 
 // ---------------------------------------------------------------------------
 // types
@@ -379,13 +395,50 @@ function logL2Issue(slug: string, code: string, originUrl: string, detail?: stri
 // slug + path helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Display-only year extracted from the slug prefix. Kept for diagnostics
+ * + index entries; NO LONGER a path component (paths are now keyed by
+ * hostname under raw/raindrop/).
+ */
 export function yearForSlug(slug: string): string {
   const m = slug.match(/^(\d{4})-\d{2}-\d{2}-/);
   return m ? m[1] : new Date().getFullYear().toString();
 }
 
-export function rawDirFor(slug: string): string {
-  return join(RAW_DIR, yearForSlug(slug), slug);
+/**
+ * Canonical write path for a slug fetched from a known origin URL.
+ *   raw/raindrop/<hostname>/<slug>/
+ *
+ * The hostname is derived from `originUrl` via `hostnameOf` (lowercased,
+ * `www.` stripped). For lookups when the URL isn't known, use
+ * `findRawDir(slug)` which scans the disk for an existing slug directory.
+ */
+export function rawDirFor(slug: string, originUrl: string, rawRoot: string = RAW_DIR): string {
+  const host = hostnameOf(originUrl) || "_unknown";
+  return join(rawRoot, "raindrop", host, slug);
+}
+
+/**
+ * Look up the raw directory for an EXISTING slug by scanning
+ * `raw/raindrop/* /<slug>/`. Returns null when no such directory exists.
+ *
+ * Used by read-side helpers (history, diff, export, reclassify) that
+ * have a slug but no URL. O(hostnames) — cheap given ~126 hostnames.
+ */
+export function findRawDir(slug: string, rawRoot: string = RAW_DIR): string | null {
+  const root = join(rawRoot, "raindrop");
+  if (!existsSync(root)) return null;
+  for (const host of readdirSync(root)) {
+    const hostDir = join(root, host);
+    let st;
+    try { st = statSync(hostDir); } catch { continue; }
+    if (!st.isDirectory()) continue;  // skip _index.json + other sidecar files
+    const candidate = join(hostDir, slug);
+    try {
+      if (statSync(candidate).isDirectory()) return candidate;
+    } catch { /* not a dir, keep looking */ }
+  }
+  return null;
 }
 
 function sha256(s: string): string {
@@ -587,7 +640,7 @@ interface WriteArgs {
 }
 
 export function writeRawArchive(args: WriteArgs): SourceJson {
-  const slugDir = rawDirFor(args.slug);
+  const slugDir = rawDirFor(args.slug, args.originUrl);
   mkdirSync(slugDir, { recursive: true });
 
   // Append-only: existing content.md → write content-revN.md instead of overwriting.
@@ -684,6 +737,14 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
   if (suspicious) {
     logL2Issue(args.slug, qualityFlags.join(","), args.originUrl);
   }
+
+  // Refresh the per-slug raindrop sidecar index. Cheap (one walk over
+  // raw/raindrop/) and keeps the index in lockstep with disk state.
+  try { rebuildRawIndex(); }
+  catch (e) {
+    console.error(`[raw-index] failed to refresh _index.json: ${e instanceof Error ? e.message : e}`);
+  }
+
   return src;
 }
 
@@ -800,7 +861,7 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     }
   }
 
-  const slugDir = rawDirFor(opts.slug);
+  const slugDir = rawDirFor(opts.slug, opts.url);
   mkdirSync(slugDir, { recursive: true });
 
   // Routing is total: every URL maps to a site module under
@@ -986,24 +1047,33 @@ export function loadFetchDecisions(path: string = DECISIONS_PATH): Map<string, s
 
 export interface RawSlugInfo {
   slug: string;
+  /** Display-only year (extracted from slug prefix). NOT a path component. */
   year: string;
+  /** Hostname directory the slug lives under (e.g. "github.com"). */
+  hostname: string;
   slugDir: string;
   source: SourceJson | null;      // null if source.json missing/unparseable
   hasContent: boolean;
   quality_status: QualityStatus;  // derived: "failed" if hasContent=false; else source.quality_status ?? classify live
 }
 
-/** Walk raw/<year>/<slug>/ dirs; return one RawSlugInfo per slug. */
+/**
+ * Walk `raw/raindrop/<hostname>/<slug>/` and return one RawSlugInfo per
+ * slug. The `rawRoot` arg is the parent directory containing
+ * `raindrop/` — defaults to the repo root's `raw/`. Tests pass a temp
+ * dir whose layout mirrors that.
+ */
 export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
-  if (!existsSync(rawRoot)) return [];
+  const root = join(rawRoot, "raindrop");
+  if (!existsSync(root)) return [];
   const out: RawSlugInfo[] = [];
-  for (const year of readdirSync(rawRoot).sort()) {
-    const yearDir = join(rawRoot, year);
+  for (const host of readdirSync(root).sort()) {
+    const hostDir = join(root, host);
     try {
-      if (!statSync(yearDir).isDirectory()) continue;
+      if (!statSync(hostDir).isDirectory()) continue;  // skip _index.json + other sidecar files
     } catch { continue; }
-    for (const slug of readdirSync(yearDir).sort()) {
-      const slugDir = join(yearDir, slug);
+    for (const slug of readdirSync(hostDir).sort()) {
+      const slugDir = join(hostDir, slug);
       try {
         if (!statSync(slugDir).isDirectory()) continue;
       } catch { continue; }
@@ -1032,10 +1102,101 @@ export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
           quality_status = "flagged";
         }
       }
-      out.push({ slug, year, slugDir, source, hasContent, quality_status });
+      out.push({ slug, year: yearForSlug(slug), hostname: host, slugDir, source, hasContent, quality_status });
     }
   }
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// raw/raindrop/_index.json — sidecar slug → bookmark-metadata index.
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-slug entry in `_index.json`. Holds the classifiers we deliberately
+ * left OUT of the path (collection_id, tags) plus the immutable origin
+ * fields. Path-derivable fields (hostname, slugDir) are included for
+ * convenience so an operator can `jq` without joining.
+ */
+export interface RawIndexEntry {
+  slug: string;
+  hostname: string;
+  /** Display-only year derived from the slug prefix. */
+  year: string;
+  link?: string;
+  bookmark_id?: number;
+  collection_id?: number;
+  tags?: string[];
+  created?: string;
+  title?: string;
+  fetched_at?: string;
+  quality_status?: QualityStatus;
+}
+
+interface RawIndexFile {
+  version: 1;
+  updated_at: string;
+  slugs: Record<string, RawIndexEntry>;
+}
+
+/**
+ * Rebuild `raw/raindrop/_index.json` by walking every landed slug and
+ * joining `source.json` (origin_url, fetched_at, quality_status) with
+ * the bookmark cache (collection_id, tags, created, title) by URL.
+ *
+ * Best-effort: if the bookmark cache is missing, the joined fields are
+ * simply absent. Idempotent — overwrites the file atomically.
+ */
+export function rebuildRawIndex(
+  rawRoot: string = RAW_DIR,
+  cachePath: string = RAINDROP_CACHE_PATH,
+): RawIndexFile {
+  const slugs = listRawSlugs(rawRoot);
+
+  // Build a URL → bookmark map from the raindrop cache (best-effort).
+  const byUrl = new Map<string, { bookmark_id: number; collection_id?: number; tags?: string[]; created?: string; title?: string }>();
+  if (existsSync(cachePath)) {
+    try {
+      const data = JSON.parse(readFileSync(cachePath, "utf8"));
+      for (const b of data.bookmarks ?? []) {
+        if (b.link) byUrl.set(b.link, {
+          bookmark_id: b.bookmark_id,
+          collection_id: b.collection_id,
+          tags: b.tags,
+          created: b.created,
+          title: b.title,
+        });
+      }
+    } catch { /* leave map empty */ }
+  }
+
+  const out: Record<string, RawIndexEntry> = {};
+  for (const info of slugs) {
+    const link = info.source?.origin_url;
+    const bm = link ? byUrl.get(link) : undefined;
+    out[info.slug] = {
+      slug: info.slug,
+      hostname: info.hostname,
+      year: info.year,
+      link,
+      bookmark_id: bm?.bookmark_id,
+      collection_id: bm?.collection_id,
+      tags: bm?.tags,
+      created: bm?.created,
+      title: bm?.title ?? info.source?.title,
+      fetched_at: info.source?.fetched_at,
+      quality_status: info.quality_status,
+    };
+  }
+  const file: RawIndexFile = {
+    version: 1,
+    updated_at: new Date().toISOString(),
+    slugs: out,
+  };
+  const indexPath = join(rawRoot, "raindrop", "_index.json");
+  mkdirSync(dirname(indexPath), { recursive: true });
+  writeFileAtomic(indexPath, JSON.stringify(file, null, 2) + "\n");
+  return file;
 }
 
 /**
@@ -1048,7 +1209,8 @@ export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
  * without an expensive re-fetch.
  */
 export function reclassifyRawSlug(slug: string): SourceJson | null {
-  const slugDir = rawDirFor(slug);
+  const slugDir = findRawDir(slug);
+  if (!slugDir) return null;
   const contentPath = join(slugDir, "content.md");
   const sourcePath = join(slugDir, "source.json");
   if (!existsSync(contentPath) || !existsSync(sourcePath)) return null;
@@ -1491,7 +1653,8 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
  * was updated in place; no content changed).
  */
 function executeHeadCheck(item: SyncPlanItem, downloadImages: boolean): SourceJson | null {
-  const slugDir = rawDirFor(item.slug);
+  const slugDir = findRawDir(item.slug);
+  if (!slugDir) return null;
   const sourcePath = join(slugDir, "source.json");
   if (!existsSync(sourcePath)) return null;
   let src: SourceJson;

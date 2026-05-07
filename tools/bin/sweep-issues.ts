@@ -1,27 +1,38 @@
 #!/usr/bin/env tsx
-// Sweep every landed raw/2026/<slug>/content.md and post-process it,
-// flag per-file §1 / §3 contract violations grouped by host.
+// Sweep every landed raw/raindrop/<host>/<slug>/content.md and
+// post-process it, flag per-file §1 / §3 contract violations grouped
+// by host.
 //
 // Usage: npx tsx tools/sweep-issues.ts
 
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
 
 interface Issue { slug: string; host: string; problems: string[]; status: string }
 
-const RAW = "raw/2026";
-const entries = readdirSync(RAW).filter((n) => {
-  const p = join(RAW, n);
-  try { return readFileSync(join(p, "content.md"), "utf8").length > 0; } catch { return false; }
-});
+const RAW = "raw/raindrop";
+const entries: Array<{ slug: string; dir: string }> = [];
+if (existsSync(RAW)) {
+  for (const host of readdirSync(RAW)) {
+    const hostDir = join(RAW, host);
+    try { if (!statSync(hostDir).isDirectory()) continue; } catch { continue; }  // skips _index.json sidecar
+    for (const slug of readdirSync(hostDir)) {
+      const dir = join(hostDir, slug);
+      try { if (!statSync(dir).isDirectory()) continue; } catch { continue; }
+      try {
+        if (readFileSync(join(dir, "content.md"), "utf8").length > 0) entries.push({ slug, dir });
+      } catch { /* skip */ }
+    }
+  }
+}
 
 const issues: Issue[] = [];
 const byHost = new Map<string, Issue[]>();
 
-for (const slug of entries) {
-  const contentPath = join(RAW, slug, "content.md");
-  const srcPath = join(RAW, slug, "source.json");
+for (const { slug, dir } of entries) {
+  const contentPath = join(dir, "content.md");
+  const srcPath = join(dir, "source.json");
   if (!existsSync(contentPath) || !existsSync(srcPath)) continue;
   const md = readFileSync(contentPath, "utf8");
   const src = JSON.parse(readFileSync(srcPath, "utf8"));

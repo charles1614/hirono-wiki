@@ -25,7 +25,7 @@
 import { readFileSync, existsSync, appendFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { fetchUrlAndStore, rawDirFor, listRawSlugs } from "../../fetch-raw.ts";
+import { fetchUrlAndStore, listRawSlugs } from "../../fetch-raw.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
 import type { Cache, CachedBookmark } from "./check.ts";
