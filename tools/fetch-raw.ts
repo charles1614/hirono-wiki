@@ -178,6 +178,19 @@ export const LOGIN_WALL_KEYWORDS = [
   "请在微信客户端打开",
 ];
 
+/**
+ * Hosts where login-wall-keyword detection is suppressed because the
+ * forum / Q&A format regularly produces threads whose titles or top
+ * posts discuss login flows in prose. Without this allowlist, every
+ * "how do I sign in to X" thread on linux.do or similar would be
+ * flagged as if it were a wall page.
+ */
+export const LOGIN_WALL_HOST_DENYLIST = new Set([
+  "linux.do",
+  "stackoverflow.com",
+  "v2ex.com",
+]);
+
 /** Client-render placeholders. When these appear, the page hadn't fully hydrated by the time we scraped. */
 export const LOADING_SKELETON_KEYWORDS = [
   "Loading content",
@@ -295,19 +308,27 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
     if (headingCount === 0) flags.push("no-headings-in-body");
   }
 
-  // Login-wall keywords are very common in Chinese prose ("登录" appears
-  // naturally in any article discussing user auth flows). Only flag when:
-  //   - body is thin (< 1500 chars — likely a real wall page), OR
-  //   - keyword appears in the first 500 chars (above the fold of any
-  //     real article body, where a wall would intercept).
-  // This avoids false positives on technical articles that happen to
-  // mention login mechanics in prose.
+  // Login-wall keywords are very common in Chinese prose ("登录" /
+  // "登陆" appear naturally in any article discussing user auth flows).
+  // Only flag when ALL of:
+  //   - body is thin (< 1500 chars — likely a real wall page) OR
+  //     keyword appears in the first 500 chars (above the fold)
+  //   - body has < 3 headings (real articles with hierarchy aren't walls)
+  //   - origin host isn't on the LOGIN_WALL_HOST_DENYLIST — forum / Q&A
+  //     hosts (linux.do, stackoverflow, github discussions) regularly
+  //     have threads discussing login flows in their TITLES, which the
+  //     keyword check would falsely flag.
   const loginScanRegion =
     trimmed.length < 1500 ? trimmed : trimmed.slice(0, 500);
-  for (const kw of LOGIN_WALL_KEYWORDS) {
-    if (loginScanRegion.includes(kw)) {
-      flags.push("login-wall-keyword");
-      break;
+  const headingCountForLoginCheck = (trimmed.match(/^#{1,6}\s+\S/gm) ?? []).length;
+  const originHost = ctx.originUrl ? hostnameOf(ctx.originUrl) : "";
+  const isLoginWallHostExempt = LOGIN_WALL_HOST_DENYLIST.has(originHost);
+  if (!isLoginWallHostExempt && headingCountForLoginCheck < 3) {
+    for (const kw of LOGIN_WALL_KEYWORDS) {
+      if (loginScanRegion.includes(kw)) {
+        flags.push("login-wall-keyword");
+        break;
+      }
     }
   }
   // Loading-skeleton detection is fraught: many pages have incidental

@@ -124,6 +124,34 @@ test("classifyQuality: login-wall keyword deep in long prose → NOT flagged", (
   assert.ok(!r.flags.includes("login-wall-keyword"));
 });
 
+test("classifyQuality: linux.do thread with 登陆 in title → NOT flagged (host-denylist)", () => {
+  // Thread on linux.do whose title is literally "cursor 官网账号登陆方式" —
+  // login keyword in the H1, body discusses login mechanics. Without
+  // the host denylist this would false-positive as a wall page.
+  const body =
+    "# cursor 官网账号登陆方式不能多人共享了？\n\n" +
+    "> 原文链接: https://linux.do/t/topic/537374\n\n" +
+    "---\n\n" +
+    "## #1 @user\n\n一直和朋友一起用的cursor 今天发现官网登陆不能共享…\n";
+  const r = classifyQuality(body, { originUrl: "https://linux.do/t/topic/537374" });
+  assert.ok(!r.flags.includes("login-wall-keyword"),
+    `linux.do should be exempt from login-wall flag; got: ${r.flags.join(",")}`);
+});
+
+test("classifyQuality: structured article (≥3 headings) with login keyword in body → NOT flagged", () => {
+  // Even when the host isn't on the denylist, a body with substantial
+  // hierarchy (≥3 headings) is structurally an article — never a wall.
+  const body =
+    "# How to log in to Cursor\n\n" +
+    "## Section 1\nlong content...\n" +
+    "## Section 2\n登录 mechanics described in detail…\n" +
+    "## Section 3\nmore content...\n" +
+    "正文 ".repeat(50);
+  const r = classifyQuality(body, { originUrl: "https://blog.example.com/post" });
+  assert.ok(!r.flags.includes("login-wall-keyword"),
+    "≥3 headings should suppress the login-wall flag");
+});
+
 test("LOGIN_WALL_KEYWORDS includes the key domains we care about", () => {
   // Smoke-check: a keyword for each of xhs ('打开App'), wechat ('请在微信客户端打开')
   assert.ok(LOGIN_WALL_KEYWORDS.some((k) => k.includes("打开App") || k.includes("打开小红书")));

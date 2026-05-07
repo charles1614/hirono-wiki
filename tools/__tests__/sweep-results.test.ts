@@ -64,6 +64,7 @@ const EXPECTED: Record<string, {
   "feishu.cn": { minChars: 5000, notes: "site:feishu lark-cli — Gemma 4 wiki page (real content)" },
   "nvidianews.nvidia.com": { minChars: 3000, notes: "site:nvidianews — vera CPU press release" },
   "sohu.com": { minChars: 2000, notes: "site:sohu — 8B/10B encoding article" },
+  "linux.do": { minChars: 1000, notes: "site:linux-do — Discourse forum thread (login-wall heuristic exempt for forum hosts)" },
 };
 
 function listHostSamples(): Array<{ host: string; mdPath: string; sourceJson?: string }> {

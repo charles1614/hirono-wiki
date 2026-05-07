@@ -1,0 +1,16 @@
+{
+  "fetched_at": "2026-05-07T07:10:55.212Z",
+  "origin": "url:https://linux.do/t/topic/537374",
+  "origin_url": "https://linux.do/t/topic/537374",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "155ead16a6b756ab8bc035ae841460c0507bc9c048c4f49c085b4983b1620b3b",
+  "content_length": 1133,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "site module: linux-do",
+    "linux-do: 13 post(s), 0 onebox(es), 0 quote(s), 0 code fence(s), 0/0 image(s) downloaded"
+  ]
+}
