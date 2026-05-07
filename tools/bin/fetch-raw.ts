@@ -100,7 +100,7 @@ function readAll(path: string | undefined): string {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-function cmdStore(positional: string[], args: string[]): void {
+export function cmdStore(positional: string[], args: string[]): void {
   const slug = positional[0];
   if (!slug) usage();
   const origin = argVal(args, "--origin");
@@ -147,7 +147,7 @@ function cmdStore(positional: string[], args: string[]): void {
   console.log(`[store] raw/${yearForSlug(slug)}/${slug}/ (${src.content_length} chars, ${src.images.length} images, flags=${src.quality_flags.join(",") || "none"})`);
 }
 
-function cmdFetchLark(positional: string[], args: string[]): void {
+export function cmdFetchLark(positional: string[], args: string[]): void {
   const nodeToken = positional[0];
   if (!nodeToken) usage();
   const slug = argVal(args, "--slug");
@@ -170,7 +170,7 @@ function cmdFetchLark(positional: string[], args: string[]): void {
   console.log(`[fetch-lark] raw/${yearForSlug(slug)}/${slug}/ (${src.content_length} chars, ${src.images.length} images)`);
 }
 
-function cmdFetchUrl(positional: string[], args: string[]): void {
+export function cmdFetchUrl(positional: string[], args: string[]): void {
   const url = positional[0];
   if (!url) usage();
   const slug = argVal(args, "--slug");
@@ -186,7 +186,7 @@ function cmdFetchUrl(positional: string[], args: string[]): void {
   );
 }
 
-function cmdVerify(positional: string[]): void {
+export function cmdVerify(positional: string[]): void {
   const slug = positional[0];
   if (!slug) usage();
   const dir = rawDirFor(slug);
@@ -210,7 +210,7 @@ function cmdVerify(positional: string[]): void {
   process.exit(1);
 }
 
-function cmdStatus(args: string[]): void {
+export function cmdStatus(args: string[]): void {
   if (argFlag(args, "--quiet")) process.env.FETCH_RAW_STATUS_QUIET = "1";
   // Always re-classify on status — cheap, and makes the report reflect any
   // classifier-logic changes since last fetch.
@@ -224,7 +224,7 @@ function cmdStatus(args: string[]): void {
   if (report.needsAttention.length > 0) process.exit(1);
 }
 
-function cmdSync(args: string[]): void {
+export function cmdSync(args: string[]): void {
   const limitStr = argVal(args, "--limit");
   const limit = limitStr !== undefined ? parseInt(limitStr, 10) : undefined;
   const retryFlagged = argFlag(args, "--retry-flagged");
@@ -314,7 +314,7 @@ function cmdSync(args: string[]): void {
   console.log(`\n[sync] done: ${ok} ok, ${failed} failed, ${skipped} skipped`);
 }
 
-function cmdRefetch(positional: string[], args: string[]): void {
+export function cmdRefetch(positional: string[], args: string[]): void {
   const slug = positional[0];
   if (!slug) usage();
   const downloadImages = !argFlag(args, "--no-images");
@@ -357,6 +357,30 @@ function main(): void {
       }
     } else {
       positional.push(a);
+    }
+  }
+
+  // Deprecation notice — every fetch-raw subcommand now has a matching
+  // `hirono raindrop <subcommand>` form. Map the legacy name to the
+  // canonical hirono form and print a single line to stderr. Behavior is
+  // unchanged; this is informational only. Suppressed via env var so test
+  // suites that invoke fetch-raw stay quiet.
+  if (cmd && !process.env.FETCH_RAW_NO_DEPRECATION_NOTICE) {
+    const NEW_NAME: Record<string, string> = {
+      "store": "store",
+      "fetch-lark": "fetch-lark",
+      "fetch-url": "fetch",   // canonical name in the new namespace
+      "verify": "verify",
+      "status": "status",
+      "sync": "sync",
+      "refetch": "refetch",
+    };
+    const newSub = NEW_NAME[cmd];
+    if (newSub) {
+      console.error(
+        `[deprecated] fetch-raw ${cmd}: use 'hirono raindrop ${newSub}' instead. ` +
+        `(set FETCH_RAW_NO_DEPRECATION_NOTICE=1 to silence)`,
+      );
     }
   }
 
