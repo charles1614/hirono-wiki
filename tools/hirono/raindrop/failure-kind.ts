@@ -196,6 +196,19 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
     }
     // SPA empty after browser fallback fired
     if (flagSet.has("_default-fetch-failed") || flagSet.has("loading-skeleton")) {
+      // Heuristic: if the URL host or path SCREAMS "interactive app" —
+      // calculator/dashboard/search/login/login UI / IPFS gateway hash —
+      // it's really `intentional-stub-app-only`, not a content page that
+      // failed to render. The catchall can't tell the difference at
+      // fetch time but at classify time the URL pattern is reliable.
+      const url = input.url || "";
+      const APP_URL_PATTERNS: RegExp[] = [
+        /\/(?:login|signin|signup|register|dashboard|console|admin)\b/i,
+        /\/(?:tools?|calculator|search|vram-calculator)\b/i,
+        /\.eth\.limo\b/i,                  // IPFS gateway hashes — hash subdomain → app
+        /^https?:\/\/[a-f0-9]{8,}\./i,     // hex-hash subdomains (gateway-hosted apps)
+      ];
+      if (APP_URL_PATTERNS.some((p) => p.test(url))) return "intentional-stub-app-only";
       return "upstream-spa-no-content";
     }
     // Generic fetch failure stub
