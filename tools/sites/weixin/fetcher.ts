@@ -50,11 +50,18 @@ export function extractWeixinFullContent(url: string): WeixinFullContent {
       const titleEl = document.querySelector("#activity-name");
       const authorEl = document.querySelector("#js_name") || document.querySelector("#profileBt #js_name");
       const timeEl = document.querySelector("#publish_time") || document.querySelector("em#publish_time");
+      // Detect WeChat's "account migrated / recycled" landing page. The
+      // body text reliably carries the phrase 该公众号已迁移; the original
+      // article is reachable only via a manual button click. We surface
+      // this as a soft stub instead of an L3 auth-loss halt.
+      const bodyText = (document.body && document.body.innerText) ? document.body.innerText.slice(0, 2000) : "";
+      const migrated = /该公众号已迁移/.test(bodyText) || /原账号已回收/.test(bodyText);
       return JSON.stringify({
         html,
         title: titleEl ? (titleEl.textContent || "").trim().replace(/\\s+/g, " ") : "",
         author: authorEl ? (authorEl.textContent || "").trim() : "",
         publishTime: timeEl ? (timeEl.textContent || "").trim() : "",
+        migrated,
       });
     })()`;
     const evalRes = spawnSync("opencli", ["browser", "eval", evalScript], {
@@ -97,7 +104,18 @@ export function extractWeixinFullContent(url: string): WeixinFullContent {
       title: string;
       author: string;
       publishTime: string;
+      migrated?: boolean;
     };
+    if (payload.migrated) {
+      // Account-migrated landing page. Original article is gone unless
+      // the operator clicks the manual redirect button — out of scope
+      // for an automated fetcher. Signal a soft stub via L2.
+      throw makeFetchError(
+        "weixin-account-migrated",
+        "L2",
+        "weixin official account migrated/recycled — original article reachable only via manual redirect button",
+      );
+    }
     if (!payload.html || payload.html.length < 200) {
       throw makeFetchError(
         "weixin-empty-content",
