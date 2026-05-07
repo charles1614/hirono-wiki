@@ -548,6 +548,39 @@ graduation path is the proven recipe documented in CLAUDE.md §5.
 
 ### Identifying candidates
 
+Two complementary surfaces flag hosts that need attention:
+
+**(a) `hirono raindrop check` — "New hosts since last check".** Lists
+every host that has at least one bookmark but was missing from the
+graduation snapshot at `tools/opencli/host-counts.json`. Singletons
+(count == 1) surface in `## New hosts since last check`; hosts that
+have already crossed count >= 2 surface in `## Brand-new hosts`. Use
+this when first triaging a fresh sync — anything new is a candidate
+for either a dedicated module or a documented `intentional-stub`
+decision.
+
+**(b) `hirono raindrop status` host-coverage footer.** Every status
+report ends with a `## Host coverage overview` block:
+
+```
+Total hosts: 126 (578 bookmarks)
+- Dedicated-module covered: 36 hosts (488 bookmarks)
+- _default-routed: 90 hosts (90 bookmarks)
+  - producing clean MD: 78 hosts
+  - producing stub/error: 12 hosts (graduation candidates)
+    > openreview.net (1 bookmark, 1 stub/error) — kind: upstream-not-html
+    > cursor.com (1 bookmark, 1 stub/error) — kind: upstream-not-html
+    ...
+```
+
+A host in the "graduation candidates" list either needs a dedicated
+module (CLAUDE.md §5a recipe) or a deliberate decision to accept the
+stub. Sort by `kind` to spot patterns: many `upstream-not-html` rows
+mean a PDF/binary-handling improvement, many `upstream-spa-no-content`
+rows mean a browser-eval module is needed.
+
+Older queries that still work for ad-hoc filtering:
+
 ```bash
 # Find hosts where _default fell back to browser-eval.
 hirono raindrop status --json | jq -r '
