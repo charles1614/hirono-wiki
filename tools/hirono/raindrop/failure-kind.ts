@@ -174,8 +174,10 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
 
   // Stub-shaped (intentional-stub flag present)
   if (flagSet.has("intentional-stub")) {
-    // _default detected a PDF / binary / media response and short-circuited.
-    if (flagSet.has("_default-non-html")) return "upstream-not-html";
+    // PDF / binary / media stubs. _default-non-html: catch-all PDF detection.
+    // arxiv-pdf: arxiv module emits this for /pdf/ URLs. Both classify as
+    // upstream-not-html (the URL is a PDF, not extractable HTML).
+    if (flagSet.has("_default-non-html") || flagSet.has("arxiv-pdf")) return "upstream-not-html";
     // App-only stubs (HF spaces, qwen.ai non-article)
     if (flagSet.has("huggingface-space") || flagSet.has("qwen-ai-non-article")) {
       return "intentional-stub-app-only";
