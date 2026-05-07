@@ -20,7 +20,16 @@ dist/
 .wiki-batch-state.json
 .wiki-fetch-issues.md
 .wiki-raindrop-cache.json
+.wiki-mention-map.json
 batch-*-candidates.json
+
+# Backup files (any *.bak alongside an already-ignored state file)
+*.bak
+
+# Local archive of salvaged analytical content from discarded ingest
+# entries. Untracked by convention — keep on disk for personal reference,
+# don't pollute the repo.
+Meta/_archive/
 
 # Editor
 .vscode/
