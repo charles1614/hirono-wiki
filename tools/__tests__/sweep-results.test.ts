@@ -47,6 +47,19 @@ const EXPECTED: Record<string, {
   "x.com": { minChars: 200, notes: "Twitter/X — auth-gated, content varies by session" },
   "epoch.ai": { minChars: 200, notes: "interactive data viz — extracted text only" },
   "sebastianraschka.com": { minChars: 1000, notes: "React gallery — best-achievable extraction" },
+  // _default hybrid samples (long-tail SPAs + article-shape blogs).
+  "philschmid.de": { minChars: 5000, notes: "_default curl — typical article blog" },
+  "astra-sim.github.io": {
+    minChars: 1000, notes: "_default curl — project landing; one cross-origin SVG fails to download",
+    allowFlags: ["_default-image-download-partial"],
+  },
+  "jalammar.github.io": { minChars: 10000, notes: "_default curl — Illustrated Transformer + 37 figures" },
+  "cursor.com": { minChars: 5000, notes: "_default curl (SSR sufficient) — Cursor marketing page" },
+  "21st.dev": { minChars: 1000, notes: "_default curl (SSR sufficient) — 21st.dev landing" },
+  "leetgpu.com": {
+    minChars: 500, notes: "_default browser-eval fallback — LeetGPU SPA shell empty under curl",
+    allowFlags: ["_default-used-browser-fallback"],
+  },
 };
 
 function listHostSamples(): Array<{ host: string; mdPath: string; sourceJson?: string }> {
@@ -129,6 +142,16 @@ for (const { host, mdPath, sourceJson } of samples) {
   test(`sweep[${host}]: every local image ref resolves to a real file`, () => {
     const md = readFileSync(mdPath, "utf8");
     const dir = dirname(mdPath);
+    // If the sample is flagged with image-download-partial, the converter
+    // intentionally left some refs pointing at filenames that never landed
+    // on disk (cross-origin denials, 403s, etc.). Skip the dangling check
+    // for those — the flag is the explicit allowance.
+    if (sourceJson) {
+      try {
+        const flags: string[] = JSON.parse(readFileSync(sourceJson, "utf8")).quality_flags || [];
+        if (flags.some((f) => /image-download-partial$/.test(f))) return;
+      } catch { /* fall through to strict check */ }
+    }
     const dangling: string[] = [];
     // Strip inline-code spans and fenced code blocks BEFORE scanning for
     // image refs — sample articles often discuss markdown syntax inside

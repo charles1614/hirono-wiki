@@ -1,0 +1,18 @@
+{
+  "fetched_at": "2026-05-07T01:58:53.056Z",
+  "origin": "url:https://leetgpu.com",
+  "origin_url": "https://leetgpu.com",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "33ba8b2e05fb86e1a30b5abd07228610d43639ccc0b853934492e2ff7e000e4d",
+  "content_length": 1014,
+  "quality_flags": [
+    "_default-used-browser-fallback"
+  ],
+  "quality_status": "flagged",
+  "images": [],
+  "notes": [
+    "site module: _default",
+    "_default: 893 body chars via browser-eval fallback, 0/0 image(s) downloaded"
+  ]
+}

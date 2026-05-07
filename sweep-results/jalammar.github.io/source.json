@@ -1,0 +1,203 @@
+{
+  "fetched_at": "2026-05-07T01:58:19.189Z",
+  "origin": "url:https://jalammar.github.io/illustrated-transformer/",
+  "origin_url": "https://jalammar.github.io/illustrated-transformer/",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "6ce235156375640f32c31efed77c6a9623f25d03c64591b7dd005527bd3b60f8",
+  "content_length": 31840,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "default-img-001.jpg",
+      "remote": "",
+      "bytes": 241755
+    },
+    {
+      "local": "default-img-002.png",
+      "remote": "",
+      "bytes": 44824
+    },
+    {
+      "local": "default-img-003.png",
+      "remote": "",
+      "bytes": 39199
+    },
+    {
+      "local": "default-img-004.png",
+      "remote": "",
+      "bytes": 127812
+    },
+    {
+      "local": "default-img-005.png",
+      "remote": "",
+      "bytes": 32628
+    },
+    {
+      "local": "default-img-006.png",
+      "remote": "",
+      "bytes": 38751
+    },
+    {
+      "local": "default-img-007.png",
+      "remote": "",
+      "bytes": 13335
+    },
+    {
+      "local": "default-img-008.png",
+      "remote": "",
+      "bytes": 57027
+    },
+    {
+      "local": "default-img-009.png",
+      "remote": "",
+      "bytes": 79065
+    },
+    {
+      "local": "default-img-010.png",
+      "remote": "",
+      "bytes": 50075
+    },
+    {
+      "local": "default-img-011.png",
+      "remote": "",
+      "bytes": 38480
+    },
+    {
+      "local": "default-img-012.png",
+      "remote": "",
+      "bytes": 33304
+    },
+    {
+      "local": "default-img-013.png",
+      "remote": "",
+      "bytes": 53877
+    },
+    {
+      "local": "default-img-014.png",
+      "remote": "",
+      "bytes": 61686
+    },
+    {
+      "local": "default-img-015.png",
+      "remote": "",
+      "bytes": 28115
+    },
+    {
+      "local": "default-img-016.png",
+      "remote": "",
+      "bytes": 27585
+    },
+    {
+      "local": "default-img-017.png",
+      "remote": "",
+      "bytes": 56246
+    },
+    {
+      "local": "default-img-018.png",
+      "remote": "",
+      "bytes": 46541
+    },
+    {
+      "local": "default-img-019.png",
+      "remote": "",
+      "bytes": 89919
+    },
+    {
+      "local": "default-img-020.png",
+      "remote": "",
+      "bytes": 166831
+    },
+    {
+      "local": "default-img-021.png",
+      "remote": "",
+      "bytes": 52267
+    },
+    {
+      "local": "default-img-022.png",
+      "remote": "",
+      "bytes": 58366
+    },
+    {
+      "local": "default-img-023.png",
+      "remote": "",
+      "bytes": 89885
+    },
+    {
+      "local": "default-img-024.png",
+      "remote": "",
+      "bytes": 42164
+    },
+    {
+      "local": "default-img-025.png",
+      "remote": "",
+      "bytes": 36534
+    },
+    {
+      "local": "default-img-026.png",
+      "remote": "",
+      "bytes": 13305
+    },
+    {
+      "local": "default-img-027.png",
+      "remote": "",
+      "bytes": 63629
+    },
+    {
+      "local": "default-img-028.png",
+      "remote": "",
+      "bytes": 79522
+    },
+    {
+      "local": "default-img-029.png",
+      "remote": "",
+      "bytes": 188129
+    },
+    {
+      "local": "default-img-030.gif",
+      "remote": "",
+      "bytes": 3696607
+    },
+    {
+      "local": "default-img-031.gif",
+      "remote": "",
+      "bytes": 6168687
+    },
+    {
+      "local": "default-img-032.png",
+      "remote": "",
+      "bytes": 70754
+    },
+    {
+      "local": "default-img-033.png",
+      "remote": "",
+      "bytes": 34881
+    },
+    {
+      "local": "default-img-034.png",
+      "remote": "",
+      "bytes": 53816
+    },
+    {
+      "local": "default-img-035.png",
+      "remote": "",
+      "bytes": 55067
+    },
+    {
+      "local": "default-img-036.png",
+      "remote": "",
+      "bytes": 72702
+    },
+    {
+      "local": "default-img-037.png",
+      "remote": "",
+      "bytes": 81645
+    }
+  ],
+  "notes": [
+    "site module: _default",
+    "_default: 29511 body chars via plain curl, 37/37 image(s) downloaded",
+    "37 images downloaded by adapter"
+  ]
+}

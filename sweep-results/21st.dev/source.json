@@ -1,0 +1,68 @@
+{
+  "fetched_at": "2026-05-07T01:58:42.206Z",
+  "origin": "url:https://21st.dev",
+  "origin_url": "https://21st.dev",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "8f937a7976eefb2da2cf45ae473fc3910941777e8dd1361725dc2ac4ab86ceeb",
+  "content_length": 2400,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "default-img-001.png",
+      "remote": "",
+      "bytes": 166003
+    },
+    {
+      "local": "default-img-002.png",
+      "remote": "",
+      "bytes": 71638
+    },
+    {
+      "local": "default-img-003.png",
+      "remote": "",
+      "bytes": 108575
+    },
+    {
+      "local": "default-img-004.png",
+      "remote": "",
+      "bytes": 35728
+    },
+    {
+      "local": "default-img-005.png",
+      "remote": "",
+      "bytes": 5959
+    },
+    {
+      "local": "default-img-006.png",
+      "remote": "",
+      "bytes": 506760
+    },
+    {
+      "local": "default-img-007.png",
+      "remote": "",
+      "bytes": 23319
+    },
+    {
+      "local": "default-img-008.png",
+      "remote": "",
+      "bytes": 15572
+    },
+    {
+      "local": "default-img-009.png",
+      "remote": "",
+      "bytes": 5269
+    },
+    {
+      "local": "default-img-010.png",
+      "remote": "",
+      "bytes": 80822
+    }
+  ],
+  "notes": [
+    "site module: _default",
+    "_default: 2076 body chars via plain curl, 10/10 image(s) downloaded",
+    "10 images downloaded by adapter"
+  ]
+}

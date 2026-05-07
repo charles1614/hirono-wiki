@@ -4,7 +4,7 @@
 > Notes from my Thoughtworks colleagues on AI-assisted software delivery
 
 ---
-# Exploring Generative AI
+## Exploring Generative AI
 
 [![Photo of Birgitta Böckeler](default-img-001.jpg)](https://birgitta.info)
 

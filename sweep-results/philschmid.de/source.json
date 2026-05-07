@@ -1,0 +1,16 @@
+{
+  "fetched_at": "2026-05-07T01:57:46.304Z",
+  "origin": "url:https://www.philschmid.de/kimi-composer-context",
+  "origin_url": "https://www.philschmid.de/kimi-composer-context",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "84dcd9f4e5a0b446c09a7e8470e978c1442ee6fdbef0420afa53ab48fd24ffed",
+  "content_length": 19186,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [],
+  "notes": [
+    "site module: _default",
+    "_default: 18942 body chars via plain curl, 0/0 image(s) downloaded"
+  ]
+}

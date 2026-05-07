@@ -1,0 +1,163 @@
+{
+  "fetched_at": "2026-05-07T01:58:35.762Z",
+  "origin": "url:https://cursor.com",
+  "origin_url": "https://cursor.com",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "2403eaa47a593261b4ec6733a7805833eec445dca84673f0a8961007d36a0d7b",
+  "content_length": 9902,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "default-img-001.jpg",
+      "remote": "",
+      "bytes": 668550
+    },
+    {
+      "local": "default-img-002.png",
+      "remote": "",
+      "bytes": 1457185
+    },
+    {
+      "local": "default-img-003.jpg",
+      "remote": "",
+      "bytes": 244796
+    },
+    {
+      "local": "default-img-004.jpg",
+      "remote": "",
+      "bytes": 244796
+    },
+    {
+      "local": "default-img-005.jpg",
+      "remote": "",
+      "bytes": 1821
+    },
+    {
+      "local": "default-img-006.jpg",
+      "remote": "",
+      "bytes": 797
+    },
+    {
+      "local": "default-img-007.jpg",
+      "remote": "",
+      "bytes": 725
+    },
+    {
+      "local": "default-img-008.jpg",
+      "remote": "",
+      "bytes": 1277
+    },
+    {
+      "local": "default-img-009.jpg",
+      "remote": "",
+      "bytes": 2720
+    },
+    {
+      "local": "default-img-010.jpg",
+      "remote": "",
+      "bytes": 1083
+    },
+    {
+      "local": "default-img-011.jpg",
+      "remote": "",
+      "bytes": 532
+    },
+    {
+      "local": "default-img-012.jpg",
+      "remote": "",
+      "bytes": 571163
+    },
+    {
+      "local": "default-img-013.jpg",
+      "remote": "",
+      "bytes": 571163
+    },
+    {
+      "local": "default-img-014.jpg",
+      "remote": "",
+      "bytes": 4705
+    },
+    {
+      "local": "default-img-015.jpg",
+      "remote": "",
+      "bytes": 4903
+    },
+    {
+      "local": "default-img-016.jpg",
+      "remote": "",
+      "bytes": 4819
+    },
+    {
+      "local": "default-img-017.jpg",
+      "remote": "",
+      "bytes": 8201
+    },
+    {
+      "local": "default-img-018.jpg",
+      "remote": "",
+      "bytes": 5855
+    },
+    {
+      "local": "default-img-019.jpg",
+      "remote": "",
+      "bytes": 1415
+    },
+    {
+      "local": "default-img-020.jpg",
+      "remote": "",
+      "bytes": 3689
+    },
+    {
+      "local": "default-img-021.jpg",
+      "remote": "",
+      "bytes": 543
+    },
+    {
+      "local": "default-img-022.jpg",
+      "remote": "",
+      "bytes": 273396
+    },
+    {
+      "local": "default-img-023.jpg",
+      "remote": "",
+      "bytes": 76138
+    },
+    {
+      "local": "default-img-024.jpg",
+      "remote": "",
+      "bytes": 873
+    },
+    {
+      "local": "default-img-025.jpg",
+      "remote": "",
+      "bytes": 828
+    },
+    {
+      "local": "default-img-026.jpg",
+      "remote": "",
+      "bytes": 963
+    },
+    {
+      "local": "default-img-027.jpg",
+      "remote": "",
+      "bytes": 477
+    },
+    {
+      "local": "default-img-028.jpg",
+      "remote": "",
+      "bytes": 473
+    },
+    {
+      "local": "default-img-029.jpg",
+      "remote": "",
+      "bytes": 2486
+    }
+  ],
+  "notes": [
+    "site module: _default",
+    "_default: 9740 body chars via plain curl, 29/29 image(s) downloaded",
+    "29 images downloaded by adapter"
+  ]
+}

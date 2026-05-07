@@ -1,0 +1,30 @@
+{
+  "fetched_at": "2026-05-07T01:57:52.317Z",
+  "origin": "url:https://astra-sim.github.io/",
+  "origin_url": "https://astra-sim.github.io/",
+  "fetcher": "opencli",
+  "fetcher_reason": "direct",
+  "content_sha": "d6a2f8ab97d69fba1292c986fe730153b2727f07204fe8a9c9134bd415a48077",
+  "content_length": 4683,
+  "quality_flags": [
+    "_default-image-download-partial"
+  ],
+  "quality_status": "flagged",
+  "images": [
+    {
+      "local": "default-img-001.jpg",
+      "remote": "",
+      "bytes": 4995623
+    },
+    {
+      "local": "default-img-002.png",
+      "remote": "",
+      "bytes": 423315
+    }
+  ],
+  "notes": [
+    "site module: _default",
+    "_default: 4551 body chars via plain curl, 2/3 image(s) downloaded (1 failed)",
+    "2 images downloaded by adapter"
+  ]
+}

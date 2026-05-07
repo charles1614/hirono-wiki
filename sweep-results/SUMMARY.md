@@ -24,3 +24,15 @@
 | zhihu.com | pass | 2520 | good | — | 21944ms |
 | sohu.com | pass | 1363 | good | — | 17130ms |
 | swfvqxo30ma.feishu.cn | pass | 2384 | good | — | 21893ms |
+
+## _default hybrid samples (2026-05-07)
+
+| host | path | chars | result |
+|---|---|---|---|
+| philschmid.de | curl | 19210 | clean article |
+| astra-sim.github.io | curl | 4680 | project landing |
+| jalammar.github.io | curl | 32194 | full Illustrated Transformer post + 37 images |
+| cursor.com | curl (SSR sufficient) | 9978 | marketing page content |
+| 21st.dev | curl (SSR sufficient) | 2404 | SSR fallback content |
+| leetgpu.com | **browser-eval fallback** | 1096 | hydrated content (curl shell was empty) |
+
