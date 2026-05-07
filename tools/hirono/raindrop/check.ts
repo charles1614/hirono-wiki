@@ -101,6 +101,13 @@ export interface CheckReport {
   uncovered_high_frequency: HostRow[]; // web-read-fallback + count >= 5
   graduations: HostGraduation[];       // hosts crossed from count==1 → count>=2 since last snapshot
   brand_new: HostGraduation[];         // hosts not in previous snapshot (only flagged if count >= 2)
+  /**
+   * Hosts not present in the previous snapshot AND with count == 1
+   * (newcomer singletons). Surfaced separately from `brand_new` so the
+   * operator can see "this host appeared since last check" without
+   * conflating it with the "needs adapter coverage" graduation track.
+   */
+  new_singletons: HostGraduation[];
 }
 
 export interface HostGraduation {
@@ -146,24 +153,37 @@ function writeHostCountsSnapshot(report: CheckReport): void {
 
 /**
  * Compute graduations vs the saved snapshot:
- *   - graduated: previous_count == 1 AND current_count >= 2
- *   - brand_new: hostname missing from previous snapshot AND current_count >= 2
+ *   - graduated:      previous_count == 1 AND current_count >= 2
+ *   - brand_new:      hostname missing from previous snapshot AND current_count >= 2
+ *   - new_singletons: hostname missing from previous snapshot AND current_count == 1
+ *
+ * `new_singletons` is informational only — a brand-new host with one
+ * bookmark routes to `_default` and produces a stub or a `clean` row
+ * via the catch-all path. The operator decides whether to act now
+ * (build a dedicated module proactively) or wait for it to graduate.
  */
-function computeGraduations(report: CheckReport): { graduations: HostGraduation[]; brand_new: HostGraduation[] } {
+function computeGraduations(report: CheckReport): {
+  graduations: HostGraduation[];
+  brand_new: HostGraduation[];
+  new_singletons: HostGraduation[];
+} {
   const snap = loadHostCountsSnapshot();
   const graduations: HostGraduation[] = [];
   const brand_new: HostGraduation[] = [];
-  if (!snap) return { graduations, brand_new };
+  const new_singletons: HostGraduation[] = [];
+  if (!snap) return { graduations, brand_new, new_singletons };
   const prev = snap.host_counts;
   for (const h of report.hosts) {
     const previous = prev[h.hostname] ?? -1;
-    if (previous === -1 && h.count >= 2) {
-      brand_new.push({ hostname: h.hostname, previous_count: 0, current_count: h.count });
+    if (previous === -1) {
+      // Brand-new host (not seen at last snapshot).
+      if (h.count >= 2) brand_new.push({ hostname: h.hostname, previous_count: 0, current_count: h.count });
+      else new_singletons.push({ hostname: h.hostname, previous_count: 0, current_count: h.count });
     } else if (previous === 1 && h.count >= 2) {
       graduations.push({ hostname: h.hostname, previous_count: 1, current_count: h.count });
     }
   }
-  return { graduations, brand_new };
+  return { graduations, brand_new, new_singletons };
 }
 
 export function buildReport(cache: Cache): CheckReport {
@@ -216,10 +236,12 @@ export function buildReport(cache: Cache): CheckReport {
     uncovered_high_frequency,
     graduations: [],
     brand_new: [],
+    new_singletons: [],
   };
   const grad = computeGraduations(partial);
   partial.graduations = grad.graduations;
   partial.brand_new = grad.brand_new;
+  partial.new_singletons = grad.new_singletons;
   return partial;
 }
 
@@ -265,6 +287,27 @@ export function formatReport(r: CheckReport): string {
     }
     for (const g of r.brand_new) {
       lines.push(`| ${g.hostname} | (new) | ${g.current_count} |`);
+    }
+  }
+  lines.push(``);
+
+  // New singletons — hosts that appeared since the last snapshot with
+  // exactly one bookmark each. Informational only: they route to
+  // _default and either produce clean MD or stub. The operator decides
+  // whether to act now or wait for graduation.
+  lines.push(`## New hosts since last check (${r.new_singletons.length})`);
+  if (r.new_singletons.length === 0) {
+    lines.push(`_No new hosts._`);
+  } else {
+    lines.push(`First-appearance hosts (count == 1). Each routes through \`_default\` (catch-all curl + browser-eval). Run \`hirono raindrop status --filter not-yet-fetched\` to see which ones haven't been fetched yet, or pre-fetch with \`hirono raindrop fetch <url> --slug <slug>\` to confirm extraction quality before bulk re-ingest.`);
+    lines.push(``);
+    lines.push(`| hostname | bookmarks |`);
+    lines.push(`|---|---:|`);
+    for (const g of r.new_singletons.slice(0, 30)) {
+      lines.push(`| ${g.hostname} | ${g.current_count} |`);
+    }
+    if (r.new_singletons.length > 30) {
+      lines.push(`| ... | +${r.new_singletons.length - 30} more |`);
     }
   }
   lines.push(``);
