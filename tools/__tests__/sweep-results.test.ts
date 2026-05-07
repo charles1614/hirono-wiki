@@ -61,6 +61,7 @@ const EXPECTED: Record<string, {
     allowFlags: ["_default-used-browser-fallback"],
   },
   "gist.github.com": { minChars: 5000, notes: "site:github gist API — markdown gist embedded as-is" },
+  "feishu.cn": { minChars: 5000, notes: "site:feishu lark-cli — Gemma 4 wiki page (real content)" },
 };
 
 function listHostSamples(): Array<{ host: string; mdPath: string; sourceJson?: string }> {

@@ -64,16 +64,31 @@ function tryFetchAs(wikiId: string, as: "user" | "bot"): FetchResult {
       ["docs", "+fetch", "--doc", wikiId, "--as", as, "--format", "json"],
       { encoding: "utf8", timeout: 60_000, maxBuffer: 32 * 1024 * 1024 },
     );
-    const stdout = res.stdout || "";
-    if (res.status !== 0 && !stdout.trim()) {
-      return { markdown: "", title: "", identity: as, error: `lark-cli exited ${res.status}` };
+    // lark-cli writes the success JSON to stdout, but on failure (exit != 0)
+    // it writes the structured error JSON to STDERR with stdout empty. Try
+    // stdout first; if empty, fall back to stderr so the operator sees the
+    // real error (forBidden, resource deleted, etc.) instead of a generic
+    // "exited 1".
+    const raw = (res.stdout && res.stdout.trim()) ? res.stdout : (res.stderr || "");
+    if (!raw.trim()) {
+      return { markdown: "", title: "", identity: as, error: `lark-cli exited ${res.status} with no output` };
     }
     let parsed: { ok?: boolean; data?: { markdown?: string; title?: string }; error?: { message?: string } };
-    try { parsed = JSON.parse(stdout); }
+    try { parsed = JSON.parse(raw); }
     catch (e) { return { markdown: "", title: "", identity: as, error: `JSON parse failed: ${e instanceof Error ? e.message : e}` }; }
     if (parsed.ok === false) {
       const msg = parsed.error?.message || "lark-cli reported ok=false";
-      const reasonMatch = msg.match(/need_user_authorization|forBidden|resource deleted|Network temporarily unavailable/i);
+      // Order matters: "Caused by:" is lark-cli's actual root cause line.
+      // Match it first; the boilerplate "Network temporarily unavailable"
+      // is just generic suggestion text and would otherwise mask the real
+      // failure (forBidden / resource deleted / etc.).
+      const causedBy = msg.match(/Caused by:\s*([^\n]+)/i);
+      if (causedBy) {
+        const cause = causedBy[1].trim();
+        const known = cause.match(/need_user_authorization|forBidden|resource deleted|forbidden/i);
+        return { markdown: "", title: "", identity: as, error: known ? known[0] : cause.slice(0, 100) };
+      }
+      const reasonMatch = msg.match(/need_user_authorization|forBidden|resource deleted/i);
       return { markdown: "", title: "", identity: as, error: reasonMatch ? reasonMatch[0] : msg.slice(0, 200) };
     }
     const md = parsed.data?.markdown || "";
@@ -207,6 +222,11 @@ function dedent(s: string): string {
 
 function applyMiscLarkCleanups(md: string): string {
   let out = md;
+  // Strip Lark code-fence rendering hints: ```python {wrap} → ```python.
+  // The {wrap} (and {linenos}, {ln-start=N}, etc.) are Lark editor hints
+  // that don't render as markdown — they appear as literal text after the
+  // language. Match only at the start of a line where a fence opens.
+  out = out.replace(/^(```[A-Za-z0-9_+-]*)\s*\{[^}\n]*\}\s*$/gm, "$1");
   // Strip Lark color tags: `## Heading {color="DarkRedBackground"}` → `## Heading`
   out = out.replace(/\s*\{color="[^"]+"\}/g, "");
   // Unwrap `<text color="X">INNER</text>` (color metadata is lost, content kept).
@@ -312,11 +332,31 @@ function downloadFeishuMedia(token: string, slugDir: string, localFilename: stri
 
 function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-tool" | "extraction-failed" | "user-auth-required"): Result {
   const titleMap = {
-    "auth-gated": "Feishu wiki page (auth-gated)",
-    "deleted": "Feishu wiki page (deleted)",
-    "no-tool": "Feishu wiki page (lark-hirono unavailable)",
+    "auth-gated": "Feishu wiki page (no read access)",
+    "deleted": "Feishu wiki page (deleted upstream)",
+    "no-tool": "Feishu wiki page (lark-cli unavailable)",
     "extraction-failed": "Feishu wiki page (fetch failed)",
-    "user-auth-required": "Feishu wiki page (user auth required)",
+    "user-auth-required": "Feishu wiki page (user identity required)",
+  } as const;
+  // Per-kind operator advice — distinct so the failure mode isn't ambiguous.
+  const adviceMap = {
+    "auth-gated":
+      "Neither your user identity nor the bot has read access to this " +
+      "tenant. Ask the tenant owner to share the page with your Feishu " +
+      "account, or open the URL in a browser where you're already signed in.",
+    "deleted":
+      "The page was deleted upstream. The link target is gone; nothing " +
+      "to fetch.",
+    "no-tool":
+      "The `lark-cli` binary isn't on PATH. Install it and run " +
+      "`lark-cli auth login` before re-running the fetch.",
+    "extraction-failed":
+      "lark-cli ran but didn't return usable content (network error, " +
+      "API change, or unexpected response shape). Re-run later, or " +
+      "open the URL in a browser to check the page renders.",
+    "user-auth-required":
+      "Your user-identity OAuth token has expired or was cleared. " +
+      "Run `lark-cli auth login` to renew, then re-fetch.",
   } as const;
   return {
     markdown: [
@@ -327,16 +367,13 @@ function stub(url: string, reason: string, kind: "auth-gated" | "deleted" | "no-
       ``,
       `---`,
       ``,
-      `*This entry is a metadata stub. Feishu wiki content is auth-gated.`,
-      `Run \`lark-hirono fetch --doc <wiki-token>\` (where <wiki-token> is`,
-      `the last path segment of the wiki URL) to retrieve content from a`,
-      `tenant where the bot has access.*`,
+      `*This entry is a metadata stub. ${adviceMap[kind]}*`,
       ``,
     ].join("\n"),
     images: [],
-    metadata: { source: "feishu-stub", reason },
+    metadata: { source: "feishu-stub", reason, kind },
     flags: ["intentional-stub", `feishu-${kind}`],
-    notes: [`feishu: stub emitted — ${reason}`],
+    notes: [`feishu: stub emitted — ${kind}: ${reason}`],
   };
 }
 

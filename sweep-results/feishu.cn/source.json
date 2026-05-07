@@ -1,0 +1,43 @@
+{
+  "fetched_at": "2026-05-07T02:39:49.315Z",
+  "origin": "url:https://scnajei2ds6y.feishu.cn/wiki/AuzLwXbwNiw5WTkXlMJcQmtZnRD",
+  "origin_url": "https://scnajei2ds6y.feishu.cn/wiki/AuzLwXbwNiw5WTkXlMJcQmtZnRD",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "8f77f6e3e4b927800ae22d8c24a3e47ff6e3f45d11ab35a823fecbe90ecf06aa",
+  "content_length": 19019,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "feishu-img-001.png",
+      "remote": "",
+      "bytes": 14741399
+    },
+    {
+      "local": "feishu-img-002.png",
+      "remote": "",
+      "bytes": 1242536
+    },
+    {
+      "local": "feishu-img-003.png",
+      "remote": "",
+      "bytes": 1374226
+    },
+    {
+      "local": "feishu-img-004.png",
+      "remote": "",
+      "bytes": 3323136
+    },
+    {
+      "local": "feishu-img-005.png",
+      "remote": "",
+      "bytes": 1040140
+    }
+  ],
+  "notes": [
+    "site module: feishu",
+    "feishu: 18896 body chars, 3 table(s) converted from <lark-table>, 5/5 image(s) downloaded",
+    "5 images downloaded by adapter"
+  ]
+}
