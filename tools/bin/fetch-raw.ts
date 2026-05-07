@@ -62,11 +62,20 @@ function usage(): never {
   tsx fetch-raw.ts status [--quiet]
        Walk raw/ + Meta/fetch-decisions.md; group slugs by quality; print
        actionable remediation hints.
-  tsx fetch-raw.ts sync [--limit N] [--retry-flagged] [--only <slug,...>] \\
-       [--dry-run] [--reclassify] [--no-images]
+  tsx fetch-raw.ts sync [--limit N] [--retry-flagged] [--retry-kind <kind>] \\
+       [--retry-prefix <prefix>] [--check-stale] [--max-age <days>] \\
+       [--only <slug,...>] [--dry-run] [--reclassify] [--no-images]
        Idempotent (re)fetch over raw/ + ingest_batch pending queue.
        Skips good slugs + decisions; only --retry-flagged touches flagged
        slugs that have no decision. --dry-run shows the plan.
+
+       --retry-kind X       retry slugs whose computed failure_kind equals X
+       --retry-prefix P     retry slugs whose failure_kind starts with P
+                            (e.g. --retry-prefix upstream- catches all
+                            upstream-* kinds: auth-gated, deleted, fetch-failed)
+       --check-stale        for good slugs older than --max-age, HEAD-check
+                            upstream; re-fetch if etag/last-modified changed
+       --max-age N          default 90 (days). Only relevant with --check-stale.
   tsx fetch-raw.ts refetch <slug> [--no-images]
        Force single-slug re-fetch using the origin recorded in source.json.
        Preserves append-only semantics (writes content-rev2.md, etc.).`);
@@ -219,6 +228,11 @@ function cmdSync(args: string[]): void {
   const limitStr = argVal(args, "--limit");
   const limit = limitStr !== undefined ? parseInt(limitStr, 10) : undefined;
   const retryFlagged = argFlag(args, "--retry-flagged");
+  const retryKind = argVal(args, "--retry-kind");
+  const retryPrefix = argVal(args, "--retry-prefix");
+  const checkStale = argFlag(args, "--check-stale");
+  const maxAgeStr = argVal(args, "--max-age");
+  const maxAgeDays = maxAgeStr !== undefined ? parseInt(maxAgeStr, 10) : undefined;
   const onlyStr = argVal(args, "--only");
   const only = onlyStr
     ? new Set(onlyStr.split(",").map((s) => s.trim()).filter(Boolean))
@@ -230,19 +244,26 @@ function cmdSync(args: string[]): void {
   const plan = buildSyncPlan({
     limit: typeof limit === "number" && !isNaN(limit) ? limit : undefined,
     retryFlagged,
+    retryKind,
+    retryPrefix,
+    checkStale,
+    maxAgeDays: typeof maxAgeDays === "number" && !isNaN(maxAgeDays) ? maxAgeDays : undefined,
     only,
     dryRun,
     reclassify,
   });
 
-  const toFetch = plan.filter((p) => p.action === "fetch");
+  const toFetch = plan.filter((p) => p.action === "fetch" || p.action === "head-check");
+  const headChecks = plan.filter((p) => p.action === "head-check").length;
   const skipped = plan.length - toFetch.length;
-  console.log(`[sync] plan: ${toFetch.length} fetch, ${skipped} skip`);
+  const fetchCount = toFetch.length - headChecks;
+  console.log(`[sync] plan: ${fetchCount} fetch, ${headChecks} head-check, ${skipped} skip`);
 
   if (toFetch.length > 0) {
-    console.log("\n## will fetch");
+    console.log("\n## will fetch / head-check");
     for (const item of toFetch) {
-      console.log(`  ${item.slug}  ←  ${item.originUrl ?? "(no url)"}  (${item.reason})`);
+      const tag = item.action === "head-check" ? "[head]" : "[fetch]";
+      console.log(`  ${tag} ${item.slug}  ←  ${item.originUrl ?? "(no url)"}  (${item.reason})`);
     }
   }
   if (skipped > 0 && argFlag(args, "--verbose")) {

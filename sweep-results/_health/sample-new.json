@@ -1,0 +1,3984 @@
+[
+  {
+    "id": "raindrop:1691380116",
+    "url": "https://shop.elsevier.com/books/programming-massively-parallel-processors/hwu/978-0-443-43900-1",
+    "title": "Programming Massively Parallel Processors",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1685645052",
+    "url": "http://xhslink.com/o/5ks0ev0sxKK",
+    "title": "我在#汪志鹏的笔记下发布了一条评论 训练 infra 最好的资料应该就是 deepmind 那本 how to scale your model，然后就是啃 NVIDIA megatron 源码。本身都搞 infra 了，想要跳过源码几乎不可能，deepmind 那本书比较推荐的原因是会给一个非常系统和定量的视角来分析训练模型的开销，以及不同分布式带来的性能提升和瓶颈 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1684488045",
+    "url": "https://mp.weixin.qq.com/s/44_UrbaQu2U1EAB9OrGNxQ",
+    "title": "见谈｜小米陈龙：把大模型抚养到18岁，再教它如何驾驶",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1680928326",
+    "url": "https://x.com/garrytan/status/2042497872114090069?s=12&t=NY2Gen7OO07bmDYBV03nRg",
+    "title": "If you want your OpenClaw or Hermes Agent to be able to have perfect total recall of all 10,000+ markdown files, GBrain is here to help.",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1677518951",
+    "url": "https://my.feishu.cn/wiki/ZiDawvtVjihFhwktNk3cl0shn1b",
+    "title": "ZiDawvtVjihFhwktNkclshnb",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1670346258",
+    "url": "https://sebastianraschka.com/llm-architecture-gallery/",
+    "title": "LLM Architecture Gallery",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1669896888",
+    "url": "https://github.com/deepseek-ai/profile-data",
+    "title": "deepseek-ai/profile-data: Analyze computation-communication overlap in V3/R1.",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1669805511",
+    "url": "http://xhslink.com/o/6CKLBIMnoy5",
+    "title": "用 AI + 浏览器自动化（CDP）实战演练 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1668739803",
+    "url": "https://mp.weixin.qq.com/s/PFPgY7sa2bPcQow6fWQpFw",
+    "title": "面向 SGLang 的自动驾驶开发：远程连接、CUDA Crash 排查，自动benchmark 与 Profile 分析​",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1668310733",
+    "url": "https://mp.weixin.qq.com/s/b6BYy5IU6xsRHApTuiqKyQ",
+    "title": "OpenClaw-Observability：基于 DuckDB 构建 OpenClaw 的全链路可观测体系",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1668070425",
+    "url": "https://mp.weixin.qq.com/s/SiNS4Fl-S-MyEOnQFqD1og",
+    "title": "拒绝 OpenClaw 成为「吞金龙虾」，百度百舸打造极致 KV Cache 调度与加速引擎",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1667374311",
+    "url": "http://xhslink.com/o/8eee63lHjHV",
+    "title": "独立开发者用Claude复现谷歌争议压缩算法❗ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1666885837",
+    "url": "http://xhslink.com/o/3uZHjy0Z7vc",
+    "title": "AVO框架实现GPU内核性能优化 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1666877611",
+    "url": "https://mp.weixin.qq.com/s/1yGZR_xHUmEMr5mZipbfSw?from=groupmessage&isappinstalled=0&scene=1&clicktime=1774931757&enterid=1774931757",
+    "title": "YGZR xHUmEMrmZipbfSw",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1665841479",
+    "url": "http://xhslink.com/o/5iinAYTo6md",
+    "title": "AI代码看不懂？我做了个prompt回放工具 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1665816133",
+    "url": "https://www.philschmid.de/kimi-composer-context",
+    "title": "How Kimi, Cursor, and Chroma Train Agentic Models with RL",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1665460133",
+    "url": "https://pdf.dfcfw.com/pdf/H3_AP202503221646031786_1.pdf?1742825646000.pdf",
+    "title": "基于 eBPF 和 Agent 构建LLM 训练推理优化体系",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1665290522",
+    "url": "http://xhslink.com/o/sbHMa75qu2",
+    "title": "CUDA黑魔法 ｜拦截PTX - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1664763106",
+    "url": "http://xhslink.com/o/9AJZn5rYEHv",
+    "title": "周末到，看看最近的论文和技术博客，充充电 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1658594664",
+    "url": "https://cursor.com/resources/Composer2.pdf",
+    "title": "Composer",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1656241015",
+    "url": "http://xhslink.com/o/9BMZihYRaBc",
+    "title": "全自动科研，真的建议早点接触 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1655835484",
+    "url": "https://mp.weixin.qq.com/s/YUqIyq_o5iVMBChOa3s_1w",
+    "title": "记录下SGLang开发，优化，debug的技巧之大SKILL时代已来临",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1655821034",
+    "url": "https://blog.cloudflare.com/workers-ai-large-models/",
+    "title": "Powering the agents: Workers AI now runs large models, starting with Kimi K2.5",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1655534789",
+    "url": "http://xhslink.com/o/59YTEXvV8UU",
+    "title": "NVIDIA: VLA Inference性能系统分析 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1655281010",
+    "url": "https://docs.z.ai/release-notes/new-released#models",
+    "title": "New Released - Overview - Z.AI DEVELOPER DOCUMENT",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1655211069",
+    "url": "http://xhslink.com/o/3NTZ7ncp0qx",
+    "title": "K8s官方出手！Agent沙箱来了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1654300960",
+    "url": "https://mp.weixin.qq.com/s/QwfzzGtDU7_B_mopjndMaw",
+    "title": "MFU达42%！Opus 4.6+AutoResearch 8小时实现25轮迭代自研高性能GPU算子Flash Attention",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1653236412",
+    "url": "https://mp.weixin.qq.com/s/sVXHQWvW4-Q4IRhMedqqCA",
+    "title": "VLA 还是世界模型？GTC 2026 把分歧摆上台面",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1653174795",
+    "url": "https://www.xiaohongshu.com/discovery/item/69bf57f200000000230274d8?app_platform=ios&app_version=9.22.1&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB9zXXvlLFElW-g7oE10rosHDcOG1Q443XT09xLz0XMjc=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1774177469&share_id=e616c221fc25494bb1811f452f164fdc",
+    "title": "训练Rollout彻底解耦 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1652805324",
+    "url": "https://mp.weixin.qq.com/s/aA72wF8LJrnXrW6uCLHikA",
+    "title": "Kimi弃用残差连接背后：苏剑林第一视角解析Attention Residuals",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1652796258",
+    "url": "http://xhslink.com/o/2CERgDJoKMZ",
+    "title": "教你如何无限续杯Codex最新大模型 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1651800360",
+    "url": "https://zhuanlan.zhihu.com/p/2015756101291894133?share_code=xrdsFC91avd5&utm_psn=2018678424634405732",
+    "title": "2026大模型架构概览（二）：GLM 5 & DSV3.2",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1651800038",
+    "url": "https://zhuanlan.zhihu.com/p/2017528295286133070?share_code=uY56FFZk1rfj&utm_psn=2018678173978620448",
+    "title": "https://zhuanlan.zhihu.com/p/2017528295286133070?share_code=uY56FFZk1rfj&utm_psn=2018678173978620448",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1650879525",
+    "url": "https://jia.je/kb/software/coding_plan.html",
+    "title": "AI Coding Plan - 杰哥的知识库",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1649818484",
+    "url": "https://mp.weixin.qq.com/s/wVcItgqsCiwl9-PZ56z27w",
+    "title": "深入理解OpenClaw技术架构与实现原理（上）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1648777938",
+    "url": "https://mp.weixin.qq.com/s/2lOKeJHkQj-VGW1LK021EA",
+    "title": "NVIDIA GTC2026 详细解读和分析",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1648525422",
+    "url": "http://xhslink.com/o/64v2878MWih",
+    "title": "文远采用一段式端到端方案，为VA模型 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1648092574",
+    "url": "https://www.xiaohongshu.com/discovery/item/69b8d122000000001d01a6c7?app_platform=ios&app_version=9.21&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBnQYqpHWeCxpsmKaCmSL9HU2UNjJM87vGlDiHpqqGPCg=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1773794058&share_id=a5611c215f234782bdb35ae9499891f3",
+    "title": "阶跃星辰开源全量 SFT 数据集，欢迎使用！ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1647712629",
+    "url": "http://xhslink.com/o/3g25WZy7SvC",
+    "title": "LLM-Para：大模型推理的多维度Roofline分析 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1647501726",
+    "url": "http://xhslink.com/o/6GXgj65Lgz5",
+    "title": "GTC2026理想汽车詹锟--MindVLA-o1分享 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1647054854",
+    "url": "https://github.com/openclaw/openclaw/issues/7827",
+    "title": "[Security] Default Safety Posture: Sandbox & Session Isolation · Issue #7827 · openclaw/openclaw",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1646926260",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-launches-vera-cpu-purpose-built-for-agentic-ai",
+    "title": "NVIDIA Launches Vera CPU, Purpose-Built for Agentic AI",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1646925961",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-open-physical-ai-data-factory-blueprint-to-accelerate-robotics-vision-ai-agents-and-autonomous-vehicle-development",
+    "title": "NVIDIA Announces Open Physical AI Data Factory Blueprint to Accelerate Robotics, Vision AI Agents and Autonomous Vehicle Development",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1646238760",
+    "url": "https://www.xiaohongshu.com/discovery/item/69b8157a000000002200dde0?app_platform=ios&app_version=9.21&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBnQYqpHWeCxpsmKaCmSL9HYC_j0YrJgSrIHLU6Mghkfs=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1773673907&share_id=ca6678b38bf041ad92116ebab16433ac",
+    "title": "我们撞车了Kimi的注意力残差，但用在压缩上 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1645853010",
+    "url": "https://github.com/sgl-project/sglang/blob/main/.claude/skills/add-jit-kernel/SKILL.md",
+    "title": "sglang/.claude/skills/add-jit-kernel/SKILL.md at main · sgl-project/sglang",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1645655476",
+    "url": "http://xhslink.com/o/ATnjr0A28F6",
+    "title": "主流llm架构一览 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1644195665",
+    "url": "https://www.xiaohongshu.com/discovery/item/69b5ffbd000000002103a345?app_platform=ios&app_version=9.21&share_from_user_hidden=true&xsec_source=app_share&type=video&xsec_token=CBvS_DftfFQe7-99aW8JCsiHpQhnmbCqEpQ1fs7SBjdnw=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1773545788&share_id=e79775fb93b640329ae48f2450909e04",
+    "title": "终端里直接看图Ghostty必装文件管理器Yazi - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1641997688",
+    "url": "https://www.xiaohongshu.com/discovery/item/69a9b596000000002202c5d7?app_platform=ios&app_version=9.21&share_from_user_hidden=true&xsec_source=app_share&type=video&xsec_token=CBwU6W_nE1IkwU5o1m1OOiEYrX0_0z72skzU1h2fDVMIA=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1773416818&share_id=05734fc423884976a1f76263a4a77475",
+    "title": "理科生审美救星，Vibe Design之神 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1641872954",
+    "url": "https://www.xiaohongshu.com/discovery/item/69b22c73000000001b01c7e7?app_platform=ios&app_version=9.20&share_from_user_hidden=true&xsec_source=app_share&type=video&xsec_token=CBLjVoM-KU--fg0I59PxWXVlagHPRqy6EDDsE7fAPK-UY=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1773404604&share_id=857e789fe4dd48fdac6d086a0f2c6544",
+    "title": "Claude Code团队都在使用的终端软件Ghostty - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1641467619",
+    "url": "https://mp.weixin.qq.com/s/g2xFPa6ZUzfD2yWyDYMFwg",
+    "title": "小鹏刘先明挂名工作！EvoDriveVLA：通过蒸馏进化VLA，感知规划不再割裂",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1641347874",
+    "url": "http://xhslink.com/o/6Sd8pbD7iOk",
+    "title": "🚀 你的 LLM 写 CUDA 还停留在 Level 0 吗？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1637775881",
+    "url": "http://xhslink.com/o/2Tsz9JjyL8P",
+    "title": "Megatron Core突破MoE大规模训练瓶颈 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1637775679",
+    "url": "http://xhslink.com/o/2BbJ5j7id7w",
+    "title": "终于！Hugging Face 今年最重要的更新来啦 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1637125946",
+    "url": "http://xhslink.com/o/R76Pf9E2vE",
+    "title": "自动优化FA4 ｜mars-compute - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1635775767",
+    "url": "http://xhslink.com/o/3ZTsNqJ0M1h",
+    "title": "Pre-Training、Mid-Training、RL 三者如何塑造推理型大模型？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1635645175",
+    "url": "http://xhslink.com/o/1GFv54jtjqS",
+    "title": "阿里云TairKVCM+Mooncake的深度融合 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1634835877",
+    "url": "http://xhslink.com/o/1hAeAEGS60X",
+    "title": "千问APP中大模型低延迟推理优化实践 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1628165774",
+    "url": "https://qwen.ai/blog?id=qwen3.5",
+    "title": "Qwen3.5 Blog",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1626709772",
+    "url": "http://xhslink.com/o/3XQsY4SNuW9",
+    "title": "万卡训练新基建 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1624578957",
+    "url": "https://mp.weixin.qq.com/s/CtoxhE9rSPyqGyVGTuSIQA",
+    "title": "十万卡保障：Meta FT-HSDP 方案解析",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1622988970",
+    "url": "https://wiki.litenext.digital/wiki/slime?file=02-distributed-orchestration",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1622803607",
+    "url": "https://wiki.litenext.digital/wiki/slime?file=01-overview",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1616416207",
+    "url": "https://www.xiaohongshu.com/discovery/item/699dc3b2000000001d025e9a?app_platform=ios&app_version=9.19.4&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBNPwAg1arQe6BT-jv1i0T_kCC4nE9MsJ6f4jsA-L3xXo=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1771972198&share_id=0ccd27c50f294b808f413fce4bdead73",
+    "title": "该来的总要来！今天轮draw.io×ClaudeCode - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1608834755",
+    "url": "http://xhslink.com/o/8zqytiwmQbD",
+    "title": "香港🇭🇰户外用品逛街路线｜半天7家 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1608459698",
+    "url": "https://mp.weixin.qq.com/s/PcyKi5q8zT-tJ_9rzgKSqg",
+    "title": "春节加餐：Anthropic首个公开的Skills构建指南来了！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1607826980",
+    "url": "http://xhslink.com/o/2f1M4aaFC6p",
+    "title": "腾讯混元第二篇博客：将梯度异常归因Token - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1599893145",
+    "url": "https://github.com/openclaw/openclaw/pull/11553/changes#diff-587ccdf171eabb7063b4e1567978a6e2866599d3f235995154200d0e800ab894R124",
+    "title": "feat(docker): add sandbox browser service and documentation by dangphdh · Pull Request #11553 · openclaw/openclaw",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1599774416",
+    "url": "https://github.com/openclaw/openclaw/issues/6959",
+    "title": "Fix \"disconnected (1008): pairing required\" Error in OpenClaw Docker · Issue #6959 · openclaw/openclaw",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1599774117",
+    "url": "https://github.com/openclaw/openclaw/issues/11131",
+    "title": "[Bug]: Docker: CLI container cannot reach gateway (127.0.0.1); doc missing --url and --token · Issue #11131 · openclaw/openclaw",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1598787844",
+    "url": "https://mp.weixin.qq.com/s/gVW2weKypPgMtxdpex_q1w",
+    "title": "GVWweKypPgMtxdpex qw",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1598057877",
+    "url": "https://mp.weixin.qq.com/s/emKvuW8RyIBM8otkypCLRw",
+    "title": "【译】Kubernetes 中的 GPU 调度：从 Device Plugin 到 Operator 的边界与下一步",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1596621960",
+    "url": "https://pytorch.landscape2.io/",
+    "title": "PyTorch Landscape",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1596621713",
+    "url": "http://xhslink.com/o/826s3KozcLf",
+    "title": "用一张图串讲一下GRPO十几种主流变体算法 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1592482425",
+    "url": "https://mp.weixin.qq.com/s/i0eA1Jom48Nk5JtdEH79Hw",
+    "title": "线上观看人次18万+！智算技术沙龙圆满落幕（附 PPT 下载）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1590404716",
+    "url": "https://zhuanlan.zhihu.com/p/1992613341697438794",
+    "title": "SGLang Server交互式Profiling的一些技巧(PyTorch & Nsys)",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1590394758",
+    "url": "https://blogs.novita.ai/",
+    "title": "Novita",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1590328133",
+    "url": "https://bulimov.me/post/2025/05/11/powerlevel10k-to-starship/",
+    "title": "Moving from powerlevel10k to Starship for my zsh prompt | Alexander Bulimov: Production Engineer and Scale Modeller",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1587972176",
+    "url": "https://www.xiaohongshu.com/discovery/item/69894f9a000000000b0136c8?app_platform=ios&app_version=9.19.3&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBDmGH-uRZTIZB80A6muygnf_He0JfZwGxBXjT0wCCgkA=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1770613718&share_id=255cc5ac07924ab5b2e8f0b97231b827",
+    "title": "腾讯混元AI Infra核心技术重磅开源 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1587797126",
+    "url": "https://mp.weixin.qq.com/s/btkYRrYi0r9HwVE4eDd3xA",
+    "title": "“这不只是 GPU 的问题，而是关乎所有层面”，Brendan Gregg 从 Intel 到 OpenAI 的性能工程新征程",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1587341892",
+    "url": "http://xhslink.com/o/6KUjL9TQomY",
+    "title": "在推上看到一份最受欢迎 RSS 订阅列表 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1585873972",
+    "url": "https://wiki.litenext.digital/wiki/vllm?file=10-distributed#prefill-context-parallelism-pcp",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1585602307",
+    "url": "https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/",
+    "title": "Genie 3: A new frontier for world models",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1585368567",
+    "url": "https://www.gilesthomas.com/2025/12/llm-from-scratch-28-training-a-base-model-from-scratch",
+    "title": "Writing an LLM from scratch, part 28 -- training a base model from scratch on an RTX 3090",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1585357174",
+    "url": "https://mp.weixin.qq.com/s/0TIdgLDtKoCxL7d8tQbG5A",
+    "title": "解析Flash Attention 4（FA4）：Blackwell 核心实现与架构优化",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1584208758",
+    "url": "https://mp.weixin.qq.com/s/ocy5vyXHgO0vDhmlnrx3Sg",
+    "title": "Waymo联手DeepMind打造世界模型：基于Genie 3，让自动驾驶「脑补」罕见场景",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1582530619",
+    "url": "http://xhslink.com/o/1M0kWBod4QK",
+    "title": "和英伟达官方集成了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1578758922",
+    "url": "http://xhslink.com/o/869ScwYLhTU",
+    "title": "使用 SGLang 做 RL backend 的最佳实践 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1578666766",
+    "url": "https://mp.weixin.qq.com/s/HL9YuabPLSPj4vPTmRBVfw",
+    "title": "在 Blackwell 上推动 vLLM Wide-EP 与大规模推理走向成熟（Part I）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1578664167",
+    "url": "http://xhslink.com/o/5xFYRGfxo5O",
+    "title": "Google和Anthropic大佬亲自下场教LLM了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1576643171",
+    "url": "https://mp.weixin.qq.com/s/NjDjQDy9t7EP0rH53GnRAA",
+    "title": "GPT-OSS 在 NVIDIA Blackwell 上的性能优化：推动 Pareto 前沿",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1576336948",
+    "url": "https://studentdiscounts-43kxjpre.manus.space/",
+    "title": "学生优惠大全",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1576293835",
+    "url": "https://arxiv.org/abs/2509.25149",
+    "title": "Pretraining Large Language Models with NVFP4",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1576266837",
+    "url": "https://newsletter.semianalysis.com/p/aws-trainium3-deep-dive-a-potential",
+    "title": "AWS Trainium3 Deep Dive | A Potential Challenger Approaching",
+    "tags": [
+      "trainium",
+      "aws",
+      "accelerator",
+      "tco"
+    ]
+  },
+  {
+    "id": "raindrop:1572898846",
+    "url": "https://wiki.litenext.digital/wiki/daft?file=06-ray-runner",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1568049417",
+    "url": "https://wiki.litenext.digital/wiki/flashmla?file=05-attention-algorithms",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1567844719",
+    "url": "https://wiki.litenext.digital/wiki/flashmla?file=04-memory-management",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1567624444",
+    "url": "https://wiki.litenext.digital/wiki/flashmla?file=03-kernel-implementations",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1565713872",
+    "url": "http://xhslink.com/o/3GhQwXVHxlT",
+    "title": "微软发布3nm ASIC芯片，布局推理市场 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1565395896",
+    "url": "https://github.com/deepseek-ai/FlashMLA/blob/main/docs/20250422-new-kernel-deep-dive.md",
+    "title": "FlashMLA/docs/20250422-new-kernel-deep-dive.md at main · deepseek-ai/FlashMLA",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1565003728",
+    "url": "https://magazine.sebastianraschka.com/p/the-big-llm-architecture-comparison",
+    "title": "The Big LLM Architecture Comparison",
+    "tags": [
+      "llm",
+      "llm architecture",
+      "ahead of ai",
+      "blog"
+    ]
+  },
+  {
+    "id": "raindrop:1564995886",
+    "url": "https://wiki.litenext.digital/wiki/megatron-lm?file=05-tensor-parallelism",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1564215188",
+    "url": "http://xhslink.com/o/dzNjArRbqK",
+    "title": "大家是怎么通过港卡入金到盈利证券？人民币换汇美元转进港卡还是换汇港币比较好呢？目前有中银和汇丰两张卡怎么入金是最优解？#美股#盈立券商 #港卡 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1564045811",
+    "url": "https://mp.weixin.qq.com/s/xfgYZTScSCYlwpnNR_MUSw",
+    "title": "腾讯混元AI Infra核心技术重磅开源：推理吞吐提升30%！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1563856992",
+    "url": "https://wiki.litenext.digital/wiki/flashmla?file=01-overview",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1563540739",
+    "url": "https://github.com/NVIDIA/TransformerEngine/issues/2565",
+    "title": "Why NVFP4 Inference (50 PFLOPS) Outperforms Training (35 PFLOPS) on Rubin GPU？ · Issue #2565 · NVIDIA/TransformerEngine",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1563383719",
+    "url": "https://lmsys.org/blog/2026-01-21-novita-glm4/",
+    "title": "Optimizing GLM4-MoE for Production: 65% Faster TTFT with SGLang | LMSYS Org",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1562650894",
+    "url": "https://github.com/chen08209/FlClash/compare/main...dongfengweixiao:FlClash:update_flutter_js",
+    "title": "Comparing chen08209:main...dongfengweixiao:update_flutter_js · chen08209/FlClash",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1562423997",
+    "url": "https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72/",
+    "title": "NVIDIA Vera Rubin NVL72 | Co-Designed Infrastructure for Agentic AI",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1561868944",
+    "url": "https://mp.weixin.qq.com/s/_tlHqVmHjul8XvUvd0OQOg",
+    "title": "静默数据损坏（SDC）：AI Infra 的隐性杀手",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1560499347",
+    "url": "https://ai.joshuasun.asia/dashboard",
+    "title": "Dashboard - JoshuaAI",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1560387532",
+    "url": "http://xhslink.com/o/3J9sDza47qi",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1558723110",
+    "url": "http://xhslink.com/o/74OtKB6eozZ",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1557268886",
+    "url": "http://xhslink.com/o/3Km2BmLfhj0",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1556867628",
+    "url": "http://xhslink.com/o/61o7tJIFrja",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1556798431",
+    "url": "https://epoch.ai/data/machine-learning-hardware#explore-the-data",
+    "title": "Data on Machine Learning Hardware",
+    "tags": [
+      "gpu",
+      "nvidia",
+      "accelerator",
+      "tpu"
+    ]
+  },
+  {
+    "id": "raindrop:1556794832",
+    "url": "https://epoch.ai/data/data-centers",
+    "title": "Data on Frontier AI Data Centers",
+    "tags": [
+      "data center",
+      "super computer",
+      "xai",
+      "google",
+      "anthropics"
+    ]
+  },
+  {
+    "id": "raindrop:1556767301",
+    "url": "https://uxwing.com/",
+    "title": "Free icons for website with commercial use no attribution",
+    "tags": [
+      "icons",
+      "svg",
+      "logo"
+    ]
+  },
+  {
+    "id": "raindrop:1556353208",
+    "url": "https://newsletter.semianalysis.com/p/tpuv7-google-takes-a-swing-at-the",
+    "title": "Google TPUv7: The 900lb Gorilla In the Room",
+    "tags": [
+      "google",
+      "tpu",
+      "anthropics",
+      "gpu",
+      "nvidia"
+    ]
+  },
+  {
+    "id": "raindrop:1555950127",
+    "url": "https://intuitionlabs.ai/articles/oracle-openai-300b-deal-analysis",
+    "title": "Oracle & OpenAI's $300B Deal: AI Infrastructure Analysis | IntuitionLabs",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1555925844",
+    "url": "https://intuitionlabs.ai/articles/openai-stargate-datacenter-details",
+    "title": "OpenAI’s Stargate Project: A Guide to the AI Infrastructure | IntuitionLabs",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1555898031",
+    "url": "https://wiki.litenext.digital/wiki/pytorch?file=02-core-tensor-library",
+    "title": "DeepWiki PyTorch",
+    "tags": [
+      "pytorch",
+      "deepwiki"
+    ]
+  },
+  {
+    "id": "raindrop:1554712064",
+    "url": "https://wiki.litenext.digital/wiki/megatron-lm?file=12-attention-mechanisms",
+    "title": "DeepWiki megatron-lm",
+    "tags": [
+      "deepwiki",
+      "megatron"
+    ]
+  },
+  {
+    "id": "raindrop:1554623330",
+    "url": "https://wiki.litenext.digital/wiki/megatron-lm?file=13-feedforward-networks",
+    "title": "DeepWiki megatron-lm",
+    "tags": [
+      "deepwiki",
+      "megatron"
+    ]
+  },
+  {
+    "id": "raindrop:1554466538",
+    "url": "https://wiki.litenext.digital/wiki/megatron-lm?file=08-context-parallelism",
+    "title": "DeepWiki megatron-lm",
+    "tags": [
+      "deepwiki",
+      "megatron"
+    ]
+  },
+  {
+    "id": "raindrop:1553423175",
+    "url": "https://wiki.litenext.digital/wiki/jax?file=04-transformation-system",
+    "title": "DeepWiki jax",
+    "tags": [
+      "deepwiki",
+      "jax"
+    ]
+  },
+  {
+    "id": "raindrop:1553335618",
+    "url": "https://wiki.litenext.digital/wiki/jax?file=03-core-architecture",
+    "title": "DeepWiki jax",
+    "tags": [
+      "deepwiki",
+      "jax"
+    ]
+  },
+  {
+    "id": "raindrop:1553122883",
+    "url": "https://wiki.litenext.digital/wiki/jax?file=01-overview",
+    "title": "DeepWiki jax",
+    "tags": [
+      "deepwiki",
+      "jax"
+    ]
+  },
+  {
+    "id": "raindrop:1553102039",
+    "url": "https://mp.weixin.qq.com/s/FcK3QmzudPZzqsz85odFlQ",
+    "title": "NVIDIA GPU 容器环境：原理与构建指南",
+    "tags": [
+      "container",
+      "gpu",
+      "cuda",
+      "driver"
+    ]
+  },
+  {
+    "id": "raindrop:1553091854",
+    "url": "https://ai.meta.com/blog/spdl-faster-ai-model-training-with-thread-based-data-loading-reality-labs/",
+    "title": "Introducing SPDL: Faster AI model training with thread-based data loading",
+    "tags": [
+      "data processing",
+      "meta"
+    ]
+  },
+  {
+    "id": "raindrop:1553050033",
+    "url": "https://wiki.litenext.digital/wiki/spdl?file=03-core-architecture",
+    "title": "DeepWiki spdl",
+    "tags": [
+      "deepwiki",
+      "spdl",
+      "data processing"
+    ]
+  },
+  {
+    "id": "raindrop:1552973264",
+    "url": "https://wiki.litenext.digital/wiki/spdl?file=01-overview",
+    "title": "DeepWiki spdl",
+    "tags": [
+      "deepwiki",
+      "spdl",
+      "data processing"
+    ]
+  },
+  {
+    "id": "raindrop:1552972154",
+    "url": "http://ping0.cc/",
+    "title": "高精度IP地址归属地查询",
+    "tags": [
+      "ip",
+      "vpn"
+    ]
+  },
+  {
+    "id": "raindrop:1551555650",
+    "url": "https://x.com/elonmusk/status/2012500968571637891",
+    "title": "X 上的 Elon Musk：“The Colossus 2 supercomputer for @Grok is now operational. First Gigawatt training cluster in the world. Upgrades to 1.5GW in April.” / X",
+    "tags": [
+      "xai",
+      "colossus",
+      "super computer",
+      "data center",
+      "elon musk"
+    ]
+  },
+  {
+    "id": "raindrop:1551020568",
+    "url": "http://xhslink.com/o/8fYweOPGVZw",
+    "title": "做大模型，做开源和infra真的非常重要 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1547396504",
+    "url": "https://docs.cloud.google.com/ai-hypercomputer/docs/images#tpu-images",
+    "title": "OS and Docker images | AI Hypercomputer | Google Cloud Documentation",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1547140017",
+    "url": "https://www.xiaohongshu.com/discovery/item/69691daf000000000e00fece?app_platform=ios&app_version=9.16.1&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBDK1oXtJeqqlXyc1f-xy0T-5sdtigeWAjOSGSjXmXyOg=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1768539124&share_id=ff77a7f33ace4eb48a2b8a92fd7c57a4",
+    "title": "diffusion加噪就是encoder啊！！！看了很多博客都一头雾水，只能理解score matching的想法但不理解本身ddpm在干什么。从变分角度自己推了一遍终于理解了diffusion就是一个vae啊只不过他的潜变量z的p(z|x)是一个给定的分布而不是vae里那个需要学习的encoder，这个给定的分布就是每一步加噪后的联合分布 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1547120472",
+    "url": "https://www.xiaohongshu.com/discovery/item/69688d7a000000001a03055d?app_platform=ios&app_version=9.16.1&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBdMMDrm4LUepe0YpQ70y1Q6wKORDuTWuXHia9eUcv-7w=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1768536987&share_id=854992df6a004b0abe13d94dc3dbd071",
+    "title": "Anthropic开始自建算力：部署百万枚TPUv7 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1546924092",
+    "url": "http://xhslink.com/o/4z4I5DklPF3",
+    "title": "新架构：OpenAI将GPU互联数提升数十倍 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1546898798",
+    "url": "https://mp.weixin.qq.com/s/peA089QQthXQbZiXAJOkKg",
+    "title": "TPU vs GPU 全面技术对比：谁拥有 AI 算力最优解？",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1546898550",
+    "url": "http://xhslink.com/o/2qWuyzgNdLh",
+    "title": "TPU vs GPU：AI 算力到底谁更强？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1546898051",
+    "url": "http://xhslink.com/o/3MBMvjIhAeV",
+    "title": "20000 GPU 背后的运维秘密 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1544838025",
+    "url": "https://mp.weixin.qq.com/s/9EML-Z-Z_yzBlHKJDo2gsA",
+    "title": "CES 2026 | 基于 NVIDIA Alpamayo 构建具备推理能力的辅助驾驶汽车",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1544700741",
+    "url": "https://mp.weixin.qq.com/s/99MVaBN9M80LoRtGdHWBwg",
+    "title": "知识蒸馏不再难！阿里开源EasyDistill及DistilQwen模型家族，开源即用、性能强劲！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1543738392",
+    "url": "https://developer.nvidia.com/cuda/gpus",
+    "title": "NVIDIA CUDA GPU Compute Capability",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1543664936",
+    "url": "https://arxiv.org/pdf/2402.13499",
+    "title": "Benchmarking and Dissecting the Nvidia Hopper GPU Architecture",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1543661581",
+    "url": "https://newsletter.semianalysis.com/p/nvidia-tensor-core-evolution-from-volta-to-blackwell",
+    "title": "NVIDIA Tensor Core Evolution: From Volta To Blackwell",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1543480873",
+    "url": "https://economictimes.indiatimes.com/tech/artificial-intelligence/how-deals-with-openai-have-led-to-share-surges-for-its-partners/articleshow/124572759.cms?from=mdr",
+    "title": "economictimes.indiatimes.com",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1542779267",
+    "url": "https://mp.weixin.qq.com/s/5I9pcORVvgh8yC3F5lqDcA",
+    "title": "直播预告 | RTPurbo：小时级训练实现Qwen3-480B模型5X Attention压缩",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1542334314",
+    "url": "https://qwen.ai/research",
+    "title": "Qwen Research",
+    "tags": [
+      "qwen",
+      "research"
+    ]
+  },
+  {
+    "id": "raindrop:1542257124",
+    "url": "https://mp.weixin.qq.com/s/R1WRqtLEBHg43aG9tYPGLQ",
+    "title": "OpenAI将科技巨头手拉手，大而不倒",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1542253410",
+    "url": "http://xhslink.com/o/3HL4e1aIVdY",
+    "title": "AGI Next峰会|杨植麟的实录来了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1542126431",
+    "url": "https://mp.weixin.qq.com/s/El5oAKzjiOGRVqCqwipVLg",
+    "title": "AI交互的革命：从操作现有软件，到生成未来软件",
+    "tags": [
+      "cockpit",
+      "agent"
+    ]
+  },
+  {
+    "id": "raindrop:1542124577",
+    "url": "https://mp.weixin.qq.com/s/I56tirCF_IZCSddIvNT5HQ",
+    "title": "理想同学MindGPT-4o-Audio实时语音对话大模型发布",
+    "tags": [
+      "agent",
+      "li auto",
+      "audio",
+      "cockpit"
+    ]
+  },
+  {
+    "id": "raindrop:1542123703",
+    "url": "https://mp.weixin.qq.com/s/E1v2UpKjEYEEwZPr0A6bEg",
+    "title": "理想同学MindGPT 3.0发布：基于结构化思维链的深度思考模型",
+    "tags": [
+      "cockpit",
+      "agent",
+      "li auto",
+      "mindgpt"
+    ]
+  },
+  {
+    "id": "raindrop:1542123289",
+    "url": "https://www.ttbz.org.cn/upload/file/20250826/6389180901046967143146591.pdf",
+    "title": "车载智能座舱大模型交互意图理解与执行能力测试评价方法",
+    "tags": [
+      "cockpit",
+      "standard",
+      "evaluation"
+    ]
+  },
+  {
+    "id": "raindrop:1540729330",
+    "url": "https://mp.weixin.qq.com/s/_vjOjFbtg0xMVgbWDNKv9g",
+    "title": "烧光600亿，小扎再砍元宇宙1500人！6000亿豪赌算力帝国",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1540716893",
+    "url": "https://mp.weixin.qq.com/s/lPTJQZFzu-mA_cwJt-f8qw",
+    "title": "腾讯AngelSlim重磅升级！面向全模态的大模型压缩算法工具包，推理速度飙升 1.8倍！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1540361266",
+    "url": "https://research.nvidia.com/labs/avg/#research",
+    "title": "NVIDIA Autonomous Vehicle Research Group",
+    "tags": [
+      "research",
+      "nvidia",
+      "av"
+    ]
+  },
+  {
+    "id": "raindrop:1540354021",
+    "url": "https://mp.weixin.qq.com/s/f5zPTe_G2QvGub1ZVTv3DA",
+    "title": "深入解读ThunderKittens: 兼顾cutlass性能与Tilelang易用性的C++模板库",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1539016117",
+    "url": "https://www.xiaohongshu.com/discovery/item/696432880000000021029d33?app_platform=ios&app_version=9.16.1&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBD50ZJ8x-4xn6W_P15oqThCEVf3q1iTTkNvJ2553Xji8=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1768193612&share_id=29f3e1057ba24f73893723a2f0bf4f85",
+    "title": "DeepSeek公式错了？LLM训练是个大草台班子 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1538929347",
+    "url": "https://blog.google/innovation-and-ai/products/introducing-pathways-next-generation-ai-architecture/",
+    "title": "Introducing Pathways: A next-generation AI architecture",
+    "tags": [
+      "ai platform",
+      "google research"
+    ]
+  },
+  {
+    "id": "raindrop:1538928463",
+    "url": "https://www.fibermall.com/blog/nvidia-b100-b200-gh200-nvl72-superpod.htm?srsltid=AfmBOorNLgqAQTISTjy565uxFmIk9n1dp1Rgbe7BSL_JPrzBU0QQKxXt",
+    "title": "Analysis of NVIDIA's Latest Hardware: B100/B200/GH200/NVL72/SuperPod",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1538783033",
+    "url": "https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/ironwood-tpu-age-of-inference/",
+    "title": "Ironwood: The first Google TPU for the age of inference",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1537372811",
+    "url": "https://mp.weixin.qq.com/s/AeGy0xq-Da1sYTpY3ssMaQ",
+    "title": "重磅！Volcano发布AgentCube，构建AI Agent时代的云原生基础设施",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1535526029",
+    "url": "https://mp.weixin.qq.com/s/7pWBKwsnXLIuv4_Qyg31fw",
+    "title": "姚顺雨对着唐杰杨植麟林俊旸贴大脸开讲！基模四杰中关村论英雄",
+    "tags": [
+      "llm",
+      "conference"
+    ]
+  },
+  {
+    "id": "raindrop:1535305961",
+    "url": "https://mp.weixin.qq.com/s/RaizMsxbLY0xyBm1lYkUKA",
+    "title": "David Patterson：大语言模型推理硬件的挑战与研究方向",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1532415126",
+    "url": "https://intuitionlabs.ai/pdfs/google-tpus-explained-architecture-performance-for-gemini-3.pdf",
+    "title": "Google tpus explained architecture performance for gemini",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1532162682",
+    "url": "http://xhslink.com/o/6Th6JiuSKl7",
+    "title": "视频世界模型文献布局图 - 小红书",
+    "tags": [
+      "video world model",
+      "knowledgegraph"
+    ]
+  },
+  {
+    "id": "raindrop:1531235115",
+    "url": "https://mp.weixin.qq.com/s/qvu-DR20IYN1-RYNbvMITg",
+    "title": "刷完了端到端和VLA新工作，这9个开源项目最值得复现......",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1530883198",
+    "url": "http://xhslink.com/o/1NzHHf0AHs8",
+    "title": "盘一盘杨植麟/姚顺雨、manus季逸超观点异同 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1530845521",
+    "url": "https://developer.nvidia.com/blog/nvidia-cuda-13-1-powers-next-gen-gpu-programming-with-nvidia-cuda-tile-and-performance-gains/",
+    "title": "NVIDIA CUDA 13.1 Powers Next-Gen GPU Programming with NVIDIA CUDA Tile and Performance Gains | NVIDIA Technical Blog",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1530664035",
+    "url": "http://xhslink.com/o/ijFW3g76FQ",
+    "title": "看 Tinker 如何降低模型定制门槛 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1530660930",
+    "url": "https://mp.weixin.qq.com/s/oiWi5w20RDT2SafYMcy-EA",
+    "title": "自动驾驶BEV感知算法大盘点！这份Paper List请查收",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1530648839",
+    "url": "http://xhslink.com/o/6gm6XpCFxdb",
+    "title": "自动驾驶 VLA 模型首个系统性框架来了！ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1529527256",
+    "url": "https://mp.weixin.qq.com/s/uheAzKubQ37RtOEyfecoPg",
+    "title": "英伟达Alpamayo再进化！反事实推理VLA，安全性能提升很可观",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1529337167",
+    "url": "https://21st.dev/community/components",
+    "title": "Discover community-made UI components | 21st.dev",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1529327418",
+    "url": "https://mp.weixin.qq.com/s/gp6v6PuKLpMeJlBa_MEz_Q",
+    "title": "142 TFLOPS 的差距：为什么在 Blackwell 上 FP4 MoE 算子工程至关重要",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1528528261",
+    "url": "http://xhslink.com/o/4v86VuxF1Cg",
+    "title": "Tailscale是令人敬佩的好产品 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1528237974",
+    "url": "https://wiki.litenext.digital/wiki/simai",
+    "title": "DeepWiki",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1528232807",
+    "url": "https://astra-sim.github.io/",
+    "title": "ASTRA-sim",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1526598681",
+    "url": "http://xhslink.com/o/6MgW9fElr4n",
+    "title": "OpenAI研究员对KL散度的透彻思考 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1526296724",
+    "url": "http://xhslink.com/o/9VYwRo9faUY",
+    "title": "LLM 推理优化演进史（一）：CUDA graph 如 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1524216339",
+    "url": "https://mp.weixin.qq.com/s/vYzJw1fLtVW6d5QjUsr8hQ",
+    "title": "超越DriveVLA-W0！DriveLaW：世界模型表征一统生成与规划（华科&小米）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1524151852",
+    "url": "https://mp.weixin.qq.com/s/btT4bK6U6SJPqtZEOjjwqw",
+    "title": "Moonshot Seer：长度感知+分段处理+投机采样=97%吞吐提升",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1516859551",
+    "url": "https://mp.weixin.qq.com/s/y7xr7fDaVJIlZUnVOABx3w",
+    "title": "摸底地平线HSD一段式端到端的方案设计",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1512453669",
+    "url": "https://www.xiaohongshu.com/discovery/item/694f643c000000002103f1c1?app_platform=ios&app_version=9.14.2&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBH76vDxcfj9oBn8XomVbljWAIIGgRyxkvI368CmDHmoU=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1766880726&share_id=392e068be4da4bf6ab9be903de7b9654",
+    "title": "Meta 40万卡时砸出的RL Scaling Law！ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1510479765",
+    "url": "https://mp.weixin.qq.com/s/c5wNuGzB3keNMCv-407DRQ",
+    "title": "3D感知+VLA，华为最新WAM智能驾驶模型分析",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1509930265",
+    "url": "https://mp.weixin.qq.com/s/nL0vThRmdo6kKE-ynJp_SA",
+    "title": "圆桌论坛：关于“世界模型”突破方向的六个猜想 | GAIR 2025",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1509917573",
+    "url": "https://mp.weixin.qq.com/s/4Mo30tefNIEF6GMoC6BjNQ",
+    "title": "如何系统性定位并分析 PyTorch 模型推理中的性能瓶颈",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1509031472",
+    "url": "https://mp.weixin.qq.com/s/_u2lptBvlbr7yKXTXnu7Hg",
+    "title": "地平线RAD：基于3DGS 大规模强化学习的端到端驾驶策略",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1506686302",
+    "url": "https://mp.weixin.qq.com/s/YtE1HvRpf-PbyDWoThOgXA",
+    "title": "VLA + 世界模型：又一次漂亮的补位，和一个更深的“陷阱”……",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1506399376",
+    "url": "https://www.scribd.com/document/945906478/2025-%E4%BA%91%E6%A0%96%E5%A4%A7%E4%BC%9A%E4%BA%A7%E5%93%81%E6%8A%80%E6%9C%AF-What-s-New-%E6%B1%87%E6%80%BB-%E5%8F%AF%E5%A4%96%E5%8F%91",
+    "title": "2025+云栖大会产品技术+What's+New+汇总（可外发）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1506398606",
+    "url": "https://mp.weixin.qq.com/s/65OHqGdvVrML-a0KJPextw",
+    "title": "大数据 AI 平台：构筑 Agentic AI 的核心基石",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1505607520",
+    "url": "https://mp.weixin.qq.com/s/R5LZPhpq2VwBAXADkSdq3A",
+    "title": "清华大学最新成果：将VLA、世界模型和视频模型都统一了！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1497127888",
+    "url": "https://karpathy.bearblog.dev/year-in-review-2025/",
+    "title": "2025 LLM Year in Review",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1495662771",
+    "url": "https://mp.weixin.qq.com/s/J70fP6fFccq2D7TC0hLAiw",
+    "title": "火山引擎 Force 大会发布 veRoCE 传输协议！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1495618125",
+    "url": "https://mp.weixin.qq.com/s/QFEel2KTn2XMdn6TD-0XKA",
+    "title": "Mini3DV 2025 | 观点总结：世界模型前沿进展与技术展望",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1495004857",
+    "url": "http://xhslink.com/o/3gz1wkTKh2f",
+    "title": "世界模型和VLA正在逐渐走向融合统一...... - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1494595648",
+    "url": "https://x.com/nextbigfuture/status/1947799688700469702",
+    "title": "nextbigfuture on X: \"XAI is complete installation of 550,000 Nvidia B200 GPUs in weeks. This is far faster than previously expected. It is over 7 times the compute used to train Grok 4 which was released just weeks ago. It is 30 times the compute used to train Grok 3 which was released in February of https://t.co/EvO70jr5gM\" / X",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1494302931",
+    "url": "http://xhslink.com/o/1GGMS1UTnQ2",
+    "title": "理想砍掉BEV与token化直接用OCC稀疏注意力 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1494302722",
+    "url": "http://xhslink.com/o/2tRT2wI1OHo",
+    "title": "轻舟最新的GuideFlow：端到端轨迹规划SOTA - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1493893487",
+    "url": "http://xhslink.com/o/34EyKRGRu9A",
+    "title": "欧路词典库安装包：牛津第十版完美版 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1492773321",
+    "url": "https://rate.linux.do/",
+    "title": "LinuxDo商家评价平台",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1491947321",
+    "url": "https://www.connectedpapers.com/",
+    "title": "Connected Papers | Find and explore academic papers",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1491365939",
+    "url": "https://mp.weixin.qq.com/s/vyetdRyVXJRifonRDM4BWQ",
+    "title": "一文读懂英伟达最新开源VLA大模型",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1488293910",
+    "url": "https://github.com/vllm-project/vLLM-in-PyTorch-Conference-2025",
+    "title": "vllm-project/vLLM-in-PyTorch-Conference-2025",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1488183689",
+    "url": "https://linux.do/t/topic/1305514",
+    "title": "[开源] 写了个 Clash 批量IP检测节点重命名工具： IP 纯净度 + Bot 比例 + IP属性来源",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1488183111",
+    "url": "https://1cb887bb.pinit.eth.limo/",
+    "title": "Cloudflare优选IP筛选工具",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1488182233",
+    "url": "https://github.com/ox01024/cmirror",
+    "title": "ox01024/cmirror: 🇨🇳 Cmirror: 专为中国大陆开发者打造的一键换源工具 (A unified CLI for managing mirrors: Pip, NPM, Docker, Cargo, Apt, Go, Brew).",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1488181306",
+    "url": "https://linuxmirrors.cn/",
+    "title": "一键脚本使换源更简单 - LinuxMirrors",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1487934934",
+    "url": "https://mp.weixin.qq.com/s/2BbfcnxgR4aPN7_LKRYlNQ",
+    "title": "阿里云 Tair 联手 SGLang 共建 HiCache，构建面向“智能体式推理”的缓存新范式",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1487923799",
+    "url": "https://github.com/GeeeekExplorer/nano-vllm",
+    "title": "GeeeekExplorer/nano-vllm: Nano vLLM",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1487345402",
+    "url": "http://xhslink.com/o/AdRZr2dGAx7",
+    "title": "Win/Mac通吃！GitHub 这个录屏神器太强了！ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1487338966",
+    "url": "http://xhslink.com/o/1OZHGhOjY9w",
+    "title": "再聊kv cacheaware routing：cuckoo fil - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1486239620",
+    "url": "https://www.xiaohongshu.com/discovery/item/692f9e8a000000001e004115?app_platform=ios&app_version=9.12.2&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB3Fbn-oRIsOETTgQB1innaTV7kYfnAgS-vsEbLtlCt30=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1765583727&share_id=9133772d8c0343b29a8e8efccb4124a6",
+    "title": "阿里Qwen公布LLM稳定强化学习的秘诀 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1484710097",
+    "url": "https://jax-ml.github.io/scaling-book/gpus/",
+    "title": "How to Think About GPUs | How To Scale Your Model",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1484709951",
+    "url": "http://xhslink.com/o/1OA8hCTja3E",
+    "title": "自动驾驶端到端&VLA最新综述🥳 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1483338176",
+    "url": "https://mp.weixin.qq.com/s/kXJSc9X7eHX8XJM18GUtdg",
+    "title": "清华&小米最新DGGT：0.4秒完成4D自驾高斯重建，性能提升50%！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1483333488",
+    "url": "https://mp.weixin.qq.com/s/lE5TX3V7qdvYJIECrdsxAw",
+    "title": "较MoonCake首Token延迟直降89.6%！阿里云提出基于CXL的KV缓存管理内存架构Beluga",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1482516264",
+    "url": "http://xhslink.com/o/4z0mKOHa57v",
+    "title": "如何精准定位 Backward 阶段的 CUDA OOM - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1480423763",
+    "url": "https://8.138.221.103/",
+    "title": "Ubuntu MATE",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1479464509",
+    "url": "https://www.xiaopeng.com/news/company_news/5462.html?",
+    "title": "小鹏汽车启动720亿参数自驾基模研发，初步验证自动驾驶规模法则-小鹏汽车官网",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1477974390",
+    "url": "https://wuying.aliyun.com/container.html?desktopId=ecd-celxc8wwyuazx9250&flag=desktop&regionId=cn-shenzhen&resourceName=%E9%BB%84%E9%87%91%E6%AC%BE&osType=Linux",
+    "title": "无影",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1476744811",
+    "url": "http://xhslink.com/o/2Cgs7cbc7wC",
+    "title": "让Gemini3 做出有高级质感的UI - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1476489286",
+    "url": "http://xhslink.com/o/1fi5GTav7eT",
+    "title": "一图看懂Tesla技术架构 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1476316874",
+    "url": "https://linux.do/t/topic/1279145/13",
+    "title": "我买了智谱的code套餐，然后我的apikey只能在claudecode这种编程的插件里面用吗？",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1476015219",
+    "url": "https://tailscale.com/kb/1278/tailscaled#environment-variables",
+    "title": "tailscaled daemon",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1474515606",
+    "url": "https://zhuanlan.zhihu.com/p/1968595333341767033",
+    "title": "理想ICCV'25分享了世界模型：从数据闭环到训练闭环",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1474254171",
+    "url": "http://xhslink.com/o/5tZStBTtx5U",
+    "title": "阿里云Beluga：CXL 让大模型推理快 7 倍 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1473202479",
+    "url": "https://magazine.sebastianraschka.com/p/technical-deepseek",
+    "title": "A Technical Tour of the DeepSeek Models from V3 to V3.2",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1472354849",
+    "url": "https://mp.weixin.qq.com/s/VHFnA9nkasOJ-svIFp7IXQ",
+    "title": "从GPU卡死到精准锁定出错代码：vLLM CUDA 调试实战技巧",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1472284972",
+    "url": "https://www.xiaohongshu.com/discovery/item/6930dca6000000001e004578?app_platform=ios&app_version=9.11&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB_skEIlFdlPpFwk1zxGcM_A5fg0vDh0G9L9JgrjxQWwQ=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1764839173&share_id=3e1d698c9b45432ab55abb08e340459d",
+    "title": "CUDA-L2：GPU推理提速 30% | DeepReinforce - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1471725118",
+    "url": "https://mp.weixin.qq.com/s/NYzWq4ZOmT0n5mamwmNpPg",
+    "title": "突破显存瓶颈：基于 DeepSeek-V3.2-Exp 的 Latent Cache 卸载预取方案设计与模拟验证",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1470472983",
+    "url": "https://8.163.30.186/",
+    "title": "Ubuntu XFCE",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1469397660",
+    "url": "https://zhuanlan.zhihu.com/p/720562971",
+    "title": "关于Nsight Compute中Compute Workload Analysis反映的Tensor Pipe Utilization的理解",
+    "tags": [
+      "CUDA",
+      "Profiling",
+      "tensorcore",
+      "GPU"
+    ]
+  },
+  {
+    "id": "raindrop:1467103589",
+    "url": "https://modelscope.csdn.net/68db92d1a6dc56200e8b6a79.html",
+    "title": "Tongyi DeepResearch的技术报告探秘_魔搭ModelScope社区-ModelScope魔搭社区",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1466407055",
+    "url": "http://xhslink.com/o/2oeckUAYo1c",
+    "title": "智谱GLM4.6在Claude Code中开启深度思考和 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1462838562",
+    "url": "http://xhslink.com/o/6xdq67uRwpn",
+    "title": "可视化vLLM推理流程，这个社区小工具太强了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1453909043",
+    "url": "https://github.com/anthropics/claude-code/issues/4002#issuecomment-3276557870",
+    "title": "Error: File content (28375 tokens) exceeds maximum allowed tokens (25000). Please use offset and limit parameters to read specific portions of the file, or use the GrepTool to search for specific content. · Issue #4002 · anthropics/claude-code",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1453851273",
+    "url": "https://www.bilibili.com/video/BV1HUUTBCEnf/?spm_id_from=333.1365.list.card_archive.click&vd_source=b2e629cd746fd5b23e2a082bb2af806b",
+    "title": "[实用 AI] 基于 Nano 🍌 Pro + NotebookLM 做任意资源的视觉化呈现和理解，（漫画风格）PPT 与 信息图_哔哩哔哩_bilibili",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1453825414",
+    "url": "https://mp.weixin.qq.com/s/1cZtyTDr97qLZ40VfOQ5xw",
+    "title": "Ray symmetric-run：让 vLLM 多节点部署更轻盈",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1445115800",
+    "url": "http://xhslink.com/o/3VT8juxpS6g",
+    "title": "🔧Speculators：投机解码的标准化工具箱 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1444813817",
+    "url": "http://xhslink.com/o/7yrmefGXWJe",
+    "title": "NVIDIA Tensor Core 简明食谱 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1444219572",
+    "url": "https://github.com/LOWERTOP/Shadowrocket-First",
+    "title": "LOWERTOP/Shadowrocket-First: 小火箭配色与配置",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1443693966",
+    "url": "http://xhslink.com/o/4fboCs7Txc5",
+    "title": "别再fork vLLM了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1441201304",
+    "url": "https://github.com/vllm-project/vllm/pull/26811",
+    "title": "[KVConnector] Add metrics to Prometheus-Grafana dashboard by NickLucche · Pull Request #26811 · vllm-project/vllm",
+    "tags": [
+      "prometheus",
+      "grafana"
+    ]
+  },
+  {
+    "id": "raindrop:1436512713",
+    "url": "https://github.com/sgl-project/sglang/issues/8965",
+    "title": "[Feature] Sglang Tracing: Fine-Grained Tracking for Request Latency · Issue #8965 · sgl-project/sglang",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1435752831",
+    "url": "http://xhslink.com/o/1MCr0y7uTH",
+    "title": "🔥Kimi K2 Thinking来了！vLLM 部署教程 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1432655182",
+    "url": "http://xhslink.com/o/3JHrfCrRuTZ",
+    "title": "Anthropic开源Claude本地沙箱 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1432654357",
+    "url": "http://xhslink.com/o/1xiSuqrKNyU",
+    "title": "KV Cache到底怎么调优之vLLM - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1431553387",
+    "url": "https://gist.github.com/alirezarezvani/a0f6e0a984d4a4adc4842bbe124c5935",
+    "title": "Ultimate guide to extending Claude Code with skills, agents, commands, and utilities. Covers Tresor (ready-to-use), Skill Factory (custom builds), and Skills Library (26+ domain packages).",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1430551586",
+    "url": "https://mp.weixin.qq.com/s/YTKKW8HL-fu2pYOmffbI-g",
+    "title": "PyTorch显存可视化与Snapshot数据分析",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1429699428",
+    "url": "https://mp.weixin.qq.com/s/m3RwOuJ0oU7sW37BUVjJwg",
+    "title": "在地平线搞自动驾驶的这三年",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1429603514",
+    "url": "https://open-vsx.org/?search=claude%20code&sortBy=relevance&sortOrder=desc",
+    "title": "Open VSX Registry",
+    "tags": [
+      "marketplace",
+      "vscode"
+    ]
+  },
+  {
+    "id": "raindrop:1429499321",
+    "url": "https://mp.weixin.qq.com/s/BalV_qPfwiIwDMEnNI_O3Q",
+    "title": "超长序列并行之Ulysses + Ring-Attention技术原理与实现",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1429465977",
+    "url": "http://xhslink.com/o/5apqpWbAext",
+    "title": "我如何使用Claude Code的每一项功能 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1429465048",
+    "url": "http://xhslink.com/o/8KBKndQsesk",
+    "title": "GLM4.6配合Claude code真的好吗 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1428416366",
+    "url": "https://www.xiaohongshu.com/discovery/item/690c6903000000000402aef5?app_platform=ios&app_version=9.7.3&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBXmEOvLrz1EEqLXcVDS4_Dm4sr0VLRSpkTkZ5staj_MY=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1762765942&share_id=6b608830174c4bb09b63b5e14162eafa",
+    "title": "ClaudeCode+FigmaMcp 设计稿转码工作流实测 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1428271285",
+    "url": "https://mp.weixin.qq.com/s/czc2vbj2VI43Chh0YxZoxA",
+    "title": "3A大作！阿里ROLL团队从基建->算法->机理，推动RL4LLM全栈协同优化",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1427940608",
+    "url": "http://xhslink.com/o/2PagP2ETyVB",
+    "title": "ORELLY 最新出版力作榨干 GPU - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1426797978",
+    "url": "https://mp.weixin.qq.com/s/48p158tLBR4QMQPm4HhGeg",
+    "title": "PyTorch Symmetric Memory：解锁 NVLink 可编程性的新型分布式计算范式",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1426192024",
+    "url": "http://xhslink.com/o/2vD6odJTNq8",
+    "title": "10.7上海sglang meetup Part4录音整理 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1424964239",
+    "url": "http://xhslink.com/o/76wpABfjrLV",
+    "title": "🚀从SGLang看MLSys和AI infra新进展 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1424636851",
+    "url": "http://xhslink.com/o/9KdpCZmvevS",
+    "title": "我如何使用Claude Code 的每一项功能 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1424396602",
+    "url": "https://www.glennklockwood.com/garden/tensor-cores",
+    "title": "Tensor cores and Matrix cores",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1423306488",
+    "url": "http://xhslink.com/o/4Il27YORMRw",
+    "title": "😭代码洁癖码农狂喜！VS Code 神级配置！ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1422123027",
+    "url": "https://www.xiaohongshu.com/explore/68ff8cb200000000030352b5?app_platform=ios&app_version=9.6&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBHCwKfJkXDEjubp9UWGixsVLXYEguHWf5VaKfkNw-Efs=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1762310802&share_id=99b81e20c92642a084ab32af67035039",
+    "title": "🔥Meta新框架让10万GPU协同效率暴增 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1422002004",
+    "url": "http://xhslink.com/o/9h0ZUdk0QEd",
+    "title": "做了一个claude skills的导航站 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1421989996",
+    "url": "http://xhslink.com/o/1tV2AJxiZNh",
+    "title": "字节 seed 组论文教你如何 debug GPU 通信 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1419389266",
+    "url": "http://xhslink.com/o/3tJxZ7lKbEN",
+    "title": "vLLM每个月花在CI上的钱超过 100000$ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1419379121",
+    "url": "http://xhslink.com/o/2RIXNDM0nld",
+    "title": "告别配置地狱！Claude Skills救了我 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1418909471",
+    "url": "https://mp.weixin.qq.com/s/CkJlsZXU3EFcliWLoD-3gw",
+    "title": "别被 100% 骗了：GPU 利用率背后的真相",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1418554388",
+    "url": "http://xhslink.com/o/70KSG1ar9bq",
+    "title": "DeepSeek工程师开源了个宝藏项目 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1417686222",
+    "url": "http://xhslink.com/o/7c7ioEuF9ml",
+    "title": "第20届linux内核开发者大会 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1417228210",
+    "url": "http://xhslink.com/o/6oljnK0bWD6",
+    "title": "【自用】GLM4.6接入Claude Code实践 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1416726472",
+    "url": "http://xhslink.com/o/2rt2Kemi4sF",
+    "title": "SGLang meeting up分享3-量化专题 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1415034148",
+    "url": "https://www.aitmpl.com/agents",
+    "title": "Claude Code Templates - Supercharge Your AI-Powered Development with Anthropic's Claude Code",
+    "tags": [
+      "Claude"
+    ]
+  },
+  {
+    "id": "raindrop:1414519472",
+    "url": "https://github.com/wshobson/agents?tab=readme-ov-file#quick-start",
+    "title": "wshobson/agents: Intelligent automation and multi-agent orchestration for Claude Code",
+    "tags": [
+      "Claude"
+    ]
+  },
+  {
+    "id": "raindrop:1413216268",
+    "url": "http://xhslink.com/o/2JhVAAZcYnQ",
+    "title": "moe 101 guide - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1413165593",
+    "url": "https://www.xiaohongshu.com/discovery/item/68f3561d00000000040200ae?app_platform=ios&app_version=9.4&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBW7SRXT-Vdjl_bYBms21q20hj69lxOqHNtqVcL0nLDz8=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1761731154&share_id=aa08c256830c486c93e2a436c6050ec5",
+    "title": "Claude skills 全面总结-一篇就够了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1413159741",
+    "url": "https://github.com/anthropics/claude-code/issues/4049",
+    "title": "Significant Pre-Execution Delay (~210s) When Calling Bash Tool on Windows · Issue #4049 · anthropics/claude-code",
+    "tags": [
+      "Claude"
+    ]
+  },
+  {
+    "id": "raindrop:1413008025",
+    "url": "https://github.com/musistudio/claude-code-router/issues/852#issuecomment-3384525030",
+    "title": "vscode claude code extention setup",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1412033322",
+    "url": "https://arxiv.org/pdf/2504.14960",
+    "title": "MoEParallel Folding: Heterogeneous Parallelism Mappings for Efficient Large-Scale MoE Model Training with Megatron Core",
+    "tags": [
+      "MoE"
+    ]
+  },
+  {
+    "id": "raindrop:1405215168",
+    "url": "http://xhslink.com/o/5W3d1hLSb8H",
+    "title": "阿里如何将1192块GPU“压缩”到213块 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1400613561",
+    "url": "https://mp.weixin.qq.com/s/DPuKGb0DsJYids-dUVOl_Q",
+    "title": "Meta用40万个GPU小时做了一个实验，只为弄清强化学习Scaling Law",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1398614803",
+    "url": "http://xhslink.com/o/5LgOOurLQOq",
+    "title": "字节超过 200000 卡 GPU 集群训练基础设施 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1398359001",
+    "url": "http://xhslink.com/o/3qsQoLw2hKT",
+    "title": "显著提升GPU利用率！阿里云AI基础设施成果 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1392538162",
+    "url": "http://xhslink.com/o/9Aeeht30TsK",
+    "title": "LLM稳定JSON格式输出 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1390509496",
+    "url": "https://openreview.net/pdf?id=sIOgOQttFQ",
+    "title": "MegaFlow: Large-Scale Distributed Orchestration System for the Agentic Era",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1388766747",
+    "url": "https://www.xiaohongshu.com/discovery/item/68ee4e6e000000000300c112?app_platform=ios&app_version=9.3.1&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB6vmq_4IAu9EOWeoi-BWRLJjDM8OWIIbi5WFiZvrxOms=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1760482414&share_id=b1420cb833104e34b3e6558d18e11922",
+    "title": "资源整理｜Homebrew可视化管理器(Mac版) - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1388025940",
+    "url": "http://xhslink.com/o/6M9rb3ACWNn",
+    "title": "强化学习一锅端：系统梳理PPO到GSPO发展历程 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1387856830",
+    "url": "http://xhslink.com/o/8irrhTKEPa",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1387404015",
+    "url": "http://xhslink.com/o/2EVK065cvCt",
+    "title": "给大家带来FP4 训练论文精读！ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1385741717",
+    "url": "https://mp.weixin.qq.com/s/gNe6ik4eA5Yecsv43zTbyg",
+    "title": "重塑AI训练数据底座：Azure Blob 存储如何点燃 OpenAI 的训练洪流",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1385737915",
+    "url": "https://github.com/MoonshotAI/K2-Vendor-Verifier",
+    "title": "MoonshotAI/K2-Vendor-Verifier: Verify Precision of all Kimi K2 API Vendor",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1385698138",
+    "url": "http://xhslink.com/o/1gr8F2HwcPp",
+    "title": "💻 GPU矩阵乘法：为什么速度忽高忽低🤯 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1385166584",
+    "url": "http://xhslink.com/o/2QXsuppFylA",
+    "title": "程序员必备！让代码截图秒变颜值天花板 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1384836750",
+    "url": "https://www.aleksagordic.com/blog/matmul",
+    "title": "Inside NVIDIA GPUs: Anatomy of high performance matmul kernels - Aleksa Gordić",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1384794461",
+    "url": "http://xhslink.com/o/AnX5uzSb805",
+    "title": "vLLM携手NVIDIA加速InferenceMAX性能飙升 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1383662576",
+    "url": "https://www.reddit.com/r/ClaudeAI/s/UgkMOt8PZn",
+    "title": "Claude Code or Codex? (As of October 2025) : r/ClaudeAI",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1383080868",
+    "url": "http://xhslink.com/o/9PokvbrSbhu",
+    "title": "DeepSeek 的 API 供应商也都是量化版... - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1382423414",
+    "url": "http://xhslink.com/o/5JWCdjZDEwF",
+    "title": "2025 最推荐的RL for LLM 综述长达 117 页 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1381174634",
+    "url": "http://xhslink.com/o/75rMfJ9X0bY",
+    "title": "DeepSeek拥抱TileLang，一文看懂核心技术 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1381174573",
+    "url": "http://xhslink.com/o/6VSA3Qca4FX",
+    "title": "论文一作详解 Triton-distributed - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1380636430",
+    "url": "https://mp.weixin.qq.com/s/xZWaZsg_Z5j4cKsvUvksVw",
+    "title": "XZWaZsg ZjcKsvUvksVw",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1380633728",
+    "url": "https://mp.weixin.qq.com/s/ktG7e9PgHhzwIDmaG7XvpQ",
+    "title": "如何重现 DeepSeek 推理性能突破",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1380632928",
+    "url": "https://mp.weixin.qq.com/s/bLY4yPpyZRxz6ANzfWFG3Q",
+    "title": "DeepSeek DeepEP源码分析",
+    "tags": [
+      "deepEP",
+      "MoE",
+      "deepseek",
+      "ai system"
+    ]
+  },
+  {
+    "id": "raindrop:1380632107",
+    "url": "https://mp.weixin.qq.com/s/v4cOA2cINHBQygUqsq3GVw",
+    "title": "DeepSeek 开源系列之 DeepEP 介绍",
+    "tags": [
+      "deepEP",
+      "FlashMLA",
+      "MLA"
+    ]
+  },
+  {
+    "id": "raindrop:1380608465",
+    "url": "https://mp.weixin.qq.com/s/Y0WaCU8DNFvulk3rwo5Ycg",
+    "title": "分析一下EP并行和DeepSeek开源的DeepEP代码",
+    "tags": [
+      "deepEP"
+    ]
+  },
+  {
+    "id": "raindrop:1380410666",
+    "url": "https://arxiv.org/pdf/2506.05508",
+    "title": "Beyond the Buzz: A Pragmatic Take on InferenceDisaggregation",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1380409598",
+    "url": "https://arxiv.org/pdf/2406.06858",
+    "title": "FLUX: FAST SOFTWARE-BASED COMMUNICATION OVERLAP ON GPUS THROUGH KERNEL FUSION",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1380406957",
+    "url": "https://arxiv.org/pdf/2503.01840",
+    "title": "EAGLE-3:ScalingupInference Acceleration of Large Language Models via Training-Time Test",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1380092297",
+    "url": "https://mp.weixin.qq.com/s/G0bA0BeeuXIApJjj5MzBDA",
+    "title": "从DeepSeek V3.2 DSA算子看TileLang编译器的细节",
+    "tags": [
+      "deepseek",
+      "Compiler"
+    ]
+  },
+  {
+    "id": "raindrop:1378494242",
+    "url": "https://github.com/Abdenasser/neohtop",
+    "title": "Abdenasser/neohtop at opensourceprojects.dev",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1377034872",
+    "url": "https://sspai.com/post/90170",
+    "title": "从零开始搭建你的免费图床系统 （Cloudflare R2 + WebP Cloud + PicGo） - 少数派",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1376962280",
+    "url": "http://xhslink.com/o/5f9wZ45fpfm",
+    "title": "一文读懂PyTorch底层结构 - 小红书",
+    "tags": [
+      "pytorch"
+    ]
+  },
+  {
+    "id": "raindrop:1376929195",
+    "url": "http://xhslink.com/o/95hodMXsVVc",
+    "title": "vGPU 是伪命题？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1370707386",
+    "url": "https://mp.weixin.qq.com/s/Ds_U6ia8KgVF3MFinnFwLw",
+    "title": "解析NCCL的技术原理与生态，探讨国产GPU的通信库方向",
+    "tags": [
+      "NCCL"
+    ]
+  },
+  {
+    "id": "raindrop:1364962745",
+    "url": "https://hdhive.com/search",
+    "title": "搜索 - HDHive",
+    "tags": [
+      "movie"
+    ]
+  },
+  {
+    "id": "raindrop:1359541337",
+    "url": "http://xhslink.com/o/53TAMrQRMC0",
+    "title": "在大模型训练过程中，遇到 loss 突然飙升 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1359521833",
+    "url": "http://xhslink.com/o/3BPQ7xXs8ND",
+    "title": "Anthropic面试我跪了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1353155927",
+    "url": "https://huggingface.co/blog/train_memory",
+    "title": "Visualize and understand GPU memory in PyTorch",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1352993330",
+    "url": "https://mp.weixin.qq.com/s/lJGkJ5fB62oKQdU8yhjAlA",
+    "title": "如何利用pytorch memory snapshot进行显存分析",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1350590453",
+    "url": "https://mp.weixin.qq.com/s/gvJ8i9KaPHG2vD3CFpSBrA",
+    "title": "Tensor Core 从 Volta 到 Blackwell 的进化",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1350048744",
+    "url": "https://www.xiaohongshu.com/discovery/item/68c2de8f000000001d01f73f?app_platform=ios&app_version=9.1.2&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB11_LEQPKv226nBFCyNHw9LmkD9JA7byNOcoj-4MeMWE=&author_share=1&xhsshare=CopyLink&shareRedId=Nz80Njo4Rj48SDtDP0E1Pzg2TkpFNz08&apptime=1758337383&share_id=023f4c90dce442839e00e74ab65c70b5",
+    "title": "Kimi x vLLM：万亿参数半分钟更新 ⚡️ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1350046026",
+    "url": "http://xhslink.com/m/8qRabq0lfam",
+    "title": "面向高效异构训推的统一通信库DLSlime开源 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1349401856",
+    "url": "https://mp.weixin.qq.com/s/2vzh-6pfqOI7mg7yqqCqmA",
+    "title": "Nsight Systems工具原理与GPU性能优化实战详解",
+    "tags": [
+      "optimization",
+      "NVIDIA",
+      "Profiling"
+    ]
+  },
+  {
+    "id": "raindrop:1346963548",
+    "url": "https://mp.weixin.qq.com/s/QRY5HBtZwrCZ95WHubTwsg",
+    "title": "从社区数据出发，再看大模型开源开发生态全景与趋势",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1346909378",
+    "url": "https://mp.weixin.qq.com/s/Htms0tdyka0-1tTn4kLGCw",
+    "title": "分钟级长视频生成！地平线Epona：自回归扩散式的端到端自动驾驶世界模型（ICCV'25）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1346845327",
+    "url": "https://mp.weixin.qq.com/s/2dFls_2nDZB49rLKapf3OQ",
+    "title": "华为、理想、特斯拉、商汤的世界模型是做什么用的？",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1344649466",
+    "url": "https://mp.weixin.qq.com/s/YZcYmxS1HQ1qAXT51bpzxg",
+    "title": "超大规模 AI 基础设施建设实践，极致释放算力效能",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1341181709",
+    "url": "http://xhslink.com/m/8ZzmZ4EJ6pe",
+    "title": "TorchStat2：PyTorch 模型的显微镜 - 小红书",
+    "tags": [
+      "pytorch",
+      "optimization"
+    ]
+  },
+  {
+    "id": "raindrop:1340214654",
+    "url": "https://github.com/NVlabs/GaussianSTORM/blob/main/data/dataset_scene_list/waymo_val_list.txt",
+    "title": "GaussianSTORM/data/dataset_scene_list/waymo_val_list.txt at main · NVlabs/GaussianSTORM",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1335236670",
+    "url": "http://xhslink.com/m/7xickVROQRR",
+    "title": "解锁各种模态模型训练，VeOmni 开源啦 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1335236648",
+    "url": "http://xhslink.com/m/2Zx2wM9HZbw",
+    "title": "为什么温度 为 0 ，输出还是不固定？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1334864370",
+    "url": "http://xhslink.com/m/6l0r7tiini3",
+    "title": "专为“超大模型而生”，新一代训练引擎开源 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1333808172",
+    "url": "https://mp.weixin.qq.com/s/FWeqR5ADU7RU7ZASkmtnTw",
+    "title": "迈向可编程观测：在GPU Kernel中构建类eBPF风格的性能探针",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1332688514",
+    "url": "https://mp.weixin.qq.com/s/Qv15u-dw3jWz3IFCaBnS9A",
+    "title": "GPU/NPU推理Profiling阅读引导（下）",
+    "tags": [
+      "Profiling"
+    ]
+  },
+  {
+    "id": "raindrop:1330406087",
+    "url": "https://mp.weixin.qq.com/s/xNKdTl5cUPnpVe3OQ3wXKg",
+    "title": "GPU/NPU推理Profiling阅读引导(上）",
+    "tags": [
+      "optimization",
+      "Profiling"
+    ]
+  },
+  {
+    "id": "raindrop:1329057370",
+    "url": "https://blog.csdn.net/v_JULY_v/article/details/136143475",
+    "title": "视频生成Sora的全面解析：从AI绘画、ViT到ViViT、TECO、DiT、VDT、NaViT等_vivit的时空编码与dit的扩散-CSDN博客",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1328562780",
+    "url": "http://xhslink.com/m/69p6H1sHCh9",
+    "title": "算法面试｜DIT和基于Unet的扩散模型的区别 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1328506806",
+    "url": "https://jalammar.github.io/illustrated-stable-diffusion/",
+    "title": "The Illustrated Stable Diffusion",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1328501266",
+    "url": "https://blog.cnbang.net/tech/3823/",
+    "title": "理解 Stable Diffusion UNet 网络 « bang's blog",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1328407378",
+    "url": "https://zhuanlan.zhihu.com/p/717560804",
+    "title": "LLM 推理/训练 I/O Pattern初探",
+    "tags": [
+      "storage",
+      "benchmark",
+      "parallel file system"
+    ]
+  },
+  {
+    "id": "raindrop:1325052174",
+    "url": "https://lmsys.org/blog/2025-05-05-large-scale-ep/",
+    "title": "Deploying DeepSeek with PD Disaggregation and Large-Scale Expert Parallelism on 96 H100 GPUs | LMSYS Org",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1325021233",
+    "url": "https://www.aleksagordic.com/blog/vllm",
+    "title": "Inside vLLM: Anatomy of a High-Throughput LLM Inference System - Aleksa Gordić",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1324685347",
+    "url": "https://mp.weixin.qq.com/s/r7751Z6YPf169d1SVqmA_Q",
+    "title": "NVIDIA技术沙龙《强化学习流水线优化：性能分析与 Rollout加速》演讲笔记",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1324628161",
+    "url": "https://mp.weixin.qq.com/s/PHVEA9NYDSg-DlPIhI3eng",
+    "title": "超越OmniRe！中科院DriveSplat：几何增强的神经高斯驾驶场景重建新SOTA",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1324616389",
+    "url": "https://mp.weixin.qq.com/s/5ID-YEEH79cbzEe8aqbnSw",
+    "title": "理想汽车智驾方案介绍 4 | World model + 强化学习重建自动驾驶交互环境",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1324602326",
+    "url": "https://mp.weixin.qq.com/s/cNTkNZyyETQrHDDYdSSyvw",
+    "title": "torch.compile 训练的现状总结（2025年8月）",
+    "tags": [
+      "pytorch",
+      "optimization",
+      "torch.compile"
+    ]
+  },
+  {
+    "id": "raindrop:1323569410",
+    "url": "https://zhuanlan.zhihu.com/p/1901923837408412283?share_code=1ixJdgZB0jvhZ&utm_psn=1946714432546801517",
+    "title": "https://zhuanlan.zhihu.com/p/1901923837408412283?share_code=1ixJdgZB0jvhZ&utm_psn=1946714432546801517",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1323182376",
+    "url": "https://sebastianraschka.com/blog/2025/from-gpt-2-to-gpt-oss.html",
+    "title": "From GPT-2 to gpt-oss: Analyzing the Architectural Advances",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1321796489",
+    "url": "https://mp.weixin.qq.com/s/blvPFSLhp0wIPfi8tiRJgQ",
+    "title": "NCCL揭秘(二)——通信pipeline分析",
+    "tags": [
+      "NCCL",
+      "communication"
+    ]
+  },
+  {
+    "id": "raindrop:1320696088",
+    "url": "http://xhslink.com/m/6JyKpgOIvD1",
+    "title": "Pytorch 九页面试宝典 - 小红书",
+    "tags": [
+      "pytorch"
+    ]
+  },
+  {
+    "id": "raindrop:1315963168",
+    "url": "https://mp.weixin.qq.com/s/rcJ7JYfE6-L2IBpqdKBjMA",
+    "title": "深度解析：DeepSeek为什么要推UE8M0 FP8",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1315103330",
+    "url": "http://xhslink.com/n/1flrZvFZBtE",
+    "title": "我们正式发布一款开源神器 Zotero MCP，它能将你的 Zotero 与 AI 客户端（Claude, Gemini 等）无缝打通，把沉睡的文献库，变成一个 AI 能实时查询、引用的动态知识大脑，让 AI 真正读懂你的研究。👇 下载地址：https://pan.baidu.com/s/5WXV6v_Q-G27_7Ntb9-i-vA - 核心功能 (The What) Zotero MCP 能将你的 AI 客户端，瞬间升级为顶级科研助理，实现： 🧠 与文献库对话: 直接用自然语言提问（“帮我找找 Hinton 去年的论文”），忘掉复杂的筛选器！ ⚡️ 秒级信息提取: AI 可直接获取全文、元数据、DOI、笔记等任何信息。 🎯 多维度精准定位: 按作者、年份、标签、期刊，甚至唯一标识符（DOI/ISBN）精准查找。 🔌 广泛生态兼容: 无缝支持 Claude Desktop, Gemini CLI, Cherry Studio, Cursor IDE 等多款主流 AI 工具。 - 极简两步 (The How) “听起来很复杂？” 恰恰相反！我们把它设计得极其简单，两步搞定： 1️⃣ 安装 Zotero 插件：像给浏览器装扩展一样简单，从 Releases 页面下载安装即可。 2️⃣ 复制一个配置信息：把它粘贴到你的 AI 客户端设置中。 所有资源和详细指南都在这： ➡️ GitHub 项目地址: https://github.com/cookjohn/zotero-mcp - 场景展示 (The Payoff) 配置完成后，你的工作流会变成这样： 文献综述 -> “总结一下我库里关于‘大型语言模型’的所有文献的核心观点。” 论文写作 -> “查找 DOI 是 10.1038/nature14539 的论文，并帮我生成 BibTeX 引用。” 快速学习 -> “提取这篇 PDF 第 5-8 页的内容，并解释其中的关键概念。” 现在就去给你的 Zotero 做个“AI 升级”吧！你的想象力，将是唯一的限制！ #参考文献 #人类高质量科研工具 #文献 #zotero #zotero插件合集 #人工智能 #科研 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1314566215",
+    "url": "http://xhslink.com/n/Arpmzdy222I",
+    "title": "解决 DeepSeek-V3.1 回复 极 字的问题 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1311938252",
+    "url": "https://zhuanlan.zhihu.com/p/694556728",
+    "title": "Megatron Interleaved 1F1B流水线并行中的计算负载不均衡问题研究",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1311811573",
+    "url": "http://xhslink.com/n/5w6K5j8BZXC",
+    "title": "dots.ocr —— 一款将版面检测与内容识别融为一体的多语言文档解析利器，仅用紧凑的 1.7B 参数视觉语言模型，却在多个权威基准上达到 SOTA（最先进）水平。 核心亮点： • 多语言全能解析：覆盖高资源与低资源语言，精确识别文本、公式、表格及阅读顺序 • 一体化架构：无需复杂多模型流水线，只需调整输入提示即可在不同任务间切换 • 速度与精度兼得：小模型结构带来更快推理，同时在 OmniDocBench、内部多语言测试和公式识别上超越同类大模型（如 Doubao-1.5、Gemini2.5-Pro） • 版面检测更强：在 F1@IoU 等关键指标上全面领先 DocLayout-YOLO 等传统方法 • 适配多场景文档：从学术论文、财报到教材试卷，都能保持高质量识别与正确阅读顺序 #人工智能 #大模型 #数据科学 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1310806937",
+    "url": "https://mp.weixin.qq.com/s/MwoCtKVTC93eU42yR6NdrQ",
+    "title": "不会 CUDA 也能轻松看懂的 FlashAttention 教程（算法原理篇）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1310402040",
+    "url": "https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/tech_blog/blog9_Deploying_GPT_OSS_on_TRTLLM.md",
+    "title": "TensorRT-LLM/docs/source/blogs/tech_blog/blog9_Deploying_GPT_OSS_on_TRTLLM.md at main · NVIDIA/TensorRT-LLM",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1306402441",
+    "url": "https://github.com/ForceInjection/AI-fundermentals/blob/main/inference-solution/DeepSeek-V3-MoE-vLLM-H20-Deployment.md",
+    "title": "AI-fundermentals/inference-solution/DeepSeek-V3-MoE-vLLM-H20-Deployment.md at main · ForceInjection/AI-fundermentals",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1306401947",
+    "url": "https://mp.weixin.qq.com/s/5NcaNxmAvW-4EW34nCk9GA",
+    "title": "DeepSeek-V3 在 32 张 H20 GPU 集群上的部署方案【理论分析篇】",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1304707337",
+    "url": "https://01.me/2025/08/attention-based-hallucination-detection/",
+    "title": "又一道 Vibe Coding 面试题：基于注意力的 LLM 幻觉检测器",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1304693498",
+    "url": "https://01.me/2025/07/constrained_sampling_vibe_coding/",
+    "title": "用 Vibe Coding 解决 LLM 限制采样的面试题",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1303746692",
+    "url": "https://zhuanlan.zhihu.com/p/717379797#CTZ_HIDDEN",
+    "title": "vLLM性能分析案例",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1303574190",
+    "url": "https://docker.aityp.com/",
+    "title": "渡渡鸟镜像同步站",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1303493457",
+    "url": "https://docs.nvidia.com/nsight-systems/InstallationGuide/index.html",
+    "title": "Installation Guide — nsight-systems",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1303463337",
+    "url": "https://mp.weixin.qq.com/s/w_sb_ei-tSGVz9asI9cidQ",
+    "title": "腾讯太极团队实现DeepSeek模型业内H20最高性能15800+ tokens/s",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1303458894",
+    "url": "https://mp.weixin.qq.com/s/-564nXa8-CkKKwGmqZ7uKw",
+    "title": "从RTX 6000和CX8的一个小问题，聊一下GPU的传输",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1303457611",
+    "url": "https://mp.weixin.qq.com/s/qCLmsJVr1IXLYsYVJEdnmg",
+    "title": "NCCL InfiniBand 测试验证工具说明文档",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1302471760",
+    "url": "https://docs.nvidia.com/nsight-systems/UserGuide/index.html#exporting-and-querying-data",
+    "title": "User Guide — nsight-systems",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1302118566",
+    "url": "https://yuyang.info/Course-Notes/",
+    "title": "Course Notes – Learning Notes",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1301818284",
+    "url": "https://xhslink.com/n/2Vb4nHxR6Iw",
+    "title": "如何手写flash attention的triton算子 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1301768787",
+    "url": "https://arxiv.org/abs/2508.09834",
+    "title": "Speed Always Wins: A Survey on Efficient Architectures for Large...",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1301675680",
+    "url": "https://mp.weixin.qq.com/s/O2JxZzmzc0ZJlLn8EFYrZQ",
+    "title": "NCCL发布论文啦？快来看看 (part-1)",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1301188058",
+    "url": "https://mp.weixin.qq.com/s/geSijcXTAA8zoEM60F968w",
+    "title": "聊聊 GPU 监控那些事：利用率 & 故障等",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1300088987",
+    "url": "https://www.51cto.com/aigc/3474.html",
+    "title": "聊聊 GPU 监控那些事：利用率 & 故障等-AI.x-AIGC专属社区-51CTO.COM",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1300032270",
+    "url": "https://github.com/NVIDIA/DCGM/issues/64",
+    "title": "Question about DCGM fields · Issue #64 · NVIDIA/DCGM",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1299802833",
+    "url": "https://zhuanlan.zhihu.com/p/1934539606444996183",
+    "title": "汇总了自动驾驶几乎所有的技术栈。。。",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1299707602",
+    "url": "https://mp.weixin.qq.com/s/fsWGCkSFKHNKCDdjM69Ntw",
+    "title": "让NCCL性能起飞的NCCL symmetric memory是啥黑科技？— part1",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1298945313",
+    "url": "https://home.greasyfork.org.cn/zh-hans",
+    "title": "Greasy Fork Proxy 加速站 | 脚本下载工具站 中文 首页 - ZGF",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1297440104",
+    "url": "https://itunes.apple.com/cn/app/id741292507?l=en&mt=8",
+    "title": "‎rednote",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1295306662",
+    "url": "https://for.shuo.bar/console/topup",
+    "title": "New API",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1293325665",
+    "url": "http://xhslink.com/m/9GP4hA2huSo",
+    "title": "Sebastian Raschka 的精品教程又来了 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1293325462",
+    "url": "http://xhslink.com/m/2Z9tI0uec0r",
+    "title": "📢vLLM Recipes上线，首批支持Qwen3-Coder - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1291817305",
+    "url": "https://github.com/mit-han-lab/bevfusion/issues/228",
+    "title": "RuntimeError: sigmoid_focal_loss_forward_impl: implementation for device cuda:0 not found. · Issue #228 · mit-han-lab/bevfusion",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1291817183",
+    "url": "https://github.com/HarborYuan/mmcv_16/commit/ad1a72fe0cbeead2716706ff618dfa0269d2cf4c",
+    "title": "bugfix get_stream · HarborYuan/mmcv_16@ad1a72f",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1290214646",
+    "url": "https://stackoverflow.com/questions/77068802/how-do-i-install-vscode-server-offline-on-a-server-for-vs-code-version-1-82-0-or",
+    "title": "How do I install vscode-server offline on a server for VS Code version 1.82.0 or later?",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1289771814",
+    "url": "http://xhslink.com/m/3PgE6QpmXF1",
+    "title": "明确deepseek的grpo算法有问题 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1287658198",
+    "url": "https://mp.weixin.qq.com/s/RRwgOfazfqajNHDcnGO5xg",
+    "title": "字节跳动 VeOmni 框架开源：统一多模态训练效率飞跃！",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1287024168",
+    "url": "http://xhslink.com/m/85NTVr5MYRM",
+    "title": "OpenAI开源：GPT-OSS-120B，GPT-OSS-20B - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1283110800",
+    "url": "https://mp.weixin.qq.com/s/AvMUxqQ4XCX2jXKDniuniw",
+    "title": "NCCL揭秘(一)——协议与传输",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1280273769",
+    "url": "https://mp.weixin.qq.com/s/RewNlyOw0eYKhAcz__GlKg",
+    "title": "抖音全新推荐大模型RankMixer，参数翻70倍，推理成本不涨",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1279908139",
+    "url": "http://xhslink.com/m/8mv0eZY5w79",
+    "title": "清华最新力作：高效注意力机制全景综述 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1279827544",
+    "url": "https://mapp.api.weibo.cn/fx/b75d28719f602f64aac7d7a818a3e7dc.html",
+    "title": "Sina Visitor System",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1277450141",
+    "url": "http://xhslink.com/m/3MbNwmSzyTH",
+    "title": "🔥全网最全后训练框架总结 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1277341092",
+    "url": "https://zhuanlan.zhihu.com/p/1934204758920524842?share_code=1e5gtVF2jkaaB&utm_psn=1934506872888620382",
+    "title": "https://zhuanlan.zhihu.com/p/1934204758920524842?share_code=1e5gtVF2jkaaB&utm_psn=1934506872888620382",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1274573109",
+    "url": "http://xhslink.com/m/6LDGdBOyFJp",
+    "title": "30 个技巧解锁Claude Code 终极工作流 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1274567563",
+    "url": "https://mp.weixin.qq.com/s/6j-MqSrJz5YlKAe2LZW6pg",
+    "title": "如何用AI Coding和Claude Code提升开发效率？看我的全流程复盘",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1272761385",
+    "url": "https://linux.do/t/topic/824930",
+    "title": "基于Claude Code新出的功能sub-agent，写了个动态生成的CLAUDE.md - 请佬友们一起讨论改进",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1272250320",
+    "url": "https://lfditichptiv.us-east-1.clawcloudrun.com/keys",
+    "title": "GPT Load",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1271845050",
+    "url": "https://sspai.com/post/59368",
+    "title": "如何更好地清理 Time Machine 备份 - 少数派",
+    "tags": [
+      "macOS",
+      "Time Machine"
+    ]
+  },
+  {
+    "id": "raindrop:1271140268",
+    "url": "http://xhslink.com/m/7NrfblHyCeY",
+    "title": "MoE大模型推理优化：AF分离，PD分离的继任者？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1271069200",
+    "url": "https://xhslink.com/m/8AXJcxBvOGy",
+    "title": "15个必须知道的leetcode patterns - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1271053325",
+    "url": "http://xhslink.com/m/A2X9gCC8ULS",
+    "title": "科研工具指南「第 1 期」：Zotero-arxiv-daily - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1270351228",
+    "url": "https://www.reddit.com/r/ClaudeAI/s/sC2jBLmPm4",
+    "title": "Pro Tip: These 3 Magic Words Will Make Claude Write WAY Better Code (KISS, YAGNI, SOLID) : r/ClaudeAI",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1270349288",
+    "url": "https://get.activated.win",
+    "title": "Get",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1268543362",
+    "url": "http://xhslink.com/m/5ge8p3ad9lg",
+    "title": "能把任何图片转换为矢量格式的免费网站 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1268310414",
+    "url": "https://mp.weixin.qq.com/s/0FQy02cR9dqlv7av-5PZGA",
+    "title": "从DeepSeek-V3到Kimi K2：八种现代 LLM 架构大比较",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1268309268",
+    "url": "http://xhslink.com/m/7mjA3RvJHYU",
+    "title": "捣鼓捣鼓终端 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1267788158",
+    "url": "https://www.anthropic.com/news/how-anthropic-teams-use-claude-code",
+    "title": "How Anthropic teams use Claude Code \\ Anthropic",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1267307385",
+    "url": "https://calculator.inference.ai/",
+    "title": "GPU calculator",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1267307228",
+    "url": "https://apxml.com/zh/tools/vram-calculator",
+    "title": "VRAM 计算器: NVIDIA GPU 与 Apple Silicon)",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1266036187",
+    "url": "http://xhslink.com/m/AunvRwQ5i77",
+    "title": "Mac 开发环境必备 - 工具篇 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1265180796",
+    "url": "https://zhuanlan.zhihu.com/p/1929264741248894425?share_code=cP3bo4m6NNEV&utm_psn=1931457858660205274",
+    "title": "https://zhuanlan.zhihu.com/p/1929264741248894425?share_code=cP3bo4m6NNEV&utm_psn=1931457858660205274",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1265159027",
+    "url": "https://github.com/hesreallyhim/awesome-claude-code",
+    "title": "hesreallyhim/awesome-claude-code: A curated list of awesome commands, files, and workflows for Claude Code",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1265158611",
+    "url": "https://github.com/karpathy/nn-zero-to-hero",
+    "title": "karpathy/nn-zero-to-hero: Neural Networks: Zero to Hero",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1264250176",
+    "url": "https://github.com/wavetermdev/waveterm",
+    "title": "wavetermdev/waveterm: An open-source, cross-platform terminal for seamless workflows",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1248895328",
+    "url": "https://www.zhihu.com/question/1927140506573435010/answer/1927892108636849910?share_code=t5Nk5rz1rMPE&utm_psn=1928367309795361809",
+    "title": "https://www.zhihu.com/question/1927140506573435010/answer/1927892108636849910?share_code=t5Nk5rz1rMPE&utm_psn=1928367309795361809",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1245968325",
+    "url": "http://xhslink.com/m/641t9FmLeEK",
+    "title": "Kimi-K2 与 DeepSeek-R1 架构对比 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1243129379",
+    "url": "http://xhslink.com/m/9MUfeje40gK",
+    "title": "加个前缀 FP8 性能提升 150TFLPOS..... - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1239169849",
+    "url": "https://github.com/KCORES/kcores-llm-arena/tree/main/benchmark-ball-bouncing-inside-spinning-heptagon",
+    "title": "kcores-llm-arena/benchmark-ball-bouncing-inside-spinning-heptagon at main · KCORES/kcores-llm-arena",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1239135123",
+    "url": "http://xhslink.com/m/1Ae9RgGTMQO",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1239017300",
+    "url": "http://xhslink.com/m/7mWibPjjah7",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1239003460",
+    "url": "http://xhslink.com/m/AsLCPW5hQbi",
+    "title": "小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1235391465",
+    "url": "https://docs.unsloth.ai/basics/tutorials-how-to-fine-tune-and-run-llms",
+    "title": "Tutorials: How To Fine-tune & Run LLMs | Unsloth Documentation",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1234924091",
+    "url": "https://api.raindrop.io/v2/raindrop/1234924091/file?type=application/pdf",
+    "title": "2506.21901v1.pdf",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1231526917",
+    "url": "http://xhslink.com/a/cfXRad4rMcCgb",
+    "title": "system-prompts 最新收录了字节的 Trae - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1222670441",
+    "url": "https://github.com/rasbt/LLMs-from-scratch",
+    "title": "rasbt/LLMs-from-scratch: Implement a ChatGPT-like LLM in PyTorch from scratch, step by step",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1220676320",
+    "url": "https://trend.tgmeng.com/",
+    "title": "糖果梦热榜",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1219840850",
+    "url": "https://d0a901er7io.feishu.cn/wiki/RMTLwJwfgic9orkzXX5cg00GnKc?fromScene=spaceOverview",
+    "title": "Rmt lw jwfgic9orkz xx5cg00 gn kc",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1217136927",
+    "url": "https://deepwiki.com/aliyun/SimAI/1-simai-overview",
+    "title": "aliyun/SimAI | DeepWiki",
+    "tags": [
+      "AI Simulator"
+    ]
+  },
+  {
+    "id": "raindrop:1215952404",
+    "url": "https://chipsandcheese.com/p/chinas-newish-sw26010-pro-supercomputer-at-sc23",
+    "title": "China’s New(ish) SW26010-Pro Supercomputer at SC23",
+    "tags": [
+      "High Performance Computing",
+      "SC23",
+      "Supercomputer",
+      "Sunway"
+    ]
+  },
+  {
+    "id": "raindrop:1214002008",
+    "url": "https://linux.do/t/topic/762693",
+    "title": "Claude code 平权计划 - 接入api+key+model 直接使用 - 开发调优 - LINUX DO",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1213998600",
+    "url": "https://linux.do/t/topic/761806",
+    "title": "平平无奇- TBAI_claude code 实现自由 - 福利羊毛 - LINUX DO",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1213456502",
+    "url": "https://github.com/musistudio/claude-code-router",
+    "title": "GitHub - musistudio/claude-code-router: Use Claude Code as the foundation for coding infrastructure, allowing you to decide how to interact with the model while enjoying updates from Anthropic.",
+    "tags": [
+      "Claude",
+      "github",
+      "coding infrastructure"
+    ]
+  },
+  {
+    "id": "raindrop:1213456253",
+    "url": "https://github.com/zhaochenyang20/Awesome-ML-SYS-Tutorial",
+    "title": "GitHub - zhaochenyang20/Awesome-ML-SYS-Tutorial: My learning notes/codes for ML SYS.",
+    "tags": [
+      "internals",
+      "ai system",
+      "github"
+    ]
+  },
+  {
+    "id": "raindrop:1213455881",
+    "url": "https://www.xiaohongshu.com/explore/6862d54b000000001d00db9f?app_platform=ios&app_version=8.90&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBJZtiCXacnpH_tvPoii0aGgQ27t6ChIo5SgSqouv5XEM=&author_share=1&xhsshare=CopyLink&shareRedId=Nz80Njo4Rj48SDtDP0E1Pzg2TkpFNz08&apptime=1751523007&share_id=fb9f6bf6f0d844a8a0c2c98323dfbb0d",
+    "title": "vLLM架构解析：揭秘高效推理服务的核心技术 - 小红书",
+    "tags": [
+      "vLLM",
+      "xiaohongshu",
+      "ai system",
+      "Inference"
+    ]
+  },
+  {
+    "id": "raindrop:1213453257",
+    "url": "https://www.xiaohongshu.com/user/profile/685a94f3000000001d0091b9?xsec_token=YBXWRonBDJRYjhvDC-mbfkrckpr7SpvM5B43_DSyfIzSQ=&xsec_source=app_share&xhsshare=CopyLink&appuid=592673b56a6a695923eca273&apptime=1750813825&share_id=820c6fc3b26a41fe9a071fd6db924252",
+    "title": "猛猿 - 小红书",
+    "tags": [
+      "xiaohongshu",
+      "llm"
+    ]
+  },
+  {
+    "id": "raindrop:1212843783",
+    "url": "https://www.xiaohongshu.com/explore/685261390000000015020dbd?app_platform=ios&app_version=8.88&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBB4r1JEZNJF0MMr4_u6IsGHxs4MvkvM1KecRhV3Z1gik=&author_share=1&xhsshare=CopyLink&shareRedId=ODk0NzdINjo2NzUyOTgwNjg2OTpFODhL&apptime=1750982344&share_id=6cf0a4fe3584411eb278b35216501bf1",
+    "title": "PyTorch源码：PyTorch是怎么管理显存的(4) - 小红书",
+    "tags": [
+      "pytorch",
+      "xiaohongshu",
+      "CUDA",
+      "internals",
+      "GPU"
+    ]
+  },
+  {
+    "id": "raindrop:1212843090",
+    "url": "https://www.xiaohongshu.com/explore/6825dd70000000002100ef24?app_platform=ios&app_version=8.84&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB5e7hnTTvG6zojEtLd2-4ls45XcmYtdW7-XTjHIX7wKM=&author_share=1&xhsshare=CopyLink&shareRedId=Nz80Njo4Rj48SDtDP0E1Pzg2TkpFNz08&apptime=1748388083&share_id=2f144ffef3b843fd8d9612f4302071e2",
+    "title": "Zotero白送12G插件鲨疯了！！ - 小红书",
+    "tags": [
+      "productivity",
+      "zotero",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1210524782",
+    "url": "http://xhslink.com/a/qUIJPHgLeD7fb",
+    "title": "截获 Claude Code 官方 Prompt - 小红书",
+    "tags": [
+      "Prompt Engineering",
+      "Claude",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1210377039",
+    "url": "https://linux.do/t/topic/760680/4",
+    "title": "实现claude code自由！一键部署的Docker化claude-code-proxy解决方案 - 开发调优 - LINUX DO",
+    "tags": [
+      "Claude",
+      "containerization",
+      "deployment"
+    ]
+  },
+  {
+    "id": "raindrop:1184281616",
+    "url": "http://xhslink.com/a/rFVrNJofp9qfb",
+    "title": "华为发布论文： 昇腾 910C 实测效率超 H100 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1180900075",
+    "url": "https://www.zhihu.com/question/1918276517865157261/answer/1918748704971678665",
+    "title": "https://www.zhihu.com/question/1918276517865157261/answer/1918748704971678665",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1179958619",
+    "url": "http://xhslink.com/a/1mSYqla1Jzhfb",
+    "title": "GoogleGemini-2.5技术报告有很多高价值信息 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1179838240",
+    "url": "https://hjfy.top/",
+    "title": "幻觉翻译 - arXiv 及文档翻译",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1174516031",
+    "url": "http://xhslink.com/a/pjDPgzt1Fjbfb",
+    "title": "Apple Watch 不显示天气数据 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1170910243",
+    "url": "https://mp.weixin.qq.com/s/F0goD1U6DZ7SQw2ElPTp5A",
+    "title": "细数DeepSeek MLA layer从naive实现开始的5大优化策略",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1169939821",
+    "url": "http://xhslink.com/a/kcEQdhn2v04eb",
+    "title": "Snowflake开源LLM推理加速技术 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1168721880",
+    "url": "https://www.macwk.com/",
+    "title": "MacWk - 精品mac软件下载",
+    "tags": [
+      "macOS",
+      "productivity",
+      "software"
+    ]
+  },
+  {
+    "id": "raindrop:1164605152",
+    "url": "https://zhuanlan.zhihu.com/p/1917272386589402419",
+    "title": "能办成事的 Agent：实时与环境交互，从经验中学习",
+    "tags": [
+      "Agent",
+      "Real-time Interaction",
+      "Experience-based Learning"
+    ]
+  },
+  {
+    "id": "raindrop:1160998489",
+    "url": "http://xhslink.com/a/jac5sJ0ZLFOeb",
+    "title": "大模型分布式推理战况激烈呀（附slides - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1159787928",
+    "url": "http://xhslink.com/a/TxpAfXTQBKMeb",
+    "title": "详解开源共建分离式大模型推理平台mooncake - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1156434708",
+    "url": "https://mp.weixin.qq.com/s/DGv2tZQpi2oi_4WL-Pk7IQ",
+    "title": "异步RL框架AReaL速览",
+    "tags": [
+      "RL",
+      "framework",
+      "optimization",
+      "Asynchronous RL"
+    ]
+  },
+  {
+    "id": "raindrop:1155369426",
+    "url": "http://xhslink.com/a/JMt0AnEJZzFeb",
+    "title": "成功的算力，就是最契合LLM的：GPU之线程分组 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1155118994",
+    "url": "https://linux.do/t/topic/715282",
+    "title": "https://linux.do/t/topic/715282",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1153437295",
+    "url": "https://linux.do/t/topic/155075",
+    "title": "【究极体！】真正防止 DNS 泄露的 Clash 小白式完美配置文件，安全+自由+流畅！ - 开发调优 - LINUX DO",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1152064597",
+    "url": "http://xhslink.com/a/LtIIz2TWuDzeb",
+    "title": "🚀Meta: LlamaRL异步训练让405B快10倍? - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1151969603",
+    "url": "https://share.google?link=https://linux.do/t/topic/537374&utm_campaign=share-sdl-iga-3pshare-sdl-iga-3p&utm_source=igadl,igatpdl,sh/x/gs/m2/5",
+    "title": "https://share.google?link=https://linux.do/t/topic/537374&utm_campaign=share-sdl-iga-3pshare-sdl-iga-3p&utm_source=igadl,igatpdl,sh/x/gs/m2/5",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1150935894",
+    "url": "https://status.whgd.eu.org/status/docker",
+    "title": "DOCKER IMAGE STATUS",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1149786446",
+    "url": "http://xhslink.com/a/j8xAYuiiMRweb",
+    "title": "AI INFRA 学习02 PagedAttention论文精读 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1149785654",
+    "url": "http://xhslink.com/a/UtNAFtr30Qweb",
+    "title": "ai infra cpp基础 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1149534204",
+    "url": "https://github.com/tak-bro/aicommit2/tree/main",
+    "title": "tak-bro/aicommit2: A Reactive CLI that generates git commit messages with Ollama, ChatGPT, Gemini, Claude, Mistral and other AI",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1149438638",
+    "url": "https://github.com/di-sukharev/opencommit",
+    "title": "di-sukharev/opencommit: GPT wrapper for git — generate commit messages with an LLM in 1 sec — works best with Claude 3.5 — supports local models too",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148882051",
+    "url": "https://mp.weixin.qq.com/s/-K4QkPXY1DKPd6bq5rdrKA",
+    "title": "GPU火焰图的探索-iaprof",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148877816",
+    "url": "https://mp.weixin.qq.com/s/pvWEeOb-WnMDqQPsWJ1xxA",
+    "title": "AI时代的性能分析：GPU Profiling初探",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148874895",
+    "url": "https://mp.weixin.qq.com/s/b9OmFbMopQ5TocNHgv1Xaw",
+    "title": "再议 driver 和 runtime APIs",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148874173",
+    "url": "https://mp.weixin.qq.com/s/k2mJxZmrw130kaMLig-hgg",
+    "title": "一起聊聊Nvidia Blackwell 新特性之UMMA",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148874057",
+    "url": "https://mp.weixin.qq.com/s/NF0vhAkYXhz5uiGcPL5QSw",
+    "title": "GPU性能的第一性原理",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148873509",
+    "url": "https://www.datawhale.cn/learn/summary/179",
+    "title": "Datawhale-学用 AI,从此开始",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148873033",
+    "url": "https://mp.weixin.qq.com/s/H65eoS-GAgJzpzV_p3SsGw",
+    "title": "NCCL源码解析8——kernel launch",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1148852872",
+    "url": "https://linux.do/t/topic/710276",
+    "title": "https://linux.do/t/topic/710276",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1146621129",
+    "url": "http://xhslink.com/a/CWHnRRwiJEseb",
+    "title": "轻松搞定远程文件传输！跪求试用！ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1145750394",
+    "url": "https://linux.do/t/topic/707346",
+    "title": "DEV公益API站点突破10亿tokens 放个小福利 - 开发调优 - LINUX DO",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1144076462",
+    "url": "https://api.shubiaobiao.com/login",
+    "title": "https://api.shubiaobiao.com/login",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1143221781",
+    "url": "https://www.v2ex.com/t/979201",
+    "title": "logi options+ 用 appcleaner 清理不干净怎么办？ - V2EX",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1141156964",
+    "url": "https://linux.do/t/topic/699224/9",
+    "title": "Cursor、Windsurf、Trae、Augment Code分流规则，欢迎补充 - 开发调优 - LINUX DO",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1141154242",
+    "url": "https://linux.do/t/topic/560178",
+    "title": "cursor将死？[cursor+windsurf+augment] = poolhub 启动！ - 开发调优 / 开发调优, Lv1 - LINUX DO",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1138700546",
+    "url": "http://xhslink.com/a/ERYzuHuevPceb",
+    "title": "http://xhslink.com/a/ERYzuHuevPceb",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1138663530",
+    "url": "https://zhuanlan.zhihu.com/p/16730036197",
+    "title": "deepseek技术解读(1)-彻底理解MLA（Multi-Head Latent Attention）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1138263965",
+    "url": "https://deepwiki.com/",
+    "title": "DeepWiki | AI documentation you can talk to, for every repo",
+    "tags": [
+      "AI Plugins",
+      "github",
+      "ai",
+      "Research",
+      "AI Documentation",
+      "Deep Research"
+    ]
+  },
+  {
+    "id": "raindrop:1138003497",
+    "url": "https://yourapi.cn/detail",
+    "title": "Your API",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1137991903",
+    "url": "http://xhslink.com/a/FTxoEvaebWaeb",
+    "title": "http://xhslink.com/a/FTxoEvaebWaeb",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1137049617",
+    "url": "https://github.com/google-deepmind/deepmind-research",
+    "title": "google-deepmind/deepmind-research: This repository contains implementations and illustrative code to accompany DeepMind publications",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1136777703",
+    "url": "https://linux.do/t/topic/698408",
+    "title": "https://linux.do/t/topic/698408",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1135218873",
+    "url": "https://zhuanlan.zhihu.com/p/1911899575096186325",
+    "title": "https://zhuanlan.zhihu.com/p/1911899575096186325",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1135206560",
+    "url": "https://zhuanlan.zhihu.com/p/29001189476",
+    "title": "https://zhuanlan.zhihu.com/p/29001189476",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1135175555",
+    "url": "https://x.com/karpathy/status/1929597620969951434?s=46&t=NY2Gen7OO07bmDYBV03nRg",
+    "title": "Andrej Karpathy (@karpathy) on X",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1135174550",
+    "url": "http://xhslink.com/a/L87TFZwiU75db",
+    "title": "如何用GPU集群训练大模型？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1132355476",
+    "url": "https://github.com/cooderl/wewe-rss",
+    "title": "cooderl/wewe-rss: 🤗更优雅的微信公众号订阅方式，支持私有化部署、微信公众号RSS生成（基于微信读书）",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1132346397",
+    "url": "https://sspai.com/post/99591",
+    "title": "Clip to Notion：一款为信息重度用户而生的网页剪藏工具 - 少数派",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1132135016",
+    "url": "https://x666.me/",
+    "title": "New API",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1130914609",
+    "url": "http://xhslink.com/a/M9nIYT44nJ0db",
+    "title": "Function Calling和MCP有什么区别？ - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1129551072",
+    "url": "https://leetgpu.com",
+    "title": "LeetGPU",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1129550881",
+    "url": "http://xhslink.com/a/IuZ4AqJbHaZdb",
+    "title": "Zotero 最强 GPT全文总结方案 支持公式表格 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1129546386",
+    "url": "http://xhslink.com/a/C7MEgIXGG9Ydb",
+    "title": "试了下五分钟就能搞完 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1129470387",
+    "url": "https://citationstyler.com/en/knowledge/ai-plugins-for-zotero/",
+    "title": "Patrick O'Brien",
+    "tags": [
+      "AI Plugins",
+      "Research",
+      "zotero"
+    ]
+  },
+  {
+    "id": "raindrop:1128948575",
+    "url": "https://docs.qq.com/doc/DT1NWQmtwbmZ1WUhN",
+    "title": "网盘影视资源",
+    "tags": [
+      "movie",
+      "cloud storage"
+    ]
+  },
+  {
+    "id": "raindrop:1127236146",
+    "url": "https://www.reddit.com/r/bashonubuntuonwindows/comments/1fyqsv5/best_way_to_keep_wsl2_up_for_extended_periods_and/?tl=zh-hans",
+    "title": "保持 WSL2 长时间运行（并通过休眠？）的最佳方法 : r/bashonubuntuonwindows",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1120637561",
+    "url": "https://x.com/_avichawla?s=11&t=NY2Gen7OO07bmDYBV03nRg",
+    "title": "Avi Chawla (@_avichawla) on X",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1120236838",
+    "url": "https://zhuanlan.zhihu.com/p/1911558458903335293?share_code=1dia1Vjfy9oja&utm_psn=1911885713353475130",
+    "title": "https://zhuanlan.zhihu.com/p/1911558458903335293?share_code=1dia1Vjfy9oja&utm_psn=1911885713353475130",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1118860769",
+    "url": "https://zhuanlan.zhihu.com/p/1911558458903335293?share_code=M3caDkRZK7Wv&utm_psn=1911732211515909109",
+    "title": "https://zhuanlan.zhihu.com/p/1911558458903335293?share_code=M3caDkRZK7Wv&utm_psn=1911732211515909109",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1118638355",
+    "url": "https://mp.weixin.qq.com/s/0067Xbkn4wWUeqexkblljg",
+    "title": "NCCL 系列之深入解析 NCCL 通信路径计算和优化",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1118557126",
+    "url": "https://github.com/vllm-project/vllm/pull/6496",
+    "title": "[core][model] yet another cpu offload implementation by youkaichao · Pull Request #6496 · vllm-project/vllm",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1116895209",
+    "url": "http://xhslink.com/a/2ejpERVEdnIdb",
+    "title": "🔥 Cline最新发布：最受欢迎十大MCP - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1116779170",
+    "url": "https://h5.lingowhale.com/s/3emEGpj",
+    "title": "语鲸",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1116697229",
+    "url": "http://xhslink.com/a/RnTGytUmBbIdb",
+    "title": "手撕DualPipe｜让我们一步步消除MoE-EP通信 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1113877642",
+    "url": "https://news.ycombinator.com/item?id=44118818",
+    "title": "Deepseek R1-0528 | Hacker News",
+    "tags": [
+      "deepseek",
+      "Large Language Model",
+      "news"
+    ]
+  },
+  {
+    "id": "raindrop:1113862967",
+    "url": "https://aihot.today/",
+    "title": "AI今日热榜",
+    "tags": [
+      "news"
+    ]
+  },
+  {
+    "id": "raindrop:1113854533",
+    "url": "http://xhslink.com/a/kdTU3TPJowEdb",
+    "title": "分享一下mac免费使用Dia浏览器的方法 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1113535925",
+    "url": "https://linux.do/t/topic/685482",
+    "title": "685482",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1107614030",
+    "url": "https://github.com/jesseduffield/lazydocker",
+    "title": "jesseduffield/lazydocker: The lazier way to manage everything docker",
+    "tags": [
+      "productivity",
+      "containerization",
+      "CLI",
+      "devops"
+    ]
+  },
+  {
+    "id": "raindrop:1107527230",
+    "url": "https://www.substratus.ai/blog/kind-with-gpus",
+    "title": "Tutorial: K8s Kind with GPUs",
+    "tags": [
+      "GPU",
+      "Kubernetes",
+      "NVIDIA",
+      "Kind",
+      "K8s"
+    ]
+  },
+  {
+    "id": "raindrop:1107465298",
+    "url": "https://github.com/atopx/linux-wps",
+    "title": "atopx/linux-wps: Linux打包安装最新版 WPS365, 支持一键安装脚本",
+    "tags": [
+      "productivity",
+      "wps",
+      "office",
+      "github",
+      "installation"
+    ]
+  },
+  {
+    "id": "raindrop:1107405964",
+    "url": "https://mp.weixin.qq.com/s/0jB157hXY2AwIcji0jywBQ",
+    "title": "Agent 智能体开发框架选型指南",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1107405207",
+    "url": "https://mp.weixin.qq.com/s/ZUJbN_7PJBGfWc2_RRtG2Q",
+    "title": "PyTorch,Triton与runtime的三角虐恋",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1107404909",
+    "url": "http://xhslink.com/a/AUIlUjq0Qmzdb",
+    "title": "Megatron Core：MoE模型异构并行训练 - 小红书",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1103343953",
+    "url": "https://mp.weixin.qq.com/s/llFuPxHPqfuzZdrt2h6V1Q",
+    "title": "通过查看GPU Assembly分析CUDA程序",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1101957237",
+    "url": "https://yecnay.org/posts/tech/iterm2%E5%BF%AB%E6%8D%B7%E9%94%AE%E5%B0%8F%E8%AE%B0/",
+    "title": "ITerm2快捷键小记",
+    "tags": [
+      "productivity",
+      "iterm2",
+      "terminal"
+    ]
+  },
+  {
+    "id": "raindrop:1101793536",
+    "url": "https://swfvqxo30ma.feishu.cn/wiki/J4CQwxPruisyFXk599AcIdDInPh",
+    "title": "‌‬​​​​​​​​‬‍​⁠‌⁠‍​ ​‬⁠​​​​​‌‍‍​‌‬‌‬⁠‍​​​​​⁠‬​‍‌​​​大模型 FIM 预训练任务是什么？ - Feishu Docs",
+    "tags": [
+      "Large Language Model",
+      "Fill-In-the-Middle",
+      "Pre-training"
+    ]
+  },
+  {
+    "id": "raindrop:1101618498",
+    "url": "https://swfvqxo30ma.feishu.cn/wiki/RAaYwrRvriuHohkLFa8cHpnunrd",
+    "title": "‌​​ ​​‌​‍⁠‍​​​​‬‬​‬​​​​​⁠ ‍​‬ ‌ ​​‍ ⁠​ ‌​​​‬​​​​Seed-Coder - Feishu Docs",
+    "tags": [
+      "seed coder",
+      "Large Language Model",
+      "Fill-In-the-Middle",
+      "Pre-training"
+    ]
+  },
+  {
+    "id": "raindrop:1101306938",
+    "url": "https://mp.weixin.qq.com/s/WENW-CeMmBTlgyTBDLX-1w",
+    "title": "图解Vllm V1系列4：加载模型权重(load_model)",
+    "tags": [
+      "vLLM"
+    ]
+  },
+  {
+    "id": "raindrop:1101280406",
+    "url": "https://mp.weixin.qq.com/s/f7J6_tOtJFup1A1wlZhrPA",
+    "title": "Meta基于RoCEv2构建的大规模AI网络",
+    "tags": [
+      "RoCEv2",
+      "AI Network",
+      "High Performance Computing",
+      "Meta"
+    ]
+  },
+  {
+    "id": "raindrop:1101220253",
+    "url": "https://wangzhiyu.notion.site/",
+    "title": "王知鱼微信公众号发文统计 | Notion",
+    "tags": [
+      "weixin",
+      "storage",
+      "Notion"
+    ]
+  },
+  {
+    "id": "raindrop:1101162290",
+    "url": "http://xhslink.com/a/IkSVWPELKJvdb",
+    "title": "HuggingFace 又又又又又 出教程啦！这次是大家喜闻乐见的 MCP 教程 这个课程会教你： - MCP 协议的构成 - 如何使用现有的 MCP SDK/框架 - 如何自己实现一个 MCP 服务 - 然后给你颁发个结业证书哈哈哈 总之可以轻松学，我看了一眼，内容比较简单所以不用担心学不会，有经验的工程师一天应该就能刷完 - 小红书",
+    "tags": [
+      "mcp",
+      "huggingface",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1100818359",
+    "url": "https://huggingface.co/spaces/mteb/leaderboard",
+    "title": "MTEB Leaderboard - a Hugging Face Space by mteb",
+    "tags": [
+      "benchmarks",
+      "embedding",
+      "huggingface"
+    ]
+  },
+  {
+    "id": "raindrop:1100695354",
+    "url": "https://zenfeed.xyz/",
+    "title": "Zenfeed",
+    "tags": [
+      "hacknews",
+      "36kr",
+      "LinuxDo",
+      "news"
+    ]
+  },
+  {
+    "id": "raindrop:1100206144",
+    "url": "https://swfvqxo30ma.feishu.cn/wiki/NKIDwQiGwijn2skB7aJcBryDndc",
+    "title": "‬​‍​‌‌​​​​⁠‌​​‍​​⁠ ​‬‌⁠​⁠​​​​​​‍‬‬‬‬⁠⁠​​‬ ​⁠​​​​GTE-Qwen系列 - Feishu Docs",
+    "tags": [
+      "NLP",
+      "embedding",
+      "Large Language Model",
+      "Qwen"
+    ]
+  },
+  {
+    "id": "raindrop:1100161600",
+    "url": "https://scnajei2ds6y.feishu.cn/wiki/XdeBwWZi7iSxMJkXh6qcCmPWnqZ",
+    "title": "从1到∞: 多模态大模型知识面试一本通 - Feishu Docs",
+    "tags": [
+      "Interview",
+      "Knowledge",
+      "feishu",
+      "Multi-Modal"
+    ]
+  },
+  {
+    "id": "raindrop:1100156635",
+    "url": "https://swfvqxo30ma.feishu.cn/wiki/M1Cew0iYaiH9jfkeD5XcXEuZn3d",
+    "title": "从0到∞: 大语言模型知识面试一本通 - Feishu Docs",
+    "tags": [
+      "feishu",
+      "ai",
+      "Large Language Model",
+      "Interview",
+      "Knowledge"
+    ]
+  },
+  {
+    "id": "raindrop:1100136897",
+    "url": "https://zhuanlan.zhihu.com/p/1890082781461207006",
+    "title": "Sglang 源码学习笔记（三）- 分布式和并行（以deepseek 为例）（WIP）",
+    "tags": [
+      "SGLang",
+      "internals",
+      "deepseek",
+      "framework"
+    ]
+  },
+  {
+    "id": "raindrop:1100132922",
+    "url": "https://zhuanlan.zhihu.com/p/1907142274942501938",
+    "title": "SGLang DP Attention 介绍",
+    "tags": [
+      "SGLang",
+      "Data Parallelism",
+      "framework",
+      "ai system",
+      "optimization",
+      "zhihu"
+    ]
+  },
+  {
+    "id": "raindrop:1100131956",
+    "url": "https://zhuanlan.zhihu.com/p/1904589365151265287",
+    "title": "vLLM V1 整体流程｜从请求到算子执行",
+    "tags": [
+      "vLLM",
+      "ai system",
+      "zhihu",
+      "internals",
+      "framework"
+    ]
+  },
+  {
+    "id": "raindrop:1100129602",
+    "url": "https://zhuanlan.zhihu.com/p/30876678559",
+    "title": "从零开始的verl框架解析",
+    "tags": [
+      "veRL",
+      "RL",
+      "zhihu"
+    ]
+  },
+  {
+    "id": "raindrop:1100126190",
+    "url": "https://zhuanlan.zhihu.com/p/26082845081",
+    "title": "浅析DeepSeek中提到的IBGDA",
+    "tags": [
+      "GPU",
+      "ai system",
+      "zhihu",
+      "communication"
+    ]
+  },
+  {
+    "id": "raindrop:1100125095",
+    "url": "https://zhuanlan.zhihu.com/p/1898141047164507218",
+    "title": "谈谈deepEP中的NVSHMEM",
+    "tags": [
+      "deepseek",
+      "MoE",
+      "communication",
+      "NVSHMEM",
+      "deepEP"
+    ]
+  },
+  {
+    "id": "raindrop:1100113459",
+    "url": "https://zhuanlan.zhihu.com/p/26833089345",
+    "title": "基于 Ray 的分离式架构：veRL、OpenRLHF 工程设计",
+    "tags": [
+      "ai system",
+      "framework",
+      "RL",
+      "Ray",
+      "OpenRLHF",
+      "veRL",
+      "zhihu"
+    ]
+  },
+  {
+    "id": "raindrop:1100105805",
+    "url": "https://www.xiaohongshu.com/explore/67b3ff8c000000002900a6cb?xsec_token=ABwA4vIW54wvzU_c9EAXh9zGfVFhCUWpZ_LNdBngQytlA=&xsec_source=pc_collect",
+    "title": "小红书二面：模型推理训练占用显存怎么计算 - 小红书",
+    "tags": [
+      "GPU",
+      "xiaohongshu",
+      "VRAM"
+    ]
+  },
+  {
+    "id": "raindrop:1100097821",
+    "url": "https://www.xiaohongshu.com/explore/67a959cc0000000029036f95?xsec_token=ABDsD0dz83N6aNQh42TzEbPj955octbFO66ZfWVrX05BQ=&xsec_source=pc_collect",
+    "title": "同为半精度，FP16和BF16的区别是什么？ - 小红书",
+    "tags": [
+      "FP16",
+      "BF16",
+      "Deep Learning"
+    ]
+  },
+  {
+    "id": "raindrop:1100087000",
+    "url": "https://www.xiaohongshu.com/explore/679ba5a5000000002903d25c?xsec_token=ABgo8AgfcBY1DMgI4lBrslyrts9pJSCbgASmYOlxvhPlo=&xsec_source=pc_collect",
+    "title": "AI Infra 读书笔记（4） - 小红书",
+    "tags": [
+      "ai system",
+      "xiaohongshu",
+      "optimization"
+    ]
+  },
+  {
+    "id": "raindrop:1100083631",
+    "url": "https://www.xiaohongshu.com/explore/6775617f000000001301bcb2?xsec_token=ABZbXCdJCkyF4FJCU32Ag4CZoJYtV6EK7I1QIt7F22L08=&xsec_source=pc_collect",
+    "title": "揭秘Attention的演变之路（附论文） - 小红书",
+    "tags": [
+      "Attention Mechanism",
+      "MHA",
+      "MQA",
+      "GQA",
+      "MLA"
+    ]
+  },
+  {
+    "id": "raindrop:1100083530",
+    "url": "https://www.xiaohongshu.com/explore/67959519000000001800dfb8?xsec_token=ABuj-gENlOpBmxM36qdT1vAPErpHqrdOfeCvsfjsxp5vk=&xsec_source=pc_collect",
+    "title": "一口气看懂Flash Attention v1、v2、v3 - 小红书",
+    "tags": [
+      "FlashAttention"
+    ]
+  },
+  {
+    "id": "raindrop:1100074138",
+    "url": "https://www.xiaohongshu.com/explore/67681988000000000800eaf4?xsec_token=AB864n9Ta4N1D4nN2R-AOkI32a1w4iNih7FlQoOnB7W8s=&xsec_source=pc_collect",
+    "title": "PyTorch开发者亲自教你PyTorch！！！ - 小红书",
+    "tags": [
+      "xiaohongshu",
+      "pytorch",
+      "internals"
+    ]
+  },
+  {
+    "id": "raindrop:1100069092",
+    "url": "https://www.xiaohongshu.com/explore/6779ebf7000000000800f54d?xsec_token=ABxYOgmkaBaoxIL1ToDAytGsRTvE0jPI8E-tURcFTRVYQ=&xsec_source=pc_collect",
+    "title": "DeepSeek V3 训练的 MFU 约为 39% - 小红书",
+    "tags": [
+      "deepseek",
+      "GPU",
+      "model flops utilization",
+      "optimization",
+      "H800"
+    ]
+  },
+  {
+    "id": "raindrop:1100063319",
+    "url": "https://www.xiaohongshu.com/explore/6824524e000000002202c8df?xsec_token=AB7IQjd_15vzQ0nNYnnKehLIZ9qwTgyCAnDQuC-k765GA=&xsec_source=pc_collect",
+    "title": "NVIDIA CUTLASS 4.0支持Python原生GPU编程 - 小红书",
+    "tags": [
+      "GPU",
+      "NVIDIA",
+      "CUTLASS",
+      "Python",
+      "CUDA",
+      "tensorcore",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1100059288",
+    "url": "https://www.xiaohongshu.com/explore/682579f0000000002101a8f3?xsec_token=AB6netT9E-wVUH8rZi4-fThLS9u5BBV1ueU3TYbJTUdbs=&xsec_source=pc_collect",
+    "title": "DeepSeek首次披露：V3的硬件、模型协同设计 - 小红书",
+    "tags": [
+      "deepseek",
+      "FP8",
+      "MoE",
+      "GPU",
+      "ai system"
+    ]
+  },
+  {
+    "id": "raindrop:1100054054",
+    "url": "https://www.xiaohongshu.com/explore/6828c98d0000000021018a17?xsec_token=ABWJvO-ezFuKLico8NZNgKIwxQZf9uI8J0JHc15OkcdPQ=&xsec_source=pc_collect",
+    "title": "多机DeepSeek优化部署 - 小红书",
+    "tags": [
+      "xiaohongshu",
+      "ai system",
+      "Inference",
+      "deepseek"
+    ]
+  },
+  {
+    "id": "raindrop:1100012199",
+    "url": "https://www.xiaohongshu.com/explore/6832d1780000000021019459?xsec_token=ABRpEUNAAF00vDL7Mw4fprpVJQutEWQFwoCkv-pgn4mw8=&xsec_source=pc_collect",
+    "title": "memcpy中的性能优化：从REP MOVSB到AVX-512 - 小红书",
+    "tags": [
+      "xiaohongshu",
+      "memcpy",
+      "optimization",
+      "AVX-512"
+    ]
+  },
+  {
+    "id": "raindrop:1097456565",
+    "url": "http://xhslink.com/a/V2VguvMZ3Vtdb",
+    "title": "微软的量化交易项目真的把我当小孩在教😭 - 小红书",
+    "tags": [
+      "quant",
+      "ai",
+      "trading",
+      "finance",
+      "microsoft",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1097446701",
+    "url": "http://xhslink.com/a/PoKngHuZpVtdb",
+    "title": "Socket揭秘：从浏览器到服务端的通信奥秘 - 小红书",
+    "tags": [
+      "socket",
+      "computer network",
+      "communication",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1097344404",
+    "url": "http://xhslink.com/a/Z0sZcGMC5Ptdb",
+    "title": "NotebookLM播客时长在5分钟内的都是快餐 - 小红书",
+    "tags": [
+      "podcast",
+      "notebooklm",
+      "ai",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1097049758",
+    "url": "https://mp.weixin.qq.com/s/9sDJlHQRzSiuTc_EmwjxzA",
+    "title": "FlashAttention-V3解读之FP8/FP16/BF16关键细节实现 (下篇)",
+    "tags": [
+      "FlashAttention",
+      "ai",
+      "Deep Learning",
+      "FP8",
+      "Attention Mechanism"
+    ]
+  },
+  {
+    "id": "raindrop:1097049725",
+    "url": "https://mp.weixin.qq.com/s/cclvT7PxQzdkm9nYfWbhmQ",
+    "title": "FlashAttention-V3解读之Hopper GPU版FlashAttention (上篇)",
+    "tags": [
+      "FlashAttention",
+      "GPU",
+      "ai",
+      "attention mechanism"
+    ]
+  },
+  {
+    "id": "raindrop:1097038396",
+    "url": "https://mp.weixin.qq.com/s/-dB3RCyq-PFQHuZwN7AK0w",
+    "title": "基于vLLM v1测试BFloat16 vs FP8 Qwen3-MoE模型吞吐性能的重大发现!",
+    "tags": [
+      "Quantization",
+      "FP8",
+      "vLLM",
+      "Qwen",
+      "MoE",
+      "wecaht"
+    ]
+  },
+  {
+    "id": "raindrop:1096619101",
+    "url": "https://sspai.com/post/96663",
+    "title": "我如何使用 Apple Notes 做笔记 - 少数派",
+    "tags": [
+      "productivity",
+      "sspai"
+    ]
+  },
+  {
+    "id": "raindrop:1096450508",
+    "url": "http://xhslink.com/a/C1uoy8lyJctdb",
+    "title": "训练脚本平台化，大模型训练新趋势 - 小红书",
+    "tags": [
+      "ai",
+      "llamafactory",
+      "RLFactory",
+      "xiaohongshu"
+    ]
+  },
+  {
+    "id": "raindrop:1095196813",
+    "url": "https://mp.weixin.qq.com/s/U9ZDBaKCcQ8dj1tD4_eWnQ",
+    "title": "高性能存储：AI云环境下的Lustre与pNFS加速",
+    "tags": [
+      "storage",
+      "ai",
+      "wechat",
+      "Lustre",
+      "parallel file system",
+      "GPU"
+    ]
+  },
+  {
+    "id": "raindrop:1095183201",
+    "url": "https://mp.weixin.qq.com/s/KWqGXk5vr6z0ZkuVt9LuMg",
+    "title": "Intel：SPDK加速框架演进",
+    "tags": [
+      "storage",
+      "wechat",
+      "Intel",
+      "SPDK"
+    ]
+  },
+  {
+    "id": "raindrop:1094601462",
+    "url": "https://dev.to/emile1636/rdp-error-code-0x207-on-mac-for-ubuntu-24-d6d",
+    "title": "Remote Desktop Error code 0x207 on Mac for Ubuntu 24 - DEV Community",
+    "tags": [
+      "macos",
+      "ubuntu",
+      "remote desktop",
+      "rdp"
+    ]
+  },
+  {
+    "id": "raindrop:1094601463",
+    "url": "https://wsgzao.github.io/post/lrzsz",
+    "title": "macOS使用iterm2启用rz与sz功能 | HelloDog",
+    "tags": [
+      "macos",
+      "iterm2",
+      "file",
+      "shell",
+      "terminal"
+    ]
+  },
+  {
+    "id": "raindrop:1094601526",
+    "url": "https://blog.briankitano.com/llama-from-scratch",
+    "title": "Llama from scratch (or how to implement a paper without crying) | Brian Kitano",
+    "tags": [
+      "ai",
+      "Deep Learning",
+      "Llama",
+      "Implementation"
+    ]
+  },
+  {
+    "id": "raindrop:1094601420",
+    "url": "https://upiwgvvcb4.feishu.cn/wiki/RT9hw9alFi3vkAkv9mhcmuq8nBf?fromScene=spaceOverview",
+    "title": "AI系统",
+    "tags": [
+      "byd",
+      "feishu",
+      "ai system"
+    ]
+  },
+  {
+    "id": "raindrop:1094601427",
+    "url": "https://arxiv.org/pdf/2407.20143",
+    "title": "2407.20143",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1094601421",
+    "url": "https://upiwgvvcb4.feishu.cn/wiki/UeoFwJwNUi5bKxkOMcIcIy9vnhg?fromScene=spaceOverview",
+    "title": "多模态大模型项目",
+    "tags": [
+      "byd",
+      "feishu",
+      "multi"
+    ]
+  },
+  {
+    "id": "raindrop:1094601422",
+    "url": "http://10.0.62.21:58990",
+    "title": "工程院",
+    "tags": [
+      "byd chatbot"
+    ]
+  },
+  {
+    "id": "raindrop:1094601424",
+    "url": "https://ghy.byd.com/platform/apps",
+    "title": "汽车新技术研究院",
+    "tags": [
+      "byd",
+      "xjsy"
+    ]
+  },
+  {
+    "id": "raindrop:1094601425",
+    "url": "https://upiwgvvcb4.feishu.cn/wiki/ZZfbwjs9YiaNr1k1BJDcqAbrnGd?fromScene=spaceOverview",
+    "title": "‬ ‍‍‬⁠‍‌​‍‍‌​​‬​‌‌​‍⁠‍‬‌​‌ ‍‌​​​​⁠ ​​​​‬​​ ​‍⁠⁠算力集群建设 - Feishu Docs",
+    "tags": [
+      "byd",
+      "feishu"
+    ]
+  },
+  {
+    "id": "raindrop:1094601426",
+    "url": "https://upiwgvvcb4.feishu.cn/wiki/Tul7wxVqRi0SsCkbb1rcvdLJnXf?fromScene=spaceOverview",
+    "title": "‬ ‌‌‬‬​ ​‌​​‬ ⁠​‍​​​‌​​​​‍​​​⁠​⁠​‍​​⁠​​⁠​‬​ ‌​​​​AI 研发平台-Feishu",
+    "tags": [
+      "byd",
+      "feishu"
+    ]
+  },
+  {
+    "id": "raindrop:1094601428",
+    "url": "http://10.0.206.164:30975/aidf/home",
+    "title": "D1 - AI研发平台",
+    "tags": [
+      "byd",
+      "ai platform"
+    ]
+  },
+  {
+    "id": "raindrop:1094601429",
+    "url": "https://upiwgvvcb4.feishu.cn/wiki/FK0SwUEdCi5hmIkRBWDcbb8fnxh",
+    "title": "Charles‘s Notes",
+    "tags": [
+      "byd",
+      "feishu"
+    ]
+  },
+  {
+    "id": "raindrop:1094601430",
+    "url": "http://10.0.106.155:30200/dcp/train/overview",
+    "title": "POC - 模型训练系统",
+    "tags": [
+      "byd"
+    ]
+  },
+  {
+    "id": "raindrop:1094601528",
+    "url": "http://www.sohu.com/a/165596586_657253",
+    "title": "答题 | 高速信号编码之8B/10B",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1094601529",
+    "url": "https://blog.csdn.net/love_maomao/article/details/20536389",
+    "title": "以太网的8B/10B（来自网络，供参考） - love_maomao的专栏 - CSDN博客",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1094601527",
+    "url": "https://www.sohu.com/a/164511327_657253",
+    "title": "高速信号编码之8B/10B",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1094601531",
+    "url": "https://docs.python.org/3/py-modindex.html#cap-i",
+    "title": "Python Module Index — Python 3.7.2 documentation",
+    "tags": []
+  },
+  {
+    "id": "raindrop:1094601532",
+    "url": "https://docs.scipy.org/doc/numpy/reference",
+    "title": "NumPy Reference — NumPy v1.16 Manual",
+    "tags": []
+  }
+]

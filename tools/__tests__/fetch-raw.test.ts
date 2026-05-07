@@ -692,6 +692,149 @@ test("buildSyncPlan: merges in ingest_batch pending entries with slug", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Feature 2: --retry-kind / --retry-prefix / --check-stale
+// ---------------------------------------------------------------------------
+
+test("buildSyncPlan: --retry-kind picks only matching slugs (and ignores --retry-flagged)", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-good", "2026", {
+      origin: "url:https://a.example.com", origin_url: "https://a.example.com",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    t.addSource("2026-04-02-paywall", "2026", {
+      origin: "url:https://economictimes.indiatimes.com/x", origin_url: "https://economictimes.indiatimes.com/x",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "b",
+      content_length: 5000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    t.addSource("2026-04-03-feishu-stub", "2026", {
+      origin: "url:https://upiwgvvcb4.feishu.cn/wiki/abc", origin_url: "https://upiwgvvcb4.feishu.cn/wiki/abc",
+      fetcher: "opencli", fetcher_reason: "domain-override", content_sha: "c",
+      content_length: 400, quality_flags: ["intentional-stub", "feishu-auth-gated"],
+      quality_status: "flagged", images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+
+    const plan = buildSyncPlan({
+      retryFlagged: false, retryKind: "upstream-paywall",
+      dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no.json"),
+    });
+
+    const fetchSlugs = plan.filter(p => p.action === "fetch").map(p => p.slug);
+    assert.deepEqual(fetchSlugs, ["2026-04-02-paywall"]);
+    const skipped = plan.find(p => p.slug === "2026-04-03-feishu-stub");
+    assert.equal(skipped?.action, "skip-not-in-retry-kind");
+    assert.equal(skipped?.failure_kind, "upstream-auth-gated");
+  } finally {
+    t.cleanup();
+  }
+});
+
+test("buildSyncPlan: --retry-prefix matches kind family", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-clean", "2026", {
+      origin: "url:https://blog.example.com/x", origin_url: "https://blog.example.com/x",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    t.addSource("2026-04-02-auth-stub", "2026", {
+      origin: "url:https://up.feishu.cn/wiki/x", origin_url: "https://up.feishu.cn/wiki/x",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "b",
+      content_length: 400, quality_flags: ["intentional-stub", "feishu-auth-gated"],
+      quality_status: "flagged", images: [], notes: [],
+    });
+    t.addSource("2026-04-03-deleted-stub", "2026", {
+      origin: "url:https://reddit.com/r/X/s/Y", origin_url: "https://reddit.com/r/X/s/Y",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "c",
+      content_length: 400, quality_flags: ["intentional-stub", "reddit-deleted"],
+      quality_status: "flagged", images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+
+    const plan = buildSyncPlan({
+      retryFlagged: false, retryPrefix: "upstream-",
+      dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no.json"),
+    });
+
+    const fetchSlugs = plan.filter(p => p.action === "fetch").map(p => p.slug).sort();
+    assert.deepEqual(fetchSlugs, ["2026-04-02-auth-stub", "2026-04-03-deleted-stub"]);
+    const skip = plan.find(p => p.slug === "2026-04-01-clean");
+    assert.equal(skip?.action, "skip-not-in-retry-kind");
+    assert.equal(skip?.failure_kind, "clean");
+  } finally {
+    t.cleanup();
+  }
+});
+
+test("buildSyncPlan: --check-stale + --max-age queues head-check for old good slugs", () => {
+  const t = makeTmpRawTree();
+  try {
+    const old = new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString();
+    const recent = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+    t.addSource("2026-04-01-old-good", "2026", {
+      fetched_at: old,
+      origin: "url:https://blog.example.com/old", origin_url: "https://blog.example.com/old",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    t.addSource("2026-04-02-recent-good", "2026", {
+      fetched_at: recent,
+      origin: "url:https://blog.example.com/recent", origin_url: "https://blog.example.com/recent",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "b",
+      content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+
+    const plan = buildSyncPlan({
+      retryFlagged: false, checkStale: true, maxAgeDays: 30,
+      dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no.json"),
+    });
+
+    const old_ = plan.find(p => p.slug === "2026-04-01-old-good")!;
+    const rec = plan.find(p => p.slug === "2026-04-02-recent-good")!;
+    assert.equal(old_.action, "head-check");
+    assert.match(old_.reason, />= 30d threshold/);
+    assert.equal(rec.action, "skip-good");
+  } finally {
+    t.cleanup();
+  }
+});
+
+test("buildSyncPlan: failure_kind populated on every existing slug", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-good", "2026", {
+      origin: "url:https://blog.example.com", origin_url: "https://blog.example.com",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+    const plan = buildSyncPlan({
+      retryFlagged: false, dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no.json"),
+    });
+    assert.equal(plan[0].failure_kind, "clean");
+  } finally {
+    t.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
 // remediation hints
 // ---------------------------------------------------------------------------
 

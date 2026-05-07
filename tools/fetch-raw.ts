@@ -39,6 +39,7 @@ import { acquireBrowserLock, acquireSlugLock } from "./shared/browser-lock.ts";
 import { routeSite } from "./sites/index.ts";
 import { extractJsonFromEvalStdout } from "./sites/_shared/browser-eval-json.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
+import { classifyFromInput } from "./hirono/raindrop/failure-kind.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
@@ -101,6 +102,18 @@ export interface SourceJson {
   notes: string[];
   raindrop_meta?: RaindropMeta;
   lark_meta?: LarkMeta;
+  /**
+   * Upstream-change tracking. Populated by `sync --check-stale` when the
+   * fetcher does a HEAD request before deciding to re-fetch. Optional —
+   * legacy source.json without this field is treated as "no etag known"
+   * and the next stale check populates it.
+   */
+  upstream?: {
+    etag?: string;
+    last_modified?: string;
+    /** ISO of the last HEAD check (independent from fetched_at). */
+    last_checked_at?: string;
+  };
 }
 
 export type ErrorLevel = "L1" | "L2" | "L3";
@@ -1131,14 +1144,71 @@ export interface SyncOpts {
   ingestBatchPath?: string;  // override for tests
   decisionsPath?: string;
   rawRoot?: string;
+  /** Retry only slugs whose computed failure_kind matches this exactly. */
+  retryKind?: string;
+  /** Retry slugs whose failure_kind starts with this prefix (e.g. "upstream-"). */
+  retryPrefix?: string;
+  /**
+   * For good slugs older than maxAgeDays, do a HEAD check; if etag /
+   * last-modified differs from source.json.upstream, queue for re-fetch.
+   */
+  checkStale?: boolean;
+  /** Default 90 days. Only relevant when checkStale=true. */
+  maxAgeDays?: number;
 }
 
 export interface SyncPlanItem {
   slug: string;
-  action: "fetch" | "skip-good" | "skip-decisioned" | "skip-no-origin" | "skip-not-in-only" | "skip-over-limit";
+  action:
+    | "fetch"
+    | "skip-good"
+    | "skip-decisioned"
+    | "skip-no-origin"
+    | "skip-not-in-only"
+    | "skip-over-limit"
+    | "skip-not-in-retry-kind"
+    | "head-check";
   origin?: string;
   originUrl?: string;
   reason: string;
+  /** Computed failure_kind (only present when classifier ran). */
+  failure_kind?: string;
+}
+
+function ageInDays(iso: string): number {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return 0;
+  return (Date.now() - t) / (1000 * 60 * 60 * 24);
+}
+
+/** HEAD-check a URL. Returns the etag + last-modified, or {ok:false}. */
+export function headCheck(url: string): { ok: boolean; etag?: string; lastModified?: string } {
+  try {
+    const res = spawnSync(
+      "curl",
+      [
+        "-sIfL",
+        "--max-time", "20",
+        "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9",
+        url,
+      ],
+      { encoding: "utf8", timeout: 25_000, maxBuffer: 1024 * 1024 },
+    );
+    if (res.status !== 0) return { ok: false };
+    const headers = (res.stdout || "").split(/\r?\n/);
+    let etag: string | undefined, lastModified: string | undefined;
+    for (const h of headers) {
+      const m = h.match(/^([A-Za-z-]+):\s*(.+?)\s*$/);
+      if (!m) continue;
+      const k = m[1].toLowerCase();
+      if (k === "etag") etag = m[2];
+      else if (k === "last-modified") lastModified = m[2];
+    }
+    return { ok: true, etag, lastModified };
+  } catch {
+    return { ok: false };
+  }
 }
 
 export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
@@ -1172,6 +1242,7 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
 
   const plan: SyncPlanItem[] = [];
   const seenSlugs = new Set<string>();
+  const maxAgeDays = opts.maxAgeDays ?? 90;
 
   // Existing raw/ slugs first
   for (const info of existing) {
@@ -1188,6 +1259,50 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
       });
       continue;
     }
+
+    // Compute failure_kind for this slug — used by --retry-kind / --retry-prefix
+    // and surfaced in the plan output so operators can see why each slug was
+    // selected or skipped.
+    const failure_kind = info.source?.origin_url
+      ? classifyFromInput({
+          url: info.source.origin_url,
+          quality_status: info.quality_status === "failed" ? undefined : info.quality_status,
+          flags: info.source?.quality_flags ?? [],
+          isFetched: info.hasContent,
+        })
+      : undefined;
+
+    // --retry-kind / --retry-prefix: when set, the kind filter is the ONLY
+    // gate. Slugs that match are queued; everything else gets a typed skip.
+    if (opts.retryKind || opts.retryPrefix) {
+      const matches = !!failure_kind && (
+        (opts.retryKind && failure_kind === opts.retryKind) ||
+        (opts.retryPrefix && failure_kind.startsWith(opts.retryPrefix))
+      );
+      if (!matches) {
+        plan.push({
+          slug: info.slug,
+          action: "skip-not-in-retry-kind",
+          reason: `failure_kind=${failure_kind ?? "?"} (filter: ${opts.retryKind ?? opts.retryPrefix + "*"})`,
+          failure_kind,
+        });
+        continue;
+      }
+      if (!info.source?.origin || !info.source?.origin_url) {
+        plan.push({ slug: info.slug, action: "skip-no-origin", reason: "source.json missing origin info", failure_kind });
+        continue;
+      }
+      plan.push({
+        slug: info.slug,
+        action: "fetch",
+        origin: info.source.origin,
+        originUrl: info.source.origin_url,
+        reason: `retry-kind matched (${failure_kind})`,
+        failure_kind,
+      });
+      continue;
+    }
+
     if (info.quality_status === "good") {
       if (opts.only && opts.only.has(info.slug)) {
         // explicit --only → fetch anyway (user asked)
@@ -1197,19 +1312,37 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
           origin: info.source?.origin,
           originUrl: info.source?.origin_url,
           reason: "forced by --only",
+          failure_kind,
         });
-      } else {
-        plan.push({ slug: info.slug, action: "skip-good", reason: "quality_status=good" });
+        continue;
       }
+      // --check-stale: for good slugs whose fetched_at is older than
+      // maxAgeDays, queue a HEAD check (executor decides whether to
+      // escalate to a full fetch based on etag/last-modified diff).
+      if (opts.checkStale && info.source?.fetched_at && info.source.origin_url) {
+        const ageDays = ageInDays(info.source.fetched_at);
+        if (ageDays >= maxAgeDays) {
+          plan.push({
+            slug: info.slug,
+            action: "head-check",
+            origin: info.source.origin,
+            originUrl: info.source.origin_url,
+            reason: `good, ${ageDays}d old (>= ${maxAgeDays}d threshold)`,
+            failure_kind,
+          });
+          continue;
+        }
+      }
+      plan.push({ slug: info.slug, action: "skip-good", reason: "quality_status=good", failure_kind });
       continue;
     }
     // flagged or failed
     if (info.quality_status === "flagged" && !opts.retryFlagged && !opts.only) {
-      plan.push({ slug: info.slug, action: "skip-good", reason: "flagged (pass --retry-flagged to re-fetch)" });
+      plan.push({ slug: info.slug, action: "skip-good", reason: "flagged (pass --retry-flagged to re-fetch)", failure_kind });
       continue;
     }
     if (!info.source?.origin || !info.source?.origin_url) {
-      plan.push({ slug: info.slug, action: "skip-no-origin", reason: "source.json missing origin info" });
+      plan.push({ slug: info.slug, action: "skip-no-origin", reason: "source.json missing origin info", failure_kind });
       continue;
     }
     plan.push({
@@ -1218,6 +1351,7 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
       origin: info.source.origin,
       originUrl: info.source.origin_url,
       reason: info.quality_status === "failed" ? "no content on disk" : "flagged; retrying",
+      failure_kind,
     });
   }
 
@@ -1266,8 +1400,71 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
   return plan;
 }
 
+/**
+ * Handle the `head-check` plan action: HEAD the URL, compare etag /
+ * last-modified against the saved upstream block, and either update
+ * `last_checked_at` (no change → skip fetch) or escalate to a full
+ * `fetch` action (change detected → return that to caller).
+ *
+ * Returns the SourceJson written ONLY when escalation triggered a real
+ * fetch. Returns null when the slug was confirmed fresh (last_checked_at
+ * was updated in place; no content changed).
+ */
+function executeHeadCheck(item: SyncPlanItem, downloadImages: boolean): SourceJson | null {
+  const slugDir = rawDirFor(item.slug);
+  const sourcePath = join(slugDir, "source.json");
+  if (!existsSync(sourcePath)) return null;
+  let src: SourceJson;
+  try { src = JSON.parse(readFileSync(sourcePath, "utf8")) as SourceJson; }
+  catch { return null; }
+
+  const url = item.originUrl ?? src.origin_url;
+  if (!url) return null;
+  const head = headCheck(url);
+  const now = new Date().toISOString();
+
+  const prior = src.upstream ?? {};
+  const sameEtag = !!head.etag && !!prior.etag && head.etag === prior.etag;
+  const sameLM = !!head.lastModified && !!prior.last_modified && head.lastModified === prior.last_modified;
+
+  if (head.ok && (sameEtag || sameLM)) {
+    // Confirmed fresh. Update last_checked_at + any newly-seen etag/last-mod.
+    src.upstream = {
+      etag: head.etag ?? prior.etag,
+      last_modified: head.lastModified ?? prior.last_modified,
+      last_checked_at: now,
+    };
+    writeFileAtomic(sourcePath, JSON.stringify(src, null, 2) + "\n");
+    return null;
+  }
+
+  // No prior etag (first stale check) AND HEAD returned headers → record
+  // them, treat as fresh (we have nothing to compare against). Avoids
+  // re-fetching every old slug just because it lacks the upstream block.
+  if (head.ok && !prior.etag && !prior.last_modified && (head.etag || head.lastModified)) {
+    src.upstream = {
+      etag: head.etag,
+      last_modified: head.lastModified,
+      last_checked_at: now,
+    };
+    writeFileAtomic(sourcePath, JSON.stringify(src, null, 2) + "\n");
+    return null;
+  }
+
+  // Either HEAD failed, or etag/last-modified disagree → escalate to fetch.
+  const escalated: SyncPlanItem = {
+    ...item,
+    action: "fetch",
+    reason: head.ok
+      ? `head-check: etag/last-modified changed (was ${prior.etag ?? prior.last_modified ?? "?"})`
+      : `head-check: HEAD failed; treating as stale`,
+  };
+  return executeFetchPlanItem(escalated, downloadImages);
+}
+
 /** Execute a single fetch plan item. Dispatches by origin prefix. Returns the SourceJson written, or null on caller-visible error. */
 export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean): SourceJson | null {
+  if (item.action === "head-check") return executeHeadCheck(item, downloadImages);
   if (item.action !== "fetch" || !item.origin || !item.originUrl) return null;
   const origin = item.origin;
   const originUrl = item.originUrl;

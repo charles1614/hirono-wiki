@@ -39,6 +39,7 @@ subcommands:
   raindrop refresh-cache      pull all bookmarks from Raindrop API → cache
   raindrop fetch-all          bulk fetch one copy of every unique URL → raw/
   raindrop status             join corpus + index + raw/; classify failures
+  raindrop new                list bookmarks not yet in the sources index
   doctor                      environment + adapter health check
 
 For subcommand-specific help: hirono <subcommand> --help`);
@@ -77,8 +78,13 @@ async function main(): Promise<void> {
       main(rest);
       return;
     }
+    if (sub === "new") {
+      const { main } = await import("../hirono/raindrop/new-bookmarks.ts");
+      main(rest);
+      return;
+    }
     console.error(`unknown raindrop subcommand: ${sub}`);
-    console.error(`valid: check, export, refresh-cache, fetch-all, status`);
+    console.error(`valid: check, export, refresh-cache, fetch-all, status, new`);
     process.exit(2);
   }
 
