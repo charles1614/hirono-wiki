@@ -1,0 +1,63 @@
+{
+  "fetched_at": "2026-05-07T07:01:54.139Z",
+  "origin": "url:https://www.sohu.com/a/164511327_657253",
+  "origin_url": "https://www.sohu.com/a/164511327_657253",
+  "fetcher": "opencli",
+  "fetcher_reason": "domain-override",
+  "content_sha": "19862f079ad2b7ad2a3c63de2a19a1a636acb4536609031c634be0fc0c257e4b",
+  "content_length": 2583,
+  "quality_flags": [],
+  "quality_status": "good",
+  "images": [
+    {
+      "local": "sohu-img-001.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-002.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-003.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-004.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-005.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-006.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-007.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-008.jpg",
+      "remote": "",
+      "bytes": 8511
+    },
+    {
+      "local": "sohu-img-009.jpg",
+      "remote": "",
+      "bytes": 8511
+    }
+  ],
+  "notes": [
+    "site module: sohu",
+    "sohu: 2495 body chars, 9/9 image(s) downloaded",
+    "9 images downloaded by adapter"
+  ]
+}

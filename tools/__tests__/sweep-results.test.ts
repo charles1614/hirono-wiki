@@ -62,6 +62,8 @@ const EXPECTED: Record<string, {
   },
   "gist.github.com": { minChars: 5000, notes: "site:github gist API — markdown gist embedded as-is" },
   "feishu.cn": { minChars: 5000, notes: "site:feishu lark-cli — Gemma 4 wiki page (real content)" },
+  "nvidianews.nvidia.com": { minChars: 3000, notes: "site:nvidianews — vera CPU press release" },
+  "sohu.com": { minChars: 2000, notes: "site:sohu — 8B/10B encoding article" },
 };
 
 function listHostSamples(): Array<{ host: string; mdPath: string; sourceJson?: string }> {

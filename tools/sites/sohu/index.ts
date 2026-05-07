@@ -15,6 +15,10 @@ export const { site, testHooks } = makeArticleSite({
       "article.article",
       "div.article",
       "#mp-editor",
+      // .text — fallback for sohu's older <div class="text"> body
+      // wrapper. Absorbs layout drift between mass-media and self-
+      // publish ("搜狐号") article shapes.
+      ".text",
       "article",
       "main",
     ],
