@@ -261,50 +261,79 @@ export const splitAdjacentInlineLinks: PostProcessor = {
 };
 
 /**
- * Simplify avatar image-links to plain text links. Implements the
- * CLAUDE.md §3 "avatars: strip" rule (case 3, "explicit username":
- * keep `[TEXT](url)`). Drops the avatar pixel, preserves the
- * author-name link.
+ * Strip avatar image-links and their already-simplified text-link
+ * residuals. Implements the CLAUDE.md §3 "avatars: strip" rule
+ * fully (case 1, "drop whole unit") instead of the case-3 "keep
+ * `[TEXT](url)`" intermediate that was too conservative — avatar
+ * identity adds noise more often than it adds signal in catalog /
+ * feed / forum / grid contexts.
  *
- * Match shape: `[![<alt>](<img>)](<url>)` where:
- *   - `<alt>` is non-empty (we need it as the replacement text)
- *   - `<url>` is a relative profile-shape path:
- *       /<segment>                                          — bare user
- *       /@<segment>                                         — @user
- *       /(?:user|users|u|profile|people|members?|authors?|community)/<segment>
+ * Two match shapes, both dropped to empty:
  *
- * Profile-shape match is the discriminator. Plain content links
- * (`/community/components/<author>/<slug>/<variant>` — 5 segments)
- * don't match the 1-or-2-segment cap and survive untouched.
+ *   1. Image-link form: `[![<alt>](<img>)](<profile-url>)`
+ *      The original avatar emission. The image is decorative
+ *      chrome and the author-name link adds clutter.
+ *   2. Text-link residual: `[<short-text>](<profile-url>)`
+ *      What an earlier "simplify" pass produced. We strip these
+ *      too so the cleanup is idempotent across re-runs.
  *
- * Replace with `[<alt>](<url>)` — preserves the link target and the
- * author identity (alt text is usually the author's name); drops the
- * decorative avatar image. Markdown remains valid; downstream
- * cleanups (`stripEmptyAnchorLinks` etc.) see the simplified form.
+ * In both cases `<profile-url>` is the discriminator: a relative
+ * path matching profile shapes (1-or-2 segments with explicit
+ * prefix). Component-page URLs (`/community/components/<author>/
+ * <slug>/<variant>` — 5 segments on 21st.dev) don't match and
+ * survive untouched.
  *
- * Decorative-icon-link side effect: a `[![Logo](logo.png)](/)` or
- * `[![About](icon.png)](/about)` also matches and converts to
- * `[Logo](/)` / `[About](/about)`. Accepted: equivalent semantics
- * (image-link → text-link), no information loss.
+ * The text-link variant is gated on a length cap (≤ 60 chars)
+ * to avoid false-positively stripping long inline link runs that
+ * happen to point at profile-shape URLs. Author / @handle text
+ * is reliably short.
+ *
+ * Decorative-icon-link side effect (accepted): a
+ * `[![Logo](logo.png)](/)` or `[![About](icon.png)](/about)` also
+ * matches the image-link variant and gets dropped. These are
+ * navigation chrome, not content — dropping them is the right call.
  */
-export const simplifyAvatarImageLinks: PostProcessor = {
-  name: "simplify-avatar-image-links",
+export const stripAvatarImageLinks: PostProcessor = {
+  name: "strip-avatar-image-links",
   match: () => true,
   transform: (md, _originUrl) => {
-    let count = 0;
-    // The URL match is the discriminator. Any image-link whose URL
-    // is a 1-or-2-segment relative path with a profile-shape prefix
-    // OR a single bare segment classifies as avatar/icon and gets
-    // simplified.
-    const re = /\[!\[([^\]\n]+)\]\([^)\s]+(?:\s+"[^"]*")?\)\]\((\/(?:[\w@.-]+|(?:user|users|u|profile|people|members?|authors?|community)\/[\w@.-]+)\/?)\)/gi;
-    const out = md.replace(re, (_m, alt, url) => {
-      count++;
-      return `[${alt.trim()}](${url})`;
+    const PROFILE_URL = "(?:[\\w@.-]+|(?:user|users|u|profile|people|members?|authors?|community)\\/[\\w@.-]+)";
+    let imageStripped = 0;
+    let textStripped = 0;
+    // Image-link form: drop the whole unit.
+    const imageLinkRe = new RegExp(
+      `\\[!\\[[^\\]\\n]*\\]\\([^)\\s]+(?:\\s+"[^"]*")?\\)\\]\\(\\/${PROFILE_URL}\\/?\\)`,
+      "gi",
+    );
+    let out = md.replace(imageLinkRe, () => {
+      imageStripped++;
+      return "";
     });
+    // Text-link residual form: short text linking to a profile-shape URL.
+    // Length cap on text avoids false-positives on prose with profile-shape inline links.
+    const textLinkRe = new RegExp(
+      `\\[([^\\]\\n]{1,60})\\]\\(\\/${PROFILE_URL}\\/?\\)`,
+      "gi",
+    );
+    out = out.replace(textLinkRe, () => {
+      textStripped++;
+      return "";
+    });
+    // Cleanup: dropping a link can leave behind a line that's just
+    // indentation whitespace (the original avatar was the only thing
+    // on that line, and the line had a 4-space list-item indent).
+    // Trim those to fully-blank, then collapse blank-line runs.
+    out = out.split("\n").map((line) => /^\s+$/.test(line) ? "" : line).join("\n");
+    out = out.replace(/\n{3,}/g, "\n\n");
+    const total = imageStripped + textStripped;
+    const notes: string[] = [];
+    if (total > 0) {
+      notes.push(`stripped ${total} avatar/profile link(s) (${imageStripped} image-link, ${textStripped} text-link)`);
+    }
     return {
       md: out,
       newAbsoluteImageUrls: [],
-      notes: count > 0 ? [`simplified ${count} avatar image-link(s) to plain text links`] : [],
+      notes,
     };
   },
 };
@@ -701,11 +730,11 @@ const POST_CLEANUPS: readonly PostProcessor[] = [
   // canonical single-line form rather than the broken multi-line
   // shape.
   collapseMultiLineLinkWrappers,
-  // Simplify avatar image-links AFTER multi-line collapse but BEFORE
-  // split-adjacent — avatar simplification reduces the number of
-  // adjacent image-links, which prevents the split heuristic from
-  // misfiring on legitimate icon-link rows.
-  simplifyAvatarImageLinks,
+  // Strip avatar image-links AFTER multi-line collapse but BEFORE
+  // split-adjacent — avatar removal reduces the number of adjacent
+  // image-links, which prevents the split heuristic from misfiring
+  // on legitimate icon-link rows.
+  stripAvatarImageLinks,
   splitAdjacentInlineLinks,
   resolveRelativeImageUrls,
   stripEmptyAnchorLinks,
