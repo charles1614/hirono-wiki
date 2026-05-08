@@ -53,6 +53,7 @@ this file. Each iteration grows the institutional memory.
 | URL is `*.eth.limo`, `*.ipns.dweb.link`, hash-subdomain | Decentralized hosting; URL hash IS the content key | P-19 ipfs-gateway-stub |
 | URL ends in `.pdf` / Content-Type is `application/pdf` | PDF — render each page to image-bearing markdown (P-36) or fall back to stub (P-20) on encryption / corruption | P-36 pdf-page-rendering, P-20 nonhtml-stub |
 | `_default` extracts < 200 chars but `curl <url>` returns 5+ KB of HTML with `<h1>`, `<p>`, form elements directly under `<body>` (no `<article>`/`<main>`/`.prose` wrapper) | Single-purpose JS tool / IPFS-hosted SPA / hand-rolled HTML — semantic content lives directly in `<body>` | P-37 body-direct-content |
+| Output has orphan `](url)` lines (`grep -c "^\s*\]("` non-zero) OR a single line with 4+ adjacent `[X](Y)[X](Y)…` link runs | Catalog/grid page — turndown's multi-line link wrapper emission + sibling `<a>` no-separator | P-38 catalog-link-cleanups |
 | Body is < 200 chars after both curl + browser-eval | Genuinely empty (deleted, redirected to home, real stub) | P-21 stub-threshold |
 | URL claims to be one host but redirects to another (xhslink → xiaohongshu, share.google → linux.do) | Shortlink / share-redirect | P-22 shortlink-resolution |
 | GitHub `/blob/`, `/tree/`, `/issues/`, `/pull/`, `/discussions/`, `/releases/tag/` | Structured data lives in REST API + raw.githubusercontent.com | P-23 use-the-api |
@@ -485,10 +486,12 @@ The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain
 
 ### P-28 — Cross-cutting cleanups (don't reinvent)
 
-The 8 universal cleanups in `tools/sites/_shared/post-cleanup.ts` already run after EVERY site module's output. If you find yourself writing a regex to fix one of these, stop and check the existing list:
+The universal cleanups in `tools/sites/_shared/post-cleanup.ts` already run after EVERY site module's output. If you find yourself writing a regex to fix one of these, stop and check the existing list:
 
 | Cleanup | Fixes |
 |---|---|
+| `collapseMultiLineLinkWrappers` | `[![alt](src)\n\n    ](url)` → `[![alt](src)](url)` (P-38) |
+| `splitAdjacentInlineLinks` | run-together `[X](Y)[X](Y)…` chains → ` · `-separated (P-38) |
 | `stripEmptyAnchorLinks` | `[](#anchor)` permalink chrome |
 | `stripShareWidgetLines` | bare "Share" / "Copy link" lines |
 | `stripTrailingTagList` | concatenated `[tag1][tag2][tag3]` footers |
@@ -749,6 +752,36 @@ Reference output: `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`.
 Pages this pattern recovers usually still match P-18's URL-pattern check (hex-hash subdomain, `/tools/` path, etc.). What changes after the fallback: classifier sees prose-bearing flags=[], the URL-pattern app-only check (gated on `flags.length > 0`) doesn't fire, the slug classifies as `clean`. The URL pattern is right that it's an app — and now the documentation IS the archive.
 
 **Reference.** Manual conversion proven on the `1cb887bb.pinit.eth.limo` slug — content.md hand-derived from the page's `<body>` after stripping `<style>`/`<script>`. Sample at `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`. Automation TODO: extend `tools/sites/_default/index.ts` BODY_SELECTORS cascade per the heuristics above.
+
+---
+
+### P-38 — Multi-line link wrappers + run-together inline-link chains (catalog/grid post-cleanups)
+
+**Symptom.** Output markdown contains shapes that violate §3 contract:
+
+- **Multi-line link wrapper:** `[![alt](src)\n\n    ](url)` — turndown emits an `<a>` opener that wraps an `<img>` plus subsequent siblings, producing a `[` + image + blank line + orphan `](url)` on its own line. CLAUDE.md §3 calls this out explicitly. `grep -c "^\s*\](" content.md` returns non-zero.
+- **Run-together inline-link chain:** `[Label1](url1)[Label2](url2)[Label3](url3)…` — multiple `<a>` siblings rendered with no separator. Common on category lists / nav rows / breadcrumb trails. Reads as one long unbroken string.
+
+Both shapes are common on **catalog / grid** pages where the page is a list of cards (each with image + title + author/category links) plus header navigation rows. 21st.dev community page (`https://21st.dev/community/components`) had 94 multi-line wrappers and 3 run-together chains in a single 25KB extraction.
+
+**Root cause.** Turndown's default rendering of complex `<a>` children (multi-paragraph or multi-element) produces the multi-line wrapper. Sibling `<a>` elements with no whitespace between them in source HTML render as adjacent inline links with no separator. Both are turndown-emission defects, not extraction-stage defects — the right fix layer is post-cleanup.
+
+**Remediation.** Two new cleanups in `tools/sites/_shared/post-cleanup.ts`:
+
+- `collapseMultiLineLinkWrappers` — regex match for `[INNER\s*\n\s*\n\s*](URL)` where INNER is a single-line `![alt](src)` image OR a short text run (≤80 chars). Refuses to fire when INNER's bracket count is unbalanced (regex false-positive guard). Collapses to single-line `[INNER](URL)`. Skips fenced code blocks.
+- `splitAdjacentInlineLinks` — for lines ≥100 chars containing 4+ adjacent `)[…](` joins, insert ` · ` between each. Conservative thresholds avoid breaking real prose with occasional dense inline-link runs. Skips fenced code blocks.
+
+Both run FIRST in the post-cleanup chain (before `stripEmptyAnchorLinks` etc.) so subsequent cleanups see the canonical single-line form.
+
+**Generalization.** Three rules of thumb:
+
+1. **Detect via `grep`, not visual inspection.** `grep -c "^\s*\](" raw/.../content.md` reliably surfaces multi-line wrappers. `grep -cE "\]\([^)]+\)\[[^!]" content.md` surfaces run-together link chains. Routine sweeps should include both.
+2. **Multi-line wrapper collapse is safe at the post-cleanup layer.** The shape is a turndown emission defect; the inner image+url is correct, just split across paragraphs. Collapsing produces clean `[![alt](src)](url)` without losing content.
+3. **Run-together split needs a high threshold.** Real prose can have 1-3 adjacent inline links naturally (e.g., a sentence with a reference + a follow-up reference). The `≥4 adjacent + ≥100 char line` gate keeps the split scoped to genuine catalog/nav rows.
+
+If a site emits these shapes via a host-specific extraction quirk (DOM walker that misses paragraph boundaries), the host module's converter is the better fix layer. Post-cleanup catches the 80% cross-host case.
+
+**Reference.** `tools/sites/_shared/post-cleanup.ts:collapseMultiLineLinkWrappers` + `:splitAdjacentInlineLinks`. Wired in at the top of `POST_CLEANUPS` array. Proven on `21st.dev/community/components` slug — collapsed 94 wrappers + split 3 chains, no false positives. Detection grep one-liner: `grep -c "^\s*\](" raw/.../content.md`.
 
 ---
 
