@@ -362,14 +362,15 @@ w
 **Remediation.** `tools/hirono/raindrop/failure-kind.ts:looksLikeAppShapedUrl(url)` runs the URL through a regex set covering all four shapes. Returns true if any pattern matches.
 
 The classifier checks this in two places:
-- **Stub branch** (after extraction failed with `_default-fetch-failed` / `loading-skeleton`): if URL is app-shaped, return `intentional-stub-app-only`; otherwise fall through to `upstream-spa-no-content`.
+- **Stub branch — SPA sub-branch** (after extraction failed with `_default-fetch-failed` / `loading-skeleton`): if URL is app-shaped, return `intentional-stub-app-only`; otherwise fall through to `upstream-spa-no-content`.
+- **Stub branch — bot-blocked sub-branch**: when the catchall `-fetch-failed` / `-extraction-failed` / `-bot-blocked` regex would route to `upstream-fetch-failed`, FIRST check the URL shape. If the bookmark URL is `/tools/calculator` or similar, the bookmark intent is the tool itself — bot-block is incidental, classification should be `intentional-stub-app-only`. Real-content URLs that happen to be bot-blocked (e.g. `stackoverflow.com/questions/...`) don't match the app-shape regex and stay `upstream-fetch-failed` (operator might clear the CF challenge cookie and refetch). Example: `apxml.com/zh/tools/vram-calculator` is Cloudflare-walled but the URL says "calculator" — app-only is the right kind.
 - **Non-stub flagged branch** (iteration 5): when the slug has flags BUT no `intentional-stub` marker (e.g. `short-body` from a homepage extraction), check the URL pattern there too — if it matches, classify as `intentional-stub-app-only` instead of letting the slug masquerade as `content-too-short`.
 
 The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain URL with clean extraction (real-content blog homepage) classifies as `clean` per the catchall and never reaches the URL-pattern check. The pattern only flips the kind when extraction was already judged sub-good.
 
 **Generalization.** Recognizing "this URL is fundamentally not an article" early saves a lot of extraction grief. The URL pattern is more reliable than DOM heuristics. When extending: think hard about what bookmark INTENT corresponds to the URL shape — if the bookmark intent is "the site/app/query itself," the slug belongs in `intentional-stub-app-only`. Add the regex to `looksLikeAppShapedUrl`.
 
-**Reference.** `tools/hirono/raindrop/failure-kind.ts:looksLikeAppShapedUrl` (regex set + the two branch usages). Commit `9b2bec6` (original P-18); iteration 5 added bare-domain + search-results matchers and lifted the check into the non-stub branch.
+**Reference.** `tools/hirono/raindrop/failure-kind.ts:looksLikeAppShapedUrl` (regex set + the three branch usages). Commit `9b2bec6` (original P-18 — SPA sub-branch only); iteration 5 added bare-domain + search-results matchers and lifted the check into the non-stub branch; later refinement added the bot-blocked sub-branch override (apxml VRAM calculator case).
 
 **Sibling pattern: P-37.** A URL matching P-18 (app-shaped) doesn't always mean the page has no extractable content. Single-purpose JS tools often embed substantial documentation directly under `<body>`. If the HTML is non-trivial but `_default` extracted < 200 chars, the cascade missed body-direct content — see P-37 for the body-direct fallback.
 
