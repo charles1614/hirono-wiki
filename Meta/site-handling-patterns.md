@@ -592,15 +592,21 @@ This is distinct from P-27 (chrome-ua-headers gets you THROUGH the gate when the
 
 The failure-kind classifier matches the host-agnostic suffix `-bot-blocked` (alongside `-fetch-failed` / `-extraction-failed`) and routes such slugs to `upstream-fetch-failed`. Future host modules that want their own bot-block detection just need to emit a `<host>-bot-blocked` flag — no classifier change required.
 
+**Auto-resolve retry.** CF challenges typically auto-resolve in 10-15s with JS execution — the default 3.5s browser wait often catches the challenge mid-resolution. When the first eval shows a CF challenge signature, the fetcher retries with a 15s wait against the same URL. opencli's user-bound Chrome carries organic cookies + behavior signals that Cloudflare often trusts; the retry usually clears the challenge automatically. If the retry also returns a challenge body, THEN emit the stub.
+
+The retry is gated on signature pattern: only `cloudflare-just-a-moment`, `-attention-required`, `-security-verification`, `-browser-check`, `-class-marker`, `-ray-id-blocked` are auto-resolvable. Origin-error interstitials (`cloudflare-origin-error`, CF 5xx) won't auto-resolve no matter how long we wait, so they skip retry and stub immediately. Other vendors (Akamai, DataDome, PerimeterX) similarly skip retry — they require human-shaped behavior signals our automation can't supply.
+
+Worked example: `apxml.com/zh/tools/vram-calculator` (Cloudflare-walled VRAM calculator). First eval at 3.5s caught "Just a moment..." challenge. Retry at 15s cleared the challenge → 8714 chars of substantive content extracted (FAQ, calculation principle, changelog, references). Slug went from `_default-bot-blocked` stub to `clean` extraction in a single fetcher invocation. The 15s cost is paid only on actual CF-protected sites; non-CF sites skip the challenge detection entirely.
+
 **Generalization.** Three rules of thumb:
 
 1. **The body's title is the strongest single signal.** `Just a moment...` / `Attention Required` / `<digits>: <error name>` are reliable. Body-text signatures are useful but more prone to false positives — keep them broad enough to match variants but narrow enough that real content doesn't trip them.
-2. **CF origin errors (5xx) belong here too**, not just challenges. `525: SSL handshake failed` means the origin is unreachable from the CF edge — same observable outcome (we can't get the content) and the same operator action (check the URL in a browser, accept the stub if the host is consistently broken).
-3. **Don't try to evade.** If both curl and browser-eval get the challenge, the right answer is to flag and move on. Operator can manually warm a Chrome session against the host (visit once in the bound Chrome, complete the JS challenge, refetch) but automating that bypass is out of scope.
+2. **CF origin errors (5xx) belong here too**, not just challenges. `525: SSL handshake failed` means the origin is unreachable from the CF edge — same observable outcome (we can't get the content) and the same operator action (check the URL in a browser, accept the stub if the host is consistently broken). These are NOT auto-resolvable — skip retry.
+3. **Auto-resolvable challenges deserve a retry, not an immediate stub.** Earlier guidance was "don't try to evade" — refined: don't try to FORGE behavior signals (User-Agent spoofing, fingerprint evasion, etc.), but DO let opencli's already-trusted Chrome session handle the challenge with adequate wait time. The 15s retry is patience, not evasion.
 
-When extending: add new signatures to `looksLikeBotChallenge` as new gating systems appear. Test on a fixture where you've captured the challenge HTML in `tools/__tests__/fixtures/converters/_default/<challenge-name>.input.json`.
+When extending: add new signatures to `looksLikeBotChallenge` as new gating systems appear. Add the signature to the auto-resolve regex in `_default/index.ts` IF it's a JS-challenge type that resolves on its own. Test on a fixture where you've captured the challenge HTML in `tools/__tests__/fixtures/converters/_default/<challenge-name>.input.json`.
 
-**Reference.** `tools/sites/_default/index.ts:looksLikeBotChallenge` + `:botBlockedStub`. Classifier rule: `tools/hirono/raindrop/failure-kind.ts` (`-bot-blocked` suffix in the stub branch). Sample outputs: `sweep-results/stackoverflow.com/sample.md`, `sweep-results/ai.joshuasun.asia/sample.md`, `sweep-results/apxml.com/sample.md`.
+**Reference.** `tools/sites/_default/index.ts:looksLikeBotChallenge` + `:botBlockedStub` + the 15s retry path in the fetch flow. Classifier rule: `tools/hirono/raindrop/failure-kind.ts` (`-bot-blocked` suffix in the stub branch, with URL-shape app-only override). Sample outputs: `sweep-results/stackoverflow.com/sample.md` (origin-error, no retry), `sweep-results/ai.joshuasun.asia/sample.md` (CF 525 origin-error), `sweep-results/apxml.com/sample.md` (CF challenge cleared via retry — full 8.7KB content extracted).
 
 ---
 
