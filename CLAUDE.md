@@ -2,6 +2,23 @@
 
 Quality rules and fix recipes for raw-content fetchers (`tools/fetch-raw.ts`, `tools/sites/_shared/post-cleanup.ts`). Scan the checklists, match symptoms to fixes, don't re-derive from scratch.
 
+## Where to look
+
+Match your intent to the canonical doc; don't re-derive what's already written down.
+
+| Intent | Read |
+|---|---|
+| Run / understand the operator pipeline (`hirono raindrop refresh-cache`, `fetch-all`, `sync`, `status`, daily/weekly cadence) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) |
+| Triage a sub-good site, build a new site adapter, or look up a specific defect pattern (SPA hydration, auth-walled, mermaid splice, etc.) | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) — symptom→cause→remediation index |
+| Architectural overview of the fetcher (site module contract, `_default` catchall, opencli vs legacy) | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
+| Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
+| Pending punch-list after the most recent bulk fetch | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
+| Wiki page conventions (frontmatter, page types, tier rules — the governance layer for `Sources/`, `Entities/`, `Topics/`) | [`Meta/schema.md`](Meta/schema.md) |
+| Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
+| What this file (`CLAUDE.md`) covers | the section list immediately below — quality rules, fidelity check, output contract, formatting rules, fix recipes, regression set, code pointers |
+
+This file deliberately overlaps with the docs above on a few load-bearing topics (output contract, fidelity checks, fix recipes) — those are the rules that should fire on every commit, regardless of whether the operator opened the workflow / patterns docs first. When in doubt about a workflow or a per-site fix, defer to the dedicated doc.
+
 ## Before shipping anything — read this first
 
 Fidelity before cleanliness, always. I've shipped "clean-looking" outputs that were missing 30+ lines of content every time I skipped this order.
@@ -20,7 +37,7 @@ Fidelity before cleanliness, always. I've shipped "clean-looking" outputs that w
 Count features in output, compare to source. Any category zero in output but non-zero in source → extraction failure, needs a fallback.
 
 ```bash
-f=raw/2026/<slug>/content.md
+f=raw/raindrop/<host>/<slug>/content.md
 echo "lines=$(wc -l < $f)  chars=$(wc -c < $f)" \
      "fences=$(grep -c '^```' $f)" \
      "tables=$(grep -c '^|' $f)" \
@@ -424,7 +441,7 @@ Before committing post-processor/adapter changes, re-export these AND check each
 **Block-ship one-liner** (anything > 0 for remote_imgs/activity, or FM == 0, or feature < contract → DO NOT SHIP):
 
 ```bash
-f=raw/2026/<slug>/content.md
+f=raw/raindrop/<host>/<slug>/content.md
 echo "$f:" \
   "lines=$(wc -l < $f)" \
   "fences=$(grep -c '^```' $f)" \
