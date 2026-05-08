@@ -63,6 +63,7 @@ this file. Each iteration grows the institutional memory.
 | `wiki.litenext.digital` mermaid diagrams render as orphan node-label paragraphs outside ` ```mermaid ` fences | Adapter flattened SVG-rendered diagram; source lives in DOM `data-original-text` attr or hydration script | P-30 deepwiki-mermaid-splice |
 | Hexo / WordPress / Sphinx site looks like one of the article-shape sites | Article-site factory pattern; <30 LOC config | P-31 article-site-factory |
 | Bookmark URL is on a `share.*` / `out.*` / `redirect.*` host with `?link=…` / `?url=…` query param holding the real target | Share-aggregator wrapper that doesn't redirect (interstitial only) | P-32 share-aggregator-unwrap |
+| Body title is `Just a moment...` / `Attention Required! Cloudflare` / `52N: <error>`; body says "Performing security verification" / "Checking your browser" | Cloudflare / Akamai / DataDome / PerimeterX challenge or CF origin-error interstitial extracted as if it were content | P-33 anti-bot-challenge-detect |
 
 ---
 
@@ -550,6 +551,35 @@ When you see a sub-good fetch on a `share.*`, `out.*`, `s.*`, `redirect.*`, or `
 
 ---
 
+### P-33 — Anti-bot challenge interstitial extracted as content
+
+**Symptom.** A slug looks like content (passes the 200-char stub threshold) but the body is literally an anti-bot challenge or origin-error page:
+
+- Title: `Just a moment...` / `Attention Required! | Cloudflare` / `525: SSL handshake failed` / `521: Web server is down`
+- Body: `Performing security verification` / `Checking your browser before accessing` / `cf-browser-verification` / `Cloudflare Ray ID` / `DataDome` / `Akamai Bot Manager`
+
+`hirono raindrop status` typically classifies these as `content-too-short`, `content-incomplete-images-zero`, or `upstream-spa-no-content` — none of which name the actual failure mode. Operators reading the status report can't tell from the kind alone that we got bot-blocked.
+
+**Root cause.** Cloudflare / Akamai / DataDome / PerimeterX served their challenge or origin-error page instead of the underlying content. Both `_default`'s curl path AND the browser-eval fallback can hit this — the right Chrome UA isn't enough when the host's bot rules require a JavaScript-solved challenge cookie that opencli's automation profile doesn't carry. Curl bytes can be > 0 (the challenge HTML has substance), so the > 200-char threshold doesn't fire; image-localization runs against the (fake) extracted body and finds zero images, producing the misleading `images-declared-but-none-downloaded` flag.
+
+This is distinct from P-27 (chrome-ua-headers gets you THROUGH the gate when the host trusts your UA). P-33 is what to do when even the right UA doesn't work and the challenge page IS what you got.
+
+**Remediation.** `tools/sites/_default/index.ts:looksLikeBotChallenge(title, body)` scans the extracted title + first ~1500 chars of body for known signatures (Cloudflare title, Cloudflare body markers, Cloudflare class names, CF Ray ID phrasing, DataDome / PerimeterX / Akamai references, CF origin-error codes 5xx). On match, the fetch flow returns `botBlockedStub(url, signature, errorDetail)` — a §2-contract stub flagged `["intentional-stub", "_default-bot-blocked"]`. The signature name (e.g. `cloudflare-just-a-moment`, `cloudflare-origin-error`) lands in the stub body for diagnostics.
+
+The failure-kind classifier matches the host-agnostic suffix `-bot-blocked` (alongside `-fetch-failed` / `-extraction-failed`) and routes such slugs to `upstream-fetch-failed`. Future host modules that want their own bot-block detection just need to emit a `<host>-bot-blocked` flag — no classifier change required.
+
+**Generalization.** Three rules of thumb:
+
+1. **The body's title is the strongest single signal.** `Just a moment...` / `Attention Required` / `<digits>: <error name>` are reliable. Body-text signatures are useful but more prone to false positives — keep them broad enough to match variants but narrow enough that real content doesn't trip them.
+2. **CF origin errors (5xx) belong here too**, not just challenges. `525: SSL handshake failed` means the origin is unreachable from the CF edge — same observable outcome (we can't get the content) and the same operator action (check the URL in a browser, accept the stub if the host is consistently broken).
+3. **Don't try to evade.** If both curl and browser-eval get the challenge, the right answer is to flag and move on. Operator can manually warm a Chrome session against the host (visit once in the bound Chrome, complete the JS challenge, refetch) but automating that bypass is out of scope.
+
+When extending: add new signatures to `looksLikeBotChallenge` as new gating systems appear. Test on a fixture where you've captured the challenge HTML in `tools/__tests__/fixtures/converters/_default/<challenge-name>.input.json`.
+
+**Reference.** `tools/sites/_default/index.ts:looksLikeBotChallenge` + `:botBlockedStub`. Classifier rule: `tools/hirono/raindrop/failure-kind.ts` (`-bot-blocked` suffix in the stub branch). Sample outputs: `sweep-results/stackoverflow.com/sample.md`, `sweep-results/ai.joshuasun.asia/sample.md`, `sweep-results/apxml.com/sample.md`.
+
+---
+
 ## §3 Patterns by remediation technique
 
 When you've decided what kind of fix to apply, this index points at the working reference modules.
@@ -583,6 +613,7 @@ When you've decided what kind of fix to apply, this index points at the working 
 - curl-then-browser-eval cascade
 - PDF / non-HTML short-circuit via Content-Type + magic bytes
 - Stub threshold (200 chars)
+- Anti-bot challenge / origin-error detection — `looksLikeBotChallenge(title, body)` (P-33)
 
 ### URL-pattern classifier (no fetch needed)
 - App-only detection: `intentional-stub-app-only` via URL regex
@@ -612,6 +643,7 @@ When `hirono raindrop status` flags a host you've never seen:
    - **Yes** → either accept `_default`'s hybrid (which already does this) or write a per-host module if you need custom hydration timing / extraction logic. Hydration race? → P-06 longer wait.
    - **No** → site is genuinely interactive (P-18) or auth-walled (P-03 + P-04).
 8. **After fetching, eyeball the output** (CLAUDE.md §5e.iv first-pass eye-read checklist). Apply the targeted patterns:
+   - Title is `Just a moment...` / `Attention Required` / a 5xx-prefixed CF error code? Body talks about "security verification"? P-33 anti-bot-challenge-detect — the slug isn't really content; it's a CF/Akamai/DataDome interstitial.
    - Quad-asterisks, redundant heading bold? P-09, P-10, P-28.
    - Heavy footer chrome? P-11, P-12.
    - Inline SVG explosions? P-13.
