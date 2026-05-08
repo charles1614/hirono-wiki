@@ -64,6 +64,7 @@ this file. Each iteration grows the institutional memory.
 | Hexo / WordPress / Sphinx site looks like one of the article-shape sites | Article-site factory pattern; <30 LOC config | P-31 article-site-factory |
 | Bookmark URL is on a `share.*` / `out.*` / `redirect.*` host with `?link=…` / `?url=…` query param holding the real target | Share-aggregator wrapper that doesn't redirect (interstitial only) | P-32 share-aggregator-unwrap |
 | Body title is `Just a moment...` / `Attention Required! Cloudflare` / `52N: <error>`; body says "Performing security verification" / "Checking your browser" | Cloudflare / Akamai / DataDome / PerimeterX challenge or CF origin-error interstitial extracted as if it were content | P-33 anti-bot-challenge-detect |
+| Body title is `404 Not Found` / `Page Not Found` / `Error 404` / `Sorry, this page isn't available`; body says "The requested URL was not found" / "this page doesn't exist" | Page-deleted error body extracted as content (host returned HTTP 200 with a 404 body) | P-34 not-found-page-detect |
 
 ---
 
@@ -580,6 +581,40 @@ When extending: add new signatures to `looksLikeBotChallenge` as new gating syst
 
 ---
 
+### P-34 — 404 / page-deleted error pages extracted as content
+
+**Symptom.** A slug body's `# H1` reads `404 Not Found` / `Page Not Found` / `Error 404` / `HTTP 410` / `Sorry, this page isn't available`, OR the body text contains `The requested URL .* was not found on this server` / `the page you are looking for doesn't exist`. The extracted "content" is the host's page-deleted error page.
+
+`hirono raindrop status` typically shows these as `content-too-short` (body has 200-1000 chars of error text — passes the stub threshold but flags the size). Operators reading the kind alone can't tell that the resource is genuinely GONE rather than partially-rendered.
+
+**Root cause.** The host serves an HTTP 200 (or 410, or 451) response with a body that's its 404 / page-deleted page. Curl doesn't error because the status code is in the success range or the host is sloppy about HTTP semantics. `_default`'s extractor sees substantive HTML, runs body selectors, produces 200-1000 chars of "The requested URL was not found on this server" text — and saves it as content. Different from P-33 (anti-bot challenge): there the host is gating you out temporarily; here the resource has been deleted and won't come back.
+
+This is the third instance of the meta-pattern "we extracted a wrapper page rather than real content," after P-32 (share-aggregator wrappers) and P-33 (anti-bot challenges). When you hit a fourth, consider whether to introduce a unified detection pipeline.
+
+**Remediation.** `tools/sites/_default/index.ts:looksLikeNotFoundPage(title, body)` scans the extracted title + first ~1500 chars of body for known not-found signatures:
+
+- Title-first (high confidence): `^(?:404|Page Not Found|Not Found|Error 404|HTTP 4(?:04|10|51))`, also `| 404` / `— Page Not Found` / `· Page Not Found` suffixes when a site appends its name.
+- Platform-specific: `Sorry, this page isn't available` (Instagram-style), `This page isn't available / doesn't exist / could not be found`.
+- Body-text fallback for sites with generic site-name `<title>` on 404s: Apache/nginx `The requested URL was not found on this server`, generic `the page you are looking for doesn't exist`, HTTP `410 Gone` / `451 Unavailable For Legal Reasons` literals.
+
+On match, `notFoundStub(url, signature, errorDetail)` returns a §2-contract stub flagged `["intentional-stub", "_default-not-found"]`. The signature name (`title-404`, `apache-nginx-404`, `instagram-deleted`, etc.) lands in the diagnostic block.
+
+The failure-kind classifier matches the host-agnostic suffix `/-not-found$/` in the deleted-upstream branch, alongside `feishu-deleted` / `reddit-deleted` / `x-twitter-empty`. Routes to `upstream-deleted` (operator action: edit/remove the bookmark, or fetch from archive.org). Future host modules emitting `<host>-not-found` flags pick up the classification automatically.
+
+The check runs BEFORE the bot-challenge check in the fetch flow — both are "we extracted the wrong page" detections, but a 404 body trumps a CF challenge body (if both fire, the page is gone regardless of bot-block status).
+
+**Generalization.** Three rules of thumb:
+
+1. **Title is again the strongest signal.** Real articles whose CONTENT mentions "404" or "not found" don't have those phrases in their `<title>`. Title-pattern matching has very low false-positive rate.
+2. **Don't conflate "page not found" with "anti-bot blocked".** Different operator action (edit/delete bookmark vs re-auth Chrome session). Different failure kind (`upstream-deleted` vs `upstream-fetch-failed`). Keep the detections separate.
+3. **HTTP 410 (Gone) and 451 (Legal) belong here too**, not in their own kind. Same effect: the resource is unreachable now and will stay that way.
+
+When extending: add new signatures to `looksLikeNotFoundPage` as new platform-specific dead-page messages appear. Look at the actual error body before adding a regex — Instagram, YouTube, Twitter all have their own dead-page wording.
+
+**Reference.** `tools/sites/_default/index.ts:looksLikeNotFoundPage` + `:notFoundStub`. Classifier rule: `tools/hirono/raindrop/failure-kind.ts` (`-not-found` suffix in the deleted-upstream branch). Sample output: `sweep-results/mapp.api.weibo.cn/sample.md`.
+
+---
+
 ## §3 Patterns by remediation technique
 
 When you've decided what kind of fix to apply, this index points at the working reference modules.
@@ -614,6 +649,7 @@ When you've decided what kind of fix to apply, this index points at the working 
 - PDF / non-HTML short-circuit via Content-Type + magic bytes
 - Stub threshold (200 chars)
 - Anti-bot challenge / origin-error detection — `looksLikeBotChallenge(title, body)` (P-33)
+- 404 / page-deleted detection — `looksLikeNotFoundPage(title, body)` (P-34)
 
 ### URL-pattern classifier (no fetch needed)
 - App-only detection: `intentional-stub-app-only` via URL regex
@@ -643,6 +679,7 @@ When `hirono raindrop status` flags a host you've never seen:
    - **Yes** → either accept `_default`'s hybrid (which already does this) or write a per-host module if you need custom hydration timing / extraction logic. Hydration race? → P-06 longer wait.
    - **No** → site is genuinely interactive (P-18) or auth-walled (P-03 + P-04).
 8. **After fetching, eyeball the output** (CLAUDE.md §5e.iv first-pass eye-read checklist). Apply the targeted patterns:
+   - Title is `404 Not Found` / `Page Not Found` / `Error 404` / `Sorry, this page isn't available`? Body says "The requested URL was not found"? P-34 not-found-page-detect — the resource is gone upstream, classify as `upstream-deleted`.
    - Title is `Just a moment...` / `Attention Required` / a 5xx-prefixed CF error code? Body talks about "security verification"? P-33 anti-bot-challenge-detect — the slug isn't really content; it's a CF/Akamai/DataDome interstitial.
    - Quad-asterisks, redundant heading bold? P-09, P-10, P-28.
    - Heavy footer chrome? P-11, P-12.
