@@ -261,6 +261,55 @@ export const splitAdjacentInlineLinks: PostProcessor = {
 };
 
 /**
+ * Simplify avatar image-links to plain text links. Implements the
+ * CLAUDE.md §3 "avatars: strip" rule (case 3, "explicit username":
+ * keep `[TEXT](url)`). Drops the avatar pixel, preserves the
+ * author-name link.
+ *
+ * Match shape: `[![<alt>](<img>)](<url>)` where:
+ *   - `<alt>` is non-empty (we need it as the replacement text)
+ *   - `<url>` is a relative profile-shape path:
+ *       /<segment>                                          — bare user
+ *       /@<segment>                                         — @user
+ *       /(?:user|users|u|profile|people|members?|authors?|community)/<segment>
+ *
+ * Profile-shape match is the discriminator. Plain content links
+ * (`/community/components/<author>/<slug>/<variant>` — 5 segments)
+ * don't match the 1-or-2-segment cap and survive untouched.
+ *
+ * Replace with `[<alt>](<url>)` — preserves the link target and the
+ * author identity (alt text is usually the author's name); drops the
+ * decorative avatar image. Markdown remains valid; downstream
+ * cleanups (`stripEmptyAnchorLinks` etc.) see the simplified form.
+ *
+ * Decorative-icon-link side effect: a `[![Logo](logo.png)](/)` or
+ * `[![About](icon.png)](/about)` also matches and converts to
+ * `[Logo](/)` / `[About](/about)`. Accepted: equivalent semantics
+ * (image-link → text-link), no information loss.
+ */
+export const simplifyAvatarImageLinks: PostProcessor = {
+  name: "simplify-avatar-image-links",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    let count = 0;
+    // The URL match is the discriminator. Any image-link whose URL
+    // is a 1-or-2-segment relative path with a profile-shape prefix
+    // OR a single bare segment classifies as avatar/icon and gets
+    // simplified.
+    const re = /\[!\[([^\]\n]+)\]\([^)\s]+(?:\s+"[^"]*")?\)\]\((\/(?:[\w@.-]+|(?:user|users|u|profile|people|members?|authors?|community)\/[\w@.-]+)\/?)\)/gi;
+    const out = md.replace(re, (_m, alt, url) => {
+      count++;
+      return `[${alt.trim()}](${url})`;
+    });
+    return {
+      md: out,
+      newAbsoluteImageUrls: [],
+      notes: count > 0 ? [`simplified ${count} avatar image-link(s) to plain text links`] : [],
+    };
+  },
+};
+
+/**
  * Strip empty-text markdown links: `[](#anchor)` produced by header
  * permalink icons on rendered sites (GitHub, Gitea, arxiv, etc.). These
  * appear on their own line and are pure chrome.
@@ -648,9 +697,15 @@ export const enforceSingleH1: PostProcessor = {
  *  body H1 the host's converter emitted. */
 const POST_CLEANUPS: readonly PostProcessor[] = [
   // Multi-line link wrapper collapse runs FIRST so subsequent
-  // cleanups (empty-anchor strip, etc.) see the canonical
-  // single-line form rather than the broken multi-line shape.
+  // cleanups (empty-anchor strip, avatar simplify, etc.) see the
+  // canonical single-line form rather than the broken multi-line
+  // shape.
   collapseMultiLineLinkWrappers,
+  // Simplify avatar image-links AFTER multi-line collapse but BEFORE
+  // split-adjacent — avatar simplification reduces the number of
+  // adjacent image-links, which prevents the split heuristic from
+  // misfiring on legitimate icon-link rows.
+  simplifyAvatarImageLinks,
   splitAdjacentInlineLinks,
   resolveRelativeImageUrls,
   stripEmptyAnchorLinks,
