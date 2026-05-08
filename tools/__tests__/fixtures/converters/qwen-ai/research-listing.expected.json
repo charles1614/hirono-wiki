@@ -1,0 +1,20 @@
+{
+  "imagesToDownload": [
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i1/O1CN01Zn57Fv1HbuseMj1D4_!!6000000000777-2-tps-1590-954.png",
+      "localFilename": "qwen-ai-research-01.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01IUOCqg1RG48rlBwP7_!!6000000002083-2-tps-1590-954.png",
+      "localFilename": "qwen-ai-research-02.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i2/O1CN01pnefgf1o0FcxKA3uu_!!6000000005162-2-tps-1590-954.png",
+      "localFilename": "qwen-ai-research-03.png"
+    },
+    {
+      "remoteUrl": "https://img.alicdn.com/imgextra/i4/O1CN01G7Tcjx1TKJ2SRtYll_!!6000000002363-2-tps-1590-954.png",
+      "localFilename": "qwen-ai-research-04.png"
+    }
+  ]
+}

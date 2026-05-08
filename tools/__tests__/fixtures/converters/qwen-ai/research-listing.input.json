@@ -1,0 +1,40 @@
+{
+  "fn": "convertQwenResearchListing",
+  "args": [
+    [
+      {
+        "slug": "qwen-scope",
+        "title": "Qwen-Scope: Decoding Intelligence, Unleashing Potential",
+        "description": "Interpretability research has emerged as a critical area for understanding LLM behaviors, informing performance optimization, and enabling more controllable model outputs. Today, we are excited to introduce Qwen-Scope, an interpretability toolkit trained on the Qwen3 and Qwen3.5 series models. Specifically, we inserted and trained Sparse Autoencoders (SAEs) within Qwen’s hidden layers. By...",
+        "source": "Open-Source",
+        "date": "2026/04/30",
+        "imageUrl": "https://img.alicdn.com/imgextra/i1/O1CN01Zn57Fv1HbuseMj1D4_!!6000000000777-2-tps-1590-954.png"
+      },
+      {
+        "slug": "flashqla",
+        "title": "FlashQLA: CP-/Bwd-Friendly Fused Linear Attention Kernels for GDN",
+        "description": "Following the release of Qwen3-Next, Gated Delta Network (GDN) has become the workhorse attention layer across the Qwen family — from Qwen3-Next-80B-A3B all the way to the subsequent Qwen3.5 / Qwen3.6 series. As models scale to 397A17B / 122A10B / 35B / 27B and context...",
+        "source": "Open-Source",
+        "date": "2026/04/28",
+        "imageUrl": "https://img.alicdn.com/imgextra/i2/O1CN01IUOCqg1RG48rlBwP7_!!6000000002083-2-tps-1590-954.png"
+      },
+      {
+        "slug": "qwen3.6-27b",
+        "title": "Qwen3.6-27B: Flagship-Level Coding in a 27B Dense Model",
+        "description": "Following the launch of Qwen3.6-Plus and Qwen3.6-35B-A3B, we are excited to open-source Qwen3.6-27B — a dense 27-billion-parameter multimodal model at the scale the community has been asking for most. Still supporting both multimodal thinking and non-thinking modes, Qwen3.6-27B delivers flagship-level agentic coding performance, surpassing the previous-generation open-source flagship...",
+        "source": "Open-Source",
+        "date": "2026/04/22",
+        "imageUrl": "https://img.alicdn.com/imgextra/i2/O1CN01pnefgf1o0FcxKA3uu_!!6000000005162-2-tps-1590-954.png"
+      },
+      {
+        "slug": "qwen3.6-max-preview",
+        "title": "Qwen3.6-Max-Preview: Smarter, Sharper, Still Evolving",
+        "description": "Following the release of Qwen3.6-Plus, we are sharing an early preview of our next proprietary model: Qwen3.6-Max-Preview. Compared to Qwen3.6-Plus, this preview release brings stronger world knowledge and instruction following, along with significant agentic coding improvements across a wide range of benchmarks. As a preview, the model is still under active development — we are continuing to...",
+        "source": "Release",
+        "date": "2026/04/18",
+        "imageUrl": "https://img.alicdn.com/imgextra/i4/O1CN01G7Tcjx1TKJ2SRtYll_!!6000000002363-2-tps-1590-954.png"
+      }
+    ],
+    "https://qwen.ai/research"
+  ]
+}

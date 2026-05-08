@@ -114,5 +114,12 @@ export function findHooksByConverterFn(fn: string): SiteTestHooks | null {
   if (fn.startsWith("convertGithub")) {
     return findHooksByName("github");
   }
+  // qwen-ai owns two converters: `convertQwenAi` (single article) and
+  // `convertQwenResearchListing` (the /research listing page). Its
+  // `converterName` is the primary one; route the listing variant to
+  // the same hooks.
+  if (fn === "convertQwenResearchListing") {
+    return findHooksByName("qwen-ai");
+  }
   return null;
 }
