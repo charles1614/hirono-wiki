@@ -27,8 +27,39 @@ export const site: Site = {
   fetch: (url, opts) => fetchDeepwiki(url, opts),
 };
 
+/**
+ * deepwiki.com's bare-domain landing (`/`) is a marketing/search UI —
+ * "Which repo would you like to understand?" + a "What is DeepWiki?"
+ * blurb. It has substantive HTML (~900KB) but the bookmark intent is
+ * the service, not the page. Emit an app-only stub so the slug
+ * classifies as `intentional-stub-app-only` instead of going through
+ * the article-extraction path (which would either fail or save the
+ * marketing prose as if it were content).
+ */
+function isLandingPage(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return /^\/?$/.test(u.pathname);
+  } catch { return false; }
+}
+
 function fetchDeepwiki(url: string, opts: { slugDir: string; titleHint?: string }) {
   mkdirSync(opts.slugDir, { recursive: true });
+
+  if (isLandingPage(url)) {
+    return makeStub({
+      url,
+      module: "deepwiki-com",
+      kind: "landing",
+      title: "DeepWiki — service landing page",
+      summary: "deepwiki.com bare-domain landing — interactive search/marketing surface, no per-page content to archive",
+      advice:
+        "The bookmark URL is the deepwiki.com homepage (search + marketing copy). " +
+        "If you wanted a specific repo's wiki, the URL pattern is " +
+        "`https://deepwiki.com/<owner>/<repo>` — re-bookmark with that path. " +
+        "If you bookmarked the homepage on purpose, accept the stub.",
+    });
+  }
 
   const x = extractDeepwikiComContent(url);
   if (x.error) {

@@ -182,12 +182,13 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
     // arxiv-pdf: arxiv module emits this for /pdf/ URLs. Both classify as
     // upstream-not-html (the URL is a PDF, not extractable HTML).
     if (flagSet.has("_default-non-html") || flagSet.has("arxiv-pdf")) return "upstream-not-html";
-    // App-only stubs. `huggingface-space` and `qwen-ai-non-article`
-    // come from dedicated site modules. `auto-skipped-hf-space` is
-    // emitted by the L2-error stub helper (P-35) when AUTO_SKIP_RULES
-    // pre-rejects an HF Space URL — same intent (interactive app, no
-    // static archive), so route to the same kind.
+    // App-only stubs. Per-host flags from dedicated site modules:
+    //   `huggingface-space`        — HF Space (interactive ML demo)
+    //   `qwen-ai-non-article`      — qwen.ai non-article URL
+    //   `deepwiki-com-landing`     — deepwiki.com bare-domain marketing/search UI
+    //   `auto-skipped-hf-space`    — L2 stub for AUTO_SKIP_RULES (P-35)
     if (flagSet.has("huggingface-space") || flagSet.has("qwen-ai-non-article") ||
+        flagSet.has("deepwiki-com-landing") ||
         flagSet.has("auto-skipped-hf-space")) {
       return "intentional-stub-app-only";
     }
