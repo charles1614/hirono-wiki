@@ -165,17 +165,44 @@ export const collapseMultiLineLinkWrappers: PostProcessor = {
     // do the replace globally, then re-stitch fenced regions from the
     // original.
     let collapsed = 0;
-    const re = /\[(!\[[^\]\n]*\]\([^)\s]+(?:\s+"[^"]*")?\)|[^\[\]\n]{1,80})\s*\n\s*\n\s*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
-    let out = md.replace(re, (match, inner, url) => {
-      // Refuse if the inner has unbalanced brackets (regex false
-      // positive on real prose with an `[ref` and unrelated `](url)`
-      // some lines apart).
+    // First pass: tight single-paragraph inner. Match `[INNER\n\s*\n\s*](URL)`
+    // where INNER is a single-line image OR ≤80-char text run.
+    const tightRe = /\[(!\[[^\]\n]*\]\([^)\s]+(?:\s+"[^"]*")?\)|[^\[\]\n]{1,80})\s*\n\s*\n\s*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+    let out = md.replace(tightRe, (match, inner, url) => {
       const opens = (inner.match(/\[/g) || []).length;
       const closes = (inner.match(/\]/g) || []).length;
       if (opens !== closes) return match;
       collapsed++;
       const cleaned = inner.replace(/\s*\n\s*/g, " ").trim();
       return `[${cleaned}](${url})`;
+    });
+    // Second pass: multi-paragraph inner — turndown emits this when an
+    // `<a>` element wraps multiple paragraphs of content (typical of
+    // nav menu items where the link wraps an icon + label + chevron
+    // across separate `<span>`/`<div>` children that each turndown to
+    // their own paragraph). Match `[\s*\n+<inner>\n+](url)` where
+    // <inner> is small (≤300 chars after flattening) and bracket-
+    // balanced. This is more aggressive than the first pass; the size
+    // cap keeps the false-positive risk low.
+    const multiRe = /\[\s*\n+([\s\S]{0,300}?)\s*\n+\s*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+    out = out.replace(multiRe, (match, inner, url) => {
+      // Same bracket-balance guard.
+      const opens = (inner.match(/\[/g) || []).length;
+      const closes = (inner.match(/\]/g) || []).length;
+      if (opens !== closes) return match;
+      // Flatten newlines + whitespace runs to a single space. Strip
+      // leading list-item-continuation indentation that gets caught
+      // in the inner.
+      const flat = inner.replace(/\s+/g, " ").trim();
+      // If the flattened inner is empty (the link wrapped only
+      // whitespace / decorative chrome), drop the whole link — it's
+      // pure chrome.
+      if (!flat) {
+        collapsed++;
+        return "";
+      }
+      collapsed++;
+      return `[${flat}](${url})`;
     });
     // Restore fenced regions verbatim. Build a new `out` by walking
     // line-by-line with the fence flag from the ORIGINAL md.
