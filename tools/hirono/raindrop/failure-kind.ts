@@ -182,8 +182,13 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
     // arxiv-pdf: arxiv module emits this for /pdf/ URLs. Both classify as
     // upstream-not-html (the URL is a PDF, not extractable HTML).
     if (flagSet.has("_default-non-html") || flagSet.has("arxiv-pdf")) return "upstream-not-html";
-    // App-only stubs (HF spaces, qwen.ai non-article)
-    if (flagSet.has("huggingface-space") || flagSet.has("qwen-ai-non-article")) {
+    // App-only stubs. `huggingface-space` and `qwen-ai-non-article`
+    // come from dedicated site modules. `auto-skipped-hf-space` is
+    // emitted by the L2-error stub helper (P-35) when AUTO_SKIP_RULES
+    // pre-rejects an HF Space URL — same intent (interactive app, no
+    // static archive), so route to the same kind.
+    if (flagSet.has("huggingface-space") || flagSet.has("qwen-ai-non-article") ||
+        flagSet.has("auto-skipped-hf-space")) {
       return "intentional-stub-app-only";
     }
     // Auth-gated kinds. xhs-text-body-unavailable: post body is
@@ -194,10 +199,12 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
       return "upstream-auth-gated";
     }
     // Deleted upstream — host-specific platform-deleted flags plus the
-    // host-agnostic `<host>-not-found` family (`_default` and any
-    // future module's 404/410/page-deleted detection — see P-34).
+    // host-agnostic `<host>-not-found` family (P-34). Includes
+    // `weixin-account-migrated` (the WeChat publisher migrated to a
+    // new account; original article is unreachable without manual
+    // redirect-button click — same operator outcome as a deletion).
     if (flagSet.has("feishu-deleted") || flagSet.has("reddit-deleted") ||
-        flagSet.has("x-twitter-empty") ||
+        flagSet.has("x-twitter-empty") || flagSet.has("weixin-account-migrated") ||
         [...flags].some(f => /-not-found$/.test(f))) {
       return "upstream-deleted";
     }

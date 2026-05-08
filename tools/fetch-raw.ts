@@ -860,6 +860,56 @@ const AUTO_SKIP_RULES: Array<{
   },
 ];
 
+/**
+ * Write a stub source.json + content.md for a slug whose fetch threw
+ * an L2 error (auto-skip rule, weixin-account-migrated, lark-cli
+ * forbidden, etc.). Without this helper, L2 errors leave the slug
+ * dir empty (or absent) and `hirono raindrop status` perpetually
+ * shows the bookmark as `not-yet-fetched` — burying a real signal
+ * (we tried + decided to give up) under "untried".
+ *
+ * The stub flag is the L2 error code itself (e.g.
+ * `auto-skipped-hf-space`, `weixin-account-migrated`); the
+ * failure-kind classifier maps known codes to the right kind
+ * (HF Spaces → `intentional-stub-app-only`, weixin migrated →
+ * `upstream-deleted`, etc.). Unknown codes fall through to
+ * `upstream-fetch-failed` via the catchall regex.
+ *
+ * Best-effort — failures inside this helper are logged but never
+ * mask the original L2 error (the caller still re-throws). See P-35
+ * in `Meta/site-handling-patterns.md`.
+ */
+function writeL2ErrorAsStub(opts: FetchUrlOpts, errorCode: string, errorMessage: string): void {
+  const slugDir = rawDirFor(opts.slug, opts.url);
+  mkdirSync(slugDir, { recursive: true });
+  const lines = [
+    `# Auto-skipped: ${errorCode}`,
+    ``,
+    `> 原文链接: ${opts.url}`,
+    `> Status: ${errorMessage}`,
+    ``,
+    `---`,
+    ``,
+    `*This URL was rejected during fetch with an L2 (skip-and-continue) error. ` +
+      `Edit the bookmark, accept the stub via Meta/fetch-decisions.md, or fix the underlying upstream issue if applicable.*`,
+    ``,
+  ];
+  writeRawArchive({
+    slug: opts.slug,
+    origin: `url:${opts.url}`,
+    originUrl: opts.url,
+    rawMarkdown: lines.join("\n"),
+    title: `Auto-skipped: ${errorCode}`,
+    fetcher: "opencli",
+    fetcherReason: "direct",
+    qualityFlags: ["intentional-stub", errorCode],
+    extraNotes: [`L2-error stub: ${errorCode} — ${errorMessage}`],
+    downloadImages: false,
+    force: opts.force,
+    errorDetail: errorMessage,
+  });
+}
+
 export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
   // Pre-routing: unwrap share-aggregator URLs (e.g.
   // `share.google?link=https://linux.do/...`). Replaces opts.url so
@@ -875,6 +925,8 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
 
   for (const rule of AUTO_SKIP_RULES) {
     if (rule.match(opts.url)) {
+      try { writeL2ErrorAsStub(opts, rule.code, rule.reason); }
+      catch (e) { console.error(`[l2-stub] ${opts.slug}: ${e instanceof Error ? e.message : e}`); }
       throw makeError(rule.code, "L2", rule.reason, { domain: hostnameOf(opts.url) });
     }
   }
@@ -915,8 +967,21 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
 
   // Single dispatch point. The site module owns the full pipeline
   // (fetch + convert + image download) and returns a §2-shaped Result.
+  // L2 errors thrown from inside the module (weixin-account-migrated,
+  // feishu permission denied, etc.) are caught here so we can write a
+  // stub source.json before re-throwing — see P-35.
   {
-    const sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
+    let sr;
+    try {
+      sr = matchedSite.fetch(opts.url, { slugDir, titleHint: opts.titleHint });
+    } catch (err) {
+      const e = err as Error & { level?: string; code?: string };
+      if (e.level === "L2") {
+        try { writeL2ErrorAsStub(opts, e.code ?? "l2-error", e.message ?? "L2 error from site module"); }
+        catch (writeErr) { console.error(`[l2-stub] ${opts.slug}: ${writeErr instanceof Error ? writeErr.message : writeErr}`); }
+      }
+      throw err;
+    }
     result = {
       markdown: sr.markdown,
       title: sr.title,
