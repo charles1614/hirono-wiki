@@ -228,6 +228,15 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
       /-extraction-failed$/.test(f) ||
       /-bot-blocked$/.test(f)
     )) {
+      // If the URL itself is app-shaped (calculator / dashboard /
+      // bare-domain / etc.), the bookmark intent is the tool, not
+      // its content — classify as app-only even when the immediate
+      // failure was a bot-block. Operator outcome differs: bot-block
+      // → "try clearing the challenge cookie"; app-only → "accept
+      // the stub, the bookmark IS the tool". Real-content URLs that
+      // happen to be bot-blocked don't match the app-shape regex
+      // and fall through to the catchall.
+      if (looksLikeAppShapedUrl(input.url || "")) return "intentional-stub-app-only";
       return "upstream-fetch-failed";
     }
     // Paywall hint via login-wall keyword
