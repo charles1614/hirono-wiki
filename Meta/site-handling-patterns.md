@@ -491,7 +491,7 @@ The universal cleanups in `tools/sites/_shared/post-cleanup.ts` already run afte
 | Cleanup | Fixes |
 |---|---|
 | `collapseMultiLineLinkWrappers` | `[![alt](src)\n\n    ](url)` → `[![alt](src)](url)` (P-38) |
-| `simplifyAvatarImageLinks` | `[![<author>](avatar.jpg)](/profile-url)` → `[<author>](/profile-url)` (P-38) |
+| `stripAvatarImageLinks` | `[![<author>](avatar.jpg)](/profile-url)` and `[<short-text>](/profile-url)` → ∅ (P-38) |
 | `splitAdjacentInlineLinks` | run-together `[X](Y)[X](Y)…` chains → ` · `-separated (P-38) |
 | `stripEmptyAnchorLinks` | `[](#anchor)` permalink chrome |
 | `stripShareWidgetLines` | bare "Share" / "Copy link" lines |
@@ -762,7 +762,7 @@ Pages this pattern recovers usually still match P-18's URL-pattern check (hex-ha
 
 - **Multi-line link wrapper:** `[![alt](src)\n\n    ](url)` — turndown emits an `<a>` opener that wraps an `<img>` plus subsequent siblings, producing a `[` + image + blank line + orphan `](url)` on its own line. CLAUDE.md §3 calls this out explicitly. `grep -c "^\s*\](" content.md` returns non-zero.
 - **Run-together inline-link chain:** `[Label1](url1)[Label2](url2)[Label3](url3)…` — multiple `<a>` siblings rendered with no separator. Common on category lists / nav rows / breadcrumb trails. Reads as one long unbroken string.
-- **Avatar image-link clutter:** `[![<author-name>](<avatar-img>)](<profile-url>)` — small profile avatars rendered as image-links to a profile page. CLAUDE.md §3 says strip; the avatar pixel is decorative chrome and the author identity is the alt text. Common on every catalog/feed/forum/grid page that surfaces author attribution.
+- **Avatar image-link clutter:** `[![<author-name>](<avatar-img>)](<profile-url>)` — small profile avatars rendered as image-links to a profile page. CLAUDE.md §3 says strip (case 1, "drop whole unit"). The avatar pixel is decorative chrome AND the author-link adds catalog noise — neither carries archive value. Common on every catalog/feed/forum/grid page that surfaces author attribution.
 
 Both shapes are common on **catalog / grid** pages where the page is a list of cards (each with image + title + author/category links) plus header navigation rows. 21st.dev community page (`https://21st.dev/community/components`) had 94 multi-line wrappers, 3 run-together chains, and 106 avatar image-links in a single 25KB extraction.
 
@@ -771,7 +771,7 @@ Both shapes are common on **catalog / grid** pages where the page is a list of c
 **Remediation.** Three new cleanups in `tools/sites/_shared/post-cleanup.ts`:
 
 - `collapseMultiLineLinkWrappers` — regex match for `[INNER\s*\n\s*\n\s*](URL)` where INNER is a single-line `![alt](src)` image OR a short text run (≤80 chars). Refuses to fire when INNER's bracket count is unbalanced (regex false-positive guard). Collapses to single-line `[INNER](URL)`. Skips fenced code blocks.
-- `simplifyAvatarImageLinks` — match `[![<alt>](<img>)](<url>)` where `<url>` is a relative path matching profile shapes (`/<segment>`, `/@<segment>`, or `/(?:user|users|u|profile|people|members?|authors?|community)/<segment>`, all 1-or-2 segments). Replace with `[<alt>](<url>)` — drops the avatar image, keeps the author-name link. Discriminator: profile-shape URL with ≤2 path segments distinguishes avatar from content links (component-page URLs have 3+ segments and survive).
+- `stripAvatarImageLinks` — match BOTH the image-link form `[![<alt>](<img>)](<profile-url>)` AND the text-link residual `[<short-text>](<profile-url>)` (idempotent across re-runs). Drop the whole unit. The text-link variant is gated on `<short-text>.length ≤ 60` to avoid stripping long inline link runs that incidentally point at profile-shape URLs. After stripping, whitespace-only lines (4-space list indents left orphaned) are trimmed and `\n{3,}` runs collapsed. Discriminator: profile-shape URL with ≤2 path segments — `/<segment>`, `/@<segment>`, or `/(?:user|users|u|profile|people|members?|authors?|community)/<segment>`. Component-page URLs (3+ segments) don't match and survive.
 - `splitAdjacentInlineLinks` — for lines ≥100 chars containing 4+ adjacent `)[…](` joins, insert ` · ` between each. Conservative thresholds avoid breaking real prose with occasional dense inline-link runs. Skips fenced code blocks.
 
 All three run early in the post-cleanup chain (before `stripEmptyAnchorLinks` etc.) so subsequent cleanups see the simplified canonical form. Avatar simplification runs AFTER multi-line collapse but BEFORE split-adjacent — because avatar simplification reduces the number of adjacent image-links per line, which prevents split-adjacent from misfiring on legitimate icon-link rows.

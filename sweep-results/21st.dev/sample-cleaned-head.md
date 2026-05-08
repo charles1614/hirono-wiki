@@ -4,7 +4,7 @@
 > Explore, copy, and remix thousands of high-quality React components published to the 21st.dev Community by designers and developers.
 
 ---
-[Featured](/community/components/featured) · [Newest](/community/components/newest) · [Best of the Week](/community/components/week/2026-W19) · [Themes](/community/themes) · [Top Authors](/community/authors)
+[Featured](/community/components/featured) · [Newest](/community/components/newest) · [Best of the Week](/community/components/week/2026-W19) ·  · 
 
 #### Marketing Blocks
 
@@ -20,64 +20,64 @@ Components
 
 -   [![Glassmorphism Statistics Card](default-img-001.png)](/community/components/reapollo/glassmorphism-statistics-card/default)
 
-    [David Hakobyan](/community/reapollo)
-
     Glassmorphism Statistics Card
 
 -   [![Animated Checkbox](default-img-003.png)](/community/components/reapollo/animated-checkbox/default)
-
-    [David Hakobyan](/community/reapollo)
 
     Animated Checkbox
 
 -   [![Drag To Confirm Slider](default-img-005.png)](/community/components/reapollo/drag-to-confirm-slider/default)
 
-    [David Hakobyan](/community/reapollo)
-
     Drag To Confirm Slider
 
 -   [![Floating Label Input](default-img-007.png)](/community/components/reapollo/floating-label-input/default)
-
-    [David Hakobyan](/community/reapollo)
 
     Floating Label Input
 
 -   [![Floating Info Panel](default-img-009.png)](/community/components/reapollo/floating-info-panel/default)
 
-    [David Hakobyan](/community/reapollo)
-
     Floating Info Panel
 
 -   [![Draggable List](default-img-011.png)](/community/components/reapollo/draggable-list/default)
-
-    [David Hakobyan](/community/reapollo)
 
     Draggable List
 
 -   [![Glass Sign In Card](default-img-013.png)](/community/components/reapollo/glass-sign-in-card/default)
 
-    [David Hakobyan](/community/reapollo)
-
     Glass Sign In Card
 
 -   [![Native Tooltip](default-img-015.png)](/community/components/reapollo/native-tooltip/default)
-
-    [David Hakobyan](/community/reapollo)
 
     Native Tooltip
 
 -   [![Native Button](default-img-017.png)](/community/components/reapollo/native-button/default)
 
-    [David Hakobyan](/community/reapollo)
-
     Native Button
 
 -   [![Native Dialog](default-img-019.png)](/community/components/reapollo/native-dialog/default)
 
-    [David Hakobyan](/community/reapollo)
-
     Native Dialog
 
+### Popular
 
---- (head: first 80 lines of cleaned output, full slug is ~870 lines / 22 KB)
---- After P-38 cleanups: 94 multi-line wrappers collapsed, 3 link chains split, 106 avatar image-links simplified to plain author links
+-   [![Spline Scene](default-img-021.png)](/community/components/serafim/splite/default)
+
+    Spline Scene
+
+-   [![Container Scroll Animation](default-img-023.png)](/community/components/aceternity/container-scroll-animation/default)
+
+    Container Scroll Animation
+
+-   [![Animated hero](default-img-025.png)](/community/components/tommyjepsen/animated-hero/default)
+
+    Animated hero
+
+-   [![Aurora Background](default-img-027.png)](/community/components/aceternity/aurora-background/default)
+
+    Aurora Background
+
+-   [![Sparkles](default-img-029.png)](/community/components/aceternity/sparkles/default)
+
+
+--- (head: first 80 lines of cleaned output, full slug ~830 lines / 17.6 KB)
+--- After P-38 cleanups: 94 multi-line wrappers collapsed, 3 link chains split, 218 avatar/profile links stripped (106 image-link + 112 text-link residuals)
