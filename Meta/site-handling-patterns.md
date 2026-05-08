@@ -795,6 +795,30 @@ If a site emits these shapes via a host-specific extraction quirk (DOM walker th
 
 ---
 
+### P-39 — Lazy-loaded images: scroll-trigger before extracting
+
+**Symptom.** Image files saved alongside the markdown are tiny (1-6 KB) compared to what the page actually displays. `file <slug>-images/<name>.webp` reports dimensions like `100x*` or `300x*` instead of the typical 800-2000px-wide content image. Visual inspection of the rendered page shows much larger images.
+
+**Root cause.** Modern sites use intersection-observer-driven lazy loading: the initial `<img src>` attribute is a small placeholder (e.g. `width-100` Google Cloud Storage thumb), and the high-res variant only loads into `<img src>` when the image scrolls into the viewport. Without scrolling — which curl-only extraction never does, and even default browser-eval extraction skips — the post-fetch DOM still shows placeholder URLs.
+
+Concrete corpus example: `blog.google` ironwood-tpu article. The article has 4 images. Without scroll, the inline charts had `<img src=".../TPUv7_Inline_PeakPerformanceGraph.width-100.format-webp.webp">` — a tiny placeholder. With scroll, the same `<img>` upgrades to `.../TPUv7_Inline_PeakPerformanceGrap.width-1000.format-webp.webp` (note the truncated stem name; Google's CDN uses different filename conventions for higher-res variants). Result: image saved at 1.1 KB → 18.4 KB (10× larger) and `100x*` → `1000x*` (10× width).
+
+**Remediation.** `_default`'s `browserFetch` now scrolls the page progressively (0% → 100% → 0% in 9 steps with 600ms pauses, ~5s total) BEFORE extracting outerHTML. Intersection observers fire at each scroll position, lazy-loaded images upgrade their `src` to high-res URLs, and the captured HTML reflects the post-scroll state. The extracted markdown then references the high-res URLs, which the image-download phase saves at native resolution.
+
+The scroll cost (~5s) is paid on every browser-eval-routed fetch. Non-browser routes (curl-only article-shape sites going through the article-site factory) DON'T benefit from this — the factory is curl-only by design. Sites with substantive lazy-loading on the curl path stay sub-good for images until the factory grows browser-assist; tracked in `Meta/post-fetch-todo.md`.
+
+**Generalization.** Three rules of thumb:
+
+1. **Scroll-trigger is patience, not evasion.** It's exactly what a human reader's browser does — load the image when it scrolls into view. We're emulating organic browsing behavior to let the site's own JS deliver high-res. No fingerprint forgery, no UA spoofing.
+2. **Scroll cost is bounded.** 9 steps × 600ms ≈ 5s. Every browser-eval fetch pays it. Acceptable on a long-tail bulk-fetch (single sites take 5-30s anyway); cheap relative to the image-quality improvement.
+3. **CDN URL filename truncation is real.** Google Cloud Storage truncates long basenames at 32 chars when generating higher-res variants (`PeakPerformanceGraph` → `PeakPerformanceGrap` for `width-1000`). Don't try to guess high-res URLs from the placeholder URL — let the page's JS resolve them via lazy-load, then read the result.
+
+**Diagnostic:** for any slug suspected of having low-res images, `file raw/raindrop/<host>/<slug>/*.{png,jpg,webp}` reports dimensions; flag any image < 400px wide that's clearly meant to be a content image (not an icon/avatar).
+
+**Reference.** `tools/sites/_default/index.ts:browserFetch` (scroll loop before the extraction eval). Proven on `blog.google/products/google-cloud/ironwood-tpu-age-of-inference/` — 3 inline charts went from 100×*/1.1-1.4 KB placeholders to 1000×*/15-50 KB native variants. Article-site factory browser-assist is a future TODO.
+
+---
+
 ## §3 Patterns by remediation technique
 
 When you've decided what kind of fix to apply, this index points at the working reference modules.
