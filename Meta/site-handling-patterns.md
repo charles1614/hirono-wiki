@@ -51,7 +51,7 @@ this file. Each iteration grows the institutional memory.
 | Images declared in MD but `images-declared-but-none-downloaded` flag | CDN 403'd our user-agent OR images are lazy-loaded with `data-original=` | P-16 image-fetcher-headers, P-17 lazy-image-attrs |
 | Body is mostly inline `<style>`/`<script>` with no semantic text | Genuine interactive web app (calculator, dashboard) | P-18 url-pattern-app-only-classifier |
 | URL is `*.eth.limo`, `*.ipns.dweb.link`, hash-subdomain | Decentralized hosting; URL hash IS the content key | P-19 ipfs-gateway-stub |
-| URL ends in `.pdf` / Content-Type is `application/pdf` | PDF, not HTML | P-20 pdf-detect-short-circuit |
+| URL ends in `.pdf` / Content-Type is `application/pdf` | PDF — render each page to image-bearing markdown (P-36) or fall back to stub (P-20) on encryption / corruption | P-36 pdf-page-rendering, P-20 nonhtml-stub |
 | Body is < 200 chars after both curl + browser-eval | Genuinely empty (deleted, redirected to home, real stub) | P-21 stub-threshold |
 | URL claims to be one host but redirects to another (xhslink → xiaohongshu, share.google → linux.do) | Shortlink / share-redirect | P-22 shortlink-resolution |
 | GitHub `/blob/`, `/tree/`, `/issues/`, `/pull/`, `/discussions/`, `/releases/tag/` | Structured data lives in REST API + raw.githubusercontent.com | P-23 use-the-api |
@@ -383,13 +383,15 @@ The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain
 
 ---
 
-### P-20 — PDF / non-HTML detection
+### P-20 — Non-HTML detection (stub path)
 
-**Symptom.** `_default-non-html` flag, `intentional-stub`, body is a small "PDF link, see archive" stub.
+**Symptom.** `_default-non-html` flag, `intentional-stub`, body is a small "non-HTML response, see archive" stub. Applies to images, videos, archives, app-store deep-links — anything that isn't HTML and isn't a PDF.
 
-**Remediation.** `_default` does Content-Type capture (curl `-D` to header file) + magic-bytes probe (`%PDF-` first 4 bytes) before any extraction. Short-circuits with the right stub. Same logic in `arxiv` for `/pdf/` URLs.
+**Remediation.** `_default` does Content-Type capture (curl `-D` to header file) + magic-bytes probe (`%PDF-` first 4 bytes) before any extraction. When the response is non-HTML AND not a PDF, short-circuit with the stub.
 
-**Reference.** `tools/sites/_default/fetcher.ts` (`detectNonHtml`). `tools/sites/arxiv/index.ts` (path-based).
+**For PDFs specifically, see P-36** (render path) — when the non-HTML response IS a PDF, we now render each page to PNG and embed in the markdown body rather than stub. P-20 and P-36 are siblings under the same Content-Type branch; the renderer fires when the response is a PDF, the stub fires for any other non-HTML.
+
+**Reference.** `tools/sites/_default/index.ts` (`detectNonHtml`, `nonHtmlStub`, plus the PDF branch that delegates to P-36's `renderPdfFromUrl`).
 
 ---
 
@@ -659,6 +661,53 @@ Failure-kind classifier maps known L2 error codes to the right kind:
 When introducing a new L2 throw in a site module, check that `hirono raindrop status` classifies the resulting stub correctly. If it lands as `upstream-fetch-failed` and the failure mode is actually deleted/auth-gated/not-html/etc., extend the classifier.
 
 **Reference.** `tools/fetch-raw.ts:writeL2ErrorAsStub` + the two wired-in throw sites (AUTO_SKIP loop + matchedSite.fetch try/catch). Classifier rules: `tools/hirono/raindrop/failure-kind.ts` (`auto-skipped-hf-space` in app-only branch, `weixin-account-migrated` in deleted-upstream branch). Sample outputs: `sweep-results/huggingface.co/spaces/sample.md`, `sweep-results/mp.weixin.qq.com/sample-migrated.md`.
+
+---
+
+### P-36 — PDF page-rendering (sibling to P-20's stub path)
+
+**Symptom.** A bookmark URL returns `Content-Type: application/pdf` (or starts with `%PDF-` magic bytes). P-20 (the stub path) flags this as `upstream-not-html` and emits a small "PDF, not extractable as markdown" stub — losing the actual content.
+
+**Root cause.** PDFs aren't HTML, so the standard turndown pipeline can't extract content from them. But the bookmark exists for a reason: the operator wanted that PDF's content archived. A stub satisfies the §2 contract but throws away the actual signal.
+
+**Remediation.** Render each page to a high-DPI PNG, embed each in the markdown body via `![Page N](page-NNN.png)`, and pack PDF metadata (title, author, pages, dimensions, creation date) into the §2 frontmatter callout. The slug becomes a §2-shaped image-bearing markdown document with one-image-per-page rather than a stub. Routing remains catch-all-friendly: any host that lets PDFs pass through `_default` gets rendering for free; sites with their own modules (arxiv, intuitionlabs) opt in by detecting `.pdf` URLs and delegating to `renderPdfFromUrl`.
+
+**Engine: `mupdf` npm package** (official Artifex WASM bindings; v1.27 wraps the same MuPDF engine as pymupdf). Picked over poppler / pdftoppm after benchmarking on a typical arxiv paper:
+
+- Render output is **byte-equal** to pymupdf at 150 DPI (same engine).
+- Indistinguishable from poppler quality on text-heavy PDFs (poppler's edge is on CMap/CID-font corner cases that arxiv/cursor/intuitionlabs PDFs don't exercise).
+- 14 MB node_modules footprint, no system deps, no Python subprocess overhead. Stays in the TypeScript dep tree.
+
+**Render parameters:**
+
+- **150 DPI** for letter-sized pages → 1275×1650 px PNG, sharp at native size + readable under 2× zoom. 72 DPI is too soft for body text; 300 DPI doubles the file size with no on-screen readability gain.
+- **PNG, lossless**. JPEG q80 saves only ~10% with text-aliasing artifacts around glyph edges; not worth the quality loss.
+- Average ~500 KB per page → 6 MB for a typical 12-page arxiv paper. 50-page threshold flags `_default-pdf-large`.
+
+**Edge cases (each emits a typed stub via `makeStub`):**
+
+| Failure mode | Flag | Detection |
+|---|---|---|
+| Encrypted PDF | `_default-pdf-encrypted` | `doc.needsPassword() === true` |
+| Corrupt PDF (mupdf throws on load) | `_default-pdf-corrupt` | catch around `Document.openDocument` |
+| All page renders threw | `_default-pdf-corrupt` | `renderedFiles.length === 0` |
+| Some page renders threw | `_default-pdf-render-partial` (still good output, partial flag) | per-page try/catch counter |
+| Curl couldn't download | `_default-pdf-fetch-failed` | curl exit non-zero or output < 64 B |
+| > 50 pages rendered | `_default-pdf-large` (informational) | `pageCount >= 50` |
+
+The encrypted path doesn't try to brute-force or prompt for passwords — there's no place to store one securely in the bulk-fetch loop, and the operator would need to decrypt locally and re-host anyway.
+
+**Marker flag handling.** `pdf-rendered` is added to `NON_PROBLEMATIC_FLAGS` in `classifyQuality` (alongside `intentional-stub`) so a successfully-rendered PDF stays `quality_status=good`. The image-bearing body is the deliberate output; text-length floors don't apply (`short-body` / `below-host-expected-size` are skipped when `pdf-rendered` is in extraFlags). The failure-kind classifier also overrides the URL-shape `.pdf` → `upstream-not-html` rule when `pdf-rendered` is present, so the slug correctly classifies as `clean`.
+
+**Generalization.** Three rules of thumb:
+
+1. **Engine choice over CLI inertia.** "Use poppler because it's canonical" ignores that the codebase ecosystem matters: poppler needs `brew install`, pymupdf needs Python subprocess, npm mupdf is `import * as mupdf from "mupdf"`. Same render quality, single-ecosystem install.
+2. **Match dispatch to existing patterns.** PDFs hit `_default`'s non-HTML branch first (Content-Type / magic-bytes detection already there from P-20); add a rendering hook there rather than inventing a new content-type-based router. Hosts with dedicated modules opt in by detecting the `.pdf` URL pattern at the start of their `fetch()` and delegating.
+3. **Mark image-bearing slugs explicitly.** A slug whose body is `![Page N](…)` references is structurally clean even if the markdown text is short. Adding `pdf-rendered` to a small whitelist of "marker, not problem" flags keeps the quality machinery from misfiring.
+
+**Reference.** `tools/sites/_default/pdf-render.ts` (`renderPdfFromUrl`). Hooks: `tools/sites/_default/index.ts` (Content-Type branch), `tools/sites/arxiv/index.ts` (`/pdf/` path branch), `tools/sites/intuitionlabs/index.ts` (`.pdf` URL pattern). Classifier: `tools/hirono/raindrop/failure-kind.ts` (URL-shape rule overridden by `pdf-rendered` flag presence). Marker flag: `tools/fetch-raw.ts:classifyQuality:NON_PROBLEMATIC_FLAGS`. Tests: `tools/__tests__/pdf-render.test.ts`. Doctor check: `tools/hirono/doctor.ts:mupdf`. Samples: `sweep-results/{arxiv.org,cursor.com,intuitionlabs.ai}/sample-pdf-rendered.md`.
+
+P-36 is the **render path** for non-HTML; P-20 remains the **stub path** for non-HTML responses we genuinely can't extract (images, videos, archives). The two are siblings under the catch-all non-HTML detection; the renderer fires when the response is a PDF specifically.
 
 ---
 
