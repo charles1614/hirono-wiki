@@ -52,6 +52,7 @@ this file. Each iteration grows the institutional memory.
 | Body is mostly inline `<style>`/`<script>` with no semantic text | Genuine interactive web app (calculator, dashboard) | P-18 url-pattern-app-only-classifier |
 | URL is `*.eth.limo`, `*.ipns.dweb.link`, hash-subdomain | Decentralized hosting; URL hash IS the content key | P-19 ipfs-gateway-stub |
 | URL ends in `.pdf` / Content-Type is `application/pdf` | PDF — render each page to image-bearing markdown (P-36) or fall back to stub (P-20) on encryption / corruption | P-36 pdf-page-rendering, P-20 nonhtml-stub |
+| `_default` extracts < 200 chars but `curl <url>` returns 5+ KB of HTML with `<h1>`, `<p>`, form elements directly under `<body>` (no `<article>`/`<main>`/`.prose` wrapper) | Single-purpose JS tool / IPFS-hosted SPA / hand-rolled HTML — semantic content lives directly in `<body>` | P-37 body-direct-content |
 | Body is < 200 chars after both curl + browser-eval | Genuinely empty (deleted, redirected to home, real stub) | P-21 stub-threshold |
 | URL claims to be one host but redirects to another (xhslink → xiaohongshu, share.google → linux.do) | Shortlink / share-redirect | P-22 shortlink-resolution |
 | GitHub `/blob/`, `/tree/`, `/issues/`, `/pull/`, `/discussions/`, `/releases/tag/` | Structured data lives in REST API + raw.githubusercontent.com | P-23 use-the-api |
@@ -368,6 +369,8 @@ The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain
 **Generalization.** Recognizing "this URL is fundamentally not an article" early saves a lot of extraction grief. The URL pattern is more reliable than DOM heuristics. When extending: think hard about what bookmark INTENT corresponds to the URL shape — if the bookmark intent is "the site/app/query itself," the slug belongs in `intentional-stub-app-only`. Add the regex to `looksLikeAppShapedUrl`.
 
 **Reference.** `tools/hirono/raindrop/failure-kind.ts:looksLikeAppShapedUrl` (regex set + the two branch usages). Commit `9b2bec6` (original P-18); iteration 5 added bare-domain + search-results matchers and lifted the check into the non-stub branch.
+
+**Sibling pattern: P-37.** A URL matching P-18 (app-shaped) doesn't always mean the page has no extractable content. Single-purpose JS tools often embed substantial documentation directly under `<body>`. If the HTML is non-trivial but `_default` extracted < 200 chars, the cascade missed body-direct content — see P-37 for the body-direct fallback.
 
 ---
 
@@ -708,6 +711,44 @@ The encrypted path doesn't try to brute-force or prompt for passwords — there'
 **Reference.** `tools/sites/_default/pdf-render.ts` (`renderPdfFromUrl`). Hooks: `tools/sites/_default/index.ts` (Content-Type branch), `tools/sites/arxiv/index.ts` (`/pdf/` path branch), `tools/sites/intuitionlabs/index.ts` (`.pdf` URL pattern). Classifier: `tools/hirono/raindrop/failure-kind.ts` (URL-shape rule overridden by `pdf-rendered` flag presence). Marker flag: `tools/fetch-raw.ts:classifyQuality:NON_PROBLEMATIC_FLAGS`. Tests: `tools/__tests__/pdf-render.test.ts`. Doctor check: `tools/hirono/doctor.ts:mupdf`. Samples: `sweep-results/{arxiv.org,cursor.com,intuitionlabs.ai}/sample-pdf-rendered.md`.
 
 P-36 is the **render path** for non-HTML; P-20 remains the **stub path** for non-HTML responses we genuinely can't extract (images, videos, archives). The two are siblings under the catch-all non-HTML detection; the renderer fires when the response is a PDF specifically.
+
+---
+
+### P-37 — Body-direct content (no `<article>` / `<main>` wrapper)
+
+**Symptom.** A page returns substantive HTML (5+ KB of markup) with a real `<title>`, `<h1>`, and prose `<p>`/`<label>`/`<button>` elements, but `_default` extracts < 200 chars of body and the slug ends up as `_default-fetch-failed` (or `intentional-stub-app-only` via P-18's URL-pattern catch). Opening the URL in a browser shows clear documentation / instructions / form labels — the content IS there, the cascade just doesn't see it.
+
+**Root cause.** `_default`'s body-selector cascade looks for `article, main, [role="main"], .prose, .post-content, .article-body, .content` — semantic article containers. Pages that put their content **directly under `<body>`** without one of these wrappers don't match any selector, the cascade falls through to its short-body threshold, and the slug emits a stub.
+
+Concrete corpus example: `1cb887bb.pinit.eth.limo/` — Cloudflare IP filter tool, IPFS-hosted JS app. 11.8 KB HTML with `<h1>Cloudflare优选IP筛选工具</h1>`, instructions `<p>`, form `<label>`s and `<button>`s — all immediate children of `<body>`. No `<article>` or `<main>`. Cascade extracts 133 chars (just the page title leaking through), short-body threshold trips, slug becomes a stub. Content is genuinely there and readable; we just need a wider net.
+
+Common shapes that hit this:
+
+- Single-purpose JS tools (calculators, formatters, extractors) with embedded usage docs
+- IPFS-hosted SPAs whose entry HTML is hand-rolled (no framework template)
+- Very-old static HTML pages that predate the `<article>` element
+- Hand-rolled landing pages with just enough content to describe the tool
+
+**Remediation (manual, today — proven on the 1cb887bb slug).**
+
+1. Read `<body>` HTML after stripping `<style>`, `<script>`, `<noscript>` (purely runtime; no extractable content).
+2. Run turndown on the result. Form-element rules: `<button>` → plain `**bold**` (NOT `**[bold]**` — `[]` reads as link syntax in markdown). `<label>` → `**bold** ` followed by an inline-italic placeholder for the input field. `<input>`/`<textarea>`/`<select>` → italicized placeholder describing the field.
+3. Write the §2 frontmatter callout above the converted body (origin URL + a "工具元信息" line describing the page shape — IPFS-hosted, JS web tool, runtime-populated, etc.).
+4. Update `source.json`: clear `intentional-stub` and `_default-fetch-failed` flags, set `quality_status: "good"`, recompute `content_sha` + `content_length`, drop `error_detail`.
+5. Slug now classifies as `clean` (the failure-kind classifier's app-only URL-pattern check is gated on `flags.length > 0`, so a clean extraction overrides the URL-pattern signal).
+
+Reference output: `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`.
+
+**Remediation (automated, future).** Extend `tools/sites/_default/index.ts` body-selector cascade with `<body>` as a final fallback. Apply alongside aggressive dropSelectors (`style, script, noscript, nav, footer, aside, header`). Fire only when (a) no narrower selector matched AND (b) the body's text-after-strip exceeds a threshold (~300 chars) so SPA shells pre-hydration still go through the browser-eval path. Tracked in `Meta/post-fetch-todo.md`.
+
+**Generalization.** Two heuristics for when the body-direct fallback should fire:
+
+1. **The page IS its body.** If `<body>` directly contains the title, the H1, and the main prose — that IS the document. No `<article>` wrapper is going to exist later.
+2. **Don't fall back when narrower selectors would work.** A page where `<article>` exists but is empty (SPA shell pre-hydration) shouldn't trip the fallback — the cascade already handles that case via browser-eval. The body-direct fallback is for pages that **never had** a semantic container.
+
+Pages this pattern recovers usually still match P-18's URL-pattern check (hex-hash subdomain, `/tools/` path, etc.). What changes after the fallback: classifier sees prose-bearing flags=[], the URL-pattern app-only check (gated on `flags.length > 0`) doesn't fire, the slug classifies as `clean`. The URL pattern is right that it's an app — and now the documentation IS the archive.
+
+**Reference.** Manual conversion proven on the `1cb887bb.pinit.eth.limo` slug — content.md hand-derived from the page's `<body>` after stripping `<style>`/`<script>`. Sample at `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`. Automation TODO: extend `tools/sites/_default/index.ts` BODY_SELECTORS cascade per the heuristics above.
 
 ---
 
