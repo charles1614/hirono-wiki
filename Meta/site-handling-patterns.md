@@ -65,6 +65,7 @@ this file. Each iteration grows the institutional memory.
 | Bookmark URL is on a `share.*` / `out.*` / `redirect.*` host with `?link=…` / `?url=…` query param holding the real target | Share-aggregator wrapper that doesn't redirect (interstitial only) | P-32 share-aggregator-unwrap |
 | Body title is `Just a moment...` / `Attention Required! Cloudflare` / `52N: <error>`; body says "Performing security verification" / "Checking your browser" | Cloudflare / Akamai / DataDome / PerimeterX challenge or CF origin-error interstitial extracted as if it were content | P-33 anti-bot-challenge-detect |
 | Body title is `404 Not Found` / `Page Not Found` / `Error 404` / `Sorry, this page isn't available`; body says "The requested URL was not found" / "this page doesn't exist" | Page-deleted error body extracted as content (host returned HTTP 200 with a 404 body) | P-34 not-found-page-detect |
+| Slug shows `not-yet-fetched` in status but `.fetch-all.log` records it as `errored`; slug dir empty or absent | L2-error code-path didn't write a stub source.json — the slug looks "untried" instead of "attempted-and-rejected" | P-35 stub-on-l2-failure |
 
 ---
 
@@ -615,6 +616,40 @@ When extending: add new signatures to `looksLikeNotFoundPage` as new platform-sp
 
 ---
 
+### P-35 — Write a stub source.json when L2 errors fire (don't leave the slug as `not-yet-fetched`)
+
+**Symptom.** A bookmark perpetually classifies as `not-yet-fetched` in `hirono raindrop status`, even though `raw/.fetch-all.log` shows we tried it (with `outcome:"errored"`). The slug dir is empty or absent on disk. Operators can't tell from the kind alone whether the bookmark was never attempted vs. attempted-and-rejected.
+
+**Root cause.** Pre-2026-05 fetcher pipeline: when `fetchUrlAndStore` (or a site module's `fetch()`) threw an L2 error (skip-and-continue level), the runner caught the throw, logged the slug as `errored` in `.fetch-all.log`, and moved on. No `source.json` was written. The next `hirono raindrop status` run had no on-disk evidence that the slug was attempted, so it joined the bookmark to "no slug" → kind `not-yet-fetched`.
+
+L2 error sources that hit this:
+- `AUTO_SKIP_RULES` pre-fetch rejection (e.g. `auto-skipped-hf-space` for HuggingFace Spaces)
+- Site-module L2 throws (e.g. `weixin-account-migrated` from `tools/sites/weixin/fetcher.ts`, lark-cli forbidden from feishu, etc.)
+
+**Remediation.** `tools/fetch-raw.ts:writeL2ErrorAsStub(opts, errorCode, errorMessage)` writes a §2-contract stub (`# Auto-skipped: <code>` title + status callout + advice) and a source.json flagged `["intentional-stub", <errorCode>]`. The error code becomes the typed flag — same pattern as `_default-bot-blocked` / `_default-not-found` — so the failure-kind classifier can recognize it.
+
+Wired in at two L2 throw sites in `fetchUrlAndStore`:
+- AUTO_SKIP_RULES loop: writes the stub before the throw.
+- `matchedSite.fetch()` try/catch: catches L2 from inside any site module, writes the stub, re-throws.
+
+Caller (e.g. `fetch-all.ts`) still sees the throw and logs `outcome:"errored"`, so the audit trail is preserved. Subsequent status reports now classify the slug correctly because source.json is on disk.
+
+Failure-kind classifier maps known L2 error codes to the right kind:
+- `auto-skipped-hf-space` → `intentional-stub-app-only` (interactive HF space)
+- `weixin-account-migrated` → `upstream-deleted` (publisher gone)
+- Unknown codes fall through to `upstream-fetch-failed` via the `/-fetch-failed$/` / `/-extraction-failed$/` / `/-bot-blocked$/` regex catchall
+
+**Generalization.** This is a fetcher-pipeline pattern, not a per-host fix. Two rules of thumb for L2 throws in any module:
+
+1. **Choose the error code thoughtfully — it becomes the flag.** Format `<host>-<failure-mode>` (`weixin-account-migrated`, `feishu-user-auth-required`) or `<action>-<noun>` (`auto-skipped-hf-space`). The classifier matches by suffix (`-fetch-failed`, `-extraction-failed`, `-bot-blocked`, `-not-found`) so consider whether your code should hit one of those generic catchalls.
+2. **Add an explicit classifier rule for novel codes** if the catchall doesn't fit. E.g. `weixin-account-migrated` belongs in `upstream-deleted`, not `upstream-fetch-failed` — added to the deleted-upstream branch alongside `feishu-deleted`.
+
+When introducing a new L2 throw in a site module, check that `hirono raindrop status` classifies the resulting stub correctly. If it lands as `upstream-fetch-failed` and the failure mode is actually deleted/auth-gated/not-html/etc., extend the classifier.
+
+**Reference.** `tools/fetch-raw.ts:writeL2ErrorAsStub` + the two wired-in throw sites (AUTO_SKIP loop + matchedSite.fetch try/catch). Classifier rules: `tools/hirono/raindrop/failure-kind.ts` (`auto-skipped-hf-space` in app-only branch, `weixin-account-migrated` in deleted-upstream branch). Sample outputs: `sweep-results/huggingface.co/spaces/sample.md`, `sweep-results/mp.weixin.qq.com/sample-migrated.md`.
+
+---
+
 ## §3 Patterns by remediation technique
 
 When you've decided what kind of fix to apply, this index points at the working reference modules.
@@ -658,6 +693,10 @@ When you've decided what kind of fix to apply, this index points at the working 
 ### Pre-fetch URL rewrite
 - Share-aggregator unwrap: `unwrapShareUrl(url)` extracts the real target from a query parameter and re-routes through the host-specific module (P-32)
 - Reference: `tools/sites/_shared/url-unwrap.ts`
+
+### Fetcher-pipeline structure
+- L2-error stub-write: every L2 throw goes through `writeL2ErrorAsStub` so failed fetches still produce queryable source.json (P-35)
+- Reference: `tools/fetch-raw.ts:writeL2ErrorAsStub` + the two wired-in throw sites (AUTO_SKIP loop + matchedSite.fetch try/catch)
 
 ---
 
