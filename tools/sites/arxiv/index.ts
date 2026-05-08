@@ -37,6 +37,8 @@ function pathOf(url: string): string {
   catch { return ""; }
 }
 
+import { renderPdfFromUrl } from "../_default/pdf-render.ts";
+
 /** Extract `<id>` from an arxiv URL like `/abs/2402.13499` or `/pdf/2402.13499`. */
 function extractArxivId(url: string): string | null {
   const m = url.match(/\/(?:abs|pdf)\/([0-9]{4}\.[0-9]{4,5}|[a-z\-]+\/[0-9]{7})(?:v\d+)?(?:[\/.]|$)/);
@@ -120,7 +122,25 @@ export const site: Site = {
     mkdirSync(opts.slugDir, { recursive: true });
 
     const path = pathOf(url);
-    if (path.startsWith("/pdf/")) return pdfStub(url);
+    if (path.startsWith("/pdf/")) {
+      // P-36: render the PDF to per-page PNGs + structured markdown.
+      // Fall back to the legacy stub if the renderer hits a known
+      // failure mode (encrypted, corrupt, fetch failed) — those
+      // already produce typed stubs themselves with appropriate
+      // `_default-pdf-*` flags, but for arxiv specifically the
+      // operator-friendly fallback is to just stub-redirect to the
+      // /abs/ page where the metadata + body live in HTML, so we
+      // additionally re-stub on render failure with the existing
+      // `pdfStub` advice.
+      const slug = opts.slugDir.split("/").filter(Boolean).pop() ?? "arxiv-pdf";
+      const r = renderPdfFromUrl({ url, slugDir: opts.slugDir, slug });
+      if (Array.isArray(r.flags) && r.flags.includes("intentional-stub")) {
+        // Render path bailed (encrypted/corrupt/fetch-failed). Use
+        // arxiv's existing stub which points at the /abs/ page.
+        return pdfStub(url);
+      }
+      return r;
+    }
     if (!path.startsWith("/abs/")) return listingStub(url);
 
     const r = fetchArxiv(url);

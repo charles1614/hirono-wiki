@@ -292,16 +292,21 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   const trimmed = content.trim();
   // `intentional-stub` is emitted by post-processors that deliberately
   // replace content with a short metadata stub (HF Spaces, x.com auth-gate,
-  // private feishu). For those, skip the size- and structure-based flags —
-  // the short body is by design, not a broken extraction.
+  // private feishu). `pdf-rendered` (P-36) signals that the markdown
+  // body is intentionally image-bearing (each page is an `![Page N](…)`
+  // reference) so text-length floors don't apply — the actual content
+  // lives in the rendered PNGs alongside, not in the markdown body.
+  // Skip the size- and structure-based flags in either case.
   const isStub = ctx.extraFlags?.includes("intentional-stub") ?? false;
-  if (!isStub && trimmed.length < 500) flags.push("short-body");
+  const isImageBearing = ctx.extraFlags?.includes("pdf-rendered") ?? false;
+  const skipTextSizeFlags = isStub || isImageBearing;
+  if (!skipTextSizeFlags && trimmed.length < 500) flags.push("short-body");
 
   // Per-host expected-size band: flag when body is above the generic 500-char
   // floor but still below what we expect for this host. Targets the case
   // where opencli returned *something* (so no generic `short-body`) but that
   // something is clearly a sidebar/card rather than the article body.
-  if (!isStub && ctx.originUrl) {
+  if (!skipTextSizeFlags && ctx.originUrl) {
     const host = hostnameOf(ctx.originUrl).toLowerCase();
     const rule = HOST_MIN_BODY_SIZES.find((r) => r.match(ctx.originUrl!, host));
     if (rule && trimmed.length < rule.minChars && !flags.includes("short-body")) {
@@ -385,9 +390,13 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   // check below excludes it explicitly.
   // Dedupe (caller's extraFlags may overlap with our detections)
   const uniq = [...new Set(flags)];
-  // `intentional-stub` is a marker flag, not a quality problem. A slug
-  // whose ONLY flag is `intentional-stub` is still `quality_status=good`.
-  const suspicious = uniq.some((f) => f !== "intentional-stub");
+  // Marker flags — informational, not quality problems. A slug whose
+  // ONLY flags are markers stays `quality_status=good`.
+  //   - `intentional-stub`: stub content is the deliberate output
+  //   - `pdf-rendered`: PDF rendered to image-bearing markdown (P-36)
+  // Real quality flags (short-body, etc.) still flip to "flagged".
+  const NON_PROBLEMATIC_FLAGS = new Set(["intentional-stub", "pdf-rendered"]);
+  const suspicious = uniq.some((f) => !NON_PROBLEMATIC_FLAGS.has(f));
   const quality_status: QualityStatus = suspicious ? "flagged" : "good";
   return { suspicious, flags: uniq, quality_status };
 }

@@ -10,6 +10,7 @@ import { join } from "node:path";
 
 import type { Site } from "../_shared/types.ts";
 import { fetchIntuitionlabs } from "./fetcher.ts";
+import { renderPdfFromUrl } from "../_default/pdf-render.ts";
 import { convertIntuitionlabs } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 import { makeStub } from "../_shared/stub.ts";
@@ -24,6 +25,15 @@ export const site: Site = {
   match: (url) => hostOf(url) === "intuitionlabs.ai",
   fetch: (url, opts) => {
     mkdirSync(opts.slugDir, { recursive: true });
+
+    // intuitionlabs.ai/pdfs/<file>.pdf → delegate to the PDF renderer
+    // (P-36) instead of trying to extract HTML. Any URL with a .pdf
+    // path matches; the renderer handles fetching + render + stub on
+    // failure.
+    if (/\.pdf(?:[?#]|$)/i.test(url)) {
+      const slug = opts.slugDir.split("/").filter(Boolean).pop() ?? "intuitionlabs-pdf";
+      return renderPdfFromUrl({ url, slugDir: opts.slugDir, slug });
+    }
 
     const r = fetchIntuitionlabs(url);
     if (r.error || !r.html) {

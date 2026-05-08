@@ -166,8 +166,14 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
   // by the target's host instead.)
   if (isLanIp(host) || /:\d{4,5}$/.test(host)) return "host-lan-only";
   // PDF detection: literal `.pdf` extension OR path ending in `/pdf`
-  // (covers openreview.net/pdf?id=…, etc.).
-  if (/\.pdf(?:[?#]|$)/i.test(url) || /\/pdf(?:[?#]|$)/i.test(url)) return "upstream-not-html";
+  // (covers openreview.net/pdf?id=…, etc.). EXCEPT when the slug
+  // already has the `pdf-rendered` flag — that means P-36 successfully
+  // rendered the PDF to image-bearing markdown, so the slug is no
+  // longer "non-HTML stub" but a real (image-bearing) extraction.
+  if (!(input.flags ?? []).includes("pdf-rendered") &&
+      (/\.pdf(?:[?#]|$)/i.test(url) || /\/pdf(?:[?#]|$)/i.test(url))) {
+    return "upstream-not-html";
+  }
   if (NON_HTML_HOSTS.has(host)) return "upstream-not-html";
 
   // After URL-shape: not-yet-fetched short-circuits remaining checks.

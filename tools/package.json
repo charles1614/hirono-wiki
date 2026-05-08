@@ -15,6 +15,7 @@
     "@types/turndown": "^5.0.6",
     "gray-matter": "^4.0.3",
     "jsdom": "^29.0.2",
+    "mupdf": "^1.27.0",
     "turndown": "^7.2.4"
   },
   "devDependencies": {

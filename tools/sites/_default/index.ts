@@ -39,6 +39,7 @@ import { convertArticle, type ArticleConvertResult, type ArticleSelectors } from
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 import { makeStub } from "../_shared/stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { renderPdfFromUrl } from "./pdf-render.ts";
 
 interface DefaultFixtureArgs {
   html: string;
@@ -393,6 +394,16 @@ export const site: Site = {
     if (!curlR.error && html) {
       const nonHtml = detectNonHtml(html, curlR.contentType);
       if (nonHtml) {
+        // PDF: pivot from stub-only path (P-20) to the render path
+        // (P-36). Re-downloads the PDF in binary mode (the curl above
+        // captured as utf-8 and corrupted the bytes), loads via
+        // mupdf, renders each page to PNG at 150 DPI, and emits an
+        // image-bearing §2-contract markdown document.
+        if (/PDF/.test(nonHtml)) {
+          // Slug derived from slugDir basename (last path segment).
+          const slug = opts.slugDir.split("/").filter(Boolean).pop() ?? "pdf";
+          return renderPdfFromUrl({ url, slugDir: opts.slugDir, slug });
+        }
         const detail = [
           `[curl] response: ${html.length} bytes, content-type: ${curlR.contentType ?? "(none)"}`,
           `[non-html detection] ${nonHtml}`,
