@@ -596,6 +596,61 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
   - `snapshots/<host>/<slug>.{md,invariants.json}` + `<slug>-images/` — per-host snapshots
   - `fixtures/converters/<host>/<name>.{input.json,expected.md,expected.json}` — frozen converter fixtures
 
+## Auto-capturing learnings (no reminder needed)
+
+When a unit of work finishes — a bug fix, a pattern recognized, a tool quirk discovered, a design choice made after benchmarking — pause and ask: **"would a future session reading this avoid the trap or shorten the path?"** If yes, capture immediately. Don't wait for the user to remind you. The user's prompt to "remember this" is the failure mode this section exists to prevent.
+
+The general-purpose docs already exist; the work is **routing the lesson to the right one** without asking, and writing it in the shape that file expects.
+
+### Trigger conditions (run the capture-or-skip check after)
+
+- Shipping a fix that addresses a CLASS of bugs, not just one slug.
+- Discovering a tool / library / site quirk that would have saved you 30+ min if documented earlier.
+- The user pointing out a mistake — capture so future sessions don't repeat it.
+- Picking one approach over another after benchmarking — record the comparison + reasoning so the next session doesn't re-run the same benchmark.
+- Hitting a constraint that limits a design (rate limit, auth flow, encryption, license).
+- Finishing an iteration of a pattern-discovery loop (Phase 2 / playbook iterations) — the iteration's report IS the capture trigger; don't end the iteration without an entry.
+
+Skip when:
+- The fix is genuinely one-off and doesn't generalize (single-slug content correction, typo).
+- The lesson is already documented somewhere — search first, don't duplicate.
+- The "lesson" is a hunch — wait for a second instance to confirm the pattern.
+
+### Destination — lesson type → file
+
+| Lesson type | File |
+|---|---|
+| New site-handling pattern | `Meta/site-handling-patterns.md` §2 (P-NN entry) + §1 quick-lookup row + §3 technique index if novel |
+| Recurring anti-pattern (a mistake to avoid) | `Meta/site-handling-patterns.md` §6 (AP-NN) |
+| Operator workflow change / new pipeline command | `Meta/operator-workflows.md` (the relevant flow's section) |
+| Actionable TODO needing human input or future code | `Meta/post-fetch-todo.md` |
+| Wiki page conventions (frontmatter, tiers, page types) | `Meta/schema.md` |
+| Cross-document drift / contradictions / cleanup TODOs | `Meta/linting-notes.md` |
+| Code-quality rule that should fire on every commit | this file (`CLAUDE.md`) §3 — rules-of-conduct only |
+| Architectural shift in the fetcher | `docs/fetcher-architecture.md` |
+| New per-host module recipe variant not covered above | `tools/sites/MIGRATION.md` |
+
+If the lesson straddles two files (a pattern + a TODO for its automation), write it in BOTH and cross-link. P-37 + post-fetch-todo §2 is the worked example.
+
+### Quality bar (both gates must pass)
+
+1. **Durable** — the constraint or pattern won't disappear in a month. Library version-specific quirks usually fail this gate; design constraints usually pass.
+2. **Generalizable** — applies to more than the one slug / file / URL where you hit it. Single-slug content fixes fail this gate; class-of-bugs fixes pass.
+
+### Capture shape (match the destination's existing entries)
+
+- **Pattern entries** (`P-NN`, `AP-NN`): five-bullet shape — Symptom · Root cause · Remediation · Generalization · Reference. Mirror surrounding entries' tone (terse, file-path references, runtime code examples).
+- **TODOs**: `- [ ] **<short title>** (<scope>). <one-paragraph description with the recipe / file paths / commands>.`
+- **Workflow updates**: flow diagram + command sequence + "what to expect on success" + "what to do when X happens." Match `operator-workflows.md`'s flow shape.
+- **Code-quality rule in CLAUDE.md**: imperative voice + short rationale + match §3 Formatting rules style.
+
+### Recent self-trigger examples (proof the loop fires)
+
+- After manually converting one slug whose body-selector cascade missed substantive content, captured as **P-37** in patterns + an automation TODO in `post-fetch-todo.md` §2 — triggered without reminder, by recognizing the cascade limitation would generalize.
+- After picking `mupdf` npm over poppler/pymupdf via a benchmark, captured the comparison + decision in **P-36**'s "Engine choice" callout — future sessions won't re-run the same benchmark.
+- After a `**[label]**` markdown mistake the user pointed out, captured the per-element turndown rule INSIDE P-37's recipe (where future button-conversion attempts will read it) rather than as a separate AP-NN — the mistake was scoped to one script, so reading-context placement was right.
+- After running multiple Phase 2 iterations, captured each pattern + cross-link + sibling-pattern callouts so future iterations could navigate the playbook by symptom rather than re-deriving.
+
 ## Keeping this file fresh
 
 Update AFTER landing a fix, not during investigation. Durable learnings only — don't log every incident, just the pattern that would generalize to new URLs. Remove struck-through / resolved entries once a session passes without triggering the old bug.
