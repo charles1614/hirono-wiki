@@ -62,6 +62,7 @@ this file. Each iteration grows the institutional memory.
 | Body is right but two `# H1`s present | Page title block + body title; turndown emitted both | P-29 enforceSingleH1 |
 | `wiki.litenext.digital` mermaid diagrams render as orphan node-label paragraphs outside ` ```mermaid ` fences | Adapter flattened SVG-rendered diagram; source lives in DOM `data-original-text` attr or hydration script | P-30 deepwiki-mermaid-splice |
 | Hexo / WordPress / Sphinx site looks like one of the article-shape sites | Article-site factory pattern; <30 LOC config | P-31 article-site-factory |
+| Bookmark URL is on a `share.*` / `out.*` / `redirect.*` host with `?link=…` / `?url=…` query param holding the real target | Share-aggregator wrapper that doesn't redirect (interstitial only) | P-32 share-aggregator-unwrap |
 
 ---
 
@@ -520,6 +521,35 @@ The 8 universal cleanups in `tools/sites/_shared/post-cleanup.ts` already run af
 
 ---
 
+### P-32 — Share-aggregator URL unwrap (target embedded as query param)
+
+**Symptom.** Bookmark URL is hosted on a wrapper domain (`share.google`, plausibly `share.weibo.cn`, `out.reddit.com`, etc.) and contains the real content URL embedded as a query parameter (typically `?link=…`, `?url=…`, `?u=…`). Plain curl + browser fetch lands on the wrapper's interstitial page rather than the target.
+
+`hirono raindrop status` may surface the bookmark as `host-malformed` (URL-shape rule fired), `upstream-spa-no-content` (interstitial body too small), or — depending on which page Google's redirect chain serves — even `clean` with sub-good content because the interstitial happened to have enough text to pass the threshold.
+
+**Root cause.** The wrapper host serves a redirect interstitial that NEVER 302's to the target — the target URL only exists as data in a query parameter. Curl-following-redirects (`-L`) is no help because the wrapper redirects to ANOTHER page on its own domain (e.g. `share.google` → `www.google.com/share.google?...`).
+
+This is distinct from URL shorteners (`t.co`, `lnkd.in`, `bit.ly`) which DO 302 to the target and are already handled transparently by `curl -L` and the browser.
+
+**Remediation.** Pre-fetch URL unwrap. `tools/sites/_shared/url-unwrap.ts` exports `unwrapShareUrl(url)` with an extensible `WRAPPER_RULES` registry — each rule is `{host: regex, paramName: string}`. Hooked into:
+
+- `tools/fetch-raw.ts` `fetchUrlAndStore`: unwraps before AUTO_SKIP_RULES, slug-dir placement, and `routeSite()`. The slug lands under `raw/raindrop/<target-host>/`, and the target's dedicated module (if any) handles the fetch.
+- `tools/fetch-raw.ts` `rebuildRawIndex`: builds the bookmark map keyed by both the wrapper URL AND its unwrapped form, so a slug whose `origin_url` is the unwrapped target still joins to its bookmark.
+- `tools/hirono/raindrop/status.ts` `buildStatusRows`: checks both forms when joining bookmarks to slugs, so the status report doesn't show a wrapped bookmark as `not-yet-fetched` when its unwrapped slug is on disk.
+
+To register a new wrapper, append a `{host, paramName}` rule to `WRAPPER_RULES` and add a fixture URL to `tools/__tests__/url-unwrap.test.ts`.
+
+**Generalization.** Two distinct mechanisms hide content URLs behind a wrapper:
+
+1. **HTTP redirect** — `t.co/abc` → `Location: https://target.com/...`. Curl/browser handle this; no code change needed.
+2. **Query-param embed** — `share.google?link=<target>`. The wrapper either renders an interstitial or 302's to ANOTHER wrapper page; the target lives only in the query string. Needs unwrap.
+
+When you see a sub-good fetch on a `share.*`, `out.*`, `s.*`, `redirect.*`, or `link.*` host, check the URL for an embedded `link=`/`url=`/`u=`/`target=` parameter before reaching for browser-eval. If you find one, P-32 is the fix; add the rule.
+
+**Reference.** `tools/sites/_shared/url-unwrap.ts`. Hooks: `tools/fetch-raw.ts:fetchUrlAndStore` + `:rebuildRawIndex`, `tools/hirono/raindrop/status.ts:buildStatusRows`. Tests: `tools/__tests__/url-unwrap.test.ts`.
+
+---
+
 ## §3 Patterns by remediation technique
 
 When you've decided what kind of fix to apply, this index points at the working reference modules.
@@ -558,25 +588,30 @@ When you've decided what kind of fix to apply, this index points at the working 
 - App-only detection: `intentional-stub-app-only` via URL regex
 - Reference: `tools/hirono/raindrop/failure-kind.ts` `APP_URL_PATTERNS`
 
+### Pre-fetch URL rewrite
+- Share-aggregator unwrap: `unwrapShareUrl(url)` extracts the real target from a query parameter and re-routes through the host-specific module (P-32)
+- Reference: `tools/sites/_shared/url-unwrap.ts`
+
 ---
 
 ## §4 Decision tree for a new sub-good site
 
 When `hirono raindrop status` flags a host you've never seen:
 
-1. **Check the URL pattern**: is it a login page, dashboard, calculator, IPFS gateway? → P-18 / P-19, classify as `intentional-stub-app-only`. Done.
-2. **Check Content-Type**: is it `application/pdf` or other non-HTML? → P-20, classify as `upstream-not-html`. Done.
-3. **Open the URL in a browser**: does the page show real content?
+1. **Is the URL a share-aggregator wrapper?** Hosts like `share.google`, `share.weibo.cn`, `out.reddit.com` with a `?link=…` / `?url=…` query param holding the real target. → P-32 share-aggregator-unwrap. Add the rule, re-fetch under the target host. Don't continue down this tree on the wrapper.
+2. **Check the URL pattern**: is it a login page, dashboard, calculator, IPFS gateway? → P-18 / P-19, classify as `intentional-stub-app-only`. Done.
+3. **Check Content-Type**: is it `application/pdf` or other non-HTML? → P-20, classify as `upstream-not-html`. Done.
+4. **Open the URL in a browser**: does the page show real content?
    - **No** (404 / login wall / "page deleted") → P-03 stub-by-design or P-21 stub-threshold.
    - **Yes** → continue.
-4. **Look for an API**: REST endpoint? Raw markdown mirror? CSV download? Hydration JSON in `<script>`? → P-23, P-24, P-25, P-26. Strongly preferred.
-5. **Check static HTML**: does plain `curl <url>` contain the body text?
+5. **Look for an API**: REST endpoint? Raw markdown mirror? CSV download? Hydration JSON in `<script>`? → P-23, P-24, P-25, P-26. Strongly preferred.
+6. **Check static HTML**: does plain `curl <url>` contain the body text?
    - **Yes** → P-31 article-site factory. Tighten selectors + add dropSelectors. Done.
    - **No, body is empty** → SPA. Continue.
-6. **Browser-eval works**: does opencli `browser open <url>; browser eval ...` find the body?
+7. **Browser-eval works**: does opencli `browser open <url>; browser eval ...` find the body?
    - **Yes** → either accept `_default`'s hybrid (which already does this) or write a per-host module if you need custom hydration timing / extraction logic. Hydration race? → P-06 longer wait.
    - **No** → site is genuinely interactive (P-18) or auth-walled (P-03 + P-04).
-7. **After fetching, eyeball the output** (CLAUDE.md §5e.iv first-pass eye-read checklist). Apply the targeted patterns:
+8. **After fetching, eyeball the output** (CLAUDE.md §5e.iv first-pass eye-read checklist). Apply the targeted patterns:
    - Quad-asterisks, redundant heading bold? P-09, P-10, P-28.
    - Heavy footer chrome? P-11, P-12.
    - Inline SVG explosions? P-13.
