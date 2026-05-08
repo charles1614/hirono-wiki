@@ -176,9 +176,39 @@ function browserFetch(url: string, waitMs: number = 3500): { html: string; error
     opened = true;
     sleepMs(waitMs);
 
+    // Scroll-trigger lazy-loaded images BEFORE extracting HTML.
+    // Modern sites use intersection-observer-driven lazy loading: the
+    // initial `<img src>` is a tiny placeholder (e.g. width-100 GCS
+    // thumb), and the high-res variant only loads when the image
+    // scrolls into view. Without scroll, our extraction captures the
+    // placeholder URLs and the image-download phase saves tiny
+    // thumbs (1-6 KB instead of 15-50 KB).
+    //
+    // The scroll routine walks 0% → 100% in 8 steps with 600ms pauses
+    // (total ~5s on top of the initial waitMs). Each scroll step
+    // fires intersection observers for newly-visible images, swapping
+    // their `src` to the high-res variant. After the walk, scroll
+    // back to 0 so any extraction that depends on document position
+    // sees a stable state. See P-39 in
+    // `Meta/site-handling-patterns.md`.
+    const scrollScript = `(async () => {
+      const h = document.body.scrollHeight;
+      for (const pct of [12, 25, 38, 50, 62, 75, 88, 100, 0]) {
+        window.scrollTo(0, h * pct / 100);
+        await new Promise(r => setTimeout(r, 600));
+      }
+      return "";
+    })()`;
+    spawnSync("opencli", ["browser", "eval", scrollScript], {
+      encoding: "utf8",
+      timeout: browserTimeoutMs("eval"),
+      maxBuffer: 1024,
+    });
+
     const evalScript = `(() => {
       // Return the full document outerHTML so meta tags + body are both visible
-      // to convertArticle's metadata extraction.
+      // to convertArticle's metadata extraction. Post-scroll, lazy-loaded
+      // <img src> values have been upgraded to their high-res URLs.
       return JSON.stringify({ html: document.documentElement.outerHTML });
     })()`;
     const evalRes = spawnSync("opencli", ["browser", "eval", evalScript], {
