@@ -210,19 +210,7 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
     }
     // SPA empty after browser fallback fired
     if (flagSet.has("_default-fetch-failed") || flagSet.has("loading-skeleton")) {
-      // Heuristic: if the URL host or path SCREAMS "interactive app" —
-      // calculator/dashboard/search/login/login UI / IPFS gateway hash —
-      // it's really `intentional-stub-app-only`, not a content page that
-      // failed to render. The catchall can't tell the difference at
-      // fetch time but at classify time the URL pattern is reliable.
-      const url = input.url || "";
-      const APP_URL_PATTERNS: RegExp[] = [
-        /\/(?:login|signin|signup|register|dashboard|console|admin)\b/i,
-        /\/(?:tools?|calculator|search|vram-calculator)\b/i,
-        /\.eth\.limo\b/i,                  // IPFS gateway hashes — hash subdomain → app
-        /^https?:\/\/[a-f0-9]{8,}\./i,     // hex-hash subdomains (gateway-hosted apps)
-      ];
-      if (APP_URL_PATTERNS.some((p) => p.test(url))) return "intentional-stub-app-only";
+      if (looksLikeAppShapedUrl(input.url || "")) return "intentional-stub-app-only";
       return "upstream-spa-no-content";
     }
     // Generic fetch failure stub. Includes anti-bot blocks
@@ -242,6 +230,14 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
 
   // Non-stub flagged content
   if (flagSet.has("login-wall-keyword") || PAYWALL_HOSTS.has(host)) return "upstream-paywall";
+  // URL-pattern app-only check applies here too — but ONLY when the
+  // slug already has at least one flag (sub-good extraction). A
+  // bare-domain URL with clean extraction (e.g. `lilianweng.github.io/`
+  // serving a real blog homepage) shouldn't classify as app-only.
+  // The URL pattern only flips the kind when extraction was already
+  // judged sub-good. See P-18 (refined to add bare-domain and
+  // search-results matchers in iteration 5).
+  if (flags.length > 0 && looksLikeAppShapedUrl(input.url || "")) return "intentional-stub-app-only";
   if (flagSet.has("images-declared-but-none-downloaded")) return "content-incomplete-images-zero";
   if ([...flags].some(f => /-image-download-partial$/.test(f))) return "content-incomplete-images";
   if (flagSet.has("short-body") || flagSet.has("below-host-expected-size")) return "content-too-short";
@@ -249,6 +245,41 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
 
   // Default: clean
   return "clean";
+}
+
+/**
+ * Does the URL itself signal "this isn't a content page" — interactive
+ * app, login UI, IPFS gateway, bare-domain homepage, search-results
+ * page? Used by the failure-kind classifier in both the stub branch
+ * (P-18 original) and the non-stub flagged branch (P-18 refinement
+ * iteration 5) to route URL-shaped-app slugs to
+ * `intentional-stub-app-only` instead of letting them masquerade as
+ * `content-too-short` / `upstream-spa-no-content`.
+ *
+ * The check is conservative — only fires when the slug has at least
+ * one quality flag (sub-good extraction). Real-content homepages
+ * with rich extraction never reach this code path because the
+ * classifier returns `clean` first.
+ */
+function looksLikeAppShapedUrl(url: string): boolean {
+  if (!url) return false;
+  const APP_URL_PATTERNS: RegExp[] = [
+    // Path-based: clear app/tool/login/dashboard pages.
+    /\/(?:login|signin|signup|register|dashboard|console|admin)\b/i,
+    /\/(?:tools?|calculator|search|vram-calculator)\b/i,
+    // IPFS / decentralized gateway URLs — hash subdomain → app.
+    /\.eth\.limo\b/i,
+    /^https?:\/\/[a-f0-9]{8,}\./i,
+    // Bare-domain / homepage URLs: host with no path content (root,
+    // empty, or `/index.*`). Bookmark intent IS the site itself —
+    // when extraction yields sub-good content, treat as app-shaped.
+    /^https?:\/\/[^/?#]+\/?(?:[?#].*)?$/i,
+    /^https?:\/\/[^/?#]+\/index\.[a-z]+(?:[?#].*)?$/i,
+    // Search-results URLs: bookmark intent IS the query, content is
+    // dynamic by definition. Common query-param names.
+    /[?&](?:search|q|query|keyword|kw|term)=/i,
+  ];
+  return APP_URL_PATTERNS.some((p) => p.test(url));
 }
 
 // ─────────────────────────── Override file ─────────────────────────

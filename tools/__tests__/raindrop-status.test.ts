@@ -87,12 +87,42 @@ test("classifyFromInput: huggingface space stub", () => {
 });
 
 test("classifyFromInput: _default fetch failed (SPA)", () => {
+  // Use a non-bare-domain URL — bare-domain `leetgpu.com` would
+  // route to `intentional-stub-app-only` via the P-18 URL-pattern
+  // refinement (homepage bookmark intent IS the site).
   const k = classifyFromInput({
-    url: "https://leetgpu.com",
+    url: "https://leetgpu.com/problems/quicksort",
     isFetched: true,
     flags: ["intentional-stub", "_default-fetch-failed"],
   });
   assert.equal(k, "upstream-spa-no-content");
+});
+
+test("classifyFromInput: bare-domain SPA stub → intentional-stub-app-only (P-18 refinement)", () => {
+  const k = classifyFromInput({
+    url: "https://hjfy.top/",
+    isFetched: true,
+    flags: ["intentional-stub", "_default-fetch-failed"],
+  });
+  assert.equal(k, "intentional-stub-app-only");
+});
+
+test("classifyFromInput: search-results URL with flags → intentional-stub-app-only (P-18 refinement)", () => {
+  const k = classifyFromInput({
+    url: "https://open-vsx.org/?search=claude%20code",
+    isFetched: true,
+    flags: ["images-declared-but-none-downloaded", "_default-image-download-partial"],
+  });
+  assert.equal(k, "intentional-stub-app-only");
+});
+
+test("classifyFromInput: bare-domain CLEAN extraction stays clean (no flag flip)", () => {
+  const k = classifyFromInput({
+    url: "https://lilianweng.github.io/",
+    isFetched: true,
+    flags: [],
+  });
+  assert.equal(k, "clean");
 });
 
 test("classifyFromInput: paywall host (economictimes)", () => {
