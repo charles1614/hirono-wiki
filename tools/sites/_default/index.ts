@@ -163,7 +163,7 @@ function detectNonHtml(body: string, contentType: string | undefined): string | 
  * downstream converter has access to og:* metadata as well as the
  * hydrated body.
  */
-function browserFetch(url: string): { html: string; error?: string } {
+function browserFetch(url: string, waitMs: number = 3500): { html: string; error?: string } {
   let opened = false;
   try {
     const openRes = spawnSync("opencli", ["browser", "open", url], {
@@ -174,7 +174,7 @@ function browserFetch(url: string): { html: string; error?: string } {
       return { html: "", error: `browser open failed: ${(openRes.stderr || "").slice(0, 200)}` };
     }
     opened = true;
-    sleepMs(3500);
+    sleepMs(waitMs);
 
     const evalScript = `(() => {
       // Return the full document outerHTML so meta tags + body are both visible
@@ -463,20 +463,52 @@ export const site: Site = {
     // Anti-bot challenge detection. If the body we extracted IS the
     // Cloudflare / Akamai / DataDome challenge page (or a CF
     // origin-error interstitial), DON'T let it pass through as
-    // content — emit a `_default-bot-blocked` stub instead. See P-33
-    // in `Meta/site-handling-patterns.md`.
+    // content. See P-33 in `Meta/site-handling-patterns.md`.
+    //
+    // CF challenges typically auto-resolve in 10-15s with JS execution
+    // — the default 3.5s browser wait often catches the challenge
+    // mid-resolution. Retry with a 15s wait against the same URL
+    // before giving up. opencli's user-bound Chrome carries organic
+    // cookies + behavior signals Cloudflare often trusts. Origin-error
+    // interstitials (CF 5xx) won't auto-resolve, so we skip retry for
+    // those signatures.
     const challengeSig = looksLikeBotChallenge(conv.metadata.title, conv.markdown);
     if (challengeSig) {
-      const detail = [
-        `signature:           ${challengeSig}`,
-        `curl bytes:          ${curlBytes}`,
-        `curl body chars:     ${curlBodyChars}`,
-        `browser path tried:  ${usedBrowser ? "yes (kept)" : conv ? "yes (rejected, smaller than curl)" : "no"}`,
-        browserError ? `browser eval error:  ${browserError}` : "",
-        `final body chars:    ${conv.stats.bodyChars}`,
-        `extracted title:     ${conv.metadata.title ?? "(none)"}`,
-      ].filter(Boolean).join("\n");
-      return botBlockedStub(url, challengeSig, detail);
+      const isAutoResolvable = /^cloudflare-(?:just-a-moment|attention-required|security-verification|browser-check|class-marker|ray-id-blocked)$/i.test(challengeSig);
+      let retried = false;
+      let retryError: string | undefined;
+      if (isAutoResolvable) {
+        retried = true;
+        const retryR = browserFetch(url, 15_000);
+        if (retryR.error) {
+          retryError = retryR.error;
+        } else if (retryR.html) {
+          const retryConv = runConverter({ html: retryR.html, url });
+          const retrySig = looksLikeBotChallenge(retryConv.metadata.title, retryConv.markdown);
+          if (!retrySig && retryConv.stats.bodyChars >= STUB_THRESHOLD) {
+            // Challenge cleared. Continue with the retry result as
+            // the canonical conv.
+            conv = retryConv;
+            html = retryR.html;
+            usedBrowser = true;
+          }
+        }
+      }
+      // Re-check after the (possible) retry.
+      const finalSig = looksLikeBotChallenge(conv.metadata.title, conv.markdown);
+      if (finalSig) {
+        const detail = [
+          `signature:           ${finalSig}`,
+          `curl bytes:          ${curlBytes}`,
+          `curl body chars:     ${curlBodyChars}`,
+          `browser path tried:  ${usedBrowser ? "yes (kept)" : conv ? "yes (rejected, smaller than curl)" : "no"}`,
+          retried ? `retry path:          attempted with 15s wait${retryError ? ` (eval error: ${retryError})` : " (still challenged)"}` : "",
+          browserError ? `browser eval error:  ${browserError}` : "",
+          `final body chars:    ${conv.stats.bodyChars}`,
+          `extracted title:     ${conv.metadata.title ?? "(none)"}`,
+        ].filter(Boolean).join("\n");
+        return botBlockedStub(url, finalSig, detail);
+      }
     }
 
     if (conv.stats.bodyChars < STUB_THRESHOLD) {
