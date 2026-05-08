@@ -54,15 +54,15 @@ try {
   process.exit(2);
 }
 
-// Compute the raw landing dir using the same hostname-keyed scheme that
-// `tools/fetch-raw.ts` uses for writes: raw/raindrop/<host>/<slug>/.
-// `host` here is already normalized (lowercased, www-stripped, feishu
-// folded). The fetcher uses `hostnameOf(originUrl)`; the two must agree
-// to find the output. For feishu the URL host stays the per-tenant
-// subdomain, so look up via the live host instead of the folded one.
+// Compute the raw landing dir using the same hostname-keyed scheme
+// that `tools/fetch-raw.ts:rawDirFor` uses for writes:
+// `raw/raindrop/<host>/<slug>/`. The fetcher's `hostnameOf` is just
+// `new URL(url).hostname` — it does NOT strip `www.`, so this needs
+// to do the same or the snapshot-create script can't find the
+// landed slug (e.g. www.v2ex.com vs v2ex.com).
 const fetcherHost = (() => {
   try {
-    return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    return new URL(url).hostname;
   } catch { return host; }
 })();
 const slugDir = `raw/raindrop/${fetcherHost}/${slug}`;

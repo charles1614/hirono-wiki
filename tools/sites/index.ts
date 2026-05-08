@@ -49,6 +49,7 @@ import { site as reddit } from "./reddit/index.ts";
 import { site as sebastianraschkaBlog } from "./sebastianraschka-blog/index.ts";
 import { site as xTwitter } from "./x-twitter/index.ts";
 import { site as qwenAi } from "./qwen-ai/index.ts";
+import { site as v2ex } from "./v2ex/index.ts";
 import { site as defaultSite } from "./_default/index.ts";
 
 export const SITES: readonly Site[] = [
@@ -136,6 +137,11 @@ export const SITES: readonly Site[] = [
   // chrome with empty body. Stub-only — points operator at the real
   // Qwen blog at qwenlm.github.io (already migrated above).
   qwenAi,
+  // www.v2ex.com: Chinese tech-discussion forum (NOT Discourse — runs
+  // its own stack). Plain curl + Chrome UA gets clean HTML; module
+  // parses topic header + reply blocks and emits split-speaker MD.
+  // Path-filtered — only `/t/<topic-id>` URLs.
+  v2ex,
   // CATCH-ALL: must be LAST. Fields any URL no host-specific module
   // claimed. Plain curl + JSDOM with permissive selectors; emits
   // `intentional-stub` if extraction returns < 200 chars (typical
