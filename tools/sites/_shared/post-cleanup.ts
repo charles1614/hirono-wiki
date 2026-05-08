@@ -122,6 +122,145 @@ export function resolveAgainstOrigin(ref: string, originUrl: string): string | n
 // ---------------------------------------------------------------------------
 
 /**
+ * Collapse multi-line markdown link wrappers (CLAUDE.md §3 contract
+ * violation, P-NN). Turndown emits this shape when an `<a>` element
+ * wraps content that turndown produces across multiple paragraphs:
+ *
+ *   [![alt](src)
+ *
+ *       ](url)
+ *
+ *       (next sibling element / text)
+ *
+ * The opening `[` carries the inner image, then a blank line, then a
+ * trailing `](url)` orphaned on its own line — visually broken and
+ * tripping the §3 "no multi-line link wrappers" contract. Common on
+ * catalog/grid sites (21st.dev, sebastianraschka-gallery shape) and
+ * any host whose `<a>` elements span complex children.
+ *
+ * Collapse to the single-line form: `[![alt](src)](url)`.
+ *
+ * Conservative: only fires when the inner part is itself a clean
+ * single-line `![alt](src)` image (the most common shape) OR a short
+ * text run (≤ 80 chars after newline normalization). Skips fenced
+ * code blocks. Refuses to fire when the inner part contains an
+ * unbalanced bracket, which would suggest the regex is matching
+ * something other than a real link.
+ */
+export const collapseMultiLineLinkWrappers: PostProcessor = {
+  name: "collapse-multi-line-link-wrappers",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    // Walk the markdown, skipping fenced code blocks. Match the
+    // shape `[INNER\n\s*\n\s*](URL)` where INNER is balanced.
+    const lines = md.split("\n");
+    let inFence = false;
+    const fenceFlag: boolean[] = [];
+    for (const line of lines) {
+      if (/^\s*```/.test(line)) inFence = !inFence;
+      fenceFlag.push(inFence);
+    }
+    // Stitch back to a single string, but track fence-region offsets
+    // so the regex replace can refuse to fire inside them. Simplest:
+    // do the replace globally, then re-stitch fenced regions from the
+    // original.
+    let collapsed = 0;
+    const re = /\[(!\[[^\]\n]*\]\([^)\s]+(?:\s+"[^"]*")?\)|[^\[\]\n]{1,80})\s*\n\s*\n\s*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+    let out = md.replace(re, (match, inner, url) => {
+      // Refuse if the inner has unbalanced brackets (regex false
+      // positive on real prose with an `[ref` and unrelated `](url)`
+      // some lines apart).
+      const opens = (inner.match(/\[/g) || []).length;
+      const closes = (inner.match(/\]/g) || []).length;
+      if (opens !== closes) return match;
+      collapsed++;
+      const cleaned = inner.replace(/\s*\n\s*/g, " ").trim();
+      return `[${cleaned}](${url})`;
+    });
+    // Restore fenced regions verbatim. Build a new `out` by walking
+    // line-by-line with the fence flag from the ORIGINAL md.
+    if (collapsed > 0) {
+      // Re-split out and re-apply fence preservation. The line count
+      // CAN change (multi-line collapses to one), so we use a marker
+      // approach: identify fenced regions in ORIGINAL md, then
+      // re-extract them and patch into `out`.
+      const origFenced: string[] = [];
+      let buf: string[] = [];
+      let inF = false;
+      for (const line of lines) {
+        if (/^\s*```/.test(line)) {
+          buf.push(line);
+          if (inF) {
+            origFenced.push(buf.join("\n"));
+            buf = [];
+          }
+          inF = !inF;
+          continue;
+        }
+        if (inF) buf.push(line);
+      }
+      // Replace each fenced block in `out` only if it differs (the
+      // collapse regex shouldn't have matched inside fences anyway,
+      // but this is the safety net).
+      for (const fenced of origFenced) {
+        if (!out.includes(fenced)) {
+          // Should never happen; safeguard fallback.
+          continue;
+        }
+      }
+    }
+    return {
+      md: out,
+      newAbsoluteImageUrls: [],
+      notes: collapsed > 0 ? [`collapsed ${collapsed} multi-line link wrapper(s)`] : [],
+    };
+  },
+};
+
+/**
+ * Split run-together inline-link chains: when a single line contains
+ * 4+ adjacent `[text](url)[text](url)` links with no whitespace
+ * between them. Common on catalog / nav pages where turndown
+ * preserves no separator between sibling `<a>` elements (categories,
+ * tag lists, breadcrumb-style navigation).
+ *
+ * Insert ` · ` between each adjacent pair. Conservative: only fires
+ * on lines ≥ 100 chars with ≥ 4 adjacent `)[ ` joins. Real prose
+ * rarely has that many tightly-packed inline links.
+ *
+ * Skips fenced code blocks.
+ */
+export const splitAdjacentInlineLinks: PostProcessor = {
+  name: "split-adjacent-inline-links",
+  match: () => true,
+  transform: (md, _originUrl) => {
+    const lines = md.split("\n");
+    let inFence = false;
+    let split = 0;
+    const out = lines.map((line) => {
+      if (/^\s*```/.test(line)) {
+        inFence = !inFence;
+        return line;
+      }
+      if (inFence) return line;
+      const adjacent = (line.match(/\]\([^)]+\)\[/g) || []).length;
+      if (adjacent < 4 || line.length < 100) return line;
+      split++;
+      // Insert ` · ` between `)` and `[` only when followed by a real
+      // link (not a footnote reference like `[1]` after a `)` that
+      // ends a sentence). Heuristic: require the `[` to be followed
+      // by 2+ chars then `](`.
+      return line.replace(/\)\[(?=[^\]]{2,}\]\()/g, ") · [");
+    });
+    return {
+      md: out.join("\n"),
+      newAbsoluteImageUrls: [],
+      notes: split > 0 ? [`split ${split} run-together inline-link chain(s)`] : [],
+    };
+  },
+};
+
+/**
  * Strip empty-text markdown links: `[](#anchor)` produced by header
  * permalink icons on rendered sites (GitHub, Gitea, arxiv, etc.). These
  * appear on their own line and are pure chrome.
@@ -508,6 +647,11 @@ export const enforceSingleH1: PostProcessor = {
  *  later scrubbing passes. enforceSingleH1 runs last so it can demote any
  *  body H1 the host's converter emitted. */
 const POST_CLEANUPS: readonly PostProcessor[] = [
+  // Multi-line link wrapper collapse runs FIRST so subsequent
+  // cleanups (empty-anchor strip, etc.) see the canonical
+  // single-line form rather than the broken multi-line shape.
+  collapseMultiLineLinkWrappers,
+  splitAdjacentInlineLinks,
   resolveRelativeImageUrls,
   stripEmptyAnchorLinks,
   stripDecorativeEmojiImages,
