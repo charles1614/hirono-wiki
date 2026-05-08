@@ -20,63 +20,64 @@ Components
 
 -   [![Glassmorphism Statistics Card](default-img-001.png)](/community/components/reapollo/glassmorphism-statistics-card/default)
 
-    [![David Hakobyan](default-img-002.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Glassmorphism Statistics Card
 
 -   [![Animated Checkbox](default-img-003.png)](/community/components/reapollo/animated-checkbox/default)
 
-    [![David Hakobyan](default-img-004.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Animated Checkbox
 
 -   [![Drag To Confirm Slider](default-img-005.png)](/community/components/reapollo/drag-to-confirm-slider/default)
 
-    [![David Hakobyan](default-img-006.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Drag To Confirm Slider
 
 -   [![Floating Label Input](default-img-007.png)](/community/components/reapollo/floating-label-input/default)
 
-    [![David Hakobyan](default-img-008.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Floating Label Input
 
 -   [![Floating Info Panel](default-img-009.png)](/community/components/reapollo/floating-info-panel/default)
 
-    [![David Hakobyan](default-img-010.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Floating Info Panel
 
 -   [![Draggable List](default-img-011.png)](/community/components/reapollo/draggable-list/default)
 
-    [![David Hakobyan](default-img-012.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Draggable List
 
 -   [![Glass Sign In Card](default-img-013.png)](/community/components/reapollo/glass-sign-in-card/default)
 
-    [![David Hakobyan](default-img-014.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Glass Sign In Card
 
 -   [![Native Tooltip](default-img-015.png)](/community/components/reapollo/native-tooltip/default)
 
-    [![David Hakobyan](default-img-016.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Native Tooltip
 
 -   [![Native Button](default-img-017.png)](/community/components/reapollo/native-button/default)
 
-    [![David Hakobyan](default-img-018.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Native Button
 
 -   [![Native Dialog](default-img-019.png)](/community/components/reapollo/native-dialog/default)
 
-    [![David Hakobyan](default-img-020.jpg)](/community/reapollo)
+    [David Hakobyan](/community/reapollo)
 
     Native Dialog
 
 
---- (head: first 80 lines of cleaned output, full slug is 887 lines / 24590 chars) ---
+--- (head: first 80 lines of cleaned output, full slug is ~870 lines / 22 KB)
+--- After P-38 cleanups: 94 multi-line wrappers collapsed, 3 link chains split, 106 avatar image-links simplified to plain author links
