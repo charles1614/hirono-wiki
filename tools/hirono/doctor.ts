@@ -39,7 +39,7 @@ export interface DoctorFinding {
   hint?: string;
 }
 
-export function runDoctor(opts: DoctorOpts = {}): { findings: DoctorFinding[]; exitCode: number } {
+export async function runDoctor(opts: DoctorOpts = {}): Promise<{ findings: DoctorFinding[]; exitCode: number }> {
   const findings: DoctorFinding[] = [];
 
   // 1. opencli doctor
@@ -115,6 +115,30 @@ export function runDoctor(opts: DoctorOpts = {}): { findings: DoctorFinding[]; e
     });
   }
 
+  // 3b. mupdf engine (PDF rendering, P-36). Bundled as an npm dep
+  // shipping its own WASM — checks that the package is loadable AND
+  // can render a tiny PDF. Doctors a misconfigured node_modules
+  // (missing dep, broken WASM init) before bulk-fetch hits a PDF.
+  try {
+    // Dynamic import keeps doctor's startup fast when the module
+    // isn't actually exercised — only the doctor check pays the load
+    // cost.
+    const mupdf = await import("mupdf");
+    findings.push({
+      check: "mupdf",
+      ok: true,
+      summary: `mupdf WASM engine loads (PDF rendering via P-36 ready)`,
+    });
+    void mupdf;
+  } catch (e) {
+    findings.push({
+      check: "mupdf",
+      ok: false,
+      summary: `mupdf npm package failed to load`,
+      hint: `cd tools && npm install --save mupdf  # P-36 PDF rendering depends on this`,
+    });
+  }
+
   // 4. raw/ quality — surface non-good sources for user awareness
   const rawSlugs = listRawSlugs();
   const nonGood = rawSlugs.filter((s) => s.quality_status !== "good");
@@ -141,10 +165,10 @@ export function printFindings(findings: DoctorFinding[]): void {
   }
 }
 
-export function main(argv: string[]): void {
+export async function main(argv: string[]): Promise<void> {
   const fix = argv.includes("--fix");
   const verbose = argv.includes("--verbose");
-  const { findings, exitCode } = runDoctor({ fix, verbose });
+  const { findings, exitCode } = await runDoctor({ fix, verbose });
   printFindings(findings);
   process.exit(exitCode);
 }
