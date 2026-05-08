@@ -193,9 +193,12 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
         flagSet.has("x-twitter-auth-required") || flagSet.has("xhs-text-body-unavailable")) {
       return "upstream-auth-gated";
     }
-    // Deleted upstream
+    // Deleted upstream — host-specific platform-deleted flags plus the
+    // host-agnostic `<host>-not-found` family (`_default` and any
+    // future module's 404/410/page-deleted detection — see P-34).
     if (flagSet.has("feishu-deleted") || flagSet.has("reddit-deleted") ||
-        flagSet.has("x-twitter-empty")) {
+        flagSet.has("x-twitter-empty") ||
+        [...flags].some(f => /-not-found$/.test(f))) {
       return "upstream-deleted";
     }
     // SPA empty after browser fallback fired

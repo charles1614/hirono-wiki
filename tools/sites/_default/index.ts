@@ -267,6 +267,66 @@ function looksLikeBotChallenge(title: string | undefined, body: string): string 
 }
 
 /**
+ * Detect that the body we extracted is actually a "page not found" /
+ * "page deleted" / HTTP-error-as-content page rather than real
+ * content. Returns the matched signature name for diagnostics, or
+ * null on no match.
+ *
+ * Distinct from `looksLikeBotChallenge` (which signals a TEMPORARY
+ * block that might retry-succeed): a 404 means the resource is gone.
+ * Operator action differs — bot-block points at re-auth; 404 points
+ * at "edit the bookmark or accept the stub". The failure-kind
+ * classifier maps the matched flag to `upstream-deleted`.
+ *
+ * Common shapes covered:
+ *   - Tengine / nginx / Apache default 404 bodies
+ *   - "Page not found" titles (literal, with site-suffix variants)
+ *   - HTTP 410 Gone / 451 Unavailable served with a body
+ *   - Common platform-specific dead-page messages
+ */
+function looksLikeNotFoundPage(title: string | undefined, body: string): string | null {
+  const t = (title ?? "").trim();
+  const head = body.slice(0, 1500);
+  // Title-first: a `<title>` reading "404", "Page not found", "Not Found",
+  // "Error 404", or "<NNN> [— site]" is a high-confidence signal. Real
+  // articles whose CONTENT mentions 404 don't have it in the title.
+  if (/^(?:404\b|Page Not Found|Not Found|Error 404|HTTP 4(?:04|10|51))/i.test(t)) return "title-404";
+  if (/\|\s*404(\s|$)|—\s*Page Not Found|·\s*Page Not Found/i.test(t)) return "title-404-suffix";
+  // Platform-specific dead-page messages.
+  if (/^Sorry, this page isn't available/i.test(t)) return "instagram-deleted";
+  if (/^This page (?:isn't available|doesn't exist|could not be found)/i.test(t)) return "platform-deleted";
+  // Body-text fallback when the title is generic (some sites use the
+  // site name as `<title>` even on 404s).
+  if (/The requested URL .{0,80}was not found on this server/i.test(head)) return "apache-nginx-404";
+  if (/(?:the page you (?:are looking for|requested) (?:doesn't|does not) exist|this page could not be found)/i.test(head)) return "page-not-found-body";
+  if (/410 Gone|451 Unavailable For Legal Reasons/i.test(head)) return "http-gone-or-legal";
+  return null;
+}
+
+/**
+ * Page-deleted stub — emitted when the body we extracted is a 404 /
+ * page-deleted error page rather than the underlying content.
+ * Distinct flag (`_default-not-found`) so the failure-kind classifier
+ * can route the slug to `upstream-deleted` (different operator
+ * action from bot-block: edit the bookmark or accept). See P-34 in
+ * `Meta/site-handling-patterns.md`.
+ */
+function notFoundStub(url: string, signature: string, errorDetail?: string): Result {
+  return makeStub({
+    url,
+    module: "_default",
+    kind: "not-found",
+    title: "_default article (page not found)",
+    summary: `body extracted is a 404 / page-deleted error page (signature: ${signature})`,
+    advice:
+      "The URL responded with a body that's a `404 Not Found` / `Page Deleted` page. " +
+      "The resource is gone upstream. Edit or remove the bookmark in Raindrop, " +
+      "or look for an archive.org snapshot if the content matters.",
+    errorDetail,
+  });
+}
+
+/**
  * Bot-blocked stub — emitted when the body we extracted is the
  * anti-bot challenge page itself rather than the underlying content.
  * Distinct flag (`bot-protection-blocked`) so the failure-kind
@@ -371,6 +431,24 @@ export const site: Site = {
       ].join("\n");
       return stubResult(url, summary, detail);
     }
+    // 404 / page-deleted detection. Some hosts (Tengine, custom CMS
+    // 404 pages) serve a page-deleted error body with HTTP 200, so
+    // curl doesn't error and the body passes the stub threshold —
+    // we'd save the error page as if it were content. Detect it and
+    // emit a `_default-not-found` stub which classifies as
+    // `upstream-deleted`. See P-34 in
+    // `Meta/site-handling-patterns.md`.
+    const notFoundSig = looksLikeNotFoundPage(conv.metadata.title, conv.markdown);
+    if (notFoundSig) {
+      const detail = [
+        `signature:           ${notFoundSig}`,
+        `final body chars:    ${conv.stats.bodyChars}`,
+        `extracted title:     ${conv.metadata.title ?? "(none)"}`,
+        `via:                 ${usedBrowser ? "browser-eval" : "curl"}`,
+      ].join("\n");
+      return notFoundStub(url, notFoundSig, detail);
+    }
+
     // Anti-bot challenge detection. If the body we extracted IS the
     // Cloudflare / Akamai / DataDome challenge page (or a CF
     // origin-error interstitial), DON'T let it pass through as
