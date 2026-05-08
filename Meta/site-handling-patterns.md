@@ -36,6 +36,7 @@ this file. Each iteration grows the institutional memory.
 | Symptom (what you see in status / sample MD) | Likely cause | See patterns |
 |---|---|---|
 | `intentional-stub` + `_default-fetch-failed`; `<title>` has site name only; body is `<noscript>` boilerplate | JS-rendered SPA (React/Next/Vue) hydrates client-side | P-01 SPA-hydration, P-02 browser-eval-fallback |
+| Bookmark URL is bare-domain (`https://example.com/`) or search-results (`?search=…` / `?q=…`) and slug classifies as `content-too-short` / `content-incomplete-images-zero` / `upstream-spa-no-content` | Bookmark intent IS the site / query, not a specific article | P-18 url-pattern-app-only |
 | Body contains "Sign in" / "Log in" / "Subscribe to read" copy | Auth-walled content; UA reaches public shell only | P-03 auth-walled-content, P-04 browser-session-via-opencli |
 | `intentional-stub` + `feishu-auth-gated` / `feishu-deleted` | Lark API returned 403/404 from bot identity | P-05 feishu-multi-tenant |
 | Title is right but body is empty/`Loading…` even though SPA fallback fired | Hydration race (browser eval too eager) | P-06 hydration-delay |
@@ -345,17 +346,28 @@ w
 
 ---
 
-### P-18 — Interactive web app (no extractable text by design)
+### P-18 — Interactive web app / homepage / search-results URL (no extractable text by design)
 
-**Symptom.** URL classifies as `upstream-spa-no-content` but the page IS the product (calculator, dashboard, search UI). Body is mostly inline `<style>`/`<script>`.
+**Symptom.** URL classifies as `upstream-spa-no-content` / `content-too-short` / `content-incomplete-images-zero` — but the page itself IS the product (calculator, dashboard, search UI), the bookmark-target IS the site as a whole (bare-domain homepage), or the URL describes a dynamic query (`?search=`/`?q=`/`?keyword=`).
 
-**Root cause.** The site has no "article" — it's an application.
+**Root cause.** Three URL shapes converge on the same conceptual category — "this isn't a content page":
 
-**Remediation.** Don't try to extract content. The classifier already maps URLs matching `/login`, `/dashboard`, `/console`, `/calculator`, `/search`, `/tools`, or hex-hash subdomains (`*.eth.limo`-style) to `intentional-stub-app-only`. Extend the URL-pattern set in `tools/hirono/raindrop/failure-kind.ts` if you find a new shape.
+1. **Path-based app**: `/login`, `/dashboard`, `/calculator`, `/tools`, etc. The page IS the application.
+2. **Decentralized gateway**: hex-hash subdomain (e.g. `*.eth.limo`, IPFS gateways). Hash IS the content key; the page is whatever app deployed under that hash.
+3. **Bare-domain homepage** (refinement, iteration 5): bookmark URL is just the host with no path or only `/`. Bookmark intent is the SITE as an entity, not a specific article. Examples: `hjfy.top/`, `x666.me/`, `trend.tgmeng.com/`. (Real-content homepages like `lilianweng.github.io/` extract clean content and never reach this code path — the URL-pattern check only fires when the slug already has at least one quality flag.)
+4. **Search-results URL** (refinement, iteration 5): query params `?search=`, `?q=`, `?query=`, `?keyword=`, `?kw=`, `?term=`. Bookmark intent IS the query; content is dynamic by definition.
 
-**Generalization.** Recognizing "this URL is fundamentally not an article" early saves a lot of extraction grief. The URL pattern is more reliable than DOM heuristics.
+**Remediation.** `tools/hirono/raindrop/failure-kind.ts:looksLikeAppShapedUrl(url)` runs the URL through a regex set covering all four shapes. Returns true if any pattern matches.
 
-**Reference.** `tools/hirono/raindrop/failure-kind.ts` `APP_URL_PATTERNS`. Commit `9b2bec6`.
+The classifier checks this in two places:
+- **Stub branch** (after extraction failed with `_default-fetch-failed` / `loading-skeleton`): if URL is app-shaped, return `intentional-stub-app-only`; otherwise fall through to `upstream-spa-no-content`.
+- **Non-stub flagged branch** (iteration 5): when the slug has flags BUT no `intentional-stub` marker (e.g. `short-body` from a homepage extraction), check the URL pattern there too — if it matches, classify as `intentional-stub-app-only` instead of letting the slug masquerade as `content-too-short`.
+
+The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain URL with clean extraction (real-content blog homepage) classifies as `clean` per the catchall and never reaches the URL-pattern check. The pattern only flips the kind when extraction was already judged sub-good.
+
+**Generalization.** Recognizing "this URL is fundamentally not an article" early saves a lot of extraction grief. The URL pattern is more reliable than DOM heuristics. When extending: think hard about what bookmark INTENT corresponds to the URL shape — if the bookmark intent is "the site/app/query itself," the slug belongs in `intentional-stub-app-only`. Add the regex to `looksLikeAppShapedUrl`.
+
+**Reference.** `tools/hirono/raindrop/failure-kind.ts:looksLikeAppShapedUrl` (regex set + the two branch usages). Commit `9b2bec6` (original P-18); iteration 5 added bare-domain + search-results matchers and lifted the check into the non-stub branch.
 
 ---
 
