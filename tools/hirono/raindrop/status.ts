@@ -28,6 +28,7 @@ import { fileURLToPath } from "node:url";
 import { hostnameOf, listRawSlugs, type RawSlugInfo } from "../../fetch-raw.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { routeSite } from "../../sites/index.ts";
+import { unwrapShareUrl } from "../../sites/_shared/url-unwrap.ts";
 import {
   classify,
   parseOverrides,
@@ -238,9 +239,17 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
   for (const b of bookmarks) {
     const norm = normalizeUrl(b.link);
     seenUrls.add(norm);
-    const idxEntry = sourcesIndex[norm];
+    // For share-wrapper bookmarks, the slug's source.json origin_url
+    // is the UNWRAPPED target (since fetchUrlAndStore unwraps before
+    // routing). Look up the slug under both the wrapper form (matches
+    // sources-index entries created from Sources/) and the unwrapped
+    // form (matches source.json origin_urls).
+    const unwrap = unwrapShareUrl(b.link);
+    const unwrappedNorm = unwrap ? normalizeUrl(unwrap.unwrapped) : null;
+    if (unwrappedNorm) seenUrls.add(unwrappedNorm);
+    const idxEntry = sourcesIndex[norm] ?? (unwrappedNorm ? sourcesIndex[unwrappedNorm] : undefined);
     const slug = idxEntry?.slug;
-    const rawInfo = rawByUrl.get(norm);
+    const rawInfo = rawByUrl.get(norm) ?? (unwrappedNorm ? rawByUrl.get(unwrappedNorm) : undefined);
     const flags = rawInfo?.source?.quality_flags ?? [];
     const cls = classify({
       url: b.link,

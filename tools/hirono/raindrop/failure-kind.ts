@@ -159,7 +159,11 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
   // for a PDF or a LAN IP should classify the same way before and after the
   // first sync attempt.
   if (!host) return "host-malformed";
-  if (/[?&]link=https/i.test(url) && /^share\.google$/i.test(host)) return "host-malformed";
+  // (share.google?link=… used to classify as host-malformed unconditionally;
+  // now handled by `unwrapShareUrl` pre-fetch — see P-32 in
+  // Meta/site-handling-patterns.md. Once unwrapped, the slug's source.json
+  // origin_url is the real target so the URL-shape rule below classifies
+  // by the target's host instead.)
   if (isLanIp(host) || /:\d{4,5}$/.test(host)) return "host-lan-only";
   // PDF detection: literal `.pdf` extension OR path ending in `/pdf`
   // (covers openreview.net/pdf?id=…, etc.).

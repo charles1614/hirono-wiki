@@ -42,6 +42,7 @@ import { appendRevision, nextRev, type RevisionRow } from "./shared/revisions.ts
 import { routeSite } from "./sites/index.ts";
 import { extractJsonFromEvalStdout } from "./sites/_shared/browser-eval-json.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
+import { unwrapShareUrl } from "./sites/_shared/url-unwrap.ts";
 import { classifyFromInput } from "./hirono/raindrop/failure-kind.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -860,6 +861,18 @@ const AUTO_SKIP_RULES: Array<{
 ];
 
 export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
+  // Pre-routing: unwrap share-aggregator URLs (e.g.
+  // `share.google?link=https://linux.do/...`). Replaces opts.url so
+  // routing, slug-dir placement, and the fetcher all see the real
+  // target. The original (wrapper) URL is preserved as the bookmark
+  // link via the cache; rebuildRawIndex inverts the unwrap to keep
+  // the slug→bookmark join intact.
+  const unwrap = unwrapShareUrl(opts.url);
+  if (unwrap) {
+    console.error(`[unwrap] ${unwrap.wrapperHost} → ${unwrap.unwrapped}`);
+    opts = { ...opts, url: unwrap.unwrapped };
+  }
+
   for (const rule of AUTO_SKIP_RULES) {
     if (rule.match(opts.url)) {
       throw makeError(rule.code, "L2", rule.reason, { domain: hostnameOf(opts.url) });
@@ -1159,18 +1172,27 @@ export function rebuildRawIndex(
   const slugs = listRawSlugs(rawRoot);
 
   // Build a URL → bookmark map from the raindrop cache (best-effort).
+  // For share-wrapper bookmarks (e.g. `share.google?link=<target>`) we
+  // also key the map by the unwrapped target URL — the slug's
+  // origin_url will be the unwrapped form (since fetchUrlAndStore
+  // unwrapped before fetching), so without this fallback the join
+  // would miss and `_index.json` would lose the bookmark metadata.
   const byUrl = new Map<string, { bookmark_id: number; collection_id?: number; tags?: string[]; created?: string; title?: string }>();
   if (existsSync(cachePath)) {
     try {
       const data = JSON.parse(readFileSync(cachePath, "utf8"));
       for (const b of data.bookmarks ?? []) {
-        if (b.link) byUrl.set(b.link, {
+        if (!b.link) continue;
+        const meta = {
           bookmark_id: b.bookmark_id,
           collection_id: b.collection_id,
           tags: b.tags,
           created: b.created,
           title: b.title,
-        });
+        };
+        byUrl.set(b.link, meta);
+        const unwrap = unwrapShareUrl(b.link);
+        if (unwrap) byUrl.set(unwrap.unwrapped, meta);
       }
     } catch { /* leave map empty */ }
   }
