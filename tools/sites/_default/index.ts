@@ -236,6 +236,62 @@ function stubResult(url: string, summary: string, errorDetail?: string): Result 
 }
 
 /**
+ * Detect that the body we extracted is actually an anti-bot challenge
+ * page (Cloudflare "Just a moment..." / Akamai / DataDome /
+ * PerimeterX) or a Cloudflare origin-error interstitial (5xx error
+ * pages served from the CF edge). Returns the matched signature name
+ * for diagnostics, or null when the body is real content.
+ *
+ * Signals are deliberately broad — we want false positives over false
+ * negatives, since the alternative is shipping a slug whose body
+ * literally says "Performing security verification" as if it were
+ * the article text. Tightening can come later if real-content pages
+ * trip the filter.
+ */
+function looksLikeBotChallenge(title: string | undefined, body: string): string | null {
+  const t = (title ?? "").trim();
+  const head = body.slice(0, 1500);
+  // Title-only signals — high confidence.
+  if (/^Just a moment\.\.\.?$/i.test(t)) return "cloudflare-just-a-moment";
+  if (/^Attention Required!.*Cloudflare/i.test(t)) return "cloudflare-attention-required";
+  if (/\b\d{3}:\s*(SSL handshake failed|Origin is unreachable|Connection timed out|Web server is down)/i.test(t)) return "cloudflare-origin-error";
+  // Body-text signals (any one is enough — these strings only appear
+  // on challenge / interstitial pages, not on real content).
+  if (/Performing security verification/i.test(head)) return "cloudflare-security-verification";
+  if (/Checking your browser before accessing/i.test(head)) return "cloudflare-browser-check";
+  if (/cf-browser-verification|cf-im-under-attack|cf_chl_/i.test(head)) return "cloudflare-class-marker";
+  if (/Cloudflare Ray ID/i.test(head) && /\b(blocked|attention|security)\b/i.test(head)) return "cloudflare-ray-id-blocked";
+  if (/DataDome|PerimeterX|HUMAN Security|ddg_captcha/i.test(head)) return "third-party-bot-protection";
+  if (/Akamai Bot Manager|reference\s*#\d+\.[0-9a-f]+/i.test(head)) return "akamai-bot-manager";
+  return null;
+}
+
+/**
+ * Bot-blocked stub — emitted when the body we extracted is the
+ * anti-bot challenge page itself rather than the underlying content.
+ * Distinct flag (`bot-protection-blocked`) so the failure-kind
+ * classifier can map this case to `upstream-fetch-failed` directly
+ * instead of letting the slug masquerade as `content-too-short` /
+ * `content-incomplete-images-zero`. See P-33 in
+ * `Meta/site-handling-patterns.md`.
+ */
+function botBlockedStub(url: string, signature: string, errorDetail?: string): Result {
+  return makeStub({
+    url,
+    module: "_default",
+    kind: "bot-blocked",
+    title: "_default article (bot protection blocked)",
+    summary: `body extracted is an anti-bot challenge page (signature: ${signature})`,
+    advice:
+      "Cloudflare / Akamai / DataDome served a challenge or origin-error interstitial " +
+      "instead of the underlying content. Both curl and browser-eval saw the same. " +
+      "Open the URL in the opencli-bound Chrome to clear the challenge cookie, " +
+      "then refetch — or accept the stub if the host is consistently bot-walled.",
+    errorDetail,
+  });
+}
+
+/**
  * Non-HTML stub — emitted when the curl response is a PDF / binary /
  * media file we can't extract markdown from. Distinct kind from
  * `fetch-failed` so the failure-kind classifier can label it
@@ -315,6 +371,25 @@ export const site: Site = {
       ].join("\n");
       return stubResult(url, summary, detail);
     }
+    // Anti-bot challenge detection. If the body we extracted IS the
+    // Cloudflare / Akamai / DataDome challenge page (or a CF
+    // origin-error interstitial), DON'T let it pass through as
+    // content — emit a `_default-bot-blocked` stub instead. See P-33
+    // in `Meta/site-handling-patterns.md`.
+    const challengeSig = looksLikeBotChallenge(conv.metadata.title, conv.markdown);
+    if (challengeSig) {
+      const detail = [
+        `signature:           ${challengeSig}`,
+        `curl bytes:          ${curlBytes}`,
+        `curl body chars:     ${curlBodyChars}`,
+        `browser path tried:  ${usedBrowser ? "yes (kept)" : conv ? "yes (rejected, smaller than curl)" : "no"}`,
+        browserError ? `browser eval error:  ${browserError}` : "",
+        `final body chars:    ${conv.stats.bodyChars}`,
+        `extracted title:     ${conv.metadata.title ?? "(none)"}`,
+      ].filter(Boolean).join("\n");
+      return botBlockedStub(url, challengeSig, detail);
+    }
+
     if (conv.stats.bodyChars < STUB_THRESHOLD) {
       const summary = `body empty/too small (${conv.stats.bodyChars} chars after ${usedBrowser ? "browser" : "curl"} path)`;
       const detail = [

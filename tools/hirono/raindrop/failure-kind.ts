@@ -215,8 +215,14 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
       if (APP_URL_PATTERNS.some((p) => p.test(url))) return "intentional-stub-app-only";
       return "upstream-spa-no-content";
     }
-    // Generic fetch failure stub
-    if ([...flags].some(f => /-fetch-failed$/.test(f) || /-extraction-failed$/.test(f))) {
+    // Generic fetch failure stub. Includes anti-bot blocks
+    // (`-bot-blocked` flag from `_default` or any future site module
+    // that detects Cloudflare/Akamai/DataDome challenges — see P-33).
+    if ([...flags].some(f =>
+      /-fetch-failed$/.test(f) ||
+      /-extraction-failed$/.test(f) ||
+      /-bot-blocked$/.test(f)
+    )) {
       return "upstream-fetch-failed";
     }
     // Paywall hint via login-wall keyword
