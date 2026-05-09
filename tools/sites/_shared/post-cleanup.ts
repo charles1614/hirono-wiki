@@ -374,15 +374,48 @@ export const stripEmptyAnchorLinks: PostProcessor = {
   name: "strip-empty-anchor-links",
   match: () => true,
   transform: (md, _originUrl) => {
-    const lines = md.split("\n");
-    const emptyLinkLine = /^\s*\[\]\([^)]+\)\s*$/;
-    const kept: string[] = [];
+    // Strip empty-text anchor links `[](url)` (with optional title in
+    // the parens). Three shapes encountered in the corpus:
+    //   1. Whole-line: `[](#anchor)` — pure chrome (permalink icon).
+    //   2. Inline-prefix: `[](# "Toggle search")[![Meta](logo.svg)](/)`
+    //      — empty anchor next to a real image-link wrapper. Common on
+    //      sites with icon-only nav (ai.meta.com, blog.google).
+    //   3. Inside a list bullet: `-   [](# "Toggle site search")` —
+    //      bullet wraps an empty anchor (icon-only nav-list).
+    //
+    // Skip when the bracketed text starts with `!` (image-shape link
+    // `![alt](src)` — those are real images even when alt is empty).
+    // Skip inside fenced code blocks (literal `[]()` may appear in
+    // markdown examples).
     let stripped = 0;
+    const lines = md.split("\n");
+    let inFence = false;
+    const out: string[] = [];
     for (const line of lines) {
-      if (emptyLinkLine.test(line)) { stripped++; continue; }
-      kept.push(line);
+      if (/^\s*```/.test(line)) {
+        inFence = !inFence;
+        out.push(line);
+        continue;
+      }
+      if (inFence) { out.push(line); continue; }
+      // Replace inline empty-anchor occurrences. Negative-lookbehind
+      // for `!` to avoid touching `![](src)` image refs.
+      const before = line;
+      const after = before.replace(/(?<!!)\[\]\([^)]*\)/g, "");
+      if (after !== before) {
+        stripped += (before.length - after.length > 0) ? 1 : 0;
+      }
+      // After stripping, a line that contained ONLY empty anchors plus
+      // whitespace / leading list-bullet markers becomes empty noise.
+      // Drop those entirely.
+      const residual = after.replace(/^\s*[-*+]\s+/, "").trim();
+      if (after.trim() && residual === "") {
+        // Was a bullet wrapping only empty anchors — drop the whole line.
+        continue;
+      }
+      out.push(after);
     }
-    const cleaned = kept.join("\n").replace(/\n{3,}/g, "\n\n");
+    const cleaned = out.join("\n").replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n");
     return {
       md: cleaned,
       newAbsoluteImageUrls: [],
