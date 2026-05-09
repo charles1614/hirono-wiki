@@ -45,3 +45,7 @@ for the full list. Lines that don't match this shape are ignored.
 <!-- Example (uncomment when needed):
 - 2026-04-21-some-slug: pin-kind=upstream-paywall   # Bloomberg article — soft paywall the classifier missed
 -->
+
+## 2026-05-09
+
+- 2025-05-27-atopx-linux-wps-linux打包安装最新版-wps365-支持一键: pin-kind=clean   # tiny WPS365-installer repo readme; substantive but genuinely short (single image + install snippet); audit-flagged for pinning in post-fetch-todo §3
