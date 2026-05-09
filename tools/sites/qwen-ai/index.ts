@@ -24,6 +24,7 @@ import { convertGenericHtml } from "../_shared/generic-converter.ts";
 import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 import { makeStub } from "../_shared/stub.ts";
+import { harvestServiceCard } from "../_shared/service-card.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 
 interface QwenExtraction {
@@ -329,6 +330,11 @@ function isResearchListingUrl(url: string): boolean {
 }
 
 function stub(url: string, reason: string, errorDetail?: string): Result {
+  // qwen.ai is a JS SPA — the body extraction often fails on
+  // non-article URLs (bare-domain, app-shell paths). The page's
+  // <head> still has og:title/description describing the service,
+  // so we harvest those into bodyExtra. See P-41.
+  const card = harvestServiceCard(url);
   return makeStub({
     url,
     module: "qwen-ai",
@@ -339,6 +345,7 @@ function stub(url: string, reason: string, errorDetail?: string): Result {
             "Check whether the page renders interactively in a browser; qwen.ai is a JS SPA " +
             "that may have changed its DOM shape or dropped this URL.",
     errorDetail,
+    bodyExtra: card?.markdown,
   });
 }
 

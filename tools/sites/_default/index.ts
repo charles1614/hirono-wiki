@@ -38,6 +38,7 @@ import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hoo
 import { convertArticle, type ArticleConvertResult, type ArticleSelectors } from "../_shared/article-converter.ts";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 import { makeStub } from "../_shared/stub.ts";
+import { harvestServiceCard } from "../_shared/service-card.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 import { renderPdfFromUrl } from "./pdf-render.ts";
 
@@ -252,6 +253,13 @@ function runConverter(args: DefaultFixtureArgs): ArticleConvertResult {
 }
 
 function stubResult(url: string, summary: string, errorDetail?: string): Result {
+  // Service-landing stubs (SPA shells, interactive apps) tend to have
+  // rich `<meta>` in `<head>` even when the body extraction yielded
+  // nothing useful — `og:title` + `og:description` describe what the
+  // service IS, which is the user's bookmark intent. Harvest into
+  // bodyExtra so the slug carries a "## About this service" card
+  // instead of bare boilerplate. See P-41.
+  const card = harvestServiceCard(url);
   return makeStub({
     url,
     module: "_default",
@@ -263,6 +271,7 @@ function stubResult(url: string, summary: string, errorDetail?: string): Result 
       "Open the URL in a browser to confirm the page renders. If it does, this host may " +
       "warrant a dedicated site module (see tools/sites/MIGRATION.md).",
     errorDetail,
+    bodyExtra: card?.markdown,
   });
 }
 
