@@ -245,7 +245,17 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
   }
 
   // Non-stub flagged content
-  if (flagSet.has("login-wall-keyword") || PAYWALL_HOSTS.has(host)) return "upstream-paywall";
+  // Paywall-host rule has an explicit exception for `pdf-rendered`:
+  // hosts like openreview.net technically gate the HTML version, but
+  // when P-36 renders the linked PDF to image-bearing markdown the
+  // slug carries real content. Same logic applies to
+  // `structured-summary` (github commit / compare summaries) — the
+  // marker flag means "we got useful content via a non-HTML path,
+  // don't pin as paywall just because the host matches".
+  const hasContentMarker = flagSet.has("pdf-rendered") || flagSet.has("structured-summary");
+  if ((flagSet.has("login-wall-keyword") || PAYWALL_HOSTS.has(host)) && !hasContentMarker) {
+    return "upstream-paywall";
+  }
   // URL-pattern app-only check applies here too — but ONLY when the
   // slug already has at least one flag (sub-good extraction). A
   // bare-domain URL with clean extraction (e.g. `lilianweng.github.io/`
