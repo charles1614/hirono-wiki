@@ -16,6 +16,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
+import { NON_PROBLEMATIC_FLAGS_SET } from "../../fetch-raw.ts";
 
 export type FailureKind =
   | "clean"
@@ -257,13 +258,16 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
     return "upstream-paywall";
   }
   // URL-pattern app-only check applies here too — but ONLY when the
-  // slug already has at least one flag (sub-good extraction). A
+  // slug has at least one PROBLEMATIC flag (real sub-good signal). A
   // bare-domain URL with clean extraction (e.g. `lilianweng.github.io/`
   // serving a real blog homepage) shouldn't classify as app-only.
-  // The URL pattern only flips the kind when extraction was already
-  // judged sub-good. See P-18 (refined to add bare-domain and
-  // search-results matchers in iteration 5).
-  if (flags.length > 0 && looksLikeAppShapedUrl(input.url || "")) return "intentional-stub-app-only";
+  // Marker flags (`_default-used-browser-fallback`, `pdf-rendered`,
+  // `structured-summary`, etc. — see NON_PROBLEMATIC_FLAGS_SET in
+  // fetch-raw.ts) are informational and don't count as sub-good.
+  // See P-18 (refined to add bare-domain and search-results matchers
+  // in iteration 5; marker-flag exclusion added in iteration 7).
+  const hasRealFlags = flags.some(f => !NON_PROBLEMATIC_FLAGS_SET.has(f));
+  if (hasRealFlags && looksLikeAppShapedUrl(input.url || "")) return "intentional-stub-app-only";
   if (flagSet.has("images-declared-but-none-downloaded")) return "content-incomplete-images-zero";
   if ([...flags].some(f => /-image-download-partial$/.test(f))) return "content-incomplete-images";
   if (flagSet.has("short-body") || flagSet.has("below-host-expected-size")) return "content-too-short";

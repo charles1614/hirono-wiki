@@ -87,6 +87,31 @@ export interface LarkMeta {
 export type FetcherKind = "raindrop-mcp-piped" | "lark-hirono" | "url-static" | "opencli";
 export type FetcherReason = "direct" | "domain-override" | "quality-fallback" | "forced-via-browser";
 
+/**
+ * Marker flags — informational, not quality problems. A slug whose
+ * ONLY flags are markers stays `quality_status=good`. Also consumed
+ * by the kind classifier (failure-kind.ts) to mean "extraction was
+ * NOT sub-good for app-only-classification purposes" — bare-domain
+ * URLs with only-marker flags shouldn't reclassify as app-only.
+ *
+ *   - `intentional-stub`: stub content is the deliberate output.
+ *   - `pdf-rendered`: PDF rendered to image-bearing markdown (P-36).
+ *   - `structured-summary`: deliberate metadata-shape document
+ *     (github commit / compare summaries) where short-body floors
+ *     don't apply.
+ *   - `v2ex-image-rescued-via-wayback`: imgur images that 429'd were
+ *     rescued from the Wayback Machine. Audit-only.
+ *   - `_default-used-browser-fallback`: records that browser-eval
+ *     was the path that won. Informational; not a defect.
+ */
+export const NON_PROBLEMATIC_FLAGS_SET: ReadonlySet<string> = new Set([
+  "intentional-stub",
+  "pdf-rendered",
+  "structured-summary",
+  "v2ex-image-rescued-via-wayback",
+  "_default-used-browser-fallback",
+]);
+
 export interface ImageRecord {
   local: string;
   remote: string;
@@ -406,12 +431,7 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   //     rescued from the Wayback Machine. The content is present;
   //     the flag exists for audit only.
   // Real quality flags (short-body, etc.) still flip to "flagged".
-  const NON_PROBLEMATIC_FLAGS = new Set([
-    "intentional-stub",
-    "pdf-rendered",
-    "structured-summary",
-    "v2ex-image-rescued-via-wayback",
-  ]);
+  const NON_PROBLEMATIC_FLAGS = NON_PROBLEMATIC_FLAGS_SET;
   const suspicious = uniq.some((f) => !NON_PROBLEMATIC_FLAGS.has(f));
   const quality_status: QualityStatus = suspicious ? "flagged" : "good";
   return { suspicious, flags: uniq, quality_status };

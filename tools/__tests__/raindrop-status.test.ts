@@ -116,6 +116,19 @@ test("classifyFromInput: search-results URL with flags → intentional-stub-app-
   assert.equal(k, "intentional-stub-app-only");
 });
 
+test("classifyFromInput: bare-domain with ONLY marker flags stays clean (P-18 marker-flag exclusion)", () => {
+  // _default-used-browser-fallback is informational (records which path
+  // won), not a quality issue. A bare-domain URL extracted cleanly via
+  // browser-eval should classify as `clean` — the marker flag must NOT
+  // trip the URL-pattern app-only reclassification.
+  const k = classifyFromInput({
+    url: "https://ai.meta.com/",   // bare-domain (will hit looksLikeAppShapedUrl)
+    isFetched: true,
+    flags: ["_default-used-browser-fallback"],
+  });
+  assert.equal(k, "clean");
+});
+
 test("classifyFromInput: bare-domain CLEAN extraction stays clean (no flag flip)", () => {
   const k = classifyFromInput({
     url: "https://lilianweng.github.io/",
