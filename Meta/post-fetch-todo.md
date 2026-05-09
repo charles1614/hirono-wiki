@@ -131,6 +131,15 @@ Items closed by shipped commits, kept here for the audit trail.
 - [x] **Multi-card blog-index aggregation** — `tools/sites/_shared/article-converter.ts` `nearestCommonAncestor` (P-40, this session).
 - [x] **Service-landing stub: harvest `og:*` metadata into the body** — `tools/sites/_shared/service-card.ts` + `bodyExtra` field on `makeStub` (P-41, this session).
 - [x] **`hirono raindrop check` host aggregation** — multi-tenant subdomains now collapse to one row per `site.name` (this session, `tools/hirono/raindrop/check.ts`).
+- [x] **GitHub blob-path raw-fetch fuzzy-fallback** — commit `54d4c61` (P-42); recovered 2 corpus slugs (TensorRT-LLM blog09, AI-fundermentals DeepSeek MoE).
+- [x] **GitHub `/commit/<sha>` and `/compare/<spec>` URL handling** — commit `edf7ede`; recovered 2 corpus slugs as `structured-summary`-flagged clean docs.
+- [x] **GitHub plain-text files (`.txt`/`.csv`/`.tsv`/`.log`)** — commit `a45db43`; recovered 1 slug (waymo_val_list.txt: 0 → 13355 chars).
+- [x] **openreview `pdf-rendered` mis-pinned as paywall** — commit `791db12`.
+- [x] **share.google ghost (P-32 transparency test)** — commit `1438ca4` (regression test only; status code was already correct).
+- [x] **v2ex imgur-via-Wayback rescue** — commit `a4c7248` (P-43); recovered 1 slug (v2ex/979201).
+- [x] **`harvestServiceCard` spread to `_default` + `qwen-ai` stubs** — commit `b8d456c`; enriches stub bodies with og:* descriptions.
+- [x] **Marker-flag classifier fix** — commit `d2ec8ed`; `_default-used-browser-fallback`-only slugs no longer mis-classify as app-only (16 slugs reclassified, +5 to clean net).
+- [x] **`hirono raindrop sync --exclude-host` flag** — commit `575115e` (preventive infra for future bulk fetches when Charles's Chrome auth has expired for specific hosts).
 
 ---
 
@@ -138,55 +147,56 @@ Items closed by shipped commits, kept here for the audit trail.
 
 Surface in CLAUDE.md §4 fix recipes when implemented.
 
-- [ ] **(High)** **GitHub blob-path raw-fetch failure for deep `*.md` paths.**
-  Two slugs:
-  - `https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/tech_blog/blog9_Deploying_GPT_OSS_on_TRTLLM.md`
-  - `https://github.com/ForceInjection/AI-fundermentals/blob/main/inference-solution/DeepSeek-V3-MoE-vLLM-H20-Deployment.md`
+- [ ] **(High)** **Downgrade protection in `fetchUrlAndStore`.** Bug
+  observed when bg-syncing flagged slugs whose extraction depends on
+  browser-eval (notion.site, zenfeed.xyz, 51cto.com, etc.): the
+  browser path is non-deterministic. A re-fetch can produce a much
+  smaller body than the previous fetch (1 char vs 9674 chars in one
+  case). The current write path overwrites `content.md` + `source.json`
+  unconditionally, destroying the previously-good content. The
+  revisions.jsonl manifest preserves the SHA + length history but
+  NOT the per-rev body, so once overwritten the previous content is
+  lost.
 
-  Both files exist on the default branch and are valid markdown. The
-  github module's blob → `raw.githubusercontent.com/<o>/<r>/<branch>/<path>`
-  rewrite is failing somewhere — check the resolver in
-  `tools/sites/github/`. Likely path-encoding or default-branch
-  detection edge case.
+  Concrete corpus example: `wangzhiyu.notion.site/` revisions.jsonl
+  shows 4 oscillations between 9674 chars (browser succeeded) and
+  ~600-800 chars (browser stub). Same pattern on `zenfeed.xyz/`
+  (19499 → 16801 → 714 chars across 3 revs) and
+  `www.51cto.com/aigc/3474.html` (26712 → 543 chars). Manual retry
+  during this audit recovered wangzhiyu + zenfeed; 51cto is currently
+  stuck at the smaller body.
 
-- [ ] **(High)** **GitHub `/commit/` and `/compare/` URL shapes — handle or
-  stub.**
-  - `https://github.com/HarborYuan/mmcv_16/commit/ad1a72fe0cbeead2716706ff618dfa0269d2cf4c`
-  - `https://github.com/chen08209/FlClash/compare/main...dongfengweixiao:FlClash:update_flutter_js`
+  Fix shape (substantive — defer to Charles):
+  1. Before overwriting `content.md`, archive the current body at
+     `<slugDir>/_history/<rev>-<sha>.md` (or similar). Costs disk but
+     gives true point-in-time recovery.
+  2. After completing a fetch, compare the new result against the
+     previous rev. When the previous rev was substantially better
+     (≥3× content_length, no `intentional-stub` flag) AND the new
+     rev is a stub (`intentional-stub` + `*-fetch-failed` flags),
+     keep the previous content. Add a `downgrade-protected` marker
+     flag to source.json so the operator can audit.
 
-  Both fail with `github URL parse failed`. Two-branch fix in github
-  module: `/commit/` → REST `repos/{o}/{r}/commits/{sha}` (returns
-  message + diff stats — useful as a Sources entry), `/compare/` →
-  emit a deliberate stub (diff URLs aren't archive-shaped).
+  Risk of fix: a slug whose URL went LEGITIMATELY bad upstream
+  (deleted, truly dead) would be falsely "preserved" — but that's a
+  known limitation of any heuristic, and the marker-flag-based
+  detection (`upstream-deleted` etc.) handles the genuinely-deleted
+  case independently.
 
-- [ ] **(High)** **Status classifier mis-pins `pdf-rendered` openreview as
-  `upstream-paywall`.** Single slug:
-  `https://openreview.net/pdf?id=sIOgOQttFQ`. Content is good (43
-  pages rendered). Investigate `tools/hirono/raindrop/failure-kind.ts`
-  — there's a host pattern matching openreview without checking
-  `pdf-rendered` flag presence. One-rule fix; should include
-  `pdf-rendered` in the skip-set so any kind-classifier sees the slug
-  is good content.
+- [ ] **(Low)** **Orphan-slug pruning needs an unwrap-aware CLI command.**
+  The current orphan list (slugs in `raw/raindrop/<host>/<slug>/` but
+  not in `.wiki-raindrop-cache.json`) is computable inline but
+  one-off-script-only. Both prior orphan-deletion rounds in this
+  session were done via inline Python that didn't always handle the
+  share-aggregator unwrap correctly (caused us to delete the
+  share.google → linux.do slug once, then re-fetch it). A
+  `hirono raindrop orphans [--prune] [--dry-run]` subcommand using
+  the same unwrap-aware logic from `status.ts` would close the gap.
 
-- [ ] **(High)** **`share.google` not-yet-fetched ghost.** One slug:
-  cache has `https://share.google?link=https://linux.do/t/topic/537374…`
-  but the slug was fetched under the unwrapped URL, so the
-  status-side join misses. Fix in
-  `tools/hirono/raindrop/status.ts` (or wherever the cache↔raw join
-  happens): also try `unwrapShareUrl(cache.link).unwrapped` against
-  the slug's `origin_url` before declaring not-yet-fetched. P-32 is
-  supposed to be transparent end-to-end; this is the last
-  not-transparent surface.
-
-- [ ] **(Medium)** **`images-declared-but-none-downloaded` on
-  `www.v2ex.com/t/979201`.** v2ex-specific image-download path emits
-  `v2ex-image-download-partial` then ALL images fail (yielding the
-  zero-downloaded flag). Reproduce with `HIRONO_FETCH_DEBUG=1
-  npx tsx tools/bin/hirono.ts raindrop refetch <slug>`. Likely the
-  v2ex module's image-URL resolver returns relative URLs that the
-  shared download path can't resolve. Other `images-declared` slug
-  (`github.com/hesreallyhim/awesome-claude-code`) is the
-  GITHUB_TOKEN issue covered in §3.
+  Currently 9 orphans surface in the status report (correctly tagged
+  `[orphan: bookmark deleted from Raindrop]`); they don't hurt anything
+  but clutter the report. Charles can `rm -rf` them by hand or wait
+  for this CLI.
 
 - [ ] **(Medium-low, preventive)** **Article-site factory
   browser-assist for lazy-loaded images (P-39 generalization).** The
@@ -199,22 +209,22 @@ Surface in CLAUDE.md §4 fix recipes when implemented.
   active-corpus regression today (we already cover blog.google in
   `_default`'s browser path), but blog-shape hosts that DO route
   through the factory would benefit. See P-39 in
-  `Meta/site-handling-patterns.md`.
+  `Meta/site-handling-patterns.md`. **Survey 2026-05-09:** all
+  candidates examined have either (a) curl-only resolution working
+  fine or (b) intentionally-tiny images (CSDN math equations).
+  Defer until a real factory-routed slug surfaces with low-res content.
 
 - [ ] **(Medium-low, preventive)** **Spread `harvestServiceCard()` to
-  other landing-stub modules (P-41 generalization).** Helper at
-  `tools/sites/_shared/service-card.ts` is wired into
-  `tools/sites/deepwiki-com/` only. Same pattern applies to:
-  - `qwen-ai` (qwen.ai bare domain → app shell)
-  - `x-twitter` root (`x.com/`)
-  - `feishu` tenant landings
-  - future tool-homepage stubs
+  remaining stub-emitters.** Wired into `deepwiki-com`, `_default`'s
+  `stubResult`, and `qwen-ai`'s catch-all stub (commits `6e8ddef` +
+  `b8d456c`). Could still apply to:
+  - `feishu` tenant landings — currently emits "no read access" stubs
+    without service-card; tenant homepage `<head>` may have useful
+    description.
+  - Future tool-homepage stubs as new modules are added.
 
-  Each call site is a 2-line add: import + pass
-  `harvestServiceCard(url)?.markdown` as `bodyExtra` in the relevant
-  `makeStub` call. Slug bodies gain "what is this service" cards
-  instead of bare boilerplate. See P-41 in
-  `Meta/site-handling-patterns.md`.
+  x-twitter intentionally skipped (status URL og:* metadata is generic
+  "Login to X" boilerplate, not a service description).
 
 - [ ] **(Low, preventive)** **Body-direct content fallback in
   `_default` (P-37 automation).** Some single-purpose JS tools,
@@ -255,12 +265,10 @@ Surface in CLAUDE.md §4 fix recipes when implemented.
   ```
   Expected: +3–4 to clean.
 
-- [ ] **Eyeball and pin `content-too-short` slugs** (4 items, was 6
-  — P-18 + P-34 absorbed 2). For each, open the URL; if the body
-  really is short by design, pin via `Meta/sources-health-overrides.md`.
-  Remaining URLs to review:
-  - `https://github.com/atopx/linux-wps` — small repo readme
-    (almost certainly genuinely short → pin clean).
+- [ ] **Eyeball and pin `content-too-short` slugs** (3 items, was 6
+  — P-18 + P-34 absorbed 2; atopx pinned `clean` in commit `b1d187d`).
+  For each, open the URL; if the body really is short by design, pin
+  via `Meta/sources-health-overrides.md`. Remaining URLs to review:
   - `https://www.zhihu.com/question/1918276517865157261/answer/1918748704971678665`
     — short-body answer (eyeball; could be deleted answer or genuinely
     brief).
@@ -276,9 +284,14 @@ Surface in CLAUDE.md §4 fix recipes when implemented.
   `intentional-stub`/`xhs-text-body-unavailable` flags, set
   `quality_status: good`, bump `content_length`).
 
-- [ ] **Decide on the 1 `upstream-spa-no-content` real-content slug**
-  — `https://www.substratus.ai/blog/kind-with-gpus`. Domain returns
-  no HTTP response (curl errors); content is gone. The other 4
+- [ ] **Decide on the 3 `upstream-spa-no-content` real-content slugs**
+  with curl-failure (HTTP 000) from this network:
+  `https://www.substratus.ai/blog/kind-with-gpus`,
+  `https://yecnay.org/posts/tech/iterm2快捷键小记/`,
+  `https://yuyang.info/Course-Notes/`. The latter two resolve via DNS
+  but the response is `198.18.x.x` (carrier-grade NAT range) —
+  network-level interception. The first responds 000 entirely.
+  All three would need to be fetched from a different network. Other
   slugs in this kind are orphans (bookmarks already deleted). Either
   accept the stub or look for an archive.org snapshot.
 
@@ -374,15 +387,21 @@ steady-state operations.
 
 ## Final-state targets
 
-Updated against current 355 baseline:
+Updated against current **369 clean** baseline (was 355 → +14 from
+all §1 fixes shipped in this audit cycle: github blob-fuzzy,
+github commit/compare, openreview reclassify, share.google
+transparency test, v2ex Wayback, plain-text github, marker-flag fix,
+zenfeed/wangzhiyu manual recovery):
 
-- After §2 (tool-side fixes): **~365 clean** (+10 from current 355 —
-  blob-path fix +2, commit/compare URL handling +1, openreview
-  reclassify +1, share.google ghost +1, v2ex image partial +1,
-  smaller knock-on effects from spread `harvestServiceCard`).
+- After §2 (remaining tool-side fixes): **~370 clean** (+1; the
+  remaining items are preventive — body-direct fallback has zero
+  active candidates, factory browser-assist has no current
+  regression, downgrade-protection prevents future loss but
+  doesn't recover the 51cto slug now stuck at the smaller body).
 - After §3 (user-side: `GITHUB_TOKEN`, linux.do re-auth, xhs manual
-  paste): **~370+ clean** (+5–10 from §2 baseline; biggest single
-  lever is the 167 xhs manual fixes if you commit the time).
+  paste, content-too-short pinning): **~380+ clean** (+10–15 from
+  current 369; biggest single lever is the 167 xhs manual fixes if
+  you commit the time).
 - After §4 (Sources summaries): wiki is browsable, reference counts
   populate.
 - After §5 (push): commits durable beyond this machine.
