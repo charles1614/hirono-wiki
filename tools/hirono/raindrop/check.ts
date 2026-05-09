@@ -75,6 +75,30 @@ function hostOf(url: string): string {
   catch { return ""; }
 }
 
+/**
+ * Longest common dot-aligned suffix across a list of hostnames. Used
+ * to compute a readable display hostname when many tenant subdomains
+ * route to one site module (e.g. five `*.feishu.cn` tenants → display
+ * `feishu.cn`). Splits each host on `.`, walks the labels right-to-
+ * left, and keeps labels shared by every input. Returns "" if the
+ * inputs share no common suffix (different TLDs).
+ */
+export function longestCommonHostSuffix(hosts: string[]): string {
+  if (hosts.length === 0) return "";
+  if (hosts.length === 1) return hosts[0];
+  const labelLists = hosts.map(h => h.split("."));
+  const suffix: string[] = [];
+  let i = 1;
+  while (true) {
+    const probe = labelLists[0][labelLists[0].length - i];
+    if (probe === undefined) break;
+    if (!labelLists.every(ll => ll[ll.length - i] === probe)) break;
+    suffix.unshift(probe);
+    i++;
+  }
+  return suffix.join(".");
+}
+
 export interface Duplicate {
   normalized_url: string;
   bookmarks: CachedBookmark[];
@@ -189,7 +213,16 @@ function computeGraduations(report: CheckReport): {
 export function buildReport(cache: Cache): CheckReport {
   // Group bookmarks by normalized URL to find duplicates
   const byNormUrl = new Map<string, CachedBookmark[]>();
-  const hostCounts = new Map<string, HostRow>();
+  // Aggregate by routing identity: `site:<name>` for non-default sites
+  // (so all *.feishu.cn tenants → one `site:feishu` row with count=N),
+  // raw hostname for `_default` and `unknown` (long-tail singletons
+  // remain individually visible — they're candidates for promotion).
+  // The displayed `hostname` for an aggregated row is the longest
+  // common suffix among the matched raw hostnames (`feishu.cn` for
+  // five `*.feishu.cn` tenants), which keeps the column readable while
+  // collapsing multi-tenant noise.
+  type Bucket = { coverage: CoverageLabel; handler?: string; rawHostCounts: Map<string, number>; count: number };
+  const buckets = new Map<string, Bucket>();
 
   for (const b of cache.bookmarks) {
     if (!b.link) continue;
@@ -200,18 +233,48 @@ export function buildReport(cache: Cache): CheckReport {
 
     const host = hostOf(b.link);
     if (!host) continue;
-    const existing = hostCounts.get(host);
+    const c = classifyCoverage(b.link);
+    // Non-default modules collapse to one row per module identity.
+    // Default + unknown stay keyed by raw hostname.
+    const key = c.handler && c.handler !== "site:_default" ? c.handler : `host:${host}`;
+    const existing = buckets.get(key);
     if (existing) {
       existing.count += 1;
+      existing.rawHostCounts.set(host, (existing.rawHostCounts.get(host) ?? 0) + 1);
     } else {
-      const c = classifyCoverage(b.link);
-      hostCounts.set(host, {
-        hostname: host,
-        count: 1,
+      const m = new Map<string, number>(); m.set(host, 1);
+      buckets.set(key, {
         coverage: c.label,
         handler: c.handler,
+        rawHostCounts: m,
+        count: 1,
       });
     }
+  }
+
+  const hostCounts = new Map<string, HostRow>();
+  for (const [key, b] of buckets) {
+    const rawHosts = [...b.rawHostCounts.keys()];
+    let display: string;
+    if (rawHosts.length === 1) {
+      display = rawHosts[0];
+    } else {
+      const suffix = longestCommonHostSuffix(rawHosts);
+      // Reject TLD-only suffixes (just one label like `com`) — they're
+      // useless display names. Fall back to the highest-count raw host
+      // so the row still shows a real domain.
+      if (suffix && suffix.includes(".")) {
+        display = suffix;
+      } else {
+        display = [...b.rawHostCounts.entries()].sort((a, c2) => c2[1] - a[1])[0][0];
+      }
+    }
+    hostCounts.set(key, {
+      hostname: display,
+      count: b.count,
+      coverage: b.coverage,
+      handler: b.handler,
+    });
   }
 
   const duplicates: Duplicate[] = [];
