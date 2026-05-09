@@ -80,6 +80,43 @@ export interface ArticleConvertOpts {
   selectors: ArticleSelectors;
 }
 
+/**
+ * Walk up from each element collecting ancestor chains, then find the
+ * deepest element that appears in every chain. Returns null if the
+ * elements are in disjoint trees (shouldn't happen within one document)
+ * or if the only common ancestor is the document root.
+ *
+ * Used by the body-selector cascade to handle blog-index pages where
+ * `querySelectorAll("article")` returns many sibling cards: instead of
+ * picking just the first, we pick the parent container that wraps all
+ * of them so the entire listing makes it into the markdown.
+ */
+function nearestCommonAncestor(elements: Element[]): Element | null {
+  if (elements.length === 0) return null;
+  if (elements.length === 1) return elements[0].parentElement;
+  const chains = elements.map(el => {
+    const chain: Element[] = [];
+    let cur: Element | null = el;
+    while (cur) { chain.push(cur); cur = cur.parentElement; }
+    return chain.reverse(); // root → leaf
+  });
+  const minLen = Math.min(...chains.map(c => c.length));
+  let lcaIdx = -1;
+  for (let i = 0; i < minLen; i++) {
+    const ref = chains[0][i];
+    if (chains.every(c => c[i] === ref)) lcaIdx = i;
+    else break;
+  }
+  if (lcaIdx < 0) return null;
+  const lca = chains[0][lcaIdx];
+  // Reject `<html>` / `<body>` — we want the tightest wrapper, not the
+  // whole document. Walk down one level into the chain if possible.
+  if (lca.tagName === "HTML" || lca.tagName === "BODY") {
+    return chains[0][lcaIdx + 1] || lca;
+  }
+  return lca;
+}
+
 export function convertArticle(opts: ArticleConvertOpts): ArticleConvertResult {
   const { selectors } = opts;
   const dom = new JSDOM(opts.html);
@@ -108,13 +145,29 @@ export function convertArticle(opts: ArticleConvertOpts): ArticleConvertResult {
   }
 
   // ── Body extraction ─────────────────────────────────────────────────────
+  // Per-selector strategy:
+  //   - If a single candidate ≥ 200 chars matches, use it (the common
+  //     blog/article shape — one `<article>` is the post body).
+  //   - If MULTIPLE candidates ≥ 200 chars match (≥ 3), the page is
+  //     likely a blog index / archive listing where each `<article>` is
+  //     a card. Picking the first card drops 95% of the page. Walk up
+  //     to the candidates' nearest common ancestor and use THAT as the
+  //     body so all cards survive into the markdown. See P-40 in
+  //     `Meta/site-handling-patterns.md`.
   let bodyEl: Element | null = null;
   for (const sel of selectors.bodySelectors) {
-    const candidates = Array.from(doc.querySelectorAll(sel));
-    for (const c of candidates) {
-      if ((c.textContent || "").length >= 200) { bodyEl = c; break; }
+    const candidates = Array.from(doc.querySelectorAll(sel))
+      .filter(c => (c.textContent || "").length >= 200);
+    if (candidates.length === 0) continue;
+    if (candidates.length >= 3) {
+      const ancestor = nearestCommonAncestor(candidates);
+      if (ancestor && (ancestor.textContent || "").length >= 200) {
+        bodyEl = ancestor;
+        break;
+      }
     }
-    if (bodyEl) break;
+    bodyEl = candidates[0];
+    break;
   }
   if (!bodyEl) bodyEl = doc.querySelector("article") || doc.querySelector("main") || doc.body;
 

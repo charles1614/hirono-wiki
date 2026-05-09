@@ -54,6 +54,7 @@ this file. Each iteration grows the institutional memory.
 | URL ends in `.pdf` / Content-Type is `application/pdf` | PDF — render each page to image-bearing markdown (P-36) or fall back to stub (P-20) on encryption / corruption | P-36 pdf-page-rendering, P-20 nonhtml-stub |
 | `_default` extracts < 200 chars but `curl <url>` returns 5+ KB of HTML with `<h1>`, `<p>`, form elements directly under `<body>` (no `<article>`/`<main>`/`.prose` wrapper) | Single-purpose JS tool / IPFS-hosted SPA / hand-rolled HTML — semantic content lives directly in `<body>` | P-37 body-direct-content |
 | Output has orphan `](url)` lines (`grep -c "^\s*\]("` non-zero) OR a single line with 4+ adjacent `[X](Y)[X](Y)…` link runs OR many `[![<name>](avatar.jpg)](/profile-url)` rows | Catalog/grid page — turndown's multi-line link wrapper emission + sibling `<a>` no-separator + avatar image-link clutter | P-38 catalog-link-cleanups |
+| URL is a blog's bare-domain root or `/blog/` index, `_default` extracts only the first article preview (~300-700 chars / 1 image) when the live page has 10-30 article cards | Body-selector cascade picks first `<article>` candidate ≥ 200 chars, drops the rest of the listing | P-40 multi-card-index-aggregation |
 | Body is < 200 chars after both curl + browser-eval | Genuinely empty (deleted, redirected to home, real stub) | P-21 stub-threshold |
 | URL claims to be one host but redirects to another (xhslink → xiaohongshu, share.google → linux.do) | Shortlink / share-redirect | P-22 shortlink-resolution |
 | GitHub `/blob/`, `/tree/`, `/issues/`, `/pull/`, `/discussions/`, `/releases/tag/` | Structured data lives in REST API + raw.githubusercontent.com | P-23 use-the-api |
@@ -816,6 +817,26 @@ The scroll cost (~5s) is paid on every browser-eval-routed fetch. Non-browser ro
 **Diagnostic:** for any slug suspected of having low-res images, `file raw/raindrop/<host>/<slug>/*.{png,jpg,webp}` reports dimensions; flag any image < 400px wide that's clearly meant to be a content image (not an icon/avatar).
 
 **Reference.** `tools/sites/_default/index.ts:browserFetch` (scroll loop before the extraction eval). Proven on `blog.google/products/google-cloud/ironwood-tpu-age-of-inference/` — 3 inline charts went from 100×*/1.1-1.4 KB placeholders to 1000×*/15-50 KB native variants. Article-site factory browser-assist is a future TODO.
+
+### P-40 — Multi-card blog-index pages: aggregate `<article>` siblings via common ancestor
+
+**Symptom.** A bookmark to a blog's bare-domain root or `/blog/` index extracts only one short post preview (300-700 chars / 1 image) when the live page is a long listing of 10-30 article cards. `source.json.content_length` is suspiciously small. Concrete corpus example: `https://blogs.novita.ai/` extracted 393 body chars / 1 image; live page was a 256 KB WordPress index with `<h3 id="h-latest-posts">Latest Posts</h3>` and 30+ `<article>` cards.
+
+**Root cause.** The article-site cascade in `tools/sites/_shared/article-converter.ts` walks `bodySelectors` in order and picks the first candidate ≥ 200 chars. For a single-post page this is the post body. For a blog-index page with N sibling `<article>` cards, `querySelectorAll("article")` returns all N — but the cascade `break`s on the first that meets the threshold, dropping the rest. The selector "matched correctly" but the pick strategy was wrong for the page shape.
+
+**Remediation.** When a selector returns ≥ 3 candidates that each pass the size threshold, walk up to find their nearest common ancestor and use THAT as `bodyEl` instead of the first candidate. Implementation: `nearestCommonAncestor(elements)` builds root→leaf chains and returns the deepest element shared by all chains, refusing `<html>` / `<body>` (we want the tightest wrapper, not the whole document).
+
+The threshold of 3 (rather than 2) is deliberate. A common page shape — e.g. an article followed by a "related posts" sidebar with 1-2 `<article>` previews — has ≥ 2 articles but the FIRST one is the real content. Requiring 3 reliably distinguishes "one article + sidebar" from "blog index listing".
+
+For `blogs.novita.ai` after the fix: 14 article cards aggregated under their common WordPress `<main>`-ish wrapper, 5731 body chars / 14 images localized. All preview text + per-card permalink + per-card cover image preserved.
+
+**Generalization.**
+
+1. **Selector match strategy is its own decision, separate from selector identity.** The selector "find article-shape elements" is correct for both single-post and index pages; what differs is whether to take the first or aggregate them.
+2. **Common-ancestor aggregation is non-destructive.** Whatever wraps all the cards on the index page (a `<main>`, `<div class="posts">`, `<section>`) is exactly what we want — the page author already grouped them. Walk up; don't try to concat outerHTMLs.
+3. **Bookmark-to-bare-domain is the canonical signal.** Operators bookmark a blog's homepage when they want "all posts", not when they want one specific post. The cascade should be friendly to that intent.
+
+**Reference.** `tools/sites/_shared/article-converter.ts` (`nearestCommonAncestor` helper + the multi-candidate branch in the body-selector cascade). Proven on `blogs.novita.ai/` — 393 → 5731 body chars, 1 → 14 images.
 
 ---
 
