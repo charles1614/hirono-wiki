@@ -41,6 +41,7 @@ import { acquireBrowserLock, acquireSlugLock } from "./shared/browser-lock.ts";
 import { appendRevision, nextRev, type RevisionRow } from "./shared/revisions.ts";
 import { routeSite } from "./sites/index.ts";
 import { extractJsonFromEvalStdout } from "./sites/_shared/browser-eval-json.ts";
+import { applyPostCleanups } from "./sites/_shared/post-cleanup.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
 import { unwrapShareUrl } from "./sites/_shared/url-unwrap.ts";
 import { classifyFromInput } from "./hirono/raindrop/failure-kind.ts";
@@ -1911,6 +1912,25 @@ export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean
     });
   }
 
+  // Wrap fetchUrlAndStore with the central applyPostCleanups pipeline.
+  // Without this, sync/refetch produce slugs whose markdown still has
+  // empty-anchor chrome, color tags, double-H1, etc. — defects that
+  // applyPostCleanups exists to scrub. fetch-all wires the same hook
+  // (see tools/hirono/raindrop/fetch-all.ts:282-292); keeping the two
+  // call sites symmetric prevents the corpus from drifting based on
+  // which command produced a given slug.
+  const transformMarkdown = (md: string, url: string) => {
+    const r = applyPostCleanups(md, url);
+    return {
+      md: r.md,
+      extraNotes: [
+        ...(r.appliedNames.length > 0 ? [`post-cleanups: ${r.appliedNames.join(", ")}`] : []),
+        ...r.notes,
+      ],
+      extraImageUrls: r.newAbsoluteImageUrls,
+    };
+  };
+
   // Raindrop origins need caller-side MCP fetch — we can't do that from here.
   // If the URL points to an article-like page we can scrape, use the URL path.
   if (origin.startsWith("raindrop:")) {
@@ -1921,6 +1941,7 @@ export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean
       viaBrowser: false,
       downloadImages,
       force: true,
+      transformMarkdown,
     });
   }
 
@@ -1931,5 +1952,6 @@ export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean
     viaBrowser: false,
     downloadImages,
     force: true,
+    transformMarkdown,
   });
 }
