@@ -37,12 +37,16 @@ function curlJson<T>(apiUrl: string): T | null {
 }
 
 export interface ParsedGithubUrl {
-  kind: "pr" | "issue" | "discussion" | "release" | "blob" | "tree" | "repo" | "gist" | "unknown";
+  kind: "pr" | "issue" | "discussion" | "release" | "blob" | "tree" | "repo" | "gist" | "commit" | "compare" | "unknown";
   /** Org or gist owner. Empty string for anonymous gists. */
   org: string;
   /** Repo name. For gists this is the gist id. */
   repo: string;
-  /** Issue/PR/discussion number, or release tag, or branch name. */
+  /**
+   * Issue/PR/discussion number, release tag, branch name, commit SHA,
+   * or compare spec (`base...head`, including cross-fork forms like
+   * `main...user:repo:branch`).
+   */
   ref?: string;
   /** Branch (for blob/tree). */
   branch?: string;
@@ -70,6 +74,13 @@ export function parseGithubUrl(url: string): ParsedGithubUrl | null {
   // /releases/tag/<v>
   m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/tag\/([^/?#]+)/);
   if (m) return { kind: "release", org: m[1], repo: m[2], ref: m[3] };
+  // /commit/<sha>  (sha may be 7-40 hex chars; allow trailing # anchor)
+  m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/commit\/([0-9a-f]{7,40})(?:[/?#]|$)/i);
+  if (m) return { kind: "commit", org: m[1], repo: m[2], ref: m[3] };
+  // /compare/<spec>  (spec is `<base>...<head>` with optional cross-fork
+  //   prefix `<owner>:<repo>:<branch>` on either side)
+  m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/compare\/([^/?#]+)/);
+  if (m) return { kind: "compare", org: m[1], repo: m[2], ref: m[3] };
   // /blob/<branch>/<path>
   m = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+?)(?:[?#]|$)/);
   if (m) return { kind: "blob", org: m[1], repo: m[2], branch: m[3], path: m[4] };
@@ -245,6 +256,76 @@ export function fetchTreeReadme(org: string, repo: string, branch: string, subpa
 /** For repo-root URLs: fetch README from the default branch (HEAD). */
 export function fetchRepoReadme(org: string, repo: string): RawFetchResult | null {
   return fetchRaw(org, repo, "HEAD", "README.md");
+}
+
+// ──────────────────────────── commit ────────────────────────────────
+
+export interface GithubCommitFile {
+  filename: string;
+  status: string;          // "added" | "modified" | "removed" | "renamed" | …
+  additions: number;
+  deletions: number;
+  changes: number;
+  /** Diff hunks as a string (may be absent for binary files). */
+  patch?: string;
+  previous_filename?: string;
+}
+
+export interface GithubCommitResult {
+  sha: string;
+  html_url: string;
+  commit: {
+    author?:    { name?: string; email?: string; date?: string };
+    committer?: { name?: string; email?: string; date?: string };
+    message: string;
+  };
+  author?:    { login?: string; html_url?: string };
+  committer?: { login?: string; html_url?: string };
+  parents: { sha: string; html_url: string }[];
+  stats?:  { additions: number; deletions: number; total: number };
+  files?:  GithubCommitFile[];
+}
+
+export function fetchCommit(org: string, repo: string, sha: string): GithubCommitResult | null {
+  return curlJson<GithubCommitResult>(
+    `https://api.github.com/repos/${org}/${repo}/commits/${sha}`,
+  );
+}
+
+// ──────────────────────────── compare ───────────────────────────────
+
+export interface GithubCompareResult {
+  url: string;
+  html_url: string;
+  permalink_url: string;
+  status: string;          // "ahead" | "behind" | "diverged" | "identical"
+  ahead_by: number;
+  behind_by: number;
+  total_commits: number;
+  base_commit?: { sha: string; html_url: string; commit?: { message?: string } };
+  merge_base_commit?: { sha: string; html_url: string };
+  commits?: {
+    sha: string;
+    html_url: string;
+    commit: { author?: { name?: string; date?: string }; message: string };
+    author?: { login?: string };
+  }[];
+  files?: GithubCommitFile[];
+}
+
+export function fetchCompare(org: string, repo: string, spec: string): GithubCompareResult | null {
+  // spec is `<base>...<head>` (or `<base>..<head>`); GitHub's API takes
+  // it verbatim in the path. URL-encode each side independently so a
+  // cross-fork spec like `main...user:repo:branch` survives.
+  const parts = spec.split(/(\.\.\.|\.\.)/);
+  if (parts.length === 3) {
+    const [base, sep, head] = parts;
+    const encoded = `${encodeURIComponent(base)}${sep}${encodeURIComponent(head)}`;
+    return curlJson<GithubCompareResult>(
+      `https://api.github.com/repos/${org}/${repo}/compare/${encoded}`,
+    );
+  }
+  return null;
 }
 
 // ───────────────────────── Gists ─────────────────────────

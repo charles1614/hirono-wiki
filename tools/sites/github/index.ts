@@ -24,12 +24,16 @@ import {
   fetchTreeReadme,
   fetchRepoReadme,
   fetchGist,
+  fetchCommit,
+  fetchCompare,
 } from "./fetcher.ts";
 import {
   convertGithubPrIssue,
   convertGithubRelease,
   convertGithubRaw,
   convertGithubGist,
+  convertGithubCommit,
+  convertGithubCompare,
   type GithubImageDownload,
 } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
@@ -189,6 +193,72 @@ export const site: Site = {
           `github: release ${parsed.ref} via REST API (${(release.body || "").length} body chars` +
           `${images.length > 0 ? `, ${images.length}/${conv.imagesToDownload.length} image(s) downloaded` : ""}` +
           `${failed > 0 ? ` (${failed} failed)` : ""}` + `)`,
+        ],
+      };
+    }
+
+    // ── Commit ───────────────────────────────────────────────────────
+    if (kind === "commit") {
+      const commit = fetchCommit(org, repo, parsed.ref!);
+      if (!commit || !commit.sha) {
+        return stubResult(url, `github commit ${parsed.ref} fetch failed (404 or rate-limit)`);
+      }
+      const conv = convertGithubCommit({
+        org, repo, sha: commit.sha,
+        originUrl: url, commit,
+      });
+      const { images, failed } = downloadAll(conv.imagesToDownload, opts.slugDir);
+      const subject = (commit.commit.message || "").split("\n")[0].trim();
+      return {
+        markdown: conv.markdown,
+        images,
+        title: `${org}/${repo}: ${subject || `commit ${commit.sha.slice(0, 7)}`}`,
+        metadata: {
+          source: "github-api-commit",
+          org, repo,
+          sha: commit.sha,
+          author: commit.author?.login || commit.commit.author?.name,
+          authored_at: commit.commit.author?.date,
+        },
+        flags: ["structured-summary", ...(failed > 0 ? ["github-image-download-partial"] : [])],
+        notes: [
+          `github: commit ${commit.sha.slice(0, 7)} via REST API ` +
+          `(${commit.files?.length ?? 0} file(s), +${commit.stats?.additions ?? 0}/-${commit.stats?.deletions ?? 0})`,
+        ],
+      };
+    }
+
+    // ── Compare ──────────────────────────────────────────────────────
+    if (kind === "compare") {
+      const cmp = fetchCompare(org, repo, parsed.ref!);
+      if (!cmp || !cmp.status) {
+        return stubResult(
+          url,
+          `github compare ${parsed.ref} fetch failed (404, malformed spec, or rate-limit)`,
+        );
+      }
+      const conv = convertGithubCompare({
+        org, repo, spec: parsed.ref!,
+        originUrl: url, compare: cmp,
+      });
+      const { images, failed } = downloadAll(conv.imagesToDownload, opts.slugDir);
+      return {
+        markdown: conv.markdown,
+        images,
+        title: `${org}/${repo}: compare ${parsed.ref}`,
+        metadata: {
+          source: "github-api-compare",
+          org, repo,
+          spec: parsed.ref,
+          status: cmp.status,
+          ahead_by: cmp.ahead_by,
+          behind_by: cmp.behind_by,
+          total_commits: cmp.total_commits,
+        },
+        flags: ["structured-summary", ...(failed > 0 ? ["github-image-download-partial"] : [])],
+        notes: [
+          `github: compare ${parsed.ref} via REST API ` +
+          `(status=${cmp.status}, ${cmp.total_commits} commit(s), ${cmp.files?.length ?? 0} file(s))`,
         ],
       };
     }

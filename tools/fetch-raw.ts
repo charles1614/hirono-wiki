@@ -299,7 +299,12 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   // Skip the size- and structure-based flags in either case.
   const isStub = ctx.extraFlags?.includes("intentional-stub") ?? false;
   const isImageBearing = ctx.extraFlags?.includes("pdf-rendered") ?? false;
-  const skipTextSizeFlags = isStub || isImageBearing;
+  // `structured-summary` signals that the markdown is a deliberate
+  // metadata-shape document (commit summary + diff stat, compare-range
+  // summary, etc.) where short-body floors don't apply — the value is
+  // in the structure, not the prose count.
+  const isStructured = ctx.extraFlags?.includes("structured-summary") ?? false;
+  const skipTextSizeFlags = isStub || isImageBearing || isStructured;
   if (!skipTextSizeFlags && trimmed.length < 500) flags.push("short-body");
 
   // Per-host expected-size band: flag when body is above the generic 500-char
@@ -394,8 +399,11 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   // ONLY flags are markers stays `quality_status=good`.
   //   - `intentional-stub`: stub content is the deliberate output
   //   - `pdf-rendered`: PDF rendered to image-bearing markdown (P-36)
+  //   - `structured-summary`: deliberate metadata-shape document
+  //     (github commit / compare summaries) where short-body floors
+  //     don't apply
   // Real quality flags (short-body, etc.) still flip to "flagged".
-  const NON_PROBLEMATIC_FLAGS = new Set(["intentional-stub", "pdf-rendered"]);
+  const NON_PROBLEMATIC_FLAGS = new Set(["intentional-stub", "pdf-rendered", "structured-summary"]);
   const suspicious = uniq.some((f) => !NON_PROBLEMATIC_FLAGS.has(f));
   const quality_status: QualityStatus = suspicious ? "flagged" : "good";
   return { suspicious, flags: uniq, quality_status };

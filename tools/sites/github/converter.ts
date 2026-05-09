@@ -20,6 +20,7 @@
  */
 
 import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
+import type { GithubCommitResult, GithubCompareResult } from "./fetcher.ts";
 
 // ───────────────────────────── shared types + helper ────────────────
 
@@ -618,5 +619,154 @@ export function convertGithubGist(input: GistConvertInput): GithubConvertResult 
 
   let markdown = fm.join("\n") + sections.join("\n");
   markdown = markdown.replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
+  return localizeMarkdownImages(markdown, "github");
+}
+
+// ───────────────────────────── commit ───────────────────────────────
+
+export interface CommitConvertInput {
+  org: string;
+  repo: string;
+  sha: string;
+  originUrl: string;
+  commit: GithubCommitResult;
+}
+
+/**
+ * Convert a single commit to §2-contract markdown:
+ *
+ *   1. Title  = `# <org>/<repo>: <commit subject>`
+ *   2. Frontmatter callout = author, date, sha, parents
+ *   3. Full commit message body
+ *   4. Stats (files changed / +N / -N)
+ *   5. Per-file section: status + ±counts + diff hunks (in a code fence)
+ *
+ * Diff hunks are preserved verbatim — they're useful as a reference even
+ * though they're not turndown-shaped. Binary files have no `patch` field
+ * and just show the file header.
+ */
+export function convertGithubCommit(input: CommitConvertInput): GithubConvertResult {
+  const c = input.commit;
+  const fullMsg = c.commit.message || "";
+  const subject = fullMsg.split("\n")[0].trim() || `commit ${c.sha.slice(0, 7)}`;
+  const restOfMsg = fullMsg.split("\n").slice(1).join("\n").trim();
+
+  const author = c.author?.login || c.commit.author?.name || "(unknown)";
+  const authorLink = c.author?.login
+    ? `[${c.author.login}](https://github.com/${c.author.login})`
+    : author;
+  const date = c.commit.author?.date ? formatDate(c.commit.author.date) : "";
+  const parentList = (c.parents || []).map(p => `\`${p.sha.slice(0, 7)}\``).join(", ");
+
+  const metaBits: string[] = [`Authored by ${authorLink}`];
+  if (date) metaBits.push(date);
+  metaBits.push(`commit \`${c.sha.slice(0, 7)}\``);
+  if (parentList) metaBits.push(`parent ${parentList}`);
+
+  const fm: string[] = [
+    `# ${input.org}/${input.repo}: ${subject}`,
+    "",
+    `> 原文链接: ${input.originUrl}`,
+    `> ${metaBits.join(" · ")}`,
+    "",
+    "---",
+    "",
+  ];
+
+  const sections: string[] = [];
+  if (restOfMsg) {
+    sections.push(restOfMsg, "");
+  }
+
+  if (c.stats) {
+    sections.push(
+      `## Stats`, "",
+      `${c.files?.length ?? 0} file(s) changed · ` +
+      `+${c.stats.additions} / -${c.stats.deletions} (${c.stats.total} total lines)`,
+      "",
+    );
+  }
+
+  if (c.files && c.files.length > 0) {
+    sections.push(`## Files`, "");
+    for (const f of c.files) {
+      sections.push(`### \`${f.filename}\``, "");
+      const renamed = f.previous_filename && f.previous_filename !== f.filename
+        ? ` (renamed from \`${f.previous_filename}\`)` : "";
+      sections.push(`*${f.status}*${renamed} · +${f.additions} / -${f.deletions}`, "");
+      if (f.patch) {
+        sections.push("```diff");
+        sections.push(f.patch);
+        sections.push("```", "");
+      }
+    }
+  }
+
+  const markdown = (fm.join("\n") + sections.join("\n")).replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
+  // Image localization is a no-op on diff content but keeps shape consistent.
+  return localizeMarkdownImages(markdown, "github");
+}
+
+// ───────────────────────────── compare ──────────────────────────────
+
+export interface CompareConvertInput {
+  org: string;
+  repo: string;
+  /** The raw spec from the URL (e.g. `main...feature` or `main...user:repo:branch`). */
+  spec: string;
+  originUrl: string;
+  compare: GithubCompareResult;
+}
+
+/**
+ * Convert a /compare/<spec> response to §2-contract markdown. Compare
+ * URLs are diff-shaped — there's no single article body, so the output
+ * is a structured summary: range status (ahead/behind/diverged), commit
+ * count, per-commit list (sha + subject + author), and a per-file diff
+ * stat block. Useful as a reference; not a substitute for opening the
+ * web UI when reviewing real changes.
+ */
+export function convertGithubCompare(input: CompareConvertInput): GithubConvertResult {
+  const c = input.compare;
+
+  const fm: string[] = [
+    `# ${input.org}/${input.repo}: compare ${input.spec}`,
+    "",
+    `> 原文链接: ${input.originUrl}`,
+    `> Status: ${c.status} · ahead ${c.ahead_by} · behind ${c.behind_by} · ${c.total_commits} commit(s)`,
+    "",
+    "---",
+    "",
+  ];
+
+  const sections: string[] = [];
+
+  if (c.commits && c.commits.length > 0) {
+    sections.push(`## Commits (${c.commits.length})`, "");
+    for (const co of c.commits) {
+      const sub = (co.commit.message || "").split("\n")[0].trim();
+      const who = co.author?.login || co.commit.author?.name || "(unknown)";
+      const date = co.commit.author?.date ? formatDate(co.commit.author.date) : "";
+      sections.push(`- \`${co.sha.slice(0, 7)}\` ${sub} — ${who}${date ? ` · ${date}` : ""}`);
+    }
+    sections.push("");
+  }
+
+  if (c.files && c.files.length > 0) {
+    const total = { add: 0, del: 0 };
+    for (const f of c.files) { total.add += f.additions; total.del += f.deletions; }
+    sections.push(
+      `## Files changed (${c.files.length})`, "",
+      `Total: +${total.add} / -${total.del}`, "",
+    );
+    for (const f of c.files) {
+      const renamed = f.previous_filename && f.previous_filename !== f.filename
+        ? ` (renamed from \`${f.previous_filename}\`)` : "";
+      sections.push(`- \`${f.filename}\` — *${f.status}*${renamed} · +${f.additions} / -${f.deletions}`);
+    }
+    sections.push("");
+  }
+
+  const markdown = (fm.join("\n") + sections.join("\n")).replace(/\n{3,}/g, "\n\n").replace(/\n+$/, "\n");
   return localizeMarkdownImages(markdown, "github");
 }
