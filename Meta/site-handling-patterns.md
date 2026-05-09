@@ -56,6 +56,8 @@ this file. Each iteration grows the institutional memory.
 | Output has orphan `](url)` lines (`grep -c "^\s*\]("` non-zero) OR a single line with 4+ adjacent `[X](Y)[X](Y)…` link runs OR many `[![<name>](avatar.jpg)](/profile-url)` rows | Catalog/grid page — turndown's multi-line link wrapper emission + sibling `<a>` no-separator + avatar image-link clutter | P-38 catalog-link-cleanups |
 | URL is a blog's bare-domain root or `/blog/` index, `_default` extracts only the first article preview (~300-700 chars / 1 image) when the live page has 10-30 article cards | Body-selector cascade picks first `<article>` candidate ≥ 200 chars, drops the rest of the listing | P-40 multi-card-index-aggregation |
 | URL is a tool's bare-domain homepage and the stub body is just "no per-page content to archive" + advice — no description of what the service does | Stub-emitting module didn't harvest `<meta og:title>` / `<meta og:description>` from the homepage `<head>` | P-41 service-card-meta-harvest |
+| `github raw fetch failed for blob` on a `*.md` file that demonstrably exists in the repo (just at a different path: zero-padding rename, lowercase normalization, directory refactor) | Bookmark URL is stale — file was renamed/moved upstream; the resolver tried the verbatim path and stopped on 404 | P-42 raw-fetch-fuzzy-fallback |
+| `<module>-image-download-partial` + `images-declared-but-none-downloaded` on a slug whose images are on imgur (or another aggressive-rate-limit CDN); curl returns HTTP 429 for every variant from this IP | CDN persistently fingerprints the IP; not a code bug | P-43 wayback-image-rescue |
 | Body is < 200 chars after both curl + browser-eval | Genuinely empty (deleted, redirected to home, real stub) | P-21 stub-threshold |
 | URL claims to be one host but redirects to another (xhslink → xiaohongshu, share.google → linux.do) | Shortlink / share-redirect | P-22 shortlink-resolution |
 | GitHub `/blob/`, `/tree/`, `/issues/`, `/pull/`, `/discussions/`, `/releases/tag/` | Structured data lives in REST API + raw.githubusercontent.com | P-23 use-the-api |
@@ -869,9 +871,62 @@ Concrete corpus example: `deepwiki.com/` had `<meta og:description content="Deep
 
 **Reference.** `tools/sites/_shared/service-card.ts` (`harvestServiceCard`); `tools/sites/_shared/stub.ts` (new `bodyExtra` field). Proven on `deepwiki.com/` — slug 445 → 688 chars with the actual service description preserved instead of generic stub boilerplate.
 
- ---
- 
- ## §3 Patterns by remediation technique
+### P-42 — Raw fetch 404 → fuzzy-fallback via repo tree API
+
+**Symptom.** A site module that fetches a specific file by URL (github raw, raw markdown mirrors, etc.) gets 404 even though the file demonstrably still exists on the host — just at a different path. The bookmark URL is "stale": the upstream author renamed / refactored / moved the file since bookmarking. Slug emits a `<host>-fetch-failed` stub.
+
+Concrete corpus examples:
+
+- `https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/tech_blog/blog9_Deploying_GPT_OSS_on_TRTLLM.md`
+  → 404. The file was zero-padded to `blog09_…` (sortability rename, 7 → 09, etc.).
+- `https://github.com/ForceInjection/AI-fundermentals/blob/main/inference-solution/DeepSeek-V3-MoE-vLLM-H20-Deployment.md`
+  → 404. Repo refactored layout (`inference-solution/` → `09_inference_system/inference_solutions/`), filename normalized to lowercase + underscores.
+
+**Root cause.** Bookmark URLs are immutable; upstream paths aren't. A naïve resolver maps URL → raw URL with the bookmark's path verbatim and stops on 404.
+
+**Remediation.** On 404, query the repo's tree API (`api.github.com/repos/<o>/<r>/git/trees/<branch>?recursive=1` for github; equivalents on other hosts) and fuzzy-match against the target's basename. Normalize each candidate basename:
+
+- lower-case
+- collapse `[-_\s]+` → single `_`
+- strip leading zeros within numeric prefixes (`blog09` ≡ `blog9`)
+- drop the extension
+
+Auto-resolve only when **exactly one** strong match exists across the same extension family. Multiple matches → return null and emit a "moved/ambiguous" stub instead of guessing.
+
+The extension-family constraint (markdown targets only fuzzy-match other markdown files, plain-text targets only fuzzy-match other plain-text files) prevents a `Foo.md` rename to `Foo.txt` from silently changing the rendering path.
+
+**Generalization.** Three rules of thumb:
+
+1. **Treat 404 as a recovery opportunity, not an end state.** A 404 on a URL that was bookmarked deliberately almost always means the file moved, not that it never existed.
+2. **Normalize before matching.** Common rename patterns: zero-padding, case + separator changes, whitespace → underscore. Normalizing the basename catches them all without per-pattern rules.
+3. **Single-match-only auto-resolve.** Multiple matches → ambiguity. The cost of a wrong fetch (slug carries content from a different file) is much higher than the cost of a stub (operator notices, manually edits the bookmark).
+
+**Reference.** `tools/sites/github/fetcher.ts` (`findMovedFile` + `normalizeBasename` helpers; tree-API fallback inside `fetchRaw`). Proven on 2 corpus slugs: TensorRT-LLM blog09 + AI-fundermentals DeepSeek MoE, both went from `_default-fetch-failed` stub to clean (60 KB / 17 KB).
+
+### P-43 — Persistent CDN rate-limit → Wayback Machine fallback
+
+**Symptom.** Image downloads from a specific image-host CDN persistently 429 (Too Many Requests) for every URL variant — `i.imgur.com/<id>.png`, `i.imgur.com/<id>` (extensionless), `i.imgur.com/<id>m.png` (medium), `imgur.com/<id>` (HTML wrapper) — all return `HTTP/2 429` with `retry-after: 0` for many minutes after a few requests. The slug ends up with `<module>-image-download-partial` + `images-declared-but-none-downloaded` flags, no images on disk.
+
+Concrete corpus example: v2ex topic 979201 had 2 imgur images. v2ex's converter rewrites `imgur.com/<id>.png` → `i.imgur.com/<id>.png` correctly. Both downloads failed with 429. Probing every variant from the same IP returned 429 for the next ~5 minutes.
+
+**Root cause.** Some image CDNs aggressively fingerprint anonymous bulk downloaders by IP and/or behavior signature. Imgur is the worst offender corpus-wide; suspect Pixiv, Pinterest, Discord CDN may behave similarly under load. Not a code bug — environmental.
+
+**Remediation.** When an image download fails AND the URL host is in a known-throttling set, retry via the Wayback Machine: `https://web.archive.org/web/<spec>/<url>` (e.g. `web/2024/<url>` for "closest 2024 snapshot"). Wayback serves a 302 to the closest archived snapshot, which curl follows with `-L` to fetch the actual bytes.
+
+Two important caveats:
+
+1. **Only works for already-archived images.** Wayback doesn't fetch on demand. Forum threads from 2023+ are typically archived; brand-new content posted yesterday probably isn't. Best-effort.
+2. **Mark the rescue with a non-problematic flag.** Add e.g. `<module>-image-rescued-via-wayback` to the slug's `quality_flags`, register it in `NON_PROBLEMATIC_FLAGS_SET` (so it doesn't flip status to `flagged`), and include it in the slug's notes. Operator can audit the rescue path later.
+
+The throttled-host set should be module-scoped initially (v2ex hosts imgur), generalized to a shared helper only after observing the same pattern on multiple hosts. Don't pre-generalize.
+
+**Generalization.** Three rules of thumb:
+
+1. **Persistent 429 ≠ retry-soon.** If 5+ probes against different URL variants all return 429 within a second, the CDN has rate-limited the IP for many minutes. Don't sleep + retry; switch source.
+2. **Wayback is the only universal fallback.** Per-CDN authenticated APIs exist (imgur API with token, etc.) but require credentials; the operator may not have them. Wayback works without auth.
+3. **Mark and audit, don't hide.** A `wayback-rescued` flag + note in source.json lets future operators audit rescues. Without the marker, future drift would be invisible.
+
+**Reference.** `tools/sites/v2ex/index.ts` (`isThrottledImageHost` + Wayback fallback inside the image-download loop). Proven on `www.v2ex.com/t/979201` — 0/2 imgur images → 2/2 (recovered as 1920×944 RGBA from Wayback's 2024 snapshot).
 
 ---
 
