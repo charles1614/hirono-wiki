@@ -1,92 +1,307 @@
 ---
 created: 2026-05-08
-updated: 2026-05-08
+updated: 2026-05-09
 type: meta
 ---
 
 # Post-bulk-fetch TODO
 
-Concrete actionable list for closing out the May 2026 bulk-fetch
-session. Current state (584 bookmarks → 579 after LAN-IP cleanup):
+## Audit answers (2026-05-09)
 
-```
-clean                          350
-upstream-auth-gated            171   ← deliberate stubs (xhs/feishu/x.com)
-upstream-not-html               13   ← deliberate stubs (PDFs / app-store)
-upstream-fetch-failed           12   ← real, fixable
-upstream-spa-no-content          8   ← mixed: dead URLs, real SPAs, apps
-content-too-short                6   ← eyeball + pin
-content-incomplete-images        4   ← partial image-host fail
-content-incomplete-images-zero   3   ← image servers persistently 403
-upstream-paywall                 3   ← deliberate
-intentional-stub-app-only        3   ← deliberate
-not-yet-fetched                  3   ← L2 errors don't write source.json
-upstream-deleted                 2   ← deliberate
-host-malformed                   1   ← edit URL in Raindrop
-```
+**1. Was this doc up-to-date before today's audit?** — **No.** It was
+written at iteration-1 against a 584-bookmark corpus and a 350/200/30
+clean/stub/error split. Since then 11 of its action items have shipped
+(P-32 through P-39 + several site modules + the PDF-render path), the
+corpus has shrunk to 576 bookmarks (orphans pruned), the clean count
+moved from 350 → 355, and the failure-kind histogram has shifted
+substantially because of the new classifier rules (P-18 URL-shape
+override + P-33/34 detection paths). This rewrite reflects the current
+`hirono raindrop status` reading.
 
-**Realistic ceiling: ~365–370 clean** with the actions below
-(currently 350 → +15–20 reachable).
+**2. Tool-side issues that still need fixing (ranked by leverage):**
+
+1. **GitHub blob-path raw-fetch failure for `*.md` files in deep
+   sub-paths** (2 slugs: `NVIDIA/TensorRT-LLM/.../blog9_Deploying_GPT_OSS_on_TRTLLM.md`,
+   `ForceInjection/AI-fundermentals/.../DeepSeek-V3-MoE-vLLM-H20-Deployment.md`).
+   The github module's blob resolver fails the raw-URL substitution
+   for these specific paths even though the files exist and are
+   valid markdown. Fixing would directly recover 2 clean slugs and
+   probably the 3 `github-image-download-partial` slugs share the
+   same root cause class.
+2. **GitHub `/commit/` and `/compare/` URL shapes are not handled**
+   (2 slugs: `HarborYuan/mmcv_16/commit/ad1a72f…`,
+   `chen08209/FlClash/compare/main…`). Both produce `github URL parse
+   failed`. Adding two URL-pattern branches to the github module
+   would cover them — commit views can pull from the REST commits
+   API; compare views are diff URLs that may not warrant fetch (just
+   stub deliberately).
+3. **Status classifier mis-pins `upstream-paywall` for a
+   `pdf-rendered` openreview slug.** `openreview.net/pdf?id=sIOgOQttFQ`
+   has clean content (43-page render via P-36) but the kind classifier
+   maps it to `upstream-paywall`. The slug is actually clean. Likely
+   a host-pattern in `failure-kind.ts` that matches all of openreview
+   without considering whether content was rendered. One-rule fix.
+4. **`share.google` not-yet-fetched ghost.** The cache still carries
+   the share-wrapped URL for one bookmark; P-32 unwrapped it at fetch
+   time so the slug exists under the linux.do URL — but the status
+   join keys on `origin_url` exact match against the cache's `link`,
+   so it thinks the bookmark is unfetched. Two ways to fix: (a)
+   change the join to also try `unwrapShareUrl(cache.link) ===
+   slug.origin_url`; (b) ask the user to edit the bookmark in
+   Raindrop once and forget. (a) is the right fix because P-32 is
+   meant to be transparent.
+5. **`images-declared-but-none-downloaded` on `github.com/hesreallyhim/awesome-claude-code`
+   and `www.v2ex.com/t/979201`.** Two distinct hosts, same surface
+   symptom — markdown declares image refs, download loop yields
+   zero. github case is probably the auth/rate-limit issue
+   (covered by user-side GITHUB_TOKEN action below). v2ex case is
+   a v2ex module image-download bug (`v2ex-image-download-partial`
+   set, then no images saved → both flags fire).
+6. **(Lower-leverage)** **Article-site factory browser-assist for
+   lazy-loaded images (P-39 generalization).** Already covered in
+   `_default`; the article-site factory is curl-only by design, so
+   factory-routed hosts (blog.google, intuitionlabs, qwen, etc.)
+   still save lazy-loaded thumbnails when the page uses
+   intersection-observer image upgrade. No active-corpus regression
+   today; this is preventive.
+7. **(Lower-leverage)** **Spread `harvestServiceCard()` to other
+   landing-stub modules (P-41 generalization).** Wired into
+   `deepwiki-com` only. qwen-ai bare-domain, x-twitter root, future
+   tool-homepage stubs would benefit. 2-line add per call site.
+8. **(Lower-leverage)** **Body-direct content fallback in `_default`
+   (P-37 automation).** Manual conversion proven; selector cascade
+   not yet extended. Surfaces only on rare hand-rolled HTML pages
+   (1cb887bb.pinit.eth.limo class).
+
+Items 1–5 affect the live corpus today. Items 6–8 are preventive.
 
 ---
 
-## 1. Bulk fetch state — already complete, no resume needed
+## Current corpus state (2026-05-09 status snapshot)
 
-The two L3 halts during the original session were both resolved:
+```
+clean                          355   (350 → +5)
+upstream-auth-gated            170   (171 → -1, deliberate stubs)
+upstream-not-html                1   ( 13 → -12, PDF render path P-36)
+upstream-fetch-failed            9   ( 12 → -3, GH+linux.do unchanged class)
+upstream-spa-no-content          5   (  8 → -3)
+content-too-short                4   (  6 → -2, P-18 reclassified to app-only)
+content-incomplete-images        3   (  4 → -1)
+content-incomplete-images-zero   2   (  3 → -1)
+upstream-paywall                 4   (  3 → +1, includes 1 misclassification)
+intentional-stub-app-only       17   (  3 → +14, P-18 reclassification)
+not-yet-fetched                  1   (  3 → -2; remaining: 1 share.google ghost)
+upstream-deleted                 5   (  2 → +3, P-34 detection)
+host-malformed                   0   (  1 → -1, P-32 share-aggregator unwrap)
+```
 
-- [x] Halt at item 163 (weixin migration banner) — resolved by commit `20e2761` (added `weixin-account-migrated` soft-stub detection); resume rounds 2 + 3 completed cleanly.
-- [x] Halt at item 343 (`browser-open-failed`, 1Password interference) — resolved by clearing the lock + re-running.
+Total: 576 bookmarks. Realistic ceiling **~370 clean** unchanged
+(currently 355 → +15 reachable from the items below).
 
-The 3 remaining `not-yet-fetched` slugs are NOT a "resume" issue —
-they're L2 errors that bypass `writeRawArchive` and never produce
-a source.json. See item 5.5 below for the code fix.
+The `intentional-stub-app-only` jump from 3 → 17 is **not a
+regression** — P-18 (commit `b2c5f69` + `c2c4e4e`) reclassifies bare-
+domain SPA shells, search-results URLs, and known-app-shape paths
+out of `content-too-short` / `_default-fetch-failed` into the
+deliberate-stub bucket, where they belong.
 
 ---
 
-## 2. Tool-side issues (code work needed)
+## 1. Done since iteration 1
 
-- [x] **Add v2ex.com site module** (`tools/sites/v2ex/`) — done in commit `c684a3c`.
-- [x] **Add `qwen.ai` content extractor for `/research`** — done in commit `09fb4a1`.
-- [x] **Add `deepwiki.com` landing-page handler** — done in commit `fd118be`.
-- [x] **L2 errors should write a stub source.json** — done in commit `79d727c` (P-35).
-- [ ] **Investigate `images-declared-but-none-downloaded` on stackoverflow.com + open-vsx.org + 1 github** (3 slugs in `content-incomplete-images-zero`). `_default` adapter emits image refs (Next.js `<Image>` srcsets?) but the download loop yields zero. Likely a relative-URL resolution bug or a CDN that 403s our user-agent; reproduce with `HIRONO_FETCH_DEBUG=1 npx tsx tools/bin/hirono.ts raindrop refetch <slug>`.
-- [ ] **Article-site factory browser-assist for lazy-loaded images (P-39 automation for factory-routed hosts).** The factory is curl-only by design; sites that lazy-load images via intersection observers (blog.google, etc.) save tiny placeholders instead of native-resolution variants. Add an opt-in flag to `_shared/article-site-factory.ts` that uses opencli browser-eval (with scroll-trigger from P-39) to harvest post-scroll `<img src>` URLs, then feeds those URLs to the existing curl-based image-download phase. Doesn't change the extraction path (still curl + JSDOM), only the image-URL collection.
-- [ ] **Body-direct content fallback in `_default` (P-37 automation).** Some single-purpose JS tools, IPFS-hosted SPAs, and hand-rolled HTML pages put content directly under `<body>` with no `<article>`/`<main>`/`.prose` wrapper. `_default`'s body-selector cascade misses them and the slug stubs at < 200 chars. Manual conversion proven on `1cb887bb.pinit.eth.limo` (sample at `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`). Automation: extend `tools/sites/_default/index.ts` BODY_SELECTORS cascade with `<body>` as a final fallback, fire only when no narrower selector matched AND text-after-(`<style>`/`<script>`/`<noscript>`)-strip exceeds ~300 chars. See P-37 in `Meta/site-handling-patterns.md` for the full pattern + per-element turndown rules used in the manual conversion.
+Items closed by shipped commits, kept here for the audit trail.
+
+- [x] **Add v2ex.com site module** (`tools/sites/v2ex/`) — commit `c684a3c`.
+- [x] **Add `qwen.ai` content extractor for `/research`** — commit `09fb4a1`.
+- [x] **Add `deepwiki.com` landing-page handler** — commit `fd118be` + service-card harvest in this session.
+- [x] **L2 errors should write a stub source.json** — commit `79d727c` (P-35).
+- [x] **Halt at item 163 (weixin migration banner)** — commit `20e2761`.
+- [x] **Halt at item 343 (browser-open-failed, 1Password)** — operator-side, lock cleared.
+- [x] **`not-yet-fetched` count cleared (3 → 1)** — P-35 wrote stubs for the 2 affected L2 slugs.
+- [x] **share-aggregator URL unwrap (`share.google?link=`)** — commits `245b9ba` + `4c4a97e` (P-32).
+- [x] **Anti-bot interstitial detection** (Cloudflare/Akamai/DataDome) — commits `82b2efd` + `62314cc` (P-33). Auto-resolve retry added in `f41e0c2` + `80a48a9`.
+- [x] **404 / page-deleted detection** — commits `703e7b8` + `d0b4b5b` (P-34); reclassified 3 slugs from fetch-error to `upstream-deleted`.
+- [x] **PDF page-rendering via mupdf** — commits `2498a87` + `1378674` (P-36); rescued 12 `upstream-not-html` slugs to `clean` with image-bearing renders.
+- [x] **`gist.github.com` claimed by `site:github`** — covered by github match update.
+- [x] **x-twitter authenticated browser-eval extraction** — commit `6bdffbc`.
+- [x] **`feishu` stub clarity + Lark fence-hint cleanup** — covered in feishu module's misc cleanups.
+- [x] **`nvidianews` widened selectors / `sohu` `.text` fallback / `linux-do` login-wall heuristic tightening** — commits `5f4391d` / `2b52132` / `3f093d0`.
+- [x] **P-18 URL-pattern app-only classifier — bare-domain + search-results refinement** — commits `c2c4e4e` + `b2c5f69` (and bot-blocked sub-branch override `749dbc1`).
+- [x] **Catalog/grid post-cleanups (multi-line wrappers, run-together inline links, avatar strip)** — commits `5319b91` / `85bb178` / `5834dfd` / `c730253` (P-38).
+- [x] **Lazy-loaded images: scroll-trigger before extracting** — commit `941f090` (P-39).
+- [x] **Multi-card blog-index aggregation** — `tools/sites/_shared/article-converter.ts` `nearestCommonAncestor` (P-40, this session).
+- [x] **Service-landing stub: harvest `og:*` metadata into the body** — `tools/sites/_shared/service-card.ts` + `bodyExtra` field on `makeStub` (P-41, this session).
+- [x] **`hirono raindrop check` host aggregation** — multi-tenant subdomains now collapse to one row per `site.name` (this session, `tools/hirono/raindrop/check.ts`).
+
+---
+
+## 2. Tool-side issues — pending (ranked by leverage)
+
+Surface in CLAUDE.md §4 fix recipes when implemented.
+
+- [ ] **(High)** **GitHub blob-path raw-fetch failure for deep `*.md` paths.**
+  Two slugs:
+  - `https://github.com/NVIDIA/TensorRT-LLM/blob/main/docs/source/blogs/tech_blog/blog9_Deploying_GPT_OSS_on_TRTLLM.md`
+  - `https://github.com/ForceInjection/AI-fundermentals/blob/main/inference-solution/DeepSeek-V3-MoE-vLLM-H20-Deployment.md`
+
+  Both files exist on the default branch and are valid markdown. The
+  github module's blob → `raw.githubusercontent.com/<o>/<r>/<branch>/<path>`
+  rewrite is failing somewhere — check the resolver in
+  `tools/sites/github/`. Likely path-encoding or default-branch
+  detection edge case.
+
+- [ ] **(High)** **GitHub `/commit/` and `/compare/` URL shapes — handle or
+  stub.**
+  - `https://github.com/HarborYuan/mmcv_16/commit/ad1a72fe0cbeead2716706ff618dfa0269d2cf4c`
+  - `https://github.com/chen08209/FlClash/compare/main...dongfengweixiao:FlClash:update_flutter_js`
+
+  Both fail with `github URL parse failed`. Two-branch fix in github
+  module: `/commit/` → REST `repos/{o}/{r}/commits/{sha}` (returns
+  message + diff stats — useful as a Sources entry), `/compare/` →
+  emit a deliberate stub (diff URLs aren't archive-shaped).
+
+- [ ] **(High)** **Status classifier mis-pins `pdf-rendered` openreview as
+  `upstream-paywall`.** Single slug:
+  `https://openreview.net/pdf?id=sIOgOQttFQ`. Content is good (43
+  pages rendered). Investigate `tools/hirono/raindrop/failure-kind.ts`
+  — there's a host pattern matching openreview without checking
+  `pdf-rendered` flag presence. One-rule fix; should include
+  `pdf-rendered` in the skip-set so any kind-classifier sees the slug
+  is good content.
+
+- [ ] **(High)** **`share.google` not-yet-fetched ghost.** One slug:
+  cache has `https://share.google?link=https://linux.do/t/topic/537374…`
+  but the slug was fetched under the unwrapped URL, so the
+  status-side join misses. Fix in
+  `tools/hirono/raindrop/status.ts` (or wherever the cache↔raw join
+  happens): also try `unwrapShareUrl(cache.link).unwrapped` against
+  the slug's `origin_url` before declaring not-yet-fetched. P-32 is
+  supposed to be transparent end-to-end; this is the last
+  not-transparent surface.
+
+- [ ] **(Medium)** **`images-declared-but-none-downloaded` on
+  `www.v2ex.com/t/979201`.** v2ex-specific image-download path emits
+  `v2ex-image-download-partial` then ALL images fail (yielding the
+  zero-downloaded flag). Reproduce with `HIRONO_FETCH_DEBUG=1
+  npx tsx tools/bin/hirono.ts raindrop refetch <slug>`. Likely the
+  v2ex module's image-URL resolver returns relative URLs that the
+  shared download path can't resolve. Other `images-declared` slug
+  (`github.com/hesreallyhim/awesome-claude-code`) is the
+  GITHUB_TOKEN issue covered in §3.
+
+- [ ] **(Medium-low, preventive)** **Article-site factory
+  browser-assist for lazy-loaded images (P-39 generalization).** The
+  factory in `tools/sites/_shared/article-site-factory.ts` is
+  curl-only; intersection-observer-driven lazy loading on
+  factory-routed hosts saves placeholder URLs. Add an opt-in flag to
+  the factory that uses opencli browser-eval (with the P-39 scroll
+  routine) to harvest post-scroll `<img src>` URLs, then feeds those
+  URLs to the existing curl-based image-download phase. No
+  active-corpus regression today (we already cover blog.google in
+  `_default`'s browser path), but blog-shape hosts that DO route
+  through the factory would benefit. See P-39 in
+  `Meta/site-handling-patterns.md`.
+
+- [ ] **(Medium-low, preventive)** **Spread `harvestServiceCard()` to
+  other landing-stub modules (P-41 generalization).** Helper at
+  `tools/sites/_shared/service-card.ts` is wired into
+  `tools/sites/deepwiki-com/` only. Same pattern applies to:
+  - `qwen-ai` (qwen.ai bare domain → app shell)
+  - `x-twitter` root (`x.com/`)
+  - `feishu` tenant landings
+  - future tool-homepage stubs
+
+  Each call site is a 2-line add: import + pass
+  `harvestServiceCard(url)?.markdown` as `bodyExtra` in the relevant
+  `makeStub` call. Slug bodies gain "what is this service" cards
+  instead of bare boilerplate. See P-41 in
+  `Meta/site-handling-patterns.md`.
+
+- [ ] **(Low, preventive)** **Body-direct content fallback in
+  `_default` (P-37 automation).** Some single-purpose JS tools,
+  IPFS-hosted SPAs, and hand-rolled HTML pages put content directly
+  under `<body>` with no `<article>`/`<main>`/`.prose` wrapper.
+  `_default`'s body-selector cascade misses them and the slug stubs
+  at < 200 chars. Manual conversion proven on
+  `1cb887bb.pinit.eth.limo` (sample at
+  `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`).
+  Automation: extend `tools/sites/_default/index.ts` BODY_SELECTORS
+  cascade with `<body>` as a final fallback, fire only when no
+  narrower selector matched AND text-after-(`<style>`/`<script>`
+  /`<noscript>`)-strip exceeds ~300 chars. See P-37 for the full
+  pattern + per-element turndown rules.
 
 ---
 
 ## 3. User-side actions (require credentials / network access)
 
-- [ ] **Set `GITHUB_TOKEN` and re-fetch GitHub failures** (5 of the 12 `upstream-fetch-failed` are github.com — anonymous rate-limit at 60/hr).
+- [ ] **Set `GITHUB_TOKEN` and re-fetch GitHub failures** (5 of 9
+  `upstream-fetch-failed` are github.com — anonymous rate-limit at
+  60/hr. 2 of those 5 ARE the `*.md` blob path issue above and
+  won't fix from a token alone; the other 3 should clear).
   ```bash
   export GITHUB_TOKEN=ghp_...        # personal access token, repo:read scope
   npx tsx tools/bin/hirono.ts raindrop sync --retry-kind upstream-fetch-failed
   ```
-  Expected: +5 to clean. Also retries the 3 `content-incomplete-images` on github.com (image-host 403s without auth).
-- [ ] **Re-auth linux.do in opencli-connected Chrome** (4 of the 12 `upstream-fetch-failed` are linux.do). Open `https://linux.do` in the Chrome instance opencli is bound to, sign in, then:
+  Also retries the 3 `content-incomplete-images` slugs on github.com
+  (image-host 403s without auth).
+  Expected: +3 to clean from rate-limit class; +3 image
+  partials → clean if image fetch also retries.
+
+- [ ] **Re-auth linux.do in opencli-connected Chrome** (4 of 9
+  `upstream-fetch-failed` are linux.do). Open `https://linux.do` in
+  the Chrome instance opencli is bound to, sign in, then:
   ```bash
   npx tsx tools/bin/hirono.ts raindrop sync --retry-kind upstream-fetch-failed
   ```
   Expected: +3–4 to clean.
-- [ ] **Eyeball and pin `content-too-short` slugs** (6 items). For each, open the URL; if the body really is short by design (paywall, tweet-shape, single-link share), pin as `clean` via `Meta/sources-health-overrides.md`. URLs to review:
-  - `https://github.com/atopx/linux-wps` — small repo readme (almost certainly genuinely short → pin clean)
-  - `https://apxml.com/zh/tools/vram-calculator` — calculator UI (pin as `intentional-stub-app-only`)
-  - `https://hjfy.top/` — homepage; eyeball
-  - `https://mapp.api.weibo.cn/fx/b75d28719f602f64aac7d7a818a3e7dc.html` — Weibo deep-link (likely deleted; pin as `upstream-deleted`)
-  - `http://xhslink.com/o/5vB4REfU35P`, `http://xhslink.com/o/64v2878MWih` — xhs notes that didn't get the auth-gated stub (eyeball; pin as `clean` if body looks reasonable)
-- [ ] **Fix the 1 malformed URL in Raindrop**:
-  - `https://share.google?link=https://linux.do/t/topic/537374&utm_campaign=...` — that's a Google share-redirect with the real linux.do URL embedded. Edit the bookmark in Raindrop to point directly at `https://linux.do/t/topic/537374`, then `hirono raindrop refresh-cache`.
-- [ ] **Decide on the 2 `upstream-spa-no-content` dead-domain slugs** (substratus.ai, yecnay.org). Both domains return no HTTP response — content is gone. Either:
-  - Accept the stub (no action), or
-  - Look for an archive.org snapshot and write a Sources summary by hand against that.
+
+- [ ] **Eyeball and pin `content-too-short` slugs** (4 items, was 6
+  — P-18 + P-34 absorbed 2). For each, open the URL; if the body
+  really is short by design, pin via `Meta/sources-health-overrides.md`.
+  Remaining URLs to review:
+  - `https://github.com/atopx/linux-wps` — small repo readme
+    (almost certainly genuinely short → pin clean).
+  - `https://www.zhihu.com/question/1918276517865157261/answer/1918748704971678665`
+    — short-body answer (eyeball; could be deleted answer or genuinely
+    brief).
+  - `http://xhslink.com/o/5vB4REfU35P`,
+    `http://xhslink.com/o/64v2878MWih` — xhs notes that didn't get
+    the auth-gated stub (eyeball; pin as `clean` or
+    `upstream-auth-gated`).
+
+- [ ] **xhs `text-body-unavailable` manual fixes** — 167 slugs you
+  flagged for manual archiving from your xhs auth session. List at
+  `sweep-results/xhs-text-body-unavailable.{md,tsv}`. For each, paste
+  the body into `content.md`, update `source.json` (clear
+  `intentional-stub`/`xhs-text-body-unavailable` flags, set
+  `quality_status: good`, bump `content_length`).
+
+- [ ] **Decide on the 1 `upstream-spa-no-content` real-content slug**
+  — `https://www.substratus.ai/blog/kind-with-gpus`. Domain returns
+  no HTTP response (curl errors); content is gone. The other 4
+  slugs in this kind are orphans (bookmarks already deleted). Either
+  accept the stub or look for an archive.org snapshot.
+
+- [ ] **(One-time backfill)** **Sources health overrides for
+  remaining deliberate-but-not-flagged stubs.** A few slugs (e.g.
+  `apxml.com/zh/tools/vram-calculator`, hjfy.top) are now correctly
+  classified by P-18 and don't need a manual override. Anything still
+  showing up under `content-too-short` or `intentional-stub-app-only`
+  that's actually a deliberate skip can go into
+  `Meta/sources-health-overrides.md` with a one-line `pin-kind=` entry.
 
 ---
 
 ## 4. Post-fetch downstream work
 
-The fetch pipeline produces the **raw archive** (`raw/raindrop/<host>/<slug>/`). Building the **wiki itself** (`Sources/<year>/<slug>.md` summaries + `Entities/` + `Topics/`) is downstream work that wasn't part of this session.
+The fetch pipeline produces the **raw archive** (`raw/raindrop/<host>/<slug>/`).
+Building the **wiki itself** (`Sources/<year>/<slug>.md` summaries +
+`Entities/` + `Topics/`) is downstream work that wasn't part of this
+session. Unchanged from iteration 1.
 
-- [ ] **Identify which raw slugs are worth summarizing**. The 350 clean slugs are the candidate pool. Prioritize by Raindrop `collection_id` / `tags` (queryable via `raw/raindrop/_index.json`).
+- [ ] **Identify which raw slugs are worth summarizing.** The 355
+  clean slugs are the candidate pool. Prioritize by Raindrop
+  `collection_id` / `tags` (queryable via `raw/raindrop/_index.json`).
 - [ ] **Run the LLM ingest loop** for the chosen slugs:
   ```bash
   npx tsx tools/bin/ingest_batch.ts plan <input.json>
@@ -99,73 +314,76 @@ The fetch pipeline produces the **raw archive** (`raw/raindrop/<host>/<slug>/`).
   ```bash
   npx tsx tools/bin/build-sources-index.ts
   ```
-- [ ] **Recompute reference counts and tier promotions**:
+- [ ] **Recompute reference counts and tier promotions:**
   ```bash
   npx tsx tools/bin/reindex.ts
   ```
-- [ ] **Final lint pass** to catch raw-orphan / dead-wikilink / tier-mismatch issues:
+- [ ] **Final lint pass** to catch raw-orphan / dead-wikilink / tier-mismatch:
   ```bash
   npx tsx tools/bin/lint.ts
   ```
 
 ---
 
-## 5. Local commits (30 ahead of nothing — no remote configured)
+## 5. Local commits — remote setup
 
-`git remote -v` is empty. The 30 commits this session built up significant infrastructure:
+`git remote -v` is empty. Many session commits (P-32 through P-41 +
+the older session) — all unreviewed except by you.
 
-- `9b2bec6` URL-pattern heuristic for `intentional-stub-app-only`
-- `c6e4ba2` arxiv-pdf classifier rule
-- `1cf3c89` preserve `intentional-stub` flag + xhs auth-gate classifier
-- `20e2761` weixin migration banner soft-stub
-- `a91d6bf` raw/raindrop/<host>/<slug>/ layout restructure + `_index.json`
-- `03eb786` operator-workflows §5 wired to new check + status surfaces
-- `aa5aaf1` host coverage overview footer in `status`
-- `af28855` raindrop check — new singleton hosts surface
-- `3f093d0` linux-do login-wall heuristic tightening
-- `7547431` _default PDF / non-html short-circuit
-- `2b52132` sohu .text fallback selector
-- `5f4391d` nvidianews wider selector cascade
-- `7c3530d` `error_detail` propagation across all stub modules
-- `75a1937` removed deprecated `fetch-raw` CLI
-- `ed001c1` consolidated raindrop pipeline under `hirono raindrop`
-- `eec7265` per-slug revisions.jsonl + history/diff CLIs
-- `ff1dd90` incremental sync — retry-by-kind, --check-stale
-- `acd07b3` raindrop status — structured failure log
-- `6bdffbc` x-twitter authenticated browser-eval extraction
-- … (11 more session commits + earlier session)
-
-- [ ] **Add a remote** (origin or otherwise) before pushing. Decide: GitHub, internal git server, or self-hosted. None of these commits have been reviewed by anyone else — push when ready.
+- [ ] **Add a remote** before pushing.
   ```bash
   git remote add origin <url>
   git push -u origin master
   ```
-- [ ] **Consider tagging this state**: `git tag -a v2026.05-bulk-fetch -m "584-bookmark bulk fetch + 350 clean baseline"` so the post-fetch state is easy to refer back to.
+- [ ] **Consider tagging** a stable point: `git tag -a v2026.05-bulk-fetch
+  -m "576-bookmark bulk fetch + 355 clean baseline"`.
 
 ---
 
 ## 6. Health-check schedule
 
-Per `Meta/operator-workflows.md` §7. None of these need to be set up
-right now — schedule when you're ready for steady-state operations.
+Per `Meta/operator-workflows.md` §7. Schedule when ready for
+steady-state operations.
 
-- [ ] **Daily** (manual or cron): `hirono raindrop refresh-cache` — pulls new bookmarks. New singletons surface in `hirono raindrop check`.
-- [ ] **Weekly**: `hirono raindrop sync --check-stale --max-age 30d` — head-checks every good slug older than 30 days; auto-escalates to refetch on etag/last-modified change.
-- [ ] **Weekly**: `hirono raindrop status --md --out sweep-results/_health/$(date -u +%Y%m%dT%H%M%SZ).md` — capture a snapshot. Diff against the previous to spot regressions.
-- [ ] **Monthly**: `hirono raindrop check --update-graduation-snapshot` — bake new host counts into `tools/opencli/host-counts.json`. Hosts that crossed `count==1 → count>=2` become candidates for dedicated site modules (see CLAUDE.md §5a).
+- [ ] **Daily** (manual or cron): `hirono raindrop refresh-cache`.
+  New singletons surface in `hirono raindrop check`.
+- [ ] **Weekly**: `hirono raindrop sync --check-stale --max-age 30d`
+  — head-checks every good slug older than 30 days; auto-escalates
+  to refetch on etag/last-modified change.
+- [ ] **Weekly**: `hirono raindrop status --md --out
+  sweep-results/_health/$(date -u +%Y%m%dT%H%M%SZ).md` — capture a
+  snapshot. Diff against the previous to spot regressions.
+- [ ] **Monthly**: `hirono raindrop check --update-graduation-snapshot`
+  — bake new host counts into `tools/opencli/host-counts.json`.
+  Hosts that crossed `count==1 → count>=2` become candidates for
+  dedicated site modules (CLAUDE.md §5a). **Note (2026-05-09):** the
+  check command now collapses multi-tenant subdomains to a single row
+  per `site.name`, so `*.feishu.cn`, `*.zhihu.com`, etc. no longer
+  spam the singleton list.
 - [ ] **Ad-hoc** (when adding bookmarks for a new host):
   ```bash
   hirono raindrop refresh-cache
   hirono raindrop check                # any new singletons?
   hirono raindrop status               # graduation candidates surfaced in footer
   ```
-  If a new host appears in `_default`-routed graduation candidates with `stub/error` count > 0 and you bookmark from it regularly, build a dedicated `tools/sites/<host>/` module.
+  If a new host appears in `_default`-routed graduation candidates
+  with `stub/error` count > 0 and you bookmark from it regularly,
+  build a dedicated `tools/sites/<host>/` module.
 
 ---
 
 ## Final-state targets
 
-- After items 2 + 3: **~370 clean** (+20 from current 350)
-- After item 4 (Sources summaries): wiki is browsable, reference counts populate
-- After item 5 (push): commits durable beyond this machine
-- After item 6 (schedule): pipeline is steady-state
+Updated against current 355 baseline:
+
+- After §2 (tool-side fixes): **~365 clean** (+10 from current 355 —
+  blob-path fix +2, commit/compare URL handling +1, openreview
+  reclassify +1, share.google ghost +1, v2ex image partial +1,
+  smaller knock-on effects from spread `harvestServiceCard`).
+- After §3 (user-side: `GITHUB_TOKEN`, linux.do re-auth, xhs manual
+  paste): **~370+ clean** (+5–10 from §2 baseline; biggest single
+  lever is the 167 xhs manual fixes if you commit the time).
+- After §4 (Sources summaries): wiki is browsable, reference counts
+  populate.
+- After §5 (push): commits durable beyond this machine.
+- After §6 (schedule): pipeline is steady-state.
