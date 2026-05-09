@@ -28,6 +28,23 @@ function isTopicUrl(url: string): boolean {
   return /\/t\/\d+/.test(url);
 }
 
+/**
+ * Hosts known to aggressively rate-limit (429) anonymous bulk image
+ * downloads from a single IP. v2ex topics frequently embed imgur URLs;
+ * imgur 429s every CDN variant (`i.imgur.com`, `imgur.com`, with or
+ * without extension) for many minutes after a few requests. The
+ * fallback is the Wayback Machine. Extend this set as we observe other
+ * persistently-throttled image hosts.
+ */
+function isThrottledImageHost(remoteUrl: string): boolean {
+  try {
+    const h = new URL(remoteUrl).hostname.toLowerCase().replace(/^www\./, "");
+    return h === "imgur.com" || h === "i.imgur.com";
+  } catch {
+    return false;
+  }
+}
+
 export const site: Site = {
   name: "v2ex",
   match: (url) => hostOf(url) === "v2ex.com" && isTopicUrl(url),
@@ -52,18 +69,37 @@ export const site: Site = {
 
     const conv = convertV2exTopic(topic);
 
-    // Localize images.
+    // Localize images. v2ex topics frequently embed imgur URLs, and
+    // imgur's CDN aggressively rate-limits unauthenticated downloads
+    // from a single IP (HTTP 429 for every variant — `i.imgur.com`,
+    // `imgur.com`, all extensions). When a v2ex image fails the direct
+    // download AND its host is in the known-throttling set, retry via
+    // the Wayback Machine: `https://web.archive.org/web/<spec>/<url>`
+    // serves a 302 to the closest archived snapshot, which we then
+    // follow with `-L` to fetch the actual bytes.
+    //
+    // This isn't full image rescue — only works for images Wayback
+    // already archived — but for a forum thread from 2023, that's
+    // typically the case. Tracked via the `v2ex-image-rescued-via-wayback`
+    // flag so the operator can audit.
     const images: string[] = [];
     let imgFailed = 0;
+    let imgRescued = 0;
     for (const dl of conv.imagesToDownload) {
       const dest = join(opts.slugDir, dl.localFilename);
-      const bytes = downloadImage(dl.remoteUrl, dest, undefined, url);
+      let bytes = downloadImage(dl.remoteUrl, dest, undefined, url);
+      if (bytes <= 0 && isThrottledImageHost(dl.remoteUrl)) {
+        const waybackUrl = `https://web.archive.org/web/2024/${dl.remoteUrl}`;
+        bytes = downloadImage(waybackUrl, dest, undefined, url);
+        if (bytes > 0) imgRescued++;
+      }
       if (bytes > 0) images.push(dl.localFilename);
       else imgFailed++;
     }
 
     const flags: string[] = [];
     if (imgFailed > 0) flags.push("v2ex-image-download-partial");
+    if (imgRescued > 0) flags.push("v2ex-image-rescued-via-wayback");
 
     return {
       markdown: conv.markdown,

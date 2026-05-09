@@ -402,8 +402,16 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   //   - `structured-summary`: deliberate metadata-shape document
   //     (github commit / compare summaries) where short-body floors
   //     don't apply
+  //   - `v2ex-image-rescued-via-wayback`: imgur images that 429'd were
+  //     rescued from the Wayback Machine. The content is present;
+  //     the flag exists for audit only.
   // Real quality flags (short-body, etc.) still flip to "flagged".
-  const NON_PROBLEMATIC_FLAGS = new Set(["intentional-stub", "pdf-rendered", "structured-summary"]);
+  const NON_PROBLEMATIC_FLAGS = new Set([
+    "intentional-stub",
+    "pdf-rendered",
+    "structured-summary",
+    "v2ex-image-rescued-via-wayback",
+  ]);
   const suspicious = uniq.some((f) => !NON_PROBLEMATIC_FLAGS.has(f));
   const quality_status: QualityStatus = suspicious ? "flagged" : "good";
   return { suspicious, flags: uniq, quality_status };
