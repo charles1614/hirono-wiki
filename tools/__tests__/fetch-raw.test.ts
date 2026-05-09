@@ -610,6 +610,46 @@ test("buildSyncPlan: flagged slug → skip-good by default, fetch with --retry-f
   }
 });
 
+test("buildSyncPlan: --exclude-host suffix-matches tenants and skips them", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-feishu-tenant", "2026", {
+      origin: "url:https://abc.feishu.cn/wiki/X", origin_url: "https://abc.feishu.cn/wiki/X",
+      fetcher: "opencli", fetcher_reason: "direct",
+      content_sha: "a", content_length: 100, quality_flags: ["short-body"], quality_status: "flagged",
+      images: [], notes: [],
+    });
+    t.addSource("2026-04-02-weixin", "2026", {
+      origin: "url:https://mp.weixin.qq.com/s/Z", origin_url: "https://mp.weixin.qq.com/s/Z",
+      fetcher: "opencli", fetcher_reason: "direct",
+      content_sha: "b", content_length: 100, quality_flags: ["short-body"], quality_status: "flagged",
+      images: [], notes: [],
+    });
+    t.addSource("2026-04-03-other", "2026", {
+      origin: "url:https://other.example.com/post", origin_url: "https://other.example.com/post",
+      fetcher: "opencli", fetcher_reason: "direct",
+      content_sha: "c", content_length: 100, quality_flags: ["short-body"], quality_status: "flagged",
+      images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+    const plan = buildSyncPlan({
+      retryFlagged: true, dryRun: true, reclassify: false,
+      excludeHosts: new Set(["feishu.cn", "mp.weixin.qq.com"]),
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no-batch.json"),
+    });
+    const bySlug = new Map(plan.map(p => [p.slug, p]));
+    // feishu tenant matches via suffix `feishu.cn`.
+    assert.equal(bySlug.get("2026-04-01-feishu-tenant")!.action, "skip-excluded-host");
+    // weixin matches exactly.
+    assert.equal(bySlug.get("2026-04-02-weixin")!.action, "skip-excluded-host");
+    // Other host falls through to fetch (retry-flagged).
+    assert.equal(bySlug.get("2026-04-03-other")!.action, "fetch");
+  } finally {
+    t.cleanup();
+  }
+});
+
 test("buildSyncPlan: decisions always skip, even with --retry-flagged", () => {
   const t = makeTmpRawTree();
   try {

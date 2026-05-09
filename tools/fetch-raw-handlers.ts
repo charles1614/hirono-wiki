@@ -204,6 +204,10 @@ export function cmdSync(args: string[]): void {
   const only = onlyStr
     ? new Set(onlyStr.split(",").map((s) => s.trim()).filter(Boolean))
     : undefined;
+  const excludeHostStr = argVal(args, "--exclude-host");
+  const excludeHosts = excludeHostStr
+    ? new Set(excludeHostStr.split(",").map((s) => s.trim().toLowerCase().replace(/^www\./, "")).filter(Boolean))
+    : undefined;
   const dryRun = argFlag(args, "--dry-run");
   const downloadImages = !argFlag(args, "--no-images");
   const reclassify = !argFlag(args, "--no-reclassify");  // default on
@@ -216,6 +220,7 @@ export function cmdSync(args: string[]): void {
     checkStale,
     maxAgeDays: typeof maxAgeDays === "number" && !isNaN(maxAgeDays) ? maxAgeDays : undefined,
     only,
+    excludeHosts,
     dryRun,
     reclassify,
   });

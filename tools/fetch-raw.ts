@@ -1526,6 +1526,15 @@ export interface SyncOpts {
   checkStale?: boolean;
   /** Default 90 days. Only relevant when checkStale=true. */
   maxAgeDays?: number;
+  /**
+   * Skip slugs whose host (URL.hostname, normalized: lower-case, www.
+   * stripped) matches any entry in this set. Suffix-style: an entry
+   * `feishu.cn` excludes `*.feishu.cn` tenant subdomains. Useful when
+   * resuming a bulk fetch where the operator's Chrome auth has
+   * expired for specific hosts (weixin, linux.do) but the rest of
+   * the corpus can still be processed.
+   */
+  excludeHosts?: Set<string>;
 }
 
 export interface SyncPlanItem {
@@ -1538,6 +1547,7 @@ export interface SyncPlanItem {
     | "skip-not-in-only"
     | "skip-over-limit"
     | "skip-not-in-retry-kind"
+    | "skip-excluded-host"
     | "head-check";
   origin?: string;
   originUrl?: string;
@@ -1550,6 +1560,19 @@ function ageInDays(iso: string): number {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return 0;
   return (Date.now() - t) / (1000 * 60 * 60 * 24);
+}
+
+/**
+ * Suffix-style host-matcher. An entry `feishu.cn` excludes
+ * `*.feishu.cn` tenants AND `feishu.cn` itself; an entry
+ * `mp.weixin.qq.com` excludes only that exact host.
+ */
+export function matchesExcluded(host: string, excluded: Set<string>): boolean {
+  if (excluded.has(host)) return true;
+  for (const e of excluded) {
+    if (host.endsWith("." + e)) return true;
+  }
+  return false;
 }
 
 /** HEAD-check a URL. Returns the etag + last-modified, or {ok:false}. */
@@ -1621,6 +1644,17 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
     if (opts.only && !opts.only.has(info.slug)) {
       plan.push({ slug: info.slug, action: "skip-not-in-only", reason: "not in --only filter" });
       continue;
+    }
+    if (opts.excludeHosts && opts.excludeHosts.size > 0) {
+      const slugHost = info.hostname.toLowerCase().replace(/^www\./, "");
+      if (matchesExcluded(slugHost, opts.excludeHosts)) {
+        plan.push({
+          slug: info.slug,
+          action: "skip-excluded-host",
+          reason: `host ${slugHost} matched --exclude-host filter`,
+        });
+        continue;
+      }
     }
     if (decisions.has(info.slug)) {
       plan.push({
