@@ -161,8 +161,79 @@ export function fetchRaw(
     encoding: "utf8",
     timeout: 30_000,
   });
-  if (res.status !== 0 || !res.stdout || res.stdout.length < 200) return null;
-  return { body: res.stdout, resolvedPath: path, branch };
+  if (res.status === 0 && res.stdout && res.stdout.length >= 200) {
+    return { body: res.stdout, resolvedPath: path, branch };
+  }
+  // 404 or empty response — file may have been moved/renamed in the repo.
+  // Try a fuzzy lookup against the tree API: find files whose basename
+  // matches when normalized (lower-case, dashes/underscores collapsed,
+  // leading-zero variations like `blog9_` vs `blog09_`). Fetch the
+  // unique match if exactly one. See P-42 in
+  // `Meta/site-handling-patterns.md`.
+  const moved = findMovedFile(org, repo, branch, path);
+  if (moved) {
+    const movedRes = spawnSync(
+      "curl", ["-sfL", "-A", "Mozilla/5.0",
+        `https://raw.githubusercontent.com/${org}/${repo}/${branch}/${moved}`,
+      ],
+      { encoding: "utf8", timeout: 30_000 },
+    );
+    if (movedRes.status === 0 && movedRes.stdout && movedRes.stdout.length >= 200) {
+      return { body: movedRes.stdout, resolvedPath: moved, branch };
+    }
+  }
+  return null;
+}
+
+interface TreeEntry { path: string; type: string; }
+interface TreeResponse { tree: TreeEntry[]; truncated: boolean; }
+
+/**
+ * Normalize a basename for fuzzy-match: lower-case, drop leading zeros
+ * within numeric prefixes (blog09 ≡ blog9), collapse dashes/underscores
+ * to a single character, drop the extension. The point is to recognize
+ * the SAME file under common rename patterns:
+ *
+ *   - `blog9_X.md`  →  `blog09_X.md`        (zero-pad for sortability)
+ *   - `Foo-Bar.md`  →  `foo_bar.md`         (case + separator change)
+ *   - `Some File.md` → `some_file.md`       (whitespace → underscore)
+ */
+function normalizeBasename(name: string): string {
+  let n = name.toLowerCase()
+    .replace(/\.(?:md|markdown|mdx)$/i, "")
+    .replace(/[-_\s]+/g, "_");
+  // Strip leading zeros from numeric runs preceded by a non-digit:
+  // `blog09_x` → `blog9_x`. (Both forms normalize to the same string.)
+  n = n.replace(/(^|[^0-9])0+(\d)/g, "$1$2");
+  return n;
+}
+
+/**
+ * Search the repo's tree for a file whose normalized basename matches
+ * the target's normalized basename. Returns the new path if exactly
+ * one match exists, otherwise null. Best-effort: caps tree fetch at
+ * 30s and silently fails on errors so the caller falls back to the
+ * 404 stub.
+ */
+function findMovedFile(org: string, repo: string, branch: string, path: string): string | null {
+  const targetBase = path.split("/").pop() || path;
+  const targetNorm = normalizeBasename(targetBase);
+  if (!targetNorm) return null;
+  const tree = curlJson<TreeResponse>(
+    `https://api.github.com/repos/${org}/${repo}/git/trees/${branch}?recursive=1`,
+  );
+  if (!tree || !Array.isArray(tree.tree)) return null;
+  const matches: string[] = [];
+  for (const t of tree.tree) {
+    if (t.type !== "blob") continue;
+    if (!/\.(?:md|markdown|mdx)$/i.test(t.path)) continue;
+    const base = t.path.split("/").pop() || t.path;
+    if (normalizeBasename(base) === targetNorm) matches.push(t.path);
+  }
+  // Only auto-resolve when there's exactly one strong match. Multiple
+  // matches indicates ambiguity (the file was renamed AND duplicated
+  // somewhere) — surface a stub instead of guessing.
+  return matches.length === 1 ? matches[0] : null;
 }
 
 /** For /tree/<branch>[/<path>] URLs: fetch README at that path. */
