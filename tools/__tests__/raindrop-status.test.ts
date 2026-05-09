@@ -326,6 +326,73 @@ test("buildStatusRows: joins cache + index + raw correctly", () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("buildStatusRows: share-aggregator bookmark resolves to slug stored under unwrapped target (P-32)", () => {
+  // P-32 unwraps `share.google?link=https://linux.do/t/topic/N` at fetch
+  // time, so the resulting slug lives under raw/raindrop/linux.do/ with
+  // origin_url = the unwrapped target. The cache still carries the
+  // wrapper URL as `b.link`. The status join MUST try
+  // `unwrapShareUrl(b.link).unwrapped` against rawByUrl, otherwise the
+  // bookmark looks unfetched and the slug looks orphan — the "ghost"
+  // failure mode where one bookmark + one slug surface as two opposing
+  // problems. See P-32 in Meta/site-handling-patterns.md.
+  const dir = mkdtempSync(join(tmpdir(), "status-"));
+  const cachePath = join(dir, "cache.json");
+  const indexPath = join(dir, "index.json");
+  const rawDir = join(dir, "raw");
+  const overridesPath = join(dir, "overrides.md");
+
+  // Cache: bookmark is the wrapper URL (with utm tracking on the outside).
+  writeFileSync(cachePath, JSON.stringify({
+    bookmarks: [
+      {
+        bookmark_id: 99,
+        link: "https://share.google?link=https://linux.do/t/topic/537374&utm_campaign=share-sdl",
+        title: "wrapped",
+      },
+    ],
+  }));
+  writeFileSync(indexPath, JSON.stringify({}));
+
+  // Slug landed under the unwrapped target's host.
+  mkdirSync(join(rawDir, "raindrop", "linux.do", "2025-06-09-shared-topic-537374"), { recursive: true });
+  writeFileSync(
+    join(rawDir, "raindrop", "linux.do", "2025-06-09-shared-topic-537374", "content.md"),
+    "# Topic 537374\n",
+  );
+  writeFileSync(
+    join(rawDir, "raindrop", "linux.do", "2025-06-09-shared-topic-537374", "source.json"),
+    JSON.stringify({
+      fetched_at: "2025-06-09T00:00:00Z",
+      origin: "url:https://linux.do/t/topic/537374",
+      origin_url: "https://linux.do/t/topic/537374",
+      fetcher: "opencli",
+      fetcher_reason: "direct",
+      content_sha: "z",
+      content_length: 1500,
+      quality_flags: [],
+      quality_status: "good",
+      images: [],
+      notes: [],
+    }),
+  );
+
+  const rows = buildStatusRows({
+    raindropCachePath: cachePath,
+    sourcesIndexPath: indexPath,
+    overridesPath,
+    rawDir,
+  });
+
+  // Exactly one row — bookmark+slug joined, no ghost orphan.
+  assert.equal(rows.length, 1, `expected 1 row (bookmark+slug joined), got ${rows.length}`);
+  const r = rows[0];
+  assert.equal(r.url, "https://share.google?link=https://linux.do/t/topic/537374&utm_campaign=share-sdl");
+  assert.equal(r.kind, "clean", `expected clean, got ${r.kind} (status join failed to follow unwrap)`);
+  assert.equal(r.last_fetched, "2025-06-09T00:00:00Z");
+  assert.ok(!/orphan/.test(r.advice ?? ""), "row should not be flagged as orphan");
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("buildStatusRows: orphan raw slug surfaces as orphan with [orphan: ...] advice prefix", () => {
   const dir = mkdtempSync(join(tmpdir(), "status-"));
   const cachePath = join(dir, "cache.json");
