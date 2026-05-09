@@ -15,6 +15,7 @@ import { extractDeepwikiComContent } from "./fetcher.ts";
 import { convertDeepwikiComHtml } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 import { makeStub } from "../_shared/stub.ts";
+import { harvestServiceCard } from "../_shared/service-card.ts";
 
 function hostOf(url: string): string {
   try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
@@ -47,6 +48,7 @@ function fetchDeepwiki(url: string, opts: { slugDir: string; titleHint?: string 
   mkdirSync(opts.slugDir, { recursive: true });
 
   if (isLandingPage(url)) {
+    const card = harvestServiceCard(url);
     return makeStub({
       url,
       module: "deepwiki-com",
@@ -58,6 +60,7 @@ function fetchDeepwiki(url: string, opts: { slugDir: string; titleHint?: string 
         "If you wanted a specific repo's wiki, the URL pattern is " +
         "`https://deepwiki.com/<owner>/<repo>` — re-bookmark with that path. " +
         "If you bookmarked the homepage on purpose, accept the stub.",
+      bodyExtra: card?.markdown,
     });
   }
 

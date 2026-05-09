@@ -55,6 +55,7 @@ this file. Each iteration grows the institutional memory.
 | `_default` extracts < 200 chars but `curl <url>` returns 5+ KB of HTML with `<h1>`, `<p>`, form elements directly under `<body>` (no `<article>`/`<main>`/`.prose` wrapper) | Single-purpose JS tool / IPFS-hosted SPA / hand-rolled HTML — semantic content lives directly in `<body>` | P-37 body-direct-content |
 | Output has orphan `](url)` lines (`grep -c "^\s*\]("` non-zero) OR a single line with 4+ adjacent `[X](Y)[X](Y)…` link runs OR many `[![<name>](avatar.jpg)](/profile-url)` rows | Catalog/grid page — turndown's multi-line link wrapper emission + sibling `<a>` no-separator + avatar image-link clutter | P-38 catalog-link-cleanups |
 | URL is a blog's bare-domain root or `/blog/` index, `_default` extracts only the first article preview (~300-700 chars / 1 image) when the live page has 10-30 article cards | Body-selector cascade picks first `<article>` candidate ≥ 200 chars, drops the rest of the listing | P-40 multi-card-index-aggregation |
+| URL is a tool's bare-domain homepage and the stub body is just "no per-page content to archive" + advice — no description of what the service does | Stub-emitting module didn't harvest `<meta og:title>` / `<meta og:description>` from the homepage `<head>` | P-41 service-card-meta-harvest |
 | Body is < 200 chars after both curl + browser-eval | Genuinely empty (deleted, redirected to home, real stub) | P-21 stub-threshold |
 | URL claims to be one host but redirects to another (xhslink → xiaohongshu, share.google → linux.do) | Shortlink / share-redirect | P-22 shortlink-resolution |
 | GitHub `/blob/`, `/tree/`, `/issues/`, `/pull/`, `/discussions/`, `/releases/tag/` | Structured data lives in REST API + raw.githubusercontent.com | P-23 use-the-api |
@@ -837,6 +838,40 @@ For `blogs.novita.ai` after the fix: 14 article cards aggregated under their com
 3. **Bookmark-to-bare-domain is the canonical signal.** Operators bookmark a blog's homepage when they want "all posts", not when they want one specific post. The cascade should be friendly to that intent.
 
 **Reference.** `tools/sites/_shared/article-converter.ts` (`nearestCommonAncestor` helper + the multi-candidate branch in the body-selector cascade). Proven on `blogs.novita.ai/` — 393 → 5731 body chars, 1 → 14 images.
+
+### P-41 — Service-landing stubs: harvest `og:*` metadata into a "what is this service" card
+
+**Symptom.** A stub-only module emits a bare stub for a URL like `https://deepwiki.com/`, `https://qwen.ai/`, or some tool's homepage. The slug content reads `> Status: bare-domain landing — interactive search/marketing surface, no per-page content to archive` followed by operator advice. There's nothing in the body that tells a future reader what the service IS — they have to revisit the URL to remember why they bookmarked it.
+
+**Root cause.** Service-homepage URLs route correctly to a stub (the page is interactive / marketing, not an article), but the stub helper only emitted title + status + advice. The homepage's `<meta og:title>` + `<meta og:description>` carry exactly the kind of one-paragraph "what does this service do?" summary the slug needs, and they're trivial to harvest — but no path was reading them.
+
+Concrete corpus example: `deepwiki.com/` had `<meta og:description content="DeepWiki provides up-to-date documentation you can talk to, for every repo in the world. Think Deep Research for GitHub - powered by Devin.">`. Pre-fix the stub said only "no per-page content to archive"; post-fix the description survives in the slug body, durably preserved with the bookmark.
+
+**Remediation.** New helper `tools/sites/_shared/service-card.ts:harvestServiceCard(url)` curls the URL, parses `<head>` only (avoids body-JSON false positives), pulls `og:title` / `twitter:title` / `<title>`, `og:description` / `twitter:description` / `description`, `og:site_name`, and composes a markdown block with shape:
+
+```markdown
+## About this service
+
+**<og:title>**
+
+<og:description>
+
+*— <og:site_name>*
+```
+
+`makeStub` gained an optional `bodyExtra` field rendered between the `---` divider and the operator-advice line. Stub-emitting modules pass `harvestServiceCard(url)?.markdown` as `bodyExtra`. Best-effort: returns `null` on network error / no meta tags, in which case the stub renders as before.
+
+**Generalization.**
+
+1. **Stubs aren't binary.** "Cannot extract structured content" doesn't mean "preserve nothing". Meta tags are cheap to harvest and almost always carry useful one-paragraph summaries that the user implicitly bookmarked when bookmarking the homepage.
+2. **Parse `<head>` only.** Body JSON / inline scripts on SPA homepages frequently contain `meta` substrings that look like tags but aren't in the document. Slicing at `</head>` before regex prevents accidental matches.
+3. **Reusable across all stub-emitting modules.** Apply to any landing-page / app-shell stub: `qwen-ai`, `feishu`, future tool-homepage stubs. The helper is host-agnostic.
+
+**Reference.** `tools/sites/_shared/service-card.ts` (`harvestServiceCard`); `tools/sites/_shared/stub.ts` (new `bodyExtra` field). Proven on `deepwiki.com/` — slug 445 → 688 chars with the actual service description preserved instead of generic stub boilerplate.
+
+ ---
+ 
+ ## §3 Patterns by remediation technique
 
 ---
 

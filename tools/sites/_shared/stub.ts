@@ -59,6 +59,16 @@ export interface MakeStubArgs {
    * Omit when there's nothing more to say beyond `summary`.
    */
   errorDetail?: string;
+  /**
+   * Optional extra markdown rendered AFTER the `---` divider and BEFORE
+   * the italic `advice` line. Use for content that belongs in the body
+   * of the stub itself — e.g. a service-landing card built from
+   * `<meta og:description>`, a 410-with-archive-snapshot link, or any
+   * recoverable context that's worth preserving even though the slug
+   * is structurally a stub. Should be free-form markdown without a
+   * leading `# ` H1 (the stub already has its title).
+   */
+  bodyExtra?: string;
 }
 
 const MAX_ERROR_DETAIL = 2000;
@@ -100,8 +110,11 @@ export function makeStub(args: MakeStubArgs): Result {
     ``,
     `---`,
     ``,
-    `*${advice}*`,
   ];
+  if (args.bodyExtra && args.bodyExtra.trim()) {
+    lines.push(args.bodyExtra.trim(), ``);
+  }
+  lines.push(`*${advice}*`);
   if (args.errorDetail && args.errorDetail.trim()) {
     lines.push(``, `## Error detail`, ``, `\`\`\``, clampErrorDetail(args.errorDetail.trim()), `\`\`\``);
   }
