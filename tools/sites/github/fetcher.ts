@@ -157,6 +157,13 @@ export interface RawFetchResult {
   body: string;
   resolvedPath: string;
   branch: string;
+  /**
+   * Set when the blob is a plain-text file that we wrap in a code fence
+   * rather than treating as markdown. Drives a different rendering path
+   * in the converter (no demote-H1, no frontmatter strip, render the
+   * whole body as a single fenced block).
+   */
+  isPlainText?: boolean;
 }
 
 export function fetchRaw(
@@ -165,15 +172,21 @@ export function fetchRaw(
   branch: string,
   path: string,
 ): RawFetchResult | null {
-  // Only meaningful for markdown-ish files.
-  if (!/\.(?:md|markdown|mdx)$/i.test(path)) return null;
+  // Markdown is the primary path. We also accept a few plain-text
+  // shapes (`.txt`, `.csv`, `.tsv`, `.log`) that operators occasionally
+  // bookmark for reference (dataset listings, scene-name files, etc.).
+  // Other extensions still return null — we don't try to convert
+  // arbitrary source files to markdown.
+  const isMarkdown = /\.(?:md|markdown|mdx)$/i.test(path);
+  const isPlainText = !isMarkdown && /\.(?:txt|csv|tsv|log)$/i.test(path);
+  if (!isMarkdown && !isPlainText) return null;
   const rawUrl = `https://raw.githubusercontent.com/${org}/${repo}/${branch}/${path}`;
   const res = spawnSync("curl", ["-sfL", "-A", "Mozilla/5.0", rawUrl], {
     encoding: "utf8",
     timeout: 30_000,
   });
   if (res.status === 0 && res.stdout && res.stdout.length >= 200) {
-    return { body: res.stdout, resolvedPath: path, branch };
+    return { body: res.stdout, resolvedPath: path, branch, isPlainText };
   }
   // 404 or empty response — file may have been moved/renamed in the repo.
   // Try a fuzzy lookup against the tree API: find files whose basename
@@ -190,7 +203,7 @@ export function fetchRaw(
       { encoding: "utf8", timeout: 30_000 },
     );
     if (movedRes.status === 0 && movedRes.stdout && movedRes.stdout.length >= 200) {
-      return { body: movedRes.stdout, resolvedPath: moved, branch };
+      return { body: movedRes.stdout, resolvedPath: moved, branch, isPlainText };
     }
   }
   return null;
@@ -230,6 +243,15 @@ function findMovedFile(org: string, repo: string, branch: string, path: string):
   const targetBase = path.split("/").pop() || path;
   const targetNorm = normalizeBasename(targetBase);
   if (!targetNorm) return null;
+  // Constrain the candidate set to files with the same extension family
+  // as the target. Markdown targets only fuzzy-match other markdown
+  // files; plain-text targets only fuzzy-match other plain-text files.
+  // Otherwise a `Foo.md` rename to `Foo.txt` would cross-match and
+  // change the rendering path silently.
+  const targetIsMarkdown = /\.(?:md|markdown|mdx)$/i.test(path);
+  const acceptExt = targetIsMarkdown
+    ? /\.(?:md|markdown|mdx)$/i
+    : /\.(?:txt|csv|tsv|log)$/i;
   const tree = curlJson<TreeResponse>(
     `https://api.github.com/repos/${org}/${repo}/git/trees/${branch}?recursive=1`,
   );
@@ -237,7 +259,7 @@ function findMovedFile(org: string, repo: string, branch: string, path: string):
   const matches: string[] = [];
   for (const t of tree.tree) {
     if (t.type !== "blob") continue;
-    if (!/\.(?:md|markdown|mdx)$/i.test(t.path)) continue;
+    if (!acceptExt.test(t.path)) continue;
     const base = t.path.split("/").pop() || t.path;
     if (normalizeBasename(base) === targetNorm) matches.push(t.path);
   }

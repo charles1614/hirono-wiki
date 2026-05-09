@@ -465,9 +465,41 @@ export interface RawConvertInput {
   originUrl: string;
   /** Raw markdown body fetched from raw.githubusercontent.com. */
   body: string;
+  /**
+   * Set when `body` is a plain-text file (`.txt`, `.csv`, `.tsv`,
+   * `.log`) rather than markdown. The converter wraps it in a fenced
+   * code block instead of running the markdown-shaping pipeline.
+   */
+  isPlainText?: boolean;
 }
 
 export function convertGithubRaw(input: RawConvertInput): GithubConvertResult {
+  // Plain-text files: emit a §2-contract document with the body as a
+  // single fenced code block. No YAML strip, no image resolution, no
+  // H1 inference — these files are pure data (dataset listings, log
+  // dumps, scene-name lists). Preserves the bookmark intent (operator
+  // wanted to remember this file exists) without trying to convert
+  // pure data into prose.
+  if (input.isPlainText) {
+    const ext = (input.path.match(/\.([a-z]+)$/i)?.[1] ?? "").toLowerCase();
+    const lang = ext === "csv" ? "csv" : ext === "tsv" ? "tsv" : ext === "log" ? "" : "";
+    const fence = "````";
+    const fm: string[] = [
+      `# ${input.org}/${input.repo}: ${input.path}`,
+      "",
+      `> 原文链接: ${input.originUrl}`,
+      `> Format: plain-text (${ext}) · ${input.body.split("\n").length} lines · ${input.body.length} chars`,
+      "",
+      "---",
+      "",
+      `${fence}${lang}`,
+      input.body.replace(/\n+$/, ""),
+      fence,
+      "",
+    ];
+    return { markdown: fm.join("\n"), imagesToDownload: [] };
+  }
+
   let body = input.body;
 
   // Strip a leading YAML frontmatter block (`---\n...\n---\n`) from the

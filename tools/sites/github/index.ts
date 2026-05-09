@@ -287,6 +287,7 @@ export const site: Site = {
       path: raw.resolvedPath,
       originUrl: url,
       body: raw.body,
+      isPlainText: raw.isPlainText,
     });
 
     const { images, failed } = downloadAll(conv.imagesToDownload, opts.slugDir);
