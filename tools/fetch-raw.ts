@@ -1248,6 +1248,23 @@ export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
  * fields. Path-derivable fields (hostname, slugDir) are included for
  * convenience so an operator can `jq` without joining.
  */
+/**
+ * Coarse position in the corpus pipeline. Derived from
+ * `quality_status` AND ingestion state (presence in
+ * `.wiki-sources-index.json`). Lets a single jq query answer "where
+ * is this slug" without cross-referencing three files.
+ *
+ *   - `not-yet-good`: extraction has problems; can't be ingested
+ *     (`quality_status !== "good"`).
+ *   - `ingest-ready`: clean raw archive, no Sources/<slug>.md yet —
+ *     this is the LLM-ingest queue.
+ *   - `ingested`: clean raw archive AND a paired wiki summary
+ *     exists. Frozen-slug guard protects against accidental refetch.
+ *
+ * See `Meta/corpus-pipeline.md` for the state machine.
+ */
+export type SlugState = "not-yet-good" | "ingest-ready" | "ingested";
+
 export interface RawIndexEntry {
   slug: string;
   hostname: string;
@@ -1261,6 +1278,12 @@ export interface RawIndexEntry {
   title?: string;
   fetched_at?: string;
   quality_status?: QualityStatus;
+  /**
+   * Derived state in the corpus pipeline. Optional for backward
+   * compat with index files written by older code; populated by
+   * `rebuildRawIndex` going forward.
+   */
+  state?: SlugState;
 }
 
 interface RawIndexFile {
@@ -1280,6 +1303,7 @@ interface RawIndexFile {
 export function rebuildRawIndex(
   rawRoot: string = RAW_DIR,
   cachePath: string = RAINDROP_CACHE_PATH,
+  sourcesIndexPath?: string,
 ): RawIndexFile {
   const slugs = listRawSlugs(rawRoot);
 
@@ -1309,10 +1333,26 @@ export function rebuildRawIndex(
     } catch { /* leave map empty */ }
   }
 
+  // Pull the ingested-URL set once so each slug can derive its
+  // `state` field without re-reading `.wiki-sources-index.json` per
+  // entry. Set is empty when the index file is missing — any slug
+  // that's good but URL-not-listed will appear as `ingest-ready`.
+  const ingestedUrls = loadIngestedUrlSet(sourcesIndexPath);
+
   const out: Record<string, RawIndexEntry> = {};
   for (const info of slugs) {
     const link = info.source?.origin_url;
     const bm = link ? byUrl.get(link) : undefined;
+    // Derive the 3-state field. See `SlugState` JSDoc + Meta/
+    // corpus-pipeline.md for the state machine.
+    let state: SlugState;
+    if (info.quality_status !== "good") {
+      state = "not-yet-good";
+    } else if (link && ingestedUrls.has(normalizeUrl(link))) {
+      state = "ingested";
+    } else {
+      state = "ingest-ready";
+    }
     out[info.slug] = {
       slug: info.slug,
       hostname: info.hostname,
@@ -1325,6 +1365,7 @@ export function rebuildRawIndex(
       title: bm?.title ?? info.source?.title,
       fetched_at: info.source?.fetched_at,
       quality_status: info.quality_status,
+      state,
     };
   }
   const file: RawIndexFile = {

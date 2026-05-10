@@ -18,6 +18,7 @@ import {
   buildStatusReport,
   buildSyncPlan,
   remediationFor,
+  rebuildRawIndex,
 } from "../fetch-raw.ts";
 import { browserTimeoutMs } from "../sites/_shared/browser-helpers.ts";
 import { routeSite } from "../sites/index.ts";
@@ -985,6 +986,91 @@ test("buildSyncPlan: failure_kind populated on every existing slug", () => {
   } finally {
     t.cleanup();
   }
+});
+
+// ---------------------------------------------------------------------------
+// rebuildRawIndex — derives the 3-state field
+// ---------------------------------------------------------------------------
+
+test("rebuildRawIndex: state field is 'not-yet-good' for flagged slugs", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-flagged", "2026", {
+      origin: "url:https://example.com/flagged", origin_url: "https://example.com/flagged",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 100, quality_flags: ["short-body"], quality_status: "flagged",
+      images: [], notes: [],
+    });
+    const index = rebuildRawIndex(t.root, join(t.root, "no-cache.json"), join(t.root, "no-sources.json"));
+    assert.equal(index.slugs["2026-04-01-flagged"].state, "not-yet-good");
+  } finally { t.cleanup(); }
+});
+
+test("rebuildRawIndex: state field is 'ingest-ready' for good + not-in-index slugs", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-good", "2026", {
+      origin: "url:https://example.com/good", origin_url: "https://example.com/good",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 5000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    // Empty sources index → not ingested
+    const sourcesIndexPath = join(t.root, "sources.json");
+    writeFileSync(sourcesIndexPath, "{}");
+    const index = rebuildRawIndex(t.root, join(t.root, "no-cache.json"), sourcesIndexPath);
+    assert.equal(index.slugs["2026-04-01-good"].state, "ingest-ready");
+  } finally { t.cleanup(); }
+});
+
+test("rebuildRawIndex: state field is 'ingested' when URL is in sources index", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-ingested", "2026", {
+      origin: "url:https://example.com/ingested", origin_url: "https://example.com/ingested",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 5000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    const sourcesIndexPath = join(t.root, "sources.json");
+    writeFileSync(sourcesIndexPath, JSON.stringify({
+      "https://example.com/ingested": {
+        slug: "2026-04-01-ingested",
+        repo_path: "Sources/2026/2026-04-01-ingested.md",
+        raw_source: "https://example.com/ingested",
+        ingested_at: "2026-04-01",
+      },
+    }));
+    const index = rebuildRawIndex(t.root, join(t.root, "no-cache.json"), sourcesIndexPath);
+    assert.equal(index.slugs["2026-04-01-ingested"].state, "ingested");
+  } finally { t.cleanup(); }
+});
+
+test("rebuildRawIndex: state field handles share-aggregator unwrap (P-32)", () => {
+  // Slug stored under the unwrapped target; sources-index keyed by
+  // the wrapper URL. The unwrap-aware widening in loadIngestedUrlSet
+  // means the slug should still resolve as `ingested`.
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2025-06-09-shared", "2025", {
+      origin: "url:https://linux.do/t/topic/537374", origin_url: "https://linux.do/t/topic/537374",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 5000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    const sourcesIndexPath = join(t.root, "sources.json");
+    // Operator wrote the wrapper URL in Sources/<slug>.md frontmatter
+    writeFileSync(sourcesIndexPath, JSON.stringify({
+      "https://share.google?link=https://linux.do/t/topic/537374": {
+        slug: "2025-06-09-shared",
+        repo_path: "Sources/2025/2025-06-09-shared.md",
+        raw_source: "https://share.google?link=https://linux.do/t/topic/537374",
+        ingested_at: "2025-06-09",
+      },
+    }));
+    const index = rebuildRawIndex(t.root, join(t.root, "no-cache.json"), sourcesIndexPath);
+    assert.equal(index.slugs["2025-06-09-shared"].state, "ingested");
+  } finally { t.cleanup(); }
 });
 
 // ---------------------------------------------------------------------------
