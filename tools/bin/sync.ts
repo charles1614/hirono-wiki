@@ -50,44 +50,6 @@ const MAP_PATH = join(REPO_ROOT, ".wiki-lark-map.json");
 // lark-hirono subprocess wrappers
 // ---------------------------------------------------------------------------
 
-interface UploadResult {
-  doc_id: string;
-  url: string;
-}
-
-interface UploadOpts {
-  inputPath: string;
-  title?: string;
-  wikiSpace: string;
-  wikiNode?: string;
-  stripTitle?: boolean;
-  mentionMapPath?: string;
-  frontmatterAsCallout?: boolean;
-}
-
-export function runLarkHironoUpload(opts: UploadOpts): UploadResult {
-  const args = ["upload", opts.inputPath];
-  if (opts.title) args.push("--title", opts.title);
-  args.push("--wiki-space", opts.wikiSpace);
-  if (opts.wikiNode) args.push("--wiki-node", opts.wikiNode);
-  if (opts.stripTitle) args.push("--strip-title");
-  if (opts.frontmatterAsCallout) args.push("--frontmatter-as-callout");
-  if (opts.mentionMapPath) args.push("--mention-map", opts.mentionMapPath);
-  args.push("--no-highlight");  // deterministic output for our pipeline
-
-  const res = spawnSync("lark-hirono", args, { encoding: "utf8" });
-  if (res.status !== 0) {
-    throw new Error(
-      `lark-hirono upload failed (exit ${res.status})\n---stderr---\n${res.stderr}\n---stdout---\n${res.stdout}`,
-    );
-  }
-  const url = parseDoneUrl(res.stdout);
-  if (!url) {
-    throw new Error(`could not find "Done. URL:" line in lark-hirono output:\n${res.stdout}`);
-  }
-  return { doc_id: extractDocId(url), url };
-}
-
 interface OptimizeOpts {
   docId: string;
   inputPath: string;
@@ -160,18 +122,6 @@ export function runLarkCliCreateNode(opts: {
     obj_token,
     url: `https://www.feishu.cn/wiki/${node_token}`,
   };
-}
-
-function parseDoneUrl(stdout: string): string | null {
-  const m = stdout.match(/Done\. URL:\s*(\S+)/);
-  return m ? m[1] : null;
-}
-
-function extractDocId(url: string): string {
-  // Matches https://www.feishu.cn/wiki/XXXX or .../docx/XXXX
-  const m = url.match(/\/(?:wiki|docx)\/([^/?#]+)/);
-  if (!m) throw new Error(`malformed Lark doc URL: ${url}`);
-  return m[1];
 }
 
 /**

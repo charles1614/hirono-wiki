@@ -94,7 +94,7 @@ Each pattern: **Symptom · Root cause · Remediation · Generalization · Refere
 
 **Generalization.** This is the standard answer for any SPA whose static HTML is empty. Don't write a per-host module unless the site needs more than vanilla browser-eval can give. The hybrid in `_default/index.ts` already handles ~80% of long-tail SPAs.
 
-**Reference.** `tools/sites/_default/index.ts` — the curl-then-browser-eval cascade. `tools/sites/_default/fetcher.ts` for the hydration-wait choreography.
+**Reference.** `tools/sites/_default/index.ts` — the curl-then-browser-eval cascade including the hydration-wait choreography (`browserFetch` function).
 
 ---
 
@@ -108,7 +108,7 @@ Each pattern: **Symptom · Root cause · Remediation · Generalization · Refere
 
 **Generalization.** Any time the static HTML doesn't have what the rendered page would. Pay attention to the wait time — too short = empty body race, too long = wasted budget per fetch. 3-4s is the proven default; bump to 6-8s only for known-slow hydrators.
 
-**Reference.** `tools/sites/_default/fetcher.ts` (`hybridFetch` function). `tools/sites/qwen-ai/index.ts` follows the same pattern with a 3s explicit delay.
+**Reference.** `tools/sites/_default/index.ts` (`browserFetch` function). `tools/sites/qwen-ai/index.ts` follows the same pattern with a 3s explicit delay.
 
 ---
 
@@ -163,7 +163,7 @@ Each pattern: **Symptom · Root cause · Remediation · Generalization · Refere
 
 **Generalization.** The pattern is: shell out to a CLI that knows how to handle the auth flow + parse the structured response. Useful when the upstream provides an SDK/CLI that handles auth + rate-limit + retries better than your own code would.
 
-**Reference.** `tools/sites/feishu/fetcher.ts`. The lark-cli is installed and authenticated separately by the operator.
+**Reference.** `tools/sites/feishu/index.ts` (`fetchViaLarkHirono`). The lark-cli is installed and authenticated separately by the operator.
 
 ---
 
@@ -187,11 +187,11 @@ Each pattern: **Symptom · Root cause · Remediation · Generalization · Refere
 
 **Root cause.** `<table>` cells often contain `<div>` / `<br>` / nested block elements. `Element.textContent` collapses all of these to whitespace, dropping line breaks. Turndown's table plugin then sees a flat stream and produces bad output.
 
-**Remediation.** Custom DOM walker that emits `\n` for `<br>` and between block siblings inside cells. See `textWithLineBreaks(el)` in `tools/sites/weixin/raw-html-converter.ts`.
+**Remediation.** Custom DOM walker that emits `\n` for `<br>` and between block siblings inside cells. See `textWithLineBreaks(el)` in `tools/sites/weixin/converter.ts`.
 
 **Generalization.** Whenever a fetcher needs to preserve line breaks inside HTML chunks (tables, code blocks, blockquotes with inline `<br>`), prefer a recursive walker over `.textContent`. Turndown's pre-plugins also need this.
 
-**Reference.** `tools/sites/weixin/raw-html-converter.ts` — `textWithLineBreaks` function. CLAUDE.md §4 weixin recipe.
+**Reference.** `tools/sites/weixin/converter.ts` — `textWithLineBreaks` function. CLAUDE.md §4 weixin recipe.
 
 ---
 
@@ -213,7 +213,7 @@ Each pattern: **Symptom · Root cause · Remediation · Generalization · Refere
 
 **Generalization.** When you see code blocks rendering as one line, suspect multi-`<code>` shape. Always use a walker for `<pre>` content.
 
-**Reference.** `tools/sites/weixin/raw-html-converter.ts`.
+**Reference.** `tools/sites/weixin/converter.ts`.
 
 ---
 
@@ -230,7 +230,7 @@ Each pattern: **Symptom · Root cause · Remediation · Generalization · Refere
 
 **Generalization.** Any HTML-from-rich-text-editor pipeline (mdnice, Notion → HTML, etc.) emits this shape. Apply the 3-pass normalization at the HTML level, not via post-turndown regex.
 
-**Reference.** `tools/sites/weixin/raw-html-converter.ts`. CLAUDE.md §4 weixin recipe.
+**Reference.** `tools/sites/weixin/converter.ts`. CLAUDE.md §4 weixin recipe.
 
 ---
 
@@ -294,7 +294,7 @@ w
 
 **Generalization.** If the SVG is decorative (logo, chevron, caret), drop it. If it's structural (diagram), save as a standalone file (`<host>-svg-NNN.svg`) and emit `<img src="..." data-local-svg="1">`.
 
-**Reference.** `tools/sites/anthropic/index.ts` (SVG drop). `tools/sites/weixin/raw-html-converter.ts` (`processSvgs` for structural mermaid SVGs).
+**Reference.** `tools/sites/anthropic/index.ts` (SVG drop). `tools/sites/weixin/converter.ts` (`processSvgs` for structural mermaid SVGs).
 
 ---
 
@@ -348,7 +348,7 @@ w
 
 **Generalization.** Probe the source HTML for `data-original=`, `data-src=`, `data-lazy-src=`, `data-srcset=`. If any sibling attribute holds the full-res URL, prefer it over `src`.
 
-**Reference.** `tools/sites/sspai/converter.ts`. `tools/sites/blog-csdn/converter.ts`.
+**Reference.** `tools/sites/sspai/converter.ts`. `tools/sites/blog-csdn/index.ts` (article-site factory config).
 
 ---
 
@@ -412,7 +412,7 @@ The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain
 
 **Generalization.** Don't try to coerce content out of a fundamentally-empty page. Flag it and move on. The classifier downstream maps it to the right kind.
 
-**Reference.** `tools/sites/_default/fetcher.ts`. `tools/sites/_shared/stub.ts` (`makeStub` helper).
+**Reference.** `tools/sites/_default/index.ts` (`stubResult` function). `tools/sites/_shared/stub.ts` (`makeStub` helper).
 
 ---
 
@@ -424,7 +424,7 @@ The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain
 1. **Browser handles it transparently** (xhs): open xhslink.com → browser follows redirect → eval reads `window.location.href` for the canonical URL. We then save under the resolved host.
 2. **Operator-side fix** (share.google): add a Raindrop bookmark cleanup step. Currently 1 share.google URL is in `host-malformed` because the share-redirect URL itself is the bookmark. Fix in Raindrop, refresh-cache.
 
-**Reference.** `tools/sites/xhs/fetcher.ts` (browser redirect). `tools/sites/reddit/fetcher.ts` (`/r/X/s/<id>` → `/r/X/comments/<id>/...`).
+**Reference.** `tools/sites/xhs/browser-extract.ts` (browser redirect). `tools/sites/reddit/index.ts` (`/r/X/s/<id>` → `/r/X/comments/<id>/...`).
 
 ---
 
@@ -463,7 +463,7 @@ The non-stub branch check is **guarded on `flags.length > 0`** — a bare-domain
 
 **Generalization.** Any time a site is "the rendered view of a markdown repo", chase the repo. Faster, cleaner, no chrome.
 
-**Reference.** `tools/sites/huggingface/fetcher.ts`.
+**Reference.** `tools/sites/huggingface/index.ts` (`fetchHuggingFaceBlogFromGithub`).
 
 ---
 

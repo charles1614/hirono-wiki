@@ -182,7 +182,7 @@ mdnice (the editor most weixin authors use) emits HTML with several
 quirks that Markdown converters mishandle. opencli's weixin adapter has
 no raw-HTML option, so we extract `#js_content` outerHTML via
 `browser eval` and convert in
-`tools/hirono/weixin/raw-html-converter.ts`. The recipes below are
+`tools/sites/weixin/converter.ts`. The recipes below are
 encoded there; reference implementations for any new Layer-4 host.
 
 | Symptom | Cause | Fix in converter |
