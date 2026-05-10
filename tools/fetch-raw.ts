@@ -44,6 +44,7 @@ import { extractJsonFromEvalStdout } from "./sites/_shared/browser-eval-json.ts"
 import { applyPostCleanups } from "./sites/_shared/post-cleanup.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
 import { unwrapShareUrl } from "./sites/_shared/url-unwrap.ts";
+import { normalizeUrl } from "./bin/build-sources-index.ts";
 import { classifyFromInput } from "./hirono/raindrop/failure-kind.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -1556,6 +1557,21 @@ export interface SyncOpts {
    * the corpus can still be processed.
    */
   excludeHosts?: Set<string>;
+  /**
+   * Bypass the frozen-slug guard. By default, slugs whose URL is in
+   * `.wiki-sources-index.json` (i.e. already ingested into Sources/)
+   * are skipped to prevent silently overwriting raw content while
+   * the paired wiki summary stays stale. Pass `force: true` to
+   * deliberately re-fetch an ingested slug — the operator must then
+   * manually re-read the new raw content and update the Source
+   * summary.
+   */
+  force?: boolean;
+  /**
+   * Optional override for `.wiki-sources-index.json` path (test hook).
+   * Defaults to `<wiki-root>/.wiki-sources-index.json`.
+   */
+  sourcesIndexPath?: string;
 }
 
 export interface SyncPlanItem {
@@ -1569,6 +1585,7 @@ export interface SyncPlanItem {
     | "skip-over-limit"
     | "skip-not-in-retry-kind"
     | "skip-excluded-host"
+    | "skip-frozen-slug"
     | "head-check";
   origin?: string;
   originUrl?: string;
@@ -1581,6 +1598,39 @@ function ageInDays(iso: string): number {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return 0;
   return (Date.now() - t) / (1000 * 60 * 60 * 24);
+}
+
+/**
+ * Load `.wiki-sources-index.json` as a Set of normalized URLs that
+ * are already ingested into Sources/. Used by `buildSyncPlan` and
+ * `cmdRefetch` for the frozen-slug guard. Best-effort: missing file
+ * or parse error yields an empty set (gate fails open).
+ *
+ * Exported so test sandboxes and external callers can inject a custom
+ * path.
+ */
+export function loadIngestedUrlSet(path?: string): Set<string> {
+  const indexPath = path ?? join(REPO_ROOT, ".wiki-sources-index.json");
+  if (!existsSync(indexPath)) return new Set();
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(readFileSync(indexPath, "utf8"));
+  } catch {
+    return new Set();
+  }
+  // Widen with share-aggregator unwrap (P-32): if a Sources/ page's
+  // frontmatter `raw_source` points at a wrapper URL, the slug's
+  // origin_url is the UNWRAPPED form. Add both keys to the set so a
+  // lookup by either form matches.
+  const out = new Set<string>();
+  for (const k of Object.keys(parsed)) {
+    out.add(k);
+    const u = unwrapShareUrl(k);
+    if (u) {
+      try { out.add(normalizeUrl(u.unwrapped)); } catch { /* malformed */ }
+    }
+  }
+  return out;
 }
 
 /**
@@ -1659,9 +1709,28 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
   const seenSlugs = new Set<string>();
   const maxAgeDays = opts.maxAgeDays ?? 90;
 
+  // Frozen-slug guard: load `.wiki-sources-index.json` once. Slugs
+  // whose origin_url is in this set are already ingested into
+  // Sources/ — refetching would silently overwrite the raw archive
+  // while the wiki summary stays stale. The check fires above all
+  // other filters so even `--retry-flagged` / `--retry-kind` skip
+  // ingested slugs unless `--force` is passed.
+  const ingestedUrls = opts.force ? new Set<string>() : loadIngestedUrlSet(opts.sourcesIndexPath);
+
   // Existing raw/ slugs first
   for (const info of existing) {
     seenSlugs.add(info.slug);
+    if (ingestedUrls.size > 0 && info.source?.origin_url) {
+      const normUrl = normalizeUrl(info.source.origin_url);
+      if (ingestedUrls.has(normUrl)) {
+        plan.push({
+          slug: info.slug,
+          action: "skip-frozen-slug",
+          reason: `already ingested into Sources/; refetch would diverge from the wiki summary (pass --force to override)`,
+        });
+        continue;
+      }
+    }
     if (opts.only && !opts.only.has(info.slug)) {
       plan.push({ slug: info.slug, action: "skip-not-in-only", reason: "not in --only filter" });
       continue;

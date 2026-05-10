@@ -30,12 +30,14 @@ import {
   fetchUrlAndStore,
   fetchViaLarkHirono,
   listRawSlugs,
+  loadIngestedUrlSet,
   printStatusReport,
   findRawDir,
   reclassifyRawSlug,
   writeRawArchive,
   hostnameOf,
 } from "./fetch-raw.ts";
+import { normalizeUrl } from "./bin/build-sources-index.ts";
 
 function argVal(args: string[], name: string): string | undefined {
   const i = args.indexOf(name);
@@ -211,6 +213,7 @@ export function cmdSync(args: string[]): void {
   const dryRun = argFlag(args, "--dry-run");
   const downloadImages = !argFlag(args, "--no-images");
   const reclassify = !argFlag(args, "--no-reclassify");  // default on
+  const force = argFlag(args, "--force");
 
   const plan = buildSyncPlan({
     limit: typeof limit === "number" && !isNaN(limit) ? limit : undefined,
@@ -223,6 +226,7 @@ export function cmdSync(args: string[]): void {
     excludeHosts,
     dryRun,
     reclassify,
+    force,
   });
 
   const toFetch = plan.filter((p) => p.action === "fetch" || p.action === "head-check");
@@ -292,6 +296,7 @@ export function cmdRefetch(positional: string[], args: string[]): void {
   const slug = positional[0];
   if (!slug) fail("hirono raindrop refetch: missing <slug>");
   const downloadImages = !argFlag(args, "--no-images");
+  const force = argFlag(args, "--force");
   const slugDir = findRawDir(slug);
   if (!slugDir) {
     console.error(`[refetch] no raw/raindrop/<host>/${slug}/ dir — use 'hirono raindrop fetch' first`);
@@ -303,6 +308,20 @@ export function cmdRefetch(positional: string[], args: string[]): void {
     process.exit(2);
   }
   const src = JSON.parse(readFileSync(sourcePath, "utf8")) as SourceJson;
+  // Frozen-slug guard: if this slug's URL is already ingested into
+  // Sources/, refuse to overwrite raw content unless --force. Otherwise
+  // refetch silently diverges the raw from the (now-stale) wiki summary.
+  if (!force && src.origin_url) {
+    const ingested = loadIngestedUrlSet();
+    if (ingested.has(normalizeUrl(src.origin_url))) {
+      console.error(
+        `[refetch] ${slug} is already ingested into Sources/.\n` +
+        `         Refetch would overwrite raw content while the wiki summary stays stale.\n` +
+        `         Pass --force to override (then manually re-read the raw and update the Source summary).`,
+      );
+      process.exit(2);
+    }
+  }
   const item: SyncPlanItem = {
     slug,
     action: "fetch",

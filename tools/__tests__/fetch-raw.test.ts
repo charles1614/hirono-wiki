@@ -892,6 +892,80 @@ test("buildSyncPlan: --check-stale + --max-age queues head-check for old good sl
   }
 });
 
+test("buildSyncPlan: ingested slug → skip-frozen-slug, --force bypasses", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-ingested", "2026", {
+      origin: "url:https://blog.example.com/post", origin_url: "https://blog.example.com/post",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    t.addSource("2026-04-02-not-ingested", "2026", {
+      origin: "url:https://blog.example.com/other", origin_url: "https://blog.example.com/other",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "b",
+      content_length: 1000, quality_flags: ["short-body"], quality_status: "flagged",
+      images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+    // sources-index has the first slug's URL → ingested
+    const sourcesIndexPath = join(t.root, ".wiki-sources-index.json");
+    writeFileSync(sourcesIndexPath, JSON.stringify({
+      "https://blog.example.com/post": {
+        slug: "2026-04-01-ingested",
+        repo_path: "Sources/2026/2026-04-01-ingested.md",
+        raw_source: "https://blog.example.com/post",
+        ingested_at: "2026-04-01",
+      },
+    }));
+    // Without --force: ingested slug is skipped even with --retry-flagged
+    const planA = buildSyncPlan({
+      retryFlagged: true, dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no.json"),
+      sourcesIndexPath,
+    });
+    const ingested = planA.find(p => p.slug === "2026-04-01-ingested");
+    const notIngested = planA.find(p => p.slug === "2026-04-02-not-ingested");
+    assert.equal(ingested?.action, "skip-frozen-slug", "ingested slug should be skip-frozen-slug");
+    assert.equal(notIngested?.action, "fetch", "non-ingested flagged slug should still fetch");
+
+    // With --force: gate bypassed, ingested slug fetches
+    const planB = buildSyncPlan({
+      retryFlagged: true, dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no.json"),
+      sourcesIndexPath, force: true,
+    });
+    const ingestedForced = planB.find(p => p.slug === "2026-04-01-ingested");
+    assert.equal(ingestedForced?.action, "skip-good", "force bypasses frozen guard; good slug falls to skip-good");
+  } finally {
+    t.cleanup();
+  }
+});
+
+test("buildSyncPlan: missing sources-index file → no frozen guard, all proceed", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-good", "2026", {
+      origin: "url:https://example.com", origin_url: "https://example.com",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+    // sourcesIndexPath points to a non-existent file
+    const plan = buildSyncPlan({
+      retryFlagged: false, dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no.json"),
+      sourcesIndexPath: join(t.root, "missing.json"),
+    });
+    assert.equal(plan[0].action, "skip-good", "no index → no frozen guard fired");
+  } finally {
+    t.cleanup();
+  }
+});
+
 test("buildSyncPlan: failure_kind populated on every existing slug", () => {
   const t = makeTmpRawTree();
   try {
