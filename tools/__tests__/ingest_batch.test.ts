@@ -15,13 +15,15 @@ import {
   type Paths,
 } from "../bin/ingest_batch.ts";
 
-function sandbox(): { paths: Paths; cleanup: () => void; candidatesFile: (c: unknown) => string } {
+function sandbox(opts: { withRawIndex?: boolean } = {}): {
+  paths: Paths; cleanup: () => void; candidatesFile: (c: unknown) => string; rawIndexFile: (entries: Record<string, unknown>) => void;
+} {
   const dir = mkdtempSync(join(tmpdir(), "ib-"));
   const paths: Paths = {
     state: join(dir, ".wiki-batch-state.json"),
     sourcesIndex: join(dir, ".wiki-sources-index.json"),
   };
-  // sources index starts empty (default behavior)
+  if (opts.withRawIndex) paths.rawIndex = join(dir, "_index.json");
   return {
     paths,
     cleanup: () => rmSync(dir, { recursive: true }),
@@ -29,6 +31,9 @@ function sandbox(): { paths: Paths; cleanup: () => void; candidatesFile: (c: unk
       const p = join(dir, "cands.json");
       writeFileSync(p, JSON.stringify(c));
       return p;
+    },
+    rawIndexFile(entries) {
+      writeFileSync(paths.rawIndex!, JSON.stringify({ version: 1, updated_at: "2026-05-09T00:00:00Z", slugs: entries }));
     },
   };
 }
@@ -227,5 +232,91 @@ test("plan: non-array JSON → throws", () => {
   const s = sandbox();
   try {
     assert.throws(() => cmdPlan(s.candidatesFile({ id: "x", url: "y" }), s.paths), /must be a JSON array/);
+  } finally { s.cleanup(); }
+});
+
+// ─────────────────────────── quality gate ───────────────────────────────
+
+test("plan: quality gate skips flagged slugs by URL match", () => {
+  const s = sandbox({ withRawIndex: true });
+  try {
+    s.rawIndexFile({
+      "2026-04-01-flagged-slug": {
+        slug: "2026-04-01-flagged-slug",
+        hostname: "example.com",
+        year: "2026",
+        link: "https://example.com/flagged",
+        quality_status: "flagged",
+      },
+      "2026-04-01-good-slug": {
+        slug: "2026-04-01-good-slug",
+        hostname: "example.com",
+        year: "2026",
+        link: "https://example.com/good",
+        quality_status: "good",
+      },
+    });
+    const file = s.candidatesFile([
+      { id: "raindrop:1", url: "https://example.com/flagged" },
+      { id: "raindrop:2", url: "https://example.com/good" },
+      { id: "raindrop:3", url: "https://example.com/never-fetched" },  // not in _index → fail open
+    ]);
+    const r = cmdPlan(file, s.paths);
+    assert.equal(r.skippedFlagged, 1, "flagged slug should be skipped");
+    assert.equal(r.added, 2, "good slug + never-fetched added");
+  } finally { s.cleanup(); }
+});
+
+test("plan: --allow-flagged bypasses quality gate", () => {
+  const s = sandbox({ withRawIndex: true });
+  try {
+    s.rawIndexFile({
+      "2026-04-01-flagged": {
+        slug: "2026-04-01-flagged",
+        hostname: "example.com",
+        year: "2026",
+        link: "https://example.com/flagged",
+        quality_status: "flagged",
+      },
+    });
+    const file = s.candidatesFile([{ id: "raindrop:1", url: "https://example.com/flagged" }]);
+    const r = cmdPlan(file, s.paths, { allowFlagged: true });
+    assert.equal(r.skippedFlagged, 0);
+    assert.equal(r.added, 1);
+  } finally { s.cleanup(); }
+});
+
+test("plan: quality gate handles share-aggregator unwrap (P-32)", () => {
+  // Cache stores the wrapper URL; the slug archives under the unwrapped
+  // target's hostname with origin_url = unwrapped form. The gate must
+  // resolve the wrapper to the unwrapped form before matching.
+  const s = sandbox({ withRawIndex: true });
+  try {
+    s.rawIndexFile({
+      "2025-06-09-shared-topic": {
+        slug: "2025-06-09-shared-topic",
+        hostname: "linux.do",
+        year: "2025",
+        link: "https://linux.do/t/topic/537374",   // unwrapped form in _index
+        quality_status: "flagged",
+      },
+    });
+    const file = s.candidatesFile([
+      // Candidate URL is the wrapper form (as stored in raindrop cache)
+      { id: "raindrop:1", url: "https://share.google?link=https://linux.do/t/topic/537374&utm_campaign=x" },
+    ]);
+    const r = cmdPlan(file, s.paths);
+    assert.equal(r.skippedFlagged, 1, "wrapper URL should resolve to unwrapped target's flagged status");
+  } finally { s.cleanup(); }
+});
+
+test("plan: missing _index.json fails open (no gate, no error)", () => {
+  // Sandbox without rawIndex path → no gate at all. Existing behavior.
+  const s = sandbox();
+  try {
+    const file = s.candidatesFile([{ id: "a", url: "https://example.com/a" }]);
+    const r = cmdPlan(file, s.paths);
+    assert.equal(r.added, 1);
+    assert.equal(r.skippedFlagged, 0);
   } finally { s.cleanup(); }
 });
