@@ -523,6 +523,46 @@ test("listRawSlugs: missing content.md → quality_status=failed", () => {
   }
 });
 
+test("listRawSlugs: phantom directory (no source.json, no content.md) is skipped", () => {
+  // Regression: when an L3 halt fires after mkdirSync but before any
+  // file write, the slug directory exists but is empty. Earlier code
+  // returned this slug with `quality_status="failed"`, which made
+  // fetch-all dedupe the URL as "already fetched" and silently route
+  // it to skip-flagged. The fix: treat such directories as
+  // non-existent so the URL flows through the normal "never fetched"
+  // path on the next run.
+  const root = mkdtempSync(join(tmpdir(), "fetch-raw-test-"));
+  try {
+    // Real slug — should be returned
+    const real = join(root, "raindrop", "real.example.com", "2026-04-01-real");
+    mkdirSync(real, { recursive: true });
+    writeFileSync(join(real, "source.json"), JSON.stringify({
+      origin: "url:https://real.example.com", origin_url: "https://real.example.com",
+      fetcher: "opencli", fetcher_reason: "direct",
+      content_sha: "a", content_length: 1000, quality_flags: [], quality_status: "good",
+      images: [], notes: [],
+    }), "utf8");
+    writeFileSync(join(real, "content.md"), "real content", "utf8");
+
+    // Phantom slug — empty dir; should be skipped
+    const phantom = join(root, "raindrop", "phantom.example.com", "2026-04-01-phantom");
+    mkdirSync(phantom, { recursive: true });
+
+    // Legacy slug — content.md but no source.json (older code shape).
+    // Should still appear; backward compat.
+    const legacy = join(root, "raindrop", "legacy.example.com", "2026-04-01-legacy");
+    mkdirSync(legacy, { recursive: true });
+    writeFileSync(join(legacy, "content.md"), "# legacy\n\nlegacy body", "utf8");
+
+    const r = listRawSlugs(root);
+    const slugs = r.map(x => x.slug).sort();
+    assert.deepEqual(slugs, ["2026-04-01-legacy", "2026-04-01-real"],
+      "phantom should be skipped; real + legacy should be returned");
+  } finally {
+    try { rmSync(root, { recursive: true, force: true }); } catch {}
+  }
+});
+
 test("buildStatusReport: partitions into good / needsAttention / acceptedAsIs", () => {
   const t = makeTmpRawTree();
   const decisionsPath = join(t.root, "fetch-decisions.md");

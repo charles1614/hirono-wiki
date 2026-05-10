@@ -1308,8 +1308,18 @@ export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
       const contentPath = join(slugDir, "content.md");
       const sourcePath = join(slugDir, "source.json");
       const hasContent = existsSync(contentPath);
+      const hasSource = existsSync(sourcePath);
+      // Phantom directory: residue from a halted fetch where
+      // mkdirSync ran before the fetcher threw, leaving an empty
+      // slug dir with neither source.json nor content.md. Without
+      // this filter, fetch-all sees the slug name as "already
+      // fetched" (with quality_status="failed") and routes the
+      // URL to skip-flagged — which silently strands the URL out
+      // of the queue. Treat the slug as if it doesn't exist; the
+      // URL will route through the normal "never fetched" path.
+      if (!hasSource && !hasContent) continue;
       let source: SourceJson | null = null;
-      if (existsSync(sourcePath)) {
+      if (hasSource) {
         try {
           source = JSON.parse(readFileSync(sourcePath, "utf8")) as SourceJson;
         } catch {
