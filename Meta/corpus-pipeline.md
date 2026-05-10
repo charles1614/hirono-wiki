@@ -59,6 +59,74 @@ jq '[.slugs[].state] | group_by(.) | map({state: .[0], count: length})' raw/rain
 | `ingest-ready` | `quality_status === "good"` AND URL is NOT in `.wiki-sources-index.json`. Clean raw archive, no wiki summary yet — this is the LLM-ingest queue. | ~369 |
 | `ingested` | `quality_status === "good"` AND URL IS in `.wiki-sources-index.json` (i.e. a `Sources/<year>/<slug>.md` page references it). | ~6 (early days) |
 
+### §1.1 At a glance — the full pipeline
+
+```
+   ┌──────────────────────────┐
+   │  Raindrop bookmark API   │  the source of truth for "what URLs do I care about"
+   └────────────┬─────────────┘
+                │ hirono raindrop refresh-cache
+                ▼
+   ┌──────────────────────────┐
+   │ .wiki-raindrop-cache.json│  local snapshot (567 bookmarks today)
+   └────────────┬─────────────┘
+                │ hirono raindrop fetch-all     (new bookmarks → fetch)
+                │ hirono raindrop sync          (existing slugs → maybe refetch)
+                ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ raw/raindrop/<host>/<slug>/                          │
+   │   ├── content.md           (the extracted markdown)  │
+   │   ├── source.json          (quality_status, flags)   │
+   │   ├── revisions.jsonl      (audit trail)             │
+   │   └── <slug>-img-*.{png,jpg,…}                       │
+   └────────────┬─────────────────────────────────────────┘
+                │ rebuildRawIndex (auto on every write)
+                ▼
+   ┌──────────────────────────────────────────────────────┐
+   │ raw/raindrop/_index.json                             │
+   │   .slugs[<slug>].state =                             │
+   │      "not-yet-good"  │  "ingest-ready"  │ "ingested" │
+   └────────────┬─────────────────────────────────────────┘
+                │
+        ┌───────┴────────────────────┬──────────────────────┐
+        │                            │                      │
+        ▼                            ▼                      ▼
+   not-yet-good                 ingest-ready             ingested
+   (Transition A,               (Transition B,           (frozen — refetch
+    debug loop)                  LLM ingest loop)          requires --force)
+        │                            │
+        └─── refetch regression ─────┘  (downgrade-protected;
+              auto-refused unless        revisions.jsonl logs
+              --force passed)            the protection event)
+
+
+   ────────────────── Transition B (INGEST-READY → INGESTED) ──────────────────
+
+                ingest-ready
+                       │
+                       │ hirono raindrop ingest-candidates > /tmp/c.json
+                       │ npx tsx tools/bin/ingest_batch.ts plan /tmp/c.json
+                       ▼
+   ┌──────────────────────────────────┐
+   │  .wiki-batch-state.json (queue)  │  pending / in-progress / done / errored
+   └────────────┬─────────────────────┘
+                │ ingest_batch next → start → (LLM writes Sources/) → mark-done
+                ▼
+   ┌──────────────────────────────────┐
+   │  Sources/<year>/<slug>.md        │  the wiki page
+   │    raw_source: <url>             │
+   │    …LLM-written summary…         │
+   └────────────┬─────────────────────┘
+                │ npx tsx tools/bin/build-sources-index.ts
+                ▼
+   ┌──────────────────────────────────┐
+   │ .wiki-sources-index.json         │  URL → slug map
+   └────────────┬─────────────────────┘
+                │ rebuildRawIndex
+                ▼
+       _index.json[slug].state = "ingested"  (frozen)
+```
+
 ---
 
 ## §2 Transition A: NOT-YET-GOOD → INGEST-READY
@@ -252,10 +320,65 @@ hirono raindrop sync --retry-kind <kind> --force
 
 ## §6 Runbooks
 
+### §6.0 Which runbook? — pick by situation
+
+```
+   "What's your situation right now?"
+                       │
+   ┌─────────┬─────────┴──────────┬──────────────┬───────────────┐
+   │         │                    │              │               │
+   ▼         ▼                    ▼              ▼               ▼
+ Raindrop   a slug's            I have body   I want to       an ingested
+ changed    content.md          to paste      summarize       slug needs
+            isn't good          (auth-walled  good slugs      refresh
+   │         │                   xhs/feishu)  into Sources/    │
+   │         │                    │              │              │
+   │         │                    │              │              ▼
+   │         │                    │              │           R6 (--force
+   │         │                    │              │            refetch)
+   │         │                    │              │
+   │         │                    │              ▼
+   │         │                    │           Transition B
+   │         │                    │           (LLM ingest)
+   │         │                    │
+   │         │                    ▼
+   │         │                 R5 (manual paste)
+   │         │
+   │         ▼
+   │       R4 (debug loop by failure_kind)
+   │
+   ▼
+ ┌───┴───────┬───────────┐
+ │           │           │
+ ▼           ▼           ▼
+added       deleted    URL edited
+in Raindrop in Raindrop in Raindrop
+ │           │           │
+ ▼           ▼           ▼
+R1          R2          R3
+
+
+    Special: shipped a regression that broke a cluster?  ──► R7
+```
+
+If a single command screams an error you don't recognize, the
+fastest debugging step is `hirono raindrop status` — it surfaces the
+state of every slug grouped by failure_kind.
+
 ### R1 — Bookmark added in Raindrop
 
-You add a URL in Raindrop. The corpus is now out of sync (one URL
-in cache, no slug yet).
+```
+[bookmark added in Raindrop]
+        │
+        ▼
+  refresh-cache  ──► .wiki-raindrop-cache.json grows
+        │
+        ▼
+  fetch-all      ──► raw/raindrop/<host>/<new-slug>/ created
+        │            (fetches ONLY URLs not already in raw/)
+        ▼
+  status         ──► confirm Clean count delta
+```
 
 ```bash
 hirono raindrop refresh-cache               # pull new bookmark list
@@ -265,8 +388,24 @@ hirono raindrop status | head -2            # confirm Clean count grew
 
 ### R2 — Bookmark deleted in Raindrop
 
-You delete a URL in Raindrop. The cache shrinks; the local raw slug
-becomes an orphan.
+```
+[bookmark deleted in Raindrop]
+        │
+        ▼
+  refresh-cache    ──► cache shrinks; local slug now orphan
+        │
+        ▼
+  status           ──► orphans tagged "[orphan: bookmark deleted ...]"
+        │
+        ▼
+   decide: prune or keep
+        │
+   prune:
+   rm -rf raw/raindrop/<host>/<slug>/
+        │
+        ▼
+   rebuildRawIndex  ──► _index.json no longer has the orphan
+```
 
 ```bash
 hirono raindrop refresh-cache
@@ -282,8 +421,18 @@ you can prune at your own pace.
 
 ### R3 — Bookmark URL edited in Raindrop
 
-You edit a URL (typo fix, redirect-capture). Old slug is now an
-orphan; new URL needs a fresh fetch.
+```
+[bookmark URL edited]
+        │
+        ▼
+  refresh-cache   ──► cache reflects the new URL
+        │
+        ▼
+  fetch-all       ──► fetches new URL (creates a NEW slug dir)
+        │            old slug is now orphan
+        ▼
+  R2 cleanup      ──► prune the orphan if you don't want it
+```
 
 ```bash
 hirono raindrop refresh-cache
@@ -293,7 +442,51 @@ hirono raindrop fetch-all                    # creates a slug at the NEW URL
 
 ### R4 — A slug's content.md isn't good <a id="r4"></a>
 
-Drive by failure_kind (Transition A above):
+The general debug loop. **Drive by failure_kind, not by individual slug** —
+one code-level defect usually causes a cluster of slugs to share the same
+kind, so one fix unlocks the whole cluster.
+
+```
+[content.md isn't good]
+        │
+        ▼
+  status --filter <kind>          ──► see the cluster (e.g. 5 slugs)
+        │
+        ▼
+  pick 2-3 reps, eye-read:
+    cat raw/raindrop/<h>/<s>/content.md
+    jq '.quality_flags, .error_detail, .notes' .../source.json
+        │
+        ▼
+  what's the pattern?
+        │
+   ┌────┴───────────────┬──────────────────────┐
+   │                    │                      │
+   ▼                    ▼                      ▼
+ code defect       genuinely        cluster is mixed
+ (DOM shape,       short by         (do per-slug)
+  selector miss,   design
+  etc.)
+   │                    │                      │
+   ▼                    ▼                      ▼
+ edit              pin via          fall back to
+ tools/sites/...   sources-health-  slug-by-slug
+ + npm test        overrides.md     work
+   │                    │
+   ▼                    ▼
+  sync --retry-kind <k>  done (no refetch needed —
+        │                pin is read at status time)
+        ▼
+  Watch for "regression-protected"
+  messages — means the new fetch was
+  WORSE than the previous. Either:
+   - revert the offending code change, OR
+   - if the regression is intentional,
+     pass --force to override
+        │
+        ▼
+  status | head -2            ──► Clean count grew, Stub shrank
+```
 
 ```bash
 hirono raindrop status --filter <kind> --md  # scout the cluster
@@ -308,7 +501,37 @@ cd .. && hirono raindrop sync --retry-kind <kind>
 ### R5 — Auth-walled slug (xhs / feishu / x.com) <a id="r5"></a>
 
 Sites where the operator's auth session is required and `opencli`
-can't reach. Manual paste:
+can't reach. Manual paste.
+
+```
+[xhs / feishu / x.com slug stuck on auth]
+        │
+        ▼
+  open URL in a browser where you ARE signed in
+        │
+        ▼
+  copy the body content
+        │
+        ▼
+  vim raw/raindrop/<h>/<s>/content.md  ──► paste
+        │
+        ▼
+  jq mutate source.json:
+    quality_flags  -= [intentional-stub, xhs-text-body-unavailable, ...]
+    quality_status  = "good"
+    content_length  = bytes(content.md)
+        │
+        ▼
+  rebuildRawIndex                    ──► state flips to "ingest-ready"
+        │
+        ▼
+  status                              ──► confirm the slug left the
+                                          xhs-text-body-unavailable cluster
+```
+
+The 167 xhs slugs in this cluster: see
+`sweep-results/xhs-text-body-unavailable.tsv` for the operator
+checklist.
 
 ```bash
 # 1. Open the URL in a browser where you're signed in
@@ -328,14 +551,34 @@ jq '
 npx tsx -e "import('./tools/fetch-raw.ts').then(m => m.rebuildRawIndex())"
 ```
 
-The 167 xhs `xhs-text-body-unavailable` slugs are the largest cluster
-needing this treatment (see `sweep-results/xhs-text-body-unavailable.tsv`
-for the operator checklist).
-
 ### R6 — Already-ingested slug needs a refresh <a id="r6"></a>
 
 The upstream page genuinely changed and the wiki summary is now
-out of date.
+out of date. The frozen-slug guard will refuse a plain refetch
+because that would silently desync the wiki page; you have to opt in
+with `--force` and then update the Sources/ summary manually.
+
+```
+[ingested slug needs refresh because upstream changed]
+        │
+        ▼
+  refetch <slug>             ──► [refetch] already ingested... pass --force
+        │                          (the frozen-slug guard fired — good)
+        ▼
+  refetch <slug> --force      ──► raw content.md is now updated
+        │                         BUT Sources/<year>/<slug>.md is stale
+        ▼
+  vim Sources/<year>/<slug>.md  ──► manually re-read raw, update summary
+        │
+        ▼
+  git commit                    ──► durable
+        │
+        ▼
+  build-sources-index           ──► .wiki-sources-index.json refreshes
+        │                           (in case the URL field changed)
+        ▼
+  rebuildRawIndex               ──► _index.json[slug].state stays "ingested"
+```
 
 ```bash
 hirono raindrop refetch <slug> --force       # bypass frozen-slug guard
@@ -348,6 +591,39 @@ npx tsx tools/bin/build-sources-index.ts      # refresh URL→slug index
 ### R7 — Site code regression broke a cluster
 
 You shipped a code change that made N slugs go from good → flagged.
+
+```
+[noticed Clean count dropped after a recent commit]
+        │
+        ▼
+  git log tools/sites/<host>/   ──► find the suspect commit(s)
+        │
+        ▼
+   ┌──── decide ─────┐
+   │                 │
+   ▼                 ▼
+revert         fix forward
+        │                 │
+        ▼                 ▼
+  git revert        edit the site module
+  <bad-commit>      to fix the regression
+        │                 │
+        └────────┬────────┘
+                 │
+                 ▼
+  npm test                     ──► all tests green
+                 │
+                 ▼
+  sync --retry-kind <k>        ──► bulk re-fetch the affected cluster
+                 │
+                 ▼
+  status | head -2              ──► Clean recovers
+                 │
+                 ▼
+  Long-term: add a regression test
+  (fixture or snapshot per CLAUDE.md §6b)
+  so the bug can't sneak back in.
+```
 
 ```bash
 git log --oneline tools/sites/<host>/        # find the regression
