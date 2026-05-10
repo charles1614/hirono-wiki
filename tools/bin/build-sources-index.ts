@@ -29,7 +29,12 @@ import matter from "gray-matter";
 import { walkWikiDocs, slugOf, bucketOf } from "../link-map.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
-const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
+// Resolves to the wiki root (parent of `tools/`). THIS_FILE is at
+// `tools/bin/build-sources-index.ts`, so `dirname/..` is `tools/` and
+// `dirname/../..` is the wiki root. Earlier code only went up one
+// level — that resolved to `tools/` and `walkWikiDocs(tools/)` found
+// zero Sources files because Sources/ lives at the wiki root.
+const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..");
 const INDEX_PATH = join(REPO_ROOT, ".wiki-sources-index.json");
 
 export interface SourceIndexEntry {

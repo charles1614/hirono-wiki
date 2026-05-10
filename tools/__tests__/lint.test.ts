@@ -200,16 +200,43 @@ test("raw-orphan: Source without raw/.../content.md → error", () => {
   } finally { rmSync(root, { recursive: true }); }
 });
 
-test("raw-orphan: raw dir without matching Source → warn", () => {
+test("raw-orphan: clean raw dir without matching Source → info (not warn)", () => {
+  // Demoted from `warn` → `info`: a clean-but-not-yet-ingested slug is
+  // the intended state of the WIP queue, not an error.
   const root = tmp();
   try {
     bucketStubs(root);
     mkdirSync(join(root, "raw/raindrop/example.com/ghost-source"), { recursive: true });
     writeFileSync(join(root, "raw/raindrop/example.com/ghost-source/content.md"), "body");
     const issues = runLint(root, { checks: ["raw-orphan"] });
-    const warns = issues.filter((i) => i.severity === "warn");
-    assert.equal(warns.length, 1);
-    assert.match(warns[0].path, /ghost-source/);
+    assert.equal(issues.length, 1);
+    assert.equal(issues[0].severity, "info");
+    assert.match(issues[0].path, /ghost-source/);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("raw-orphan: flagged raw dir filtered out of reverse-orphan list", () => {
+  // Flagged slugs (auth-walled / SPA / paywalled / etc.) are
+  // deliberately NOT yet ingested. Lint must not surface them as
+  // reverse-orphans — that's noise. _index.json provides quality_status.
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    mkdirSync(join(root, "raw/raindrop/example.com/flagged-slug"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/flagged-slug/content.md"), "stub");
+    mkdirSync(join(root, "raw/raindrop/example.com/good-slug"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/good-slug/content.md"), "body");
+    writeFileSync(join(root, "raw/raindrop/_index.json"), JSON.stringify({
+      version: 1, updated_at: "2026-05-09T00:00:00Z",
+      slugs: {
+        "flagged-slug": { slug: "flagged-slug", quality_status: "flagged" },
+        "good-slug":    { slug: "good-slug", quality_status: "good" },
+      },
+    }));
+    const issues = runLint(root, { checks: ["raw-orphan"] });
+    assert.equal(issues.length, 1, "only the good-slug surfaces");
+    assert.match(issues[0].path, /good-slug/);
+    assert.equal(issues[0].severity, "info");
   } finally { rmSync(root, { recursive: true }); }
 });
 

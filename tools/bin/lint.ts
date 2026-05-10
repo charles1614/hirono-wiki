@@ -41,7 +41,13 @@ import {
 } from "../link-map.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
-const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
+// Wiki root: THIS_FILE is at `tools/bin/lint.ts`, so `dirname/../..`
+// resolves to the wiki root. Earlier code only went up one level —
+// that resolved to `tools/`, so `walkWikiDocs(REPO_ROOT)` walked
+// `tools/Sources/` (doesn't exist), found zero source docs, and the
+// reverse-orphan check walked `tools/raw/raindrop/` (doesn't exist
+// either). Lint always reported "no issues" regardless of corpus state.
+const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..");
 const TIER_THRESHOLD = 3;
 
 // ---------------------------------------------------------------------------
@@ -52,7 +58,7 @@ export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontm
 
 export interface Issue {
   kind: CheckKind;
-  severity: "error" | "warn";
+  severity: "error" | "warn" | "info";
   path: string;                  // repo-relative
   detail: string;
   hint?: string;
@@ -225,6 +231,26 @@ export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
     }
   }
 
+  // Load `_index.json` (best-effort) so the reverse-orphan check can
+  // filter to ingest-ready slugs only. Flagged slugs (auth-walled,
+  // SPA-no-content, paywalled, etc.) are deliberately NOT yet
+  // ingested — warning on them turns lint into noise (currently
+  // ~363 such slugs corpus-wide). A flagged slug becomes a
+  // reverse-orphan candidate only after the operator marks it
+  // `quality_status: good`.
+  const rawIndexPath = join(rawRoot, "_index.json");
+  const rawQualityBySlug = new Map<string, string>();
+  if (existsSync(rawIndexPath)) {
+    try {
+      const idx = JSON.parse(readFileSync(rawIndexPath, "utf8")) as {
+        slugs?: Record<string, { quality_status?: string }>;
+      };
+      for (const [slug, entry] of Object.entries(idx.slugs ?? {})) {
+        if (entry?.quality_status) rawQualityBySlug.set(slug, entry.quality_status);
+      }
+    } catch { /* fall back to no-filter behavior */ }
+  }
+
   // Expected slugs per Source page
   const expectedRawSlugs = new Set<string>();
   for (const s of sources) {
@@ -243,16 +269,23 @@ export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
   }
 
   // Reverse direction: any raw/raindrop/<host>/<slug>/ without a matching Source summary?
+  // Filter to good-quality slugs only — flagged slugs are expected
+  // to be unpaired (they're WIP, not yet eligible for ingest).
+  // Severity demoted from `warn` → `info`: a clean-but-not-yet-
+  // ingested slug is the intended state of the WIP queue.
   for (const [slug, { host }] of rawSlugs) {
-    if (!expectedRawSlugs.has(slug)) {
-      issues.push({
-        kind: "raw-orphan",
-        severity: "warn",
-        path: `raw/raindrop/${host}/${slug}/`,
-        detail: `raw dir exists but no Sources/.../${slug}.md references it`,
-        hint: "ingest this source (write a Sources summary) or delete raw/raindrop/" + host + "/" + slug + "/",
-      });
+    if (expectedRawSlugs.has(slug)) continue;
+    if (rawQualityBySlug.size > 0) {
+      const status = rawQualityBySlug.get(slug);
+      if (status && status !== "good") continue;
     }
+    issues.push({
+      kind: "raw-orphan",
+      severity: "info",
+      path: `raw/raindrop/${host}/${slug}/`,
+      detail: `raw dir exists but no Sources/.../${slug}.md references it`,
+      hint: "ingest this source (write a Sources summary) or delete raw/raindrop/" + host + "/" + slug + "/",
+    });
   }
 
   return issues;
@@ -463,7 +496,11 @@ function main(): void {
       }
       const errs = issues.filter((i) => i.severity === "error").length;
       const warns = issues.filter((i) => i.severity === "warn").length;
-      console.log(`\n[lint] ${errs} error(s), ${warns} warning(s)`);
+      const infos = issues.filter((i) => i.severity === "info").length;
+      console.log(
+        `\n[lint] ${errs} error(s), ${warns} warning(s)` +
+        (infos > 0 ? `, ${infos} info` : ""),
+      );
     }
   }
 

@@ -51,6 +51,9 @@ Raindrop fetch pipeline (raw export):
   raindrop diff <slug>                    unified diff between two revisions
                                           flags: --from <rev|date> --to <rev|date>
                                                  --summary --no-color
+  raindrop ingest-candidates              emit good ∧ not-yet-ingested slugs as JSON
+                                          for piping into \`ingest_batch plan\`
+                                          flags: --limit N --host <h> --md
   raindrop fetch-all                      bulk fetch one copy of every unique URL
   raindrop store <slug>                   write pre-fetched MD into raw/ (low-level)
   raindrop fetch-lark <token>             fetch via lark-hirono (low-level)
@@ -154,6 +157,11 @@ async function main(): Promise<void> {
       main(rest);
       return;
     }
+    if (sub === "ingest-candidates") {
+      const { main } = await import("../hirono/raindrop/ingest-candidates.ts");
+      main(rest);
+      return;
+    }
 
     // Subcommands that consolidate the raw-archive CLI.
     if (await dispatchRaindropFetchSubcommands(sub, rest)) return;
@@ -161,7 +169,7 @@ async function main(): Promise<void> {
     console.error(`unknown raindrop subcommand: ${sub}`);
     console.error(
       `valid: check, refresh-cache, new, fetch, refetch, sync, verify,\n` +
-      `       status, history, diff, fetch-all, store, fetch-lark, export`,
+      `       status, history, diff, ingest-candidates, fetch-all, store, fetch-lark, export`,
     );
     process.exit(2);
   }

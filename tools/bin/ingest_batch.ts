@@ -60,10 +60,14 @@ import { unwrapShareUrl } from "../sites/_shared/url-unwrap.ts";
 import type { RawIndexEntry } from "../fetch-raw.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
-const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
+// Wiki root: THIS_FILE is at `tools/bin/ingest_batch.ts`, so
+// `dirname/../..` resolves to the wiki root. Earlier code only went
+// up one level — that resolved to `tools/`, putting the state file
+// and index lookup at the wrong location.
+const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..");
 const DEFAULT_STATE_PATH = join(REPO_ROOT, ".wiki-batch-state.json");
 const DEFAULT_SOURCES_INDEX_PATH = join(REPO_ROOT, ".wiki-sources-index.json");
-const DEFAULT_RAW_INDEX_PATH = join(REPO_ROOT, "..", "raw", "raindrop", "_index.json");
+const DEFAULT_RAW_INDEX_PATH = join(REPO_ROOT, "raw", "raindrop", "_index.json");
 
 export interface Paths {
   state: string;
