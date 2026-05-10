@@ -11,6 +11,12 @@ maintenance tooling. Each section: a flow diagram, the exact commands
 in order, what to expect on success, and what to do when things go
 sideways.
 
+> **See also:** [`Meta/corpus-pipeline.md`](corpus-pipeline.md) for the
+> high-level state machine view (NOT-YET-GOOD / INGEST-READY / INGESTED,
+> the two transitions, the frozen-slug guard, the downgrade-protection
+> backward edge, and the per-scenario runbooks). This file is the
+> per-command reference; that one is the architectural overview.
+
 All commands assume the working directory is the repo root. Where
 brevity matters the docs use `hirono raindrop ...` — the equivalent
 direct invocation is `npx tsx tools/bin/hirono.ts raindrop ...`.
