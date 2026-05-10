@@ -1291,6 +1291,72 @@ export interface RawSlugInfo {
  * `raindrop/` — defaults to the repo root's `raw/`. Tests pass a temp
  * dir whose layout mirrors that.
  */
+/**
+ * One-shot cleanup of partial-fetch residue under raw/raindrop/.
+ * Three categories of residue, all from interrupted fetches:
+ *
+ *   1. Phantom slug dirs — empty directory left after `mkdirSync`
+ *      ran but the fetcher threw before any file was written.
+ *   2. Image-only slug dirs — adapter saved images via curl but the
+ *      markdown-write phase threw before content.md / source.json
+ *      landed. Disk-space orphan; the URL is functionally
+ *      unfetched.
+ *   3. Atomic-write tmp orphans — `.<base>.tmp-<pid>-<ts>` files
+ *      left when a process was SIGKILL'd between
+ *      `writeFileSync(fd, contents)` and `renameSync(tmp, path)`.
+ *
+ * Safe to run anytime — only removes paths that match the
+ * residue patterns. Real slug directories (containing source.json
+ * AND/OR content.md) are never touched.
+ *
+ * Returns the counts removed, for logging.
+ */
+export function cleanRawResidue(rawRoot: string = RAW_DIR): {
+  phantomDirs: number;
+  imageOnlyDirs: number;
+  tmpOrphans: number;
+} {
+  const root = join(rawRoot, "raindrop");
+  if (!existsSync(root)) return { phantomDirs: 0, imageOnlyDirs: 0, tmpOrphans: 0 };
+  let phantomDirs = 0;
+  let imageOnlyDirs = 0;
+  let tmpOrphans = 0;
+
+  for (const host of readdirSync(root)) {
+    const hostDir = join(root, host);
+    try { if (!statSync(hostDir).isDirectory()) continue; } catch { continue; }
+
+    for (const slug of readdirSync(hostDir)) {
+      const slugDir = join(hostDir, slug);
+      try { if (!statSync(slugDir).isDirectory()) continue; } catch { continue; }
+
+      const entries = readdirSync(slugDir);
+      const hasSource = entries.includes("source.json");
+      const hasContent = entries.includes("content.md");
+
+      // Sweep tmp-orphans inside the slug dir regardless of state.
+      for (const e of entries) {
+        if (/\.tmp-\d+-\d+$/.test(e) && /^\.[^.]/.test(e)) {
+          try { rmSync(join(slugDir, e)); tmpOrphans++; } catch {}
+        }
+      }
+
+      if (hasSource || hasContent) continue;
+
+      // No source.json AND no content.md → residue. Determine which kind.
+      const remaining = readdirSync(slugDir);
+      if (remaining.length === 0) {
+        try { rmSync(slugDir, { recursive: true }); phantomDirs++; } catch {}
+      } else {
+        // Image-only or other partial state — remove the directory.
+        try { rmSync(slugDir, { recursive: true }); imageOnlyDirs++; } catch {}
+      }
+    }
+  }
+
+  return { phantomDirs, imageOnlyDirs, tmpOrphans };
+}
+
 export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
   const root = join(rawRoot, "raindrop");
   if (!existsSync(root)) return [];

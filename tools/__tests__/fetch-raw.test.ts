@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -20,6 +20,7 @@ import {
   remediationFor,
   rebuildRawIndex,
   isFetchRegression,
+  cleanRawResidue,
   type SourceJson,
 } from "../fetch-raw.ts";
 import { browserTimeoutMs } from "../sites/_shared/browser-helpers.ts";
@@ -518,6 +519,56 @@ test("listRawSlugs: missing content.md → quality_status=failed", () => {
     const r = listRawSlugs(root);
     assert.equal(r[0].quality_status, "failed");
     assert.equal(r[0].hasContent, false);
+  } finally {
+    try { rmSync(root, { recursive: true, force: true }); } catch {}
+  }
+});
+
+test("cleanRawResidue: removes phantom dirs / image-only dirs / atomic-write tmp orphans, preserves real slugs", () => {
+  const root = mkdtempSync(join(tmpdir(), "fetch-raw-test-"));
+  try {
+    // 1. Real slug — must be preserved
+    const real = join(root, "raindrop", "real.example.com", "real-slug");
+    mkdirSync(real, { recursive: true });
+    writeFileSync(join(real, "source.json"), "{}");
+    writeFileSync(join(real, "content.md"), "real");
+
+    // 2. Phantom dir (empty) — should be removed
+    const phantom = join(root, "raindrop", "phantom.example.com", "phantom-slug");
+    mkdirSync(phantom, { recursive: true });
+
+    // 3. Image-only dir (images, no markdown) — should be removed
+    const imgOnly = join(root, "raindrop", "img.example.com", "image-only-slug");
+    mkdirSync(imgOnly, { recursive: true });
+    writeFileSync(join(imgOnly, "img-001.png"), Buffer.from([0x89, 0x50, 0x4E, 0x47]));
+    writeFileSync(join(imgOnly, "img-002.png"), Buffer.from([0x89, 0x50, 0x4E, 0x47]));
+
+    // 4. Real slug WITH a tmp orphan inside — slug preserved, tmp removed
+    const realWithTmp = join(root, "raindrop", "real2.example.com", "tmp-slug");
+    mkdirSync(realWithTmp, { recursive: true });
+    writeFileSync(join(realWithTmp, "source.json"), "{}");
+    writeFileSync(join(realWithTmp, "content.md"), "real with tmp");
+    writeFileSync(join(realWithTmp, ".source.json.tmp-12345-1234567890"), "interrupted");
+
+    // 5. Legacy slug (content.md but no source.json) — preserved
+    const legacy = join(root, "raindrop", "legacy.example.com", "legacy-slug");
+    mkdirSync(legacy, { recursive: true });
+    writeFileSync(join(legacy, "content.md"), "# legacy");
+
+    const r = cleanRawResidue(root);
+    assert.equal(r.phantomDirs, 1, "phantom dir count");
+    assert.equal(r.imageOnlyDirs, 1, "image-only dir count");
+    assert.equal(r.tmpOrphans, 1, "tmp orphan count");
+
+    // Surviving slugs
+    assert.ok(existsSync(join(real, "content.md")), "real slug preserved");
+    assert.ok(existsSync(join(realWithTmp, "content.md")), "real-with-tmp preserved");
+    assert.ok(!existsSync(join(realWithTmp, ".source.json.tmp-12345-1234567890")), "tmp orphan inside real slug removed");
+    assert.ok(existsSync(join(legacy, "content.md")), "legacy slug preserved");
+
+    // Removed dirs
+    assert.ok(!existsSync(phantom), "phantom dir removed");
+    assert.ok(!existsSync(imgOnly), "image-only dir removed");
   } finally {
     try { rmSync(root, { recursive: true, force: true }); } catch {}
   }

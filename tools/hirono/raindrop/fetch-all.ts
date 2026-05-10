@@ -25,7 +25,7 @@
 import { readFileSync, existsSync, appendFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { fetchUrlAndStore, listRawSlugs } from "../../fetch-raw.ts";
+import { fetchUrlAndStore, listRawSlugs, cleanRawResidue } from "../../fetch-raw.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
 import type { Cache, CachedBookmark } from "./check.ts";
@@ -237,6 +237,17 @@ export async function runFetchAll(opts: FetchAllOpts = {}): Promise<FetchAllResu
     );
   }
   const cache = JSON.parse(readFileSync(cachePath, "utf8")) as Cache;
+
+  // Sweep partial-fetch residue from any previous run before planning.
+  // Phantom dirs / image-only dirs / atomic-write tmp orphans would
+  // otherwise mislead the dedupe by-slug-name logic.
+  const cleanup = cleanRawResidue(RAW_ROOT);
+  if (cleanup.phantomDirs + cleanup.imageOnlyDirs + cleanup.tmpOrphans > 0) {
+    process.stderr.write(
+      `[fetch-all] swept residue: ${cleanup.phantomDirs} phantom dir(s), ` +
+      `${cleanup.imageOnlyDirs} image-only dir(s), ${cleanup.tmpOrphans} tmp orphan(s)\n`,
+    );
+  }
 
   const plan = buildPlan(cache, opts);
   const summary = {
