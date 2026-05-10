@@ -26,6 +26,7 @@ import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-help
 import { makeStub } from "../_shared/stub.ts";
 import { harvestServiceCard } from "../_shared/service-card.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 interface QwenExtraction {
   title: string;
@@ -48,11 +49,6 @@ interface QwenConvertResult {
   imagesToDownload: { remoteUrl: string; localFilename: string }[];
   metadata: { title: string; description: string; publishedAt: string };
   stats: { bodyChars: number; images: number };
-}
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase(); }
-  catch { return ""; }
 }
 
 function extractQwenAi(url: string): QwenExtraction {

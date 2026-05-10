@@ -16,6 +16,7 @@ import { join } from "node:path";
 
 import type { Site } from "../_shared/types.ts";
 import { makeStub } from "../_shared/stub.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 import {
   parseGithubUrl,
   fetchPrIssue,
@@ -57,11 +58,6 @@ function downloadAll(
     else failed++;
   }
   return { images, failed };
-}
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
 }
 
 export const site: Site = {

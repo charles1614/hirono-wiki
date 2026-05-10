@@ -22,6 +22,7 @@ import { spawnSync } from "node:child_process";
 import type { Site, FetchOpts, Result } from "../_shared/types.ts";
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
 import { makeStub } from "../_shared/stub.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 interface FeishuConvertArgs {
   url: string;
@@ -45,11 +46,6 @@ interface FeishuConvertResult {
 }
 
 const HOST_PATTERN = /\.feishu\.cn$/i;
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase(); }
-  catch { return ""; }
-}
 
 function wikiIdFromUrl(url: string): string | null {
   const m = url.match(/\/wiki\/([A-Za-z0-9]+)/);

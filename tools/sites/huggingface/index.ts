@@ -19,6 +19,7 @@ import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hoo
 import { downloadImage } from "../../fetch-raw.ts";
 import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
 import { makeStub } from "../_shared/stub.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 interface HfFixtureArgs {
   rawMd: string;
@@ -33,11 +34,6 @@ interface HfConvertResult {
 }
 
 const HOSTS = ["huggingface.co"];
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
-}
 
 function pathOf(url: string): string {
   try { return new URL(url).pathname; }

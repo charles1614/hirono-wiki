@@ -18,11 +18,7 @@ import type { Site } from "../_shared/types.ts";
 import { extractWeixinFullContent } from "./fetcher.ts";
 import { convertWeixinHtml } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
-}
+import { hostOf } from "../../shared/url-helpers.ts";
 
 export const site: Site = {
   name: "weixin",

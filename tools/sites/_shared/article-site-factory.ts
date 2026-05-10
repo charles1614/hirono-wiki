@@ -24,6 +24,7 @@ import type { SiteTestHooks, InputDoc, CaptureResult } from "./test-hooks-types.
 import { convertArticle, type ArticleSelectors, type ArticleConvertOpts, type ArticleConvertResult } from "./article-converter.ts";
 import { makeStub } from "./stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 export interface ArticleSiteConfig {
   /** Site module name (matches dir, used in fixture paths). */
@@ -80,11 +81,6 @@ function plainFetch(url: string): { html: string; finalUrl: string; error?: stri
   } catch (e) {
     return { html: "", finalUrl: url, error: e instanceof Error ? e.message : String(e) };
   }
-}
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
 }
 
 function pathOf(url: string): string {

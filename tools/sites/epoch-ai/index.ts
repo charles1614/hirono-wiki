@@ -13,11 +13,7 @@ import type { Site } from "../_shared/types.ts";
 import { makeStub } from "../_shared/stub.ts";
 import { extractEpochAiContent } from "./fetcher.ts";
 import { convertEpochAiContent } from "./converter.ts";
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
-}
+import { hostOf } from "../../shared/url-helpers.ts";
 
 export const site: Site = {
   name: "epoch-ai",

@@ -17,6 +17,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { NON_PROBLEMATIC_FLAGS_SET } from "../../fetch-raw.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 export type FailureKind =
   | "clean"
@@ -144,11 +145,6 @@ function isLanIp(host: string): boolean {
          /^192\.168\./.test(host) ||
          /^172\.(1[6-9]|2[0-9]|3[01])\./.test(host) ||
          /^8\.163\.|^8\.138\./.test(host);  // operator's known LAN-style public IPs
-}
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
 }
 
 export function classifyFromInput(input: ClassifyInput): FailureKind {

@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { hostnameOf } from "../../fetch-raw.ts";
 import { routeSite } from "../../sites/index.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 /**
  * Classify a URL's routing handler. Two real categories under the
@@ -70,11 +71,6 @@ export interface Cache {
 }
 
 /** Host extraction that mirrors the canonical helper. */
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
-}
-
 /**
  * Longest common dot-aligned suffix across a list of hostnames. Used
  * to compute a readable display hostname when many tenant subdomains

@@ -31,6 +31,7 @@ import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hoo
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 import { makeStub } from "../_shared/stub.ts";
 import { downloadImage } from "../../fetch-raw.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 interface XMediaRef {
   /** Source URL (pbs.twimg.com/media/...). */
@@ -92,11 +93,6 @@ interface XConvertResult {
 }
 
 const HOSTS = new Set(["x.com", "twitter.com", "www.x.com", "www.twitter.com"]);
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase(); }
-  catch { return ""; }
-}
 
 function pathOf(url: string): string {
   try { return new URL(url).pathname; }

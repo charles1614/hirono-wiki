@@ -18,11 +18,7 @@ import { fetchV2exTopic } from "./fetcher.ts";
 import { convertV2exTopic } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 import { makeStub } from "../_shared/stub.ts";
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
-}
+import { hostOf } from "../../shared/url-helpers.ts";
 
 function isTopicUrl(url: string): boolean {
   return /\/t\/\d+/.test(url);

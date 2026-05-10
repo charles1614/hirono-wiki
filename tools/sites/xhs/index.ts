@@ -26,6 +26,7 @@ import { join } from "node:path";
 
 import type { Site } from "../_shared/types.ts";
 import { convertXhsHtml } from "./converter.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 import {
   extractXhsFullContent,
   extractXhsNoteId,
@@ -34,11 +35,6 @@ import {
   reorderXhsImagesByDomPosition,
 } from "./browser-extract.ts";
 import { runOpencli, sleepMs } from "../_shared/browser-helpers.ts";
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
-}
 
 export const site: Site = {
   name: "xhs",

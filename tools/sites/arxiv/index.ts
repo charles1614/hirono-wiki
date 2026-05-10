@@ -26,11 +26,7 @@ import { mkdirSync } from "node:fs";
 import type { Site, FetchOpts, Result } from "../_shared/types.ts";
 import { fetchArxiv } from "./fetcher.ts";
 import { convertArxiv } from "./converter.ts";
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
-}
+import { hostOf } from "../../shared/url-helpers.ts";
 
 function pathOf(url: string): string {
   try { return new URL(url).pathname; }

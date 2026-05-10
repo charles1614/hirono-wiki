@@ -29,6 +29,7 @@ import { fetchUrlAndStore, listRawSlugs } from "../../fetch-raw.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
 import type { Cache, CachedBookmark } from "./check.ts";
+import { hostOf } from "../../shared/url-helpers.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..", "..");
@@ -105,11 +106,6 @@ export interface FetchAllOpts {
   continueOnL3?: boolean;
   dryRun?: boolean;
   cachePath?: string;
-}
-
-function hostOf(url: string): string {
-  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ""); }
-  catch { return ""; }
 }
 
 /**
