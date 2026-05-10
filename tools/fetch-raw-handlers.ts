@@ -264,7 +264,7 @@ export function cmdSync(args: string[]): void {
   for (const item of toFetch) {
     console.log(`\n[sync] fetching ${item.slug} …`);
     try {
-      const src = executeFetchPlanItem(item, downloadImages);
+      const src = executeFetchPlanItem(item, downloadImages, force);
       if (src) {
         const flagStr = src.quality_flags.length ? src.quality_flags.join(",") : "none";
         console.log(`[sync] ✓ ${item.slug} (status=${src.quality_status}, flags=${flagStr})`);
@@ -329,7 +329,10 @@ export function cmdRefetch(positional: string[], args: string[]): void {
     originUrl: src.origin_url,
     reason: "forced refetch",
   };
-  const out = executeFetchPlanItem(item, downloadImages);
+  // Pass `force` through as bypassDowngradeProtection. Operator's
+  // `--force` flag means "I deliberately want to overwrite even if
+  // the new fetch is a regression."
+  const out = executeFetchPlanItem(item, downloadImages, force);
   if (!out) {
     console.error(`[refetch] nothing produced (no executor matched origin "${src.origin}")`);
     process.exit(1);

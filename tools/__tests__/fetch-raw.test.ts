@@ -19,6 +19,8 @@ import {
   buildSyncPlan,
   remediationFor,
   rebuildRawIndex,
+  isFetchRegression,
+  type SourceJson,
 } from "../fetch-raw.ts";
 import { browserTimeoutMs } from "../sites/_shared/browser-helpers.ts";
 import { routeSite } from "../sites/index.ts";
@@ -1071,6 +1073,65 @@ test("rebuildRawIndex: state field handles share-aggregator unwrap (P-32)", () =
     const index = rebuildRawIndex(t.root, join(t.root, "no-cache.json"), sourcesIndexPath);
     assert.equal(index.slugs["2025-06-09-shared"].state, "ingested");
   } finally { t.cleanup(); }
+});
+
+// ---------------------------------------------------------------------------
+// isFetchRegression — downgrade-protection heuristic
+// ---------------------------------------------------------------------------
+
+function mkSource(over: Partial<SourceJson> = {}): SourceJson {
+  return {
+    fetched_at: "2026-05-01T00:00:00Z",
+    origin: "url:https://example.com",
+    origin_url: "https://example.com",
+    fetcher: "opencli",
+    fetcher_reason: "direct",
+    content_sha: "abc",
+    content_length: 5000,
+    quality_flags: [],
+    quality_status: "good",
+    images: [],
+    notes: [],
+    ...over,
+  };
+}
+
+test("isFetchRegression: prev good (5000c) + new stub (200c, intentional-stub) → true", () => {
+  const prev = mkSource({ content_length: 5000, quality_flags: [] });
+  const next = { content_length: 200, quality_flags: ["intentional-stub", "_default-fetch-failed"] };
+  assert.equal(isFetchRegression(prev, next), true);
+});
+
+test("isFetchRegression: prev good + new good but smaller (within factor of 3) → false", () => {
+  const prev = mkSource({ content_length: 5000, quality_flags: [] });
+  // 4500 / 5000 = 90% — well above 30% threshold, no regression
+  const next = { content_length: 4500, quality_flags: [] };
+  assert.equal(isFetchRegression(prev, next), false);
+});
+
+test("isFetchRegression: prev good + new good but tiny (no stub flags) → false", () => {
+  const prev = mkSource({ content_length: 5000, quality_flags: [] });
+  // 100 / 5000 = 2% — but no stub flags. Treat as legitimate edit, don't refuse.
+  const next = { content_length: 100, quality_flags: ["short-body"] };
+  assert.equal(isFetchRegression(prev, next), false);
+});
+
+test("isFetchRegression: prev stub + new stub → false (no preservable content)", () => {
+  const prev = mkSource({ content_length: 200, quality_flags: ["intentional-stub", "_default-fetch-failed"] });
+  const next = { content_length: 100, quality_flags: ["intentional-stub", "_default-fetch-failed"] };
+  assert.equal(isFetchRegression(prev, next), false);
+});
+
+test("isFetchRegression: prev null → false (no comparison possible)", () => {
+  const next = { content_length: 200, quality_flags: ["intentional-stub"] };
+  assert.equal(isFetchRegression(null, next), false);
+});
+
+test("isFetchRegression: real corpus pattern — wangzhiyu 9674c → 802c stub", () => {
+  // From revisions.jsonl observed in the live corpus.
+  const prev = mkSource({ content_length: 9674, quality_flags: ["_default-used-browser-fallback"] });
+  const next = { content_length: 802, quality_flags: ["intentional-stub", "_default-fetch-failed"] };
+  assert.equal(isFetchRegression(prev, next), true);
 });
 
 // ---------------------------------------------------------------------------

@@ -690,11 +690,58 @@ interface WriteArgs {
    * `source.json.error_detail`.
    */
   errorDetail?: string;
+  /**
+   * Bypass the downgrade-protection guard. When false (default) and
+   * a previous source.json exists, the new fetch is refused if it
+   * looks materially worse than the previous (≥3× shorter AND has
+   * stub flags AND previous didn't). Set true to deliberately
+   * overwrite — e.g. operator passed --force at the CLI.
+   *
+   * The check is independent of `force`: that one controls the
+   * append-only-vs-overwrite filename strategy; this one controls
+   * whether the regression check fires.
+   */
+  bypassDowngradeProtection?: boolean;
+}
+
+/**
+ * Heuristic: does `next` look like a regression vs `prev`? Used by
+ * downgrade protection in writeRawArchive.
+ *
+ * Three predicates must ALL hold:
+ *   1. Length collapse: new content is < 30% of previous length.
+ *   2. New result is a stub: flags include intentional-stub OR
+ *      *-fetch-failed OR *-extraction-failed.
+ *   3. Previous result was NOT already a stub.
+ *
+ * The third predicate is critical — when both old and new are stubs,
+ * there's no preservable content to defend, and stub bouncing is
+ * common. Only protect when there's something to lose.
+ */
+export function isFetchRegression(prev: SourceJson | null, next: { content_length: number; quality_flags: string[] }): boolean {
+  if (!prev) return false;
+  const STUB_FLAG_RE = /^(intentional-stub|.+-fetch-failed|.+-extraction-failed)$/;
+  const newIsStub = next.quality_flags.some(f => STUB_FLAG_RE.test(f));
+  const prevWasStub = (prev.quality_flags ?? []).some(f => STUB_FLAG_RE.test(f));
+  if (!newIsStub) return false;
+  if (prevWasStub) return false;
+  if (prev.content_length <= 0) return false;
+  if (next.content_length >= prev.content_length * 0.3) return false;
+  return true;
 }
 
 export function writeRawArchive(args: WriteArgs): SourceJson {
   const slugDir = rawDirFor(args.slug, args.originUrl);
   mkdirSync(slugDir, { recursive: true });
+
+  // Load previous source.json (if any) BEFORE we overwrite anything —
+  // needed by the downgrade-protection check below.
+  const prevSourcePath = join(slugDir, "source.json");
+  let prevSource: SourceJson | null = null;
+  if (existsSync(prevSourcePath)) {
+    try { prevSource = JSON.parse(readFileSync(prevSourcePath, "utf8")) as SourceJson; }
+    catch { prevSource = null; }
+  }
 
   // Append-only: existing content.md → write content-revN.md instead of overwriting.
   let contentFile = "content.md";
@@ -711,6 +758,10 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
   }
 
   // Image handling: either our own download/rewrite pass, or trust the adapter.
+  // (Image downloads are additive — they happen before the regression check
+  // below. If we refuse the write, the new images stay on disk; that's fine,
+  // they're just unused bytes. The previous content.md still references the
+  // previous image set via the existing markdown.)
   let images: ImageRecord[] = args.preExistingImages ?? [];
   let imgNotes: string[] = [];
   if (args.downloadImages) {
@@ -720,19 +771,58 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
     imgNotes = r.notes;
   }
 
-  writeFileAtomic(join(slugDir, contentFile), md);
-
-  // Derive declared-image count from the final markdown (after rewrites). If
-  // the content references images but the images array is empty, that's
-  // an adapter silently-failed download — classifyQuality flags it.
+  // Derive declared-image count + run classifier on the candidate
+  // markdown. We need both BEFORE the downgrade check to know if the
+  // new fetch is a stub.
   const declaredImageCount = extractImageUrls(md).length;
-
   const { suspicious, flags: qualityFlags, quality_status } = classifyQuality(md, {
     declaredImageCount,
     downloadedImageCount: images.length,
     extraFlags: args.qualityFlags,
     originUrl: args.originUrl,
   });
+
+  // Downgrade protection: refuse to overwrite when the new fetch is
+  // materially worse than the previous (and the operator didn't pass
+  // --force). The previous content.md + source.json stay on disk;
+  // the audit trail in revisions.jsonl gets a "regression-protected"
+  // entry so the operator can see what happened.
+  //
+  // Triggered when overwriting (force=true, the typical refetch/sync
+  // path); skipped on append-only writes (which create content-revN.md
+  // alongside the existing content.md, no destruction risk).
+  if (
+    args.force &&
+    !args.bypassDowngradeProtection &&
+    prevSource &&
+    isFetchRegression(prevSource, { content_length: md.length, quality_flags: qualityFlags })
+  ) {
+    console.error(
+      `[fetcher] regression-protected: ${args.slug} new=${md.length}c old=${prevSource.content_length}c ` +
+      `(new flags: ${qualityFlags.join(",") || "none"}). Pass --force to override.`,
+    );
+    try {
+      const rev = nextRev(slugDir);
+      const row: RevisionRow = {
+        rev,
+        fetched_at: new Date().toISOString(),
+        content_file: contentFile,
+        content_sha: prevSource.content_sha,
+        content_length: prevSource.content_length,
+        quality_status: prevSource.quality_status,
+        quality_flags: prevSource.quality_flags,
+        image_count: prevSource.images.length,
+        fetcher: args.fetcher,
+        fetcher_reason: "regression-protected",
+      };
+      appendRevision(slugDir, row);
+    } catch (e) {
+      console.error(`[revisions] failed to append regression-protected row: ${e instanceof Error ? e.message : e}`);
+    }
+    return prevSource;
+  }
+
+  writeFileAtomic(join(slugDir, contentFile), md);
 
   const src: SourceJson = {
     fetched_at: new Date().toISOString(),
@@ -883,6 +973,12 @@ export interface FetchUrlOpts {
     extraNotes?: string[];
     extraImageUrls?: string[];
   };
+  /**
+   * Bypass the downgrade-protection guard in writeRawArchive. Set
+   * when the operator passed `--force` at the CLI to deliberately
+   * overwrite previously-substantive content with what may be a stub.
+   */
+  bypassDowngradeProtection?: boolean;
 }
 
 /**
@@ -953,6 +1049,7 @@ function writeL2ErrorAsStub(opts: FetchUrlOpts, errorCode: string, errorMessage:
     extraNotes: [`L2-error stub: ${errorCode} — ${errorMessage}`],
     downloadImages: false,
     force: opts.force,
+    bypassDowngradeProtection: opts.bypassDowngradeProtection,
     errorDetail: errorMessage,
   });
 }
@@ -1105,6 +1202,7 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     ],
     downloadImages: false,  // already handled above
     force: opts.force,
+    bypassDowngradeProtection: opts.bypassDowngradeProtection,
     preExistingImages: [...images, ...additionalImages],
     errorDetail: result.errorDetail,
   });
@@ -1999,8 +2097,17 @@ function executeHeadCheck(item: SyncPlanItem, downloadImages: boolean): SourceJs
   return executeFetchPlanItem(escalated, downloadImages);
 }
 
-/** Execute a single fetch plan item. Dispatches by origin prefix. Returns the SourceJson written, or null on caller-visible error. */
-export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean): SourceJson | null {
+/** Execute a single fetch plan item. Dispatches by origin prefix. Returns the SourceJson written, or null on caller-visible error.
+ *
+ * `bypassDowngradeProtection` — operator-set; threads through to
+ * writeRawArchive so the regression check can be skipped when the
+ * operator deliberately wants to overwrite (e.g. `--force`). Default
+ * false: regressions are refused. */
+export function executeFetchPlanItem(
+  item: SyncPlanItem,
+  downloadImages: boolean,
+  bypassDowngradeProtection: boolean = false,
+): SourceJson | null {
   if (item.action === "head-check") return executeHeadCheck(item, downloadImages);
   if (item.action !== "fetch" || !item.origin || !item.originUrl) return null;
   const origin = item.origin;
@@ -2019,6 +2126,7 @@ export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean
       larkMeta: { node_token: token, title: r.title },
       downloadImages,
       force: true,
+      bypassDowngradeProtection,
     });
   }
 
@@ -2052,6 +2160,7 @@ export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean
       downloadImages,
       force: true,
       transformMarkdown,
+      bypassDowngradeProtection,
     });
   }
 
@@ -2063,5 +2172,6 @@ export function executeFetchPlanItem(item: SyncPlanItem, downloadImages: boolean
     downloadImages,
     force: true,
     transformMarkdown,
+    bypassDowngradeProtection,
   });
 }
