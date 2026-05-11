@@ -174,7 +174,11 @@ export function renderPdfFromUrl(opts: RenderOpts): Result {
   const pageWidthPt = bounds[2] - bounds[0];
   const pageHeightPt = bounds[3] - bounds[1];
   const aspectRatio = pageWidthPt / pageHeightPt;
-  const titleLine = chooseTitle(meta, slug);
+  // Title fallback: PDF info-title is often empty for arxiv/LaTeX-built
+  // PDFs. We'll defer the final title decision until after body
+  // extraction so we can pull from the body's first non-empty line
+  // when the info-title is missing.
+  let titleLine = chooseTitle(meta, slug);
 
   // Step 4: branch on shape.
   if (aspectRatio > SLIDE_ASPECT_THRESHOLD) {
@@ -208,7 +212,8 @@ interface PaperOpts {
 }
 
 function composePaperContent(opts: PaperOpts): Result {
-  const { url, slugDir, slug, titleLine, meta, pageCount, pdfSize, pdfPath } = opts;
+  const { url, slugDir, slug, meta, pageCount, pdfSize, pdfPath } = opts;
+  let titleLine = opts.titleLine;
   const figuresDir = join(slugDir, `${slug}-figures`);
   // The previous fetcher rendered full-page PNGs into `<slug>-images/`.
   // The new paper path doesn't use those — text + figures replace
@@ -219,21 +224,67 @@ function composePaperContent(opts: PaperOpts): Result {
     try { rmSync(legacyImagesDir, { recursive: true, force: true }); } catch { /* best-effort */ }
   }
 
-  // Extract body text via pdftotext. -layout preserves column structure
-  // (single-column papers come out clean; 2-column gets reasonable output).
-  // -nopgbrk drops the form-feed page-break characters.
+  // Extract body text via pdftotext. Default (no -layout, no -raw) mode
+  // does column-aware reading order — 2-column papers come out
+  // column-by-column rather than interleaved line-by-line. -layout was
+  // wrong for 2-column papers (left/right columns collided on every
+  // line; output was unreadable). -nopgbrk drops form-feed page-break
+  // characters.
   let bodyText = "";
   let textExtractFailed = false;
   try {
     const raw = execFileSync(
       "pdftotext",
-      ["-layout", "-nopgbrk", "-enc", "UTF-8", pdfPath, "-"],
+      ["-nopgbrk", "-enc", "UTF-8", pdfPath, "-"],
       { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 },
     );
     bodyText = cleanPdfText(raw);
   } catch (e) {
     textExtractFailed = true;
     bodyText = "";
+  }
+
+  // Title fallback: if PDF info-title is empty (very common for
+  // LaTeX-built arxiv PDFs), extract from the body's pre-cleanup raw
+  // dump. The raw first non-empty line is usually the paper's actual
+  // title, post letter-spacing normalization.
+  if (
+    bodyText.length > 0 &&
+    (titleLine === `PDF: ${slug}` || titleLine === slug)
+  ) {
+    // Look at the raw extraction (before cleanPdfText skipped cover-page
+    // sections). Pull title from the first 5 non-empty lines.
+    let rawForTitle = "";
+    try {
+      rawForTitle = execFileSync(
+        "pdftotext",
+        ["-nopgbrk", "-enc", "UTF-8", "-l", "1", pdfPath, "-"],
+        { encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
+      );
+    } catch { /* best-effort */ }
+    if (rawForTitle) {
+      const candidateLines = rawForTitle
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        // Apply same letter-spacing fix the body got.
+        .map((l) => l.replace(/\b([A-Z]) ([A-Z]{2,})\b/g, (_m, h, t) => h + t).replace(/\b([A-Z]) ([A-Z]{2,})\b/g, (_m, h, t) => h + t))
+        .filter((l) => l.length >= 8 && l.length <= 200)
+        // Skip lines that look like arxiv banners / dates / footnotes.
+        .filter((l) => !/^arXiv:/i.test(l))
+        .filter((l) => !/^(\d{4}-\d{2}-\d{2}|\d{1,2}\s+\w+\s+\d{4})$/.test(l));
+      if (candidateLines.length > 0) {
+        // Heuristic: a title is usually one or two short lines at the top.
+        // If line 1 ends in a colon, line 2 is the rest (e.g.
+        // "Beyond the Buzz: / A Pragmatic Take on Inference Disaggregation").
+        const first = candidateLines[0];
+        const second = candidateLines[1];
+        if (second && first.endsWith(":")) {
+          titleLine = `${first} ${second}`.replace(/\s+/g, " ");
+        } else {
+          titleLine = first;
+        }
+      }
+    }
   }
 
   // Clean stale pdfimages-extracted figures from prior refetches.
@@ -548,15 +599,34 @@ function cleanPdfText(raw: string): string {
   // Pass 1: per-line trim
   let lines = raw.split(/\r?\n/).map((line) => line.replace(/\s+$/, "").replace(/^\s+/, ""));
 
-  // Pass 2 + 3: drop boilerplate
+  // Pass 1.5: collapse letter-spaced text. PDF fonts with character
+  // tracking render section headers like "FLUX" as "F LUX" (the font
+  // inserts wide kerning between letters and pdftotext interprets each
+  // gap as a word break). Examples: "A BSTRACT" / "P REPRINT" /
+  // "S OFTWARE" / "F LUX". Normalize: a single uppercase letter
+  // followed by space + 2+ uppercase letters → glue together.
+  // Run the regex 2x because patterns like "P REPRINT" produce "PREPRINT"
+  // on first pass, leaving "A PREPRINT" — and the next pattern like
+  // "A P REPRINT" needs the second pass to fully resolve.
+  for (let i = 0; i < 2; i++) {
+    lines = lines.map((line) =>
+      line.replace(/\b([A-Z]) ([A-Z]{2,})\b/g, (_m, head, tail) => head + tail),
+    );
+  }
+
+  // Pass 2 + 3: drop boilerplate + chart-axis-label noise
   const DROP_PATTERNS: RegExp[] = [
-    /^arXiv:\s*\d+\.\d+v?\d*\s*\[/i,          // arxiv banner
-    /^Preprint\.\s*Under\s+review\.?\s*$/i,    // arxiv preprint footer
+    /^arXiv:\s*\d+\.\d+v?\d*\s*\[/i,           // arxiv banner
+    /^Preprint\.\s*Under\s+review\.?\s*$/i,     // arxiv preprint footer
     /^Under\s+review\s+as\s+a\s+conference\s+paper/i,
     /^Published\s+as\s+a\s+conference\s+paper/i,
-    /^Copyright\s+©?\s*\d{4}/i,                // generic copyright
-    /^\d{1,3}\s*$/,                            // bare page number
-    /^Page\s+\d+\s+of\s+\d+$/i,                // "Page N of M"
+    /^Copyright\s+©?\s*\d{4}/i,                 // generic copyright
+    /^\d{1,3}\s*$/,                             // bare page number
+    /^\d+(\.\d+)?\s*$/,                         // chart-axis bare float (4.4, 0.8)
+    /^Page\s+\d+\s+of\s+\d+$/i,                 // "Page N of M"
+    /^\*+\s*$/,                                 // bare footnote marker "*" or "**"
+    /^†+\s*$/,                                  // bare dagger footnote marker
+    /^These\s+authors\s+contributed\s+equally/i, // common arxiv footnote
   ];
   lines = lines.filter((line) => !DROP_PATTERNS.some((re) => re.test(line)));
 
@@ -585,6 +655,88 @@ function cleanPdfText(raw: string): string {
     }
   }
   lines = merged;
+
+  // Pass 4.5: drop chart-text intrusions. When pdftotext encounters an
+  // embedded figure (bar chart, scatter plot, line graph), it extracts
+  // the figure's axis labels + legend entries as text inline with the
+  // surrounding prose. Symptoms: short non-sentence lines like
+  // "Speedup", "EAGLE-2", "A100 PCIe TP communication", "Data scale"
+  // appearing between paragraphs.
+  //
+  // Heuristic: split into blocks (separated by blank lines). Tag each
+  // block as either prose (any line ends in .!?:; OR any line > 60 chars
+  // OR matches a section/caption opener) or short-orphan (all lines ≤ 60
+  // chars + no sentence-terminator). When 2+ consecutive short-orphan
+  // blocks appear (the chart-cluster), drop them. Single short-orphan
+  // blocks survive (they're plausibly figure captions or section
+  // headings, which we keep).
+  const SENTENCE_ENDERS = /[.!?:;]\s*$/;
+  const SECTION_OR_CAPTION = /^(?:Figure|Table|Algorithm|Listing)\s+\d+[:.]|^\d+(?:\.\d+)?\s+[A-Z]|^[IVX]+\.\s+[A-Z]/;
+  // English connective stop-words — these appear in prose but almost
+  // never in chart-axis labels or figure legends. A line with 2+ of
+  // these is overwhelmingly likely to be prose, even if it's long and
+  // has no sentence-terminator (line-wrapped mid-sentence).
+  const STOP_WORDS = new Set([
+    "the", "a", "an", "of", "and", "to", "in", "is", "for", "with",
+    "that", "this", "are", "on", "as", "be", "or", "not", "by", "from",
+    "at", "we", "our", "their", "its", "it", "but", "if", "than", "have",
+    "has", "can", "was", "were", "these", "those",
+  ]);
+  const hasStopWords = (s: string): boolean => {
+    const tokens = s.toLowerCase().match(/\b[a-z]+\b/g) ?? [];
+    let count = 0;
+    for (const t of tokens) {
+      if (STOP_WORDS.has(t)) count++;
+      if (count >= 2) return true;
+    }
+    return false;
+  };
+  type BlockKind = "prose" | "short-orphan" | "blank";
+  const blocks: { kind: BlockKind; start: number; end: number }[] = [];
+  let i2 = 0;
+  while (i2 < lines.length) {
+    if (lines[i2] === "") {
+      let j = i2;
+      while (j < lines.length && lines[j] === "") j++;
+      blocks.push({ kind: "blank", start: i2, end: j });
+      i2 = j;
+      continue;
+    }
+    const start = i2;
+    while (i2 < lines.length && lines[i2] !== "") i2++;
+    const blockLines = lines.slice(start, i2);
+    // A block is prose if ANY line in it shows prose-shape:
+    //   - ends in sentence-terminator, OR
+    //   - is long AND contains stop-words (line-wrapped mid-sentence), OR
+    //   - matches section/caption opener
+    const isProse = blockLines.some((l) =>
+      SENTENCE_ENDERS.test(l) ||
+      (l.length > 60 && hasStopWords(l)) ||
+      SECTION_OR_CAPTION.test(l),
+    );
+    blocks.push({ kind: isProse ? "prose" : "short-orphan", start, end: i2 });
+  }
+  // Find runs of short-orphan blocks (each separated only by blank
+  // blocks) and mark for drop when run length ≥ 2.
+  const drop = new Set<number>();  // line indexes to delete
+  for (let bi = 0; bi < blocks.length; bi++) {
+    if (blocks[bi].kind !== "short-orphan") continue;
+    let runEnd = bi;
+    let count = 1;
+    while (runEnd + 2 < blocks.length && blocks[runEnd + 1].kind === "blank" && blocks[runEnd + 2].kind === "short-orphan") {
+      runEnd += 2;
+      count++;
+    }
+    if (count >= 2) {
+      for (let bk = bi; bk <= runEnd; bk++) {
+        for (let li = blocks[bk].start; li < blocks[bk].end; li++) drop.add(li);
+      }
+      bi = runEnd;
+    }
+  }
+  if (drop.size > 0) {
+    lines = lines.filter((_, idx) => !drop.has(idx));
+  }
 
   // Pass 5: drop the cover-page title block. Title + authors are already
   // in the frontmatter; the body should start at the actual content.
