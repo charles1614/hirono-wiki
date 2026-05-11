@@ -180,19 +180,26 @@ export function renderPdfFromUrl(opts: RenderOpts): Result {
       renderErrors.push(`page ${i + 1}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
-  // Drop the source PDF — we have the rendered pages, no need to keep
-  // the binary in raw/. (If the operator wants the original, they
-  // re-download from origin_url.)
-  cleanupTempPdf(pdfPath);
+  // Keep the source PDF on disk. The rendered PNGs are for visual
+  // reference (inline-markdown / Lark sync); the PDF is for ingestion
+  // — Claude (and other modern LLMs with PDF tool support) can read
+  // a PDF directly far more efficiently than vision-mode reading of
+  // N page screenshots. Half the arxiv ingest pool surfaced this gap
+  // in the Day-1 batch (commit 4ea99fd): the rendered-PNG output is
+  // useless to the LLM during ingestion. By keeping the PDF the
+  // operator and the ingester both have the option.
 
   if (renderedFiles.length === 0) {
+    // mupdf opened the doc but couldn't render any page. PDF stays —
+    // the LLM can still read it via direct PDF input even when the
+    // visual render path errors out.
     return makeStub({
       url,
       module: "_default",
       kind: "pdf-corrupt",
       title: "PDF rendering failed",
       summary: `mupdf opened the document but every page render threw`,
-      advice: "Document is parseable but page-rendering hit errors. May be a corrupt page tree.",
+      advice: "Document is parseable but page-rendering hit errors. May be a corrupt page tree. The PDF itself is preserved at `<slug>.pdf` for direct LLM reading.",
       errorDetail: renderErrors.slice(0, 5).join("\n"),
     });
   }
@@ -203,6 +210,7 @@ export function renderPdfFromUrl(opts: RenderOpts): Result {
   lines.push(`# ${titleLine}`);
   lines.push("");
   lines.push(`> 原文链接: ${url}`);
+  lines.push(`> Local PDF: \`${slug}.pdf\` (preserved alongside this content.md for direct LLM ingestion)`);
   lines.push(`> Format: PDF, ${pageCount} page${pageCount === 1 ? "" : "s"} · ${formatBytes(pdfSize)} · ${pageWidthPx}×${pageHeightPx} px @ ${RENDER_DPI} DPI (rendered)`);
   if (meta.author) lines.push(`> Author: ${meta.author}`);
   if (meta.subject) lines.push(`> Subject: ${meta.subject}`);
@@ -234,6 +242,7 @@ export function renderPdfFromUrl(opts: RenderOpts): Result {
     metadata: {
       source: "_default-pdf",
       title: titleLine,
+      pdf_local_path: `${slug}.pdf`,
       pdf_metadata: meta,
       page_count: pageCount,
       pages_rendered: renderedFiles.length,
