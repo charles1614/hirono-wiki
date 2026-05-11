@@ -18,7 +18,14 @@ tags: [tensorrt-llm, nvidia, gpt-oss, inference, deployment, moe, b200]
 - Low-latency config: `enable_attention_dp: false`, CUDA graphs on, MoE backend `TRTLLM` on Blackwell or `TRITON` on H200. Result: **420 tps/user, bs=1, 8× B200**.
 - Max-throughput config: switch on attention DP, MoE expert parallelism. **batch size 640** achievable on 8× B200 at isl=1k osl=2k. Currently best: **19.5k tps/gpu on 4× B200 with DP4EP4**, **20k+ on GB200** (slightly higher per-chip), so **>1.5M tps on a GB200 NVL72** (72 chips).
 - Operating-knob taxonomy surfaced: `--tp`, `--ep` (expert parallel for MoE), `--max_batch_size`, `--concurrency`, `--kv_cache_free_gpu_mem_fraction`. EP > 1 enables mixed TP/EP for MoE — recommended *small* for low-latency (avoid MoE load imbalance), *larger* for throughput.
-- **MoE backend matrix is hardware-dependent**: on Blackwell (B200/GB200) → `TRTLLM` native; on Hopper (H100/H200) → must use OpenAI Triton kernels (`TRITON` backend), because `TRTLLM` backend unsupported and `CUTLASS` backend "still ongoing." Real fragmentation in the kernel stack across one-generation gap.
+- **MoE backend matrix is hardware-dependent** (reproduced verbatim — this 2D table is load-bearing and reads much worse as bullets):
+
+  | GPU architecture | `TRTLLM` MoE backend | `TRITON` (OpenAI kernels) | `CUTLASS` MoE backend |
+  |---|---|---|---|
+  | Blackwell (B200, GB200) | ✓ native, recommended | (works) | — |
+  | Hopper (H100, H200) | **✗ unsupported** | **✓ required for best perf** | 🚧 "still ongoing" |
+
+  Real fragmentation in the kernel stack across one generation gap. The pragmatic takeaway: `TRTLLM` backend lives on Blackwell only; Hopper customers route through OpenAI's Triton MoE kernels.
 - TRT-LLM exposes an OpenAI-compatible HTTP API (port 8000) — so the deployment surface is interchangeable with vLLM/SGLang for clients.
 - "We have a forthcoming guide for getting great performance on H100" — i.e., the GPT-OSS-120B target hardware is Blackwell first, Hopper second.
 - `TRTLLM_ENABLE_PDL=1` (Programmatic Dependent Launch) enabled by default in the recipe — the same PDL primitive that [[FlashMLA]] uses to overlap kernel launches.

@@ -147,6 +147,24 @@ Items closed by shipped commits, kept here for the audit trail.
 
 Surface in CLAUDE.md §4 fix recipes when implemented.
 
+- [ ] **(Medium)** **Prefer largest `srcset` candidate over inline
+  `src` for `<img>` tags.** Surfaced during the Day-1 retroactive
+  visual-observation pass: `blog.google`'s Ironwood post served us
+  1.1–6.3 KB thumbnail variants (responsive-image `src` pointed at
+  small-viewport renditions) when the higher-res images existed in
+  `srcset`. Result: all 4 figures unreadable, Visual observations
+  skipped, prose-only ingest. Affects any blog using `<img srcset>`
+  or `<picture><source srcset>` markup — i.e., most modern news /
+  corp / blog hosts.
+
+  Fix shape: in `article-converter.ts` (and `_default`), when an
+  `<img>` has a non-empty `srcset` attribute, parse it, pick the
+  largest-width candidate (or largest-DPR if widths absent), and
+  rewrite `src` before passing to `processImages`. Falls back to
+  current behavior when `srcset` is absent or malformed.
+  ~30 LOC; the regression set should grow to include a blog.google
+  / theverge / nyt-style fixture verifying srcset selection.
+
 - [ ] **(High)** **Downgrade protection in `fetchUrlAndStore`.** Bug
   observed when bg-syncing flagged slugs whose extraction depends on
   browser-eval (notion.site, zenfeed.xyz, 51cto.com, etc.): the

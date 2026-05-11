@@ -95,6 +95,18 @@ tags: [optional, tags]
 - Claim two.
 - Claim three.
 
+## Visual observations
+
+*Optional. Populate only when images carry information not already in the body text.
+Heuristic: always for xhs / weixin / zhihu-image-heavy hosts; also for any source
+where `body_chars < 2000` AND `image_count >= 3`; also for PDF sources when
+figures change the claims. Skip when images are decorative (logos, banners,
+inline emoji).*
+
+- **Fig 1** (`<slug>-images/page-001.png`) — one-sentence factual observation.
+  What did the chart show? What is in this table screenshot? Bullets cite back
+  to Entities the same way Key Claims do.
+
 ## Entities touched
 
 [[Megatron]], [[NVIDIA]], [[DeepMind]]
@@ -111,6 +123,29 @@ tags: [optional, tags]
 
 <URL or lark://docx/...>
 ```
+
+### Source-page rules
+
+**Reproduce load-bearing tables verbatim.** When a source's headline numbers
+or structured comparison live in a table — a 3-generation spec progression,
+a model × hardware benchmark grid, a feature × version matrix — inline-
+reproduce that table in the Source page (under `## Key claims` or right
+below). Paraphrasing into bullets loses the 2D structure that made the
+table useful. Skip when the table is ≤ 2 rows OR the source itself already
+expressed it as prose. Don't create a parallel "## Tables observed" section —
+tables are text and integrate into Key Claims naturally; only their inline-
+reproduction needs a discipline rule.
+
+**Selective image-reading.** Don't enumerate every image in `raw/<slug>/`.
+Most are chrome (avatars, badges, decorative). Pick 2–6 images per source that
+*change the claims* and put each in `## Visual observations` with a one-sentence
+factual observation. For PDF sources, prefer reading the preserved `<slug>.pdf`
+directly over the per-page PNG renderings — same data, much cheaper.
+
+**Citation discipline carries over.** A bullet in Visual observations is
+content. If it makes a claim about an Entity, the Entity's Observations block
+gets a corresponding bullet citing this Source. Same compounding rule as Key
+Claims.
 
 ## Entity page structure
 

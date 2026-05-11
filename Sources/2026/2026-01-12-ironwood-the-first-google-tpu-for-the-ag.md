@@ -24,6 +24,36 @@ tags: [tpu, inference, google, accelerator, hardware]
 - FP8 is "natively supported" on Ironwood; on v4/v5p the FP8 numbers were *emulated*. So FP8 is now a first-class precision on TPU, not just GPU.
 - Workload examples called out: Gemini 2.5, AlphaFold.
 
+### Ironwood vs Trillium — load-bearing spec table
+
+Reproduced verbatim from the body text (post doesn't include this as a single
+table; reconstructed because the comparison ratios + absolute values for
+Ironwood are scattered across bullets and read more clearly as a grid):
+
+| Spec | Ironwood (TPU v7) | Ratio vs Trillium (v6) |
+|---|---|---|
+| Peak TFLOPS (FP8, **native**, not emulated) | 4,614 | (Trillium FP8 was emulated) |
+| HBM capacity | 192 GB | 6× |
+| HBM bandwidth | 7.37 TB/s | 4.5× |
+| ICI bidirectional bandwidth | 1.2 TB/s | 1.5× |
+| Perf/watt | (absolute not stated) | **2×** |
+| Perf/watt vs TPU v1 (2018) | — | ~30× |
+| Pod configurations | 256 chip / 9,216 chip | — |
+| 9,216-chip pod peak (FP8) | 42.5 EFLOPS | — |
+| 9,216-chip pod power | ~10 MW | — |
+
+## Visual observations
+
+*Not populated — the four images in `raw/.../*.webp` are 1.1–6.3 KB
+responsive-image thumbnails (Google's CDN served us the small-viewport variant,
+not the readable figure). Img-001 is the Cloud Next 25 event logo (decorative);
+img-002 is the "FP8 peak flops" bar chart but text is illegible at the captured
+resolution; img-003 is the v4/v5p/Ironwood spec table screenshot also illegible;
+img-004 is the perf/watt bar chart, same problem. **Fetcher gap captured as
+a follow-up TODO** — `_default`/article-site-factory should prefer the
+largest `srcset` candidate, not the inline `src`. Body text already carries
+the headline numbers; ingesting from images would not change Key Claims here.*
+
 ## Entities touched
 
 [[Google]], [[TPU]], [[Trillium]], [[Pathways]], [[SparseCore]], [[Gemini]], [[AlphaFold]]
