@@ -69,6 +69,91 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 └── .wiki-sources-index.json     ← gitignored: URL → ingested-slug map
 ```
 
+## How to use the wiki
+
+Three distinct usage modes, each reads (and writes) different folders.
+
+### Mode 1 — Browse / learn ("what do I know about X?")
+
+```
+Open Meta/index.md  ─►  catalog overview, total counts
+       │
+       ├──►  Meta/index-topics.md     ─►  Topics/<X>.md
+       │                                    ├── "Current understanding" synthesis
+       │                                    └── follows [[Sources/...]] links
+       │
+       ├──►  Meta/index-entities.md   ─►  Entities/<Name>.md (active, ≥3 refs)
+       │                                    ├── one-line kind
+       │                                    ├── Synthesis
+       │                                    └── Observations (cited bullets)
+       │
+       └──►  Meta/index-sources.md    ─►  Sources/YYYY/<slug>.md
+                                            ├── TL;DR
+                                            ├── Key claims
+                                            ├── Visual observations + inlined figures
+                                            └── Open questions
+```
+
+Concrete entry points right now:
+
+| Curiosity | Read first |
+|---|---|
+| Landscape of LLM inference systems | [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md) — 7 sources |
+| Is inference disaggregation worth it? | [`Topics/Inference Disaggregation.md`](Topics/Inference%20Disaggregation.md) — 5 sources |
+| Kernel-authoring-language landscape | [`Topics/Kernel Authoring Languages.md`](Topics/Kernel%20Authoring%20Languages.md) — 4 sources |
+| What NVIDIA published that I read | [`Entities/NVIDIA.md`](Entities/NVIDIA.md) — 8 refs |
+| FlashMLA in 60 seconds | [`Entities/FlashMLA.md`](Entities/FlashMLA.md) — 4 refs |
+| One specific paper I read | `Sources/YYYY/<slug>.md` |
+| What changed recently | [`Meta/log-2026.md`](Meta/log-2026.md) — newest at top |
+
+**Don't read `raw/raindrop/`** for browsing. That's evidence storage. Only consult it to verify a specific claim or to refetch.
+
+### Mode 2 — Add a source ("here's a URL I want to remember")
+
+Three substeps; the wiki layer is the *last* step, not the first.
+
+```
+  1. SAVE THE URL              2. FETCH RAW                       3. INGEST
+  ───────────────              ────────────                       ─────────────
+  Save in Raindrop  ─►  hirono raindrop refresh-cache             chat with Claude:
+   (mobile / browser)  ─►  hirono raindrop fetch-all              "ingest <slug>"
+                            (pulls new bookmarks into raw/)             │
+                                                                          ▼
+                                                                Claude writes:
+                                                                  Sources/YYYY/<slug>.md
+                                                                Touches:
+                                                                  Entities/<...>.md
+                                                                  Topics/<...>.md
+                                                                Appends to:
+                                                                  Meta/log-2026.md
+                                                                Then run:
+                                                                  npx tsx tools/bin/reindex.ts
+                                                                  npx tsx tools/bin/lint.ts
+                                                                  npx tsx tools/bin/build-sources-index.ts
+```
+
+Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation with the agent.
+
+### Mode 3 — Ask a question ("how does X relate to Y?")
+
+Two flavors:
+
+**Quick lookup** — answer is already in existing pages. Claude reads relevant `Topics/` + `Entities/` + cited `Sources/`, synthesizes inline in chat. No new files written.
+
+**Cross-source synthesis** — answer doesn't exist yet. Claude reads, synthesizes, then **files the answer back as a new `Topics/<question-shaped-name>.md`** and appends a `query | <question>` entry to `Meta/log-2026.md`. This is Karpathy's "compounding artifact" move — the answer becomes part of the wiki, not a disposable chat message. Future questions about the same area start from this synthesis.
+
+### "I just opened the repo; what do I click?"
+
+```
+1. Open Meta/index.md          ← see what's here at a glance
+2. Open Meta/index-topics.md   ← scan for something interesting
+3. Click a Topics/<Name>.md    ← read the synthesis
+4. Follow [[2026-...]] links   ← drill into specific Sources
+5. Open Meta/log-2026.md       ← see what's been changing
+```
+
+Or click [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md) — densest page in the wiki today.
+
 ## How the data flows
 
 ```
