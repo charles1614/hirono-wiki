@@ -569,6 +569,53 @@ export function localNameFor(url: string, index: number): string {
  * never a half-written `destPath` that would pass an existsSync() check
  * and get silently accepted as "downloaded".
  */
+/**
+ * Minimum plausible image size in bytes. A 1×1 transparent PNG is ~70 B
+ * but no real figure on a content host is below this — anything smaller
+ * is almost certainly a truncated download, an HTML error page, or a
+ * tracking pixel. Caught the blog.google `img-002` regression where a
+ * partial download wrote 1.1 KB; setting the floor at 512 B + magic-byte
+ * check would have rejected that on the spot.
+ */
+const MIN_IMAGE_BYTES = 512;
+
+/**
+ * Magic-byte signatures for image formats we expect to see. Validating
+ * the first few bytes catches:
+ *   - HTML error pages saved with a `.png` extension (servers that
+ *     redirect 404s to an HTML page).
+ *   - Truncated downloads whose first bytes are sane but body is short
+ *     (still caught by MIN_IMAGE_BYTES, but this catches the inverse:
+ *     wrong-content-type with adequate length).
+ *   - Empty/all-zero stubs.
+ */
+function looksLikeImage(bytes: Buffer): boolean {
+  if (bytes.length < 4) return false;
+  // PNG: 89 50 4E 47
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return true;
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return true;
+  // GIF: GIF87a / GIF89a
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return true;
+  // WebP: starts with RIFF...WEBP (RIFF at 0, WEBP at 8)
+  if (bytes.length >= 12 &&
+      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+    return true;
+  }
+  // SVG: text-based. Look for '<svg' or '<?xml' followed by svg later.
+  // First 256 bytes should contain '<svg'. Avoid pulling the whole file.
+  const head = bytes.subarray(0, Math.min(bytes.length, 256)).toString("utf8");
+  if (/<svg[\s>]/i.test(head)) return true;
+  if (/<\?xml/i.test(head) && /<svg/i.test(head)) return true;
+  // BMP: 'BM'
+  if (bytes[0] === 0x42 && bytes[1] === 0x4d) return true;
+  // TIFF: II*\0 (little-endian) or MM\0* (big-endian)
+  if ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a && bytes[3] === 0x00) ||
+      (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[2] === 0x00 && bytes[3] === 0x2a)) return true;
+  return false;
+}
+
 export function downloadImage(url: string, destPath: string, maxBytes = 15 * 1024 * 1024, referer?: string): number {
   const tmpPath = `${destPath}.part`;
   // curl with max-filesize, connect-timeout, and output to disk. Returns 0 on success.
@@ -585,20 +632,50 @@ export function downloadImage(url: string, destPath: string, maxBytes = 15 * 102
   if (referer) args.push("-e", referer);
   args.push("-o", tmpPath, url);
   const res = spawnSync("curl", args, { encoding: "utf8", timeout: 40_000 });
+  // Cleanup helper: remove both .part and any stale destination file.
+  // The stale-destination cleanup is critical — without it, a prior fetch
+  // that wrote a broken file would survive every subsequent failed retry.
+  const cleanupOnFailure = () => {
+    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch { /* best-effort */ }
+    try { if (existsSync(destPath)) rmSync(destPath, { force: true }); } catch { /* best-effort */ }
+  };
   if (res.status !== 0) {
-    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    cleanupOnFailure();
     return -1;
   }
   let size = -1;
   try { size = statSync(tmpPath).size; } catch { size = -1; }
   if (size <= 0) {
-    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    cleanupOnFailure();
+    return -1;
+  }
+  // Reject implausibly-small downloads. Real figures are well above
+  // MIN_IMAGE_BYTES; anything below this is a truncated stream, a
+  // tracking pixel, or an HTML error page misnamed as an image.
+  if (size < MIN_IMAGE_BYTES) {
+    cleanupOnFailure();
+    return -1;
+  }
+  // Validate the bytes look like an image of a known format. Reading
+  // 256 bytes is enough for every magic-byte signature we recognize
+  // (including SVG text detection); avoid loading the whole file.
+  try {
+    const fd = openSync(tmpPath, "r");
+    const head = Buffer.alloc(Math.min(size, 256));
+    readSync(fd, head, 0, head.length, 0);
+    closeSync(fd);
+    if (!looksLikeImage(head)) {
+      cleanupOnFailure();
+      return -1;
+    }
+  } catch {
+    cleanupOnFailure();
     return -1;
   }
   try {
     renameSync(tmpPath, destPath);
   } catch {
-    try { if (existsSync(tmpPath)) rmSync(tmpPath, { force: true }); } catch {}
+    cleanupOnFailure();
     return -1;
   }
   return size;
