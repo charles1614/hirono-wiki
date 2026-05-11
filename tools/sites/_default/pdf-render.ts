@@ -42,6 +42,7 @@ import * as mupdf from "mupdf";
 
 import type { Result } from "../_shared/types.ts";
 import { makeStub } from "../_shared/stub.ts";
+import { makeError } from "../../fetch-raw.ts";
 
 /**
  * Aspect-ratio threshold for slide-deck classification. Page dimensions
@@ -224,41 +225,49 @@ function composePaperContent(opts: PaperOpts): Result {
     try { rmSync(legacyImagesDir, { recursive: true, force: true }); } catch { /* best-effort */ }
   }
 
-  // Primary extractor: Marker (Datalab) when HIRONO_USE_MARKER=1. Marker
-  // is OmniDocBench-grade for scientific papers — handles 2-column
-  // layout, inline LaTeX math, section headings, and figure positioning
-  // dramatically better than pdftotext. The cost: ~13 min/paper on Mac
-  // CPU (much faster on CUDA). Opt-in so bulk fetches stay fast.
+  // Two body-extraction modes, mutually exclusive:
   //
-  // Fallback: pdftotext + cleanPdfText post-processing. Default mode
-  // (no -layout) handles 2-column reading order; the cleanup pass
-  // drops chart-text intrusions, footers, letter-spacing artifacts.
-  // Trades quality for speed: ~1 sec/paper vs Marker's 13 min, but
-  // complex layouts (inline figures, attention-mask diagrams) come
-  // out garbled.
+  //   HIRONO_USE_MARKER=1  →  Marker (Datalab) — OmniDocBench-grade.
+  //     Handles 2-column, inline LaTeX math, section headings, figure
+  //     positioning. ~3-13 min/paper on Mac CPU. **NO FALLBACK**: if
+  //     Marker fails (not installed, exec error, missing output),
+  //     throws L3 — operator must fix the install or unset the env var.
+  //
+  //   default               →  pdftotext + cleanPdfText. ~1 sec/paper.
+  //     Lower quality on complex layouts; readable on simple ones.
+  //
+  // The two paths are an explicit user choice — never silent fallback.
+  // Mixing them ("opt in but silently degrade") was the previous design
+  // and it hid Marker install failures from the operator.
   let bodyText = "";
   let bodyImages: string[] = [];
   let textExtractFailed = false;
   let markerUsed = false;
-  let markerSkipReason = "";
 
   const useMarker = process.env.HIRONO_USE_MARKER === "1";
   if (useMarker) {
     const markerResult = tryExtractWithMarker(pdfPath, slugDir, slug, figuresDir);
-    if (markerResult.ok) {
-      bodyText = markerResult.body;
-      bodyImages = markerResult.imageFiles;
-      if (markerResult.title) titleLine = markerResult.title;
-      markerUsed = true;
-    } else {
-      markerSkipReason = markerResult.reason;
+    if (!markerResult.ok) {
+      // No fallback: HIRONO_USE_MARKER was explicitly set, so failure
+      // is the operator's signal that something needs fixing — most
+      // commonly `pip install marker-pdf` wasn't run. Throw L3 so
+      // fetch-all halts; operator sees the error + remediation.
+      const remediation = markerResult.reason === "marker-not-installed"
+        ? "Install Marker: `pip install marker-pdf`. Or unset HIRONO_USE_MARKER to use the pdftotext path."
+        : "Inspect Marker stderr (above) for the failure cause. Or unset HIRONO_USE_MARKER to use the pdftotext path.";
+      throw makeError(
+        "marker-extraction-failed",
+        "L3",
+        `Marker failed on ${slug}: ${markerResult.reason}`,
+        { remediation, domain: "pdf-render" },
+      );
     }
+    bodyText = markerResult.body;
+    bodyImages = markerResult.imageFiles;
+    if (markerResult.title) titleLine = markerResult.title;
+    markerUsed = true;
   } else {
-    markerSkipReason = "HIRONO_USE_MARKER not set";
-  }
-
-  if (!markerUsed) {
-    // Fallback path: pdftotext default mode + cleanPdfText.
+    // pdftotext path (default).
     try {
       const raw = execFileSync(
         "pdftotext",
@@ -448,7 +457,6 @@ function composePaperContent(opts: PaperOpts): Result {
       title: titleLine,
       shape: "paper",
       extractor: markerUsed ? "marker" : "pdftotext",
-      marker_skip_reason: markerUsed ? undefined : markerSkipReason || undefined,
       pdf_local_path: `${slug}.pdf`,
       pdf_metadata: meta,
       page_count: pageCount,
