@@ -178,9 +178,9 @@ export function renderPdfFromUrl(opts: RenderOpts): Result {
 
   // Step 4: branch on shape.
   if (aspectRatio > SLIDE_ASPECT_THRESHOLD) {
-    return composeSlideStub({
-      url, slug, titleLine, meta,
-      pageCount, pageWidthPt, pageHeightPt, aspectRatio, pdfSize,
+    return composeSlideContent({
+      url, slugDir, slug, titleLine, meta,
+      pageCount, pageWidthPt, pageHeightPt, aspectRatio, pdfSize, doc,
     });
   }
   return composePaperContent({
@@ -370,6 +370,7 @@ function composePaperContent(opts: PaperOpts): Result {
 
 interface SlideOpts {
   url: string;
+  slugDir: string;
   slug: string;
   titleLine: string;
   meta: Record<string, string>;
@@ -378,37 +379,106 @@ interface SlideOpts {
   pageHeightPt: number;
   aspectRatio: number;
   pdfSize: number;
+  doc: mupdf.PDFDocument;
 }
 
-function composeSlideStub(opts: SlideOpts): Result {
-  const { url, slug, titleLine, meta, pageCount, pdfSize } = opts;
+/**
+ * Slide-deck path: each "page" IS the content unit (one slide per page,
+ * with overlaid text + graphics that don't separate cleanly into text +
+ * figures). Render each slide to PNG and inline as `![Slide N](...)` so
+ * the markdown body is a sequential visual walkthrough — the natural
+ * representation for a presentation. The PDF itself is also preserved
+ * for direct viewing.
+ *
+ * Slide DPI: 120 (lower than papers' 150). Slides at 16:9 / 4:3 are
+ * already wide pixel-dimensions at 120 DPI — 16:9 at 960×540 pts
+ * renders to ~1600×900 px, which is plenty readable without ballooning
+ * the disk footprint when each deck has 40+ slides.
+ */
+function composeSlideContent(opts: SlideOpts): Result {
+  const { url, slugDir, slug, titleLine, meta, pageCount, pdfSize, doc } = opts;
+  const slidesDir = join(slugDir, `${slug}-slides`);
+  // Drop legacy dirs from prior pipeline versions (the old generic
+  // page-rendering wrote `-images/`; the paper path doesn't apply).
+  const legacyImagesDir = join(slugDir, `${slug}-images`);
+  if (existsSync(legacyImagesDir)) {
+    try { rmSync(legacyImagesDir, { recursive: true, force: true }); } catch { /* best-effort */ }
+  }
+  const legacyFiguresDir = join(slugDir, `${slug}-figures`);
+  if (existsSync(legacyFiguresDir)) {
+    try { rmSync(legacyFiguresDir, { recursive: true, force: true }); } catch { /* best-effort */ }
+  }
+
+  // Clean any stale slide renderings from a prior fetch.
+  if (existsSync(slidesDir)) {
+    try { rmSync(slidesDir, { recursive: true, force: true }); } catch { /* best-effort */ }
+  }
+  mkdirSync(slidesDir, { recursive: true });
+
+  const SLIDE_DPI = 120;
+  const matrix = mupdf.Matrix.scale(SLIDE_DPI / 72, SLIDE_DPI / 72);
+  const renderedFiles: string[] = [];
+  const renderErrors: string[] = [];
+  for (let i = 0; i < pageCount; i++) {
+    try {
+      const p = doc.loadPage(i);
+      const pix = p.toPixmap(matrix, mupdf.ColorSpace.DeviceRGB, false, true);
+      const filename = `slide-${pad3(i + 1)}.png`;
+      writeFileSync(join(slidesDir, filename), pix.asPNG());
+      renderedFiles.push(filename);
+    } catch (e) {
+      renderErrors.push(`slide ${i + 1}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  if (renderedFiles.length === 0) {
+    return makeStub({
+      url,
+      module: "_default",
+      kind: "pdf-corrupt",
+      title: "Slide-deck rendering failed",
+      summary: `mupdf opened the document but every slide render threw`,
+      advice: "Slide-shape PDF parseable but rendering hit errors. The PDF itself is preserved at `" + slug + ".pdf` for direct viewing.",
+      errorDetail: renderErrors.slice(0, 5).join("\n"),
+    });
+  }
+
+  // Compose content.md: header + each slide inlined.
+  const slideWidthPx = Math.round(opts.pageWidthPt * SLIDE_DPI / 72);
+  const slideHeightPx = Math.round(opts.pageHeightPt * SLIDE_DPI / 72);
 
   const lines: string[] = [];
   lines.push(`# ${titleLine}`);
   lines.push("");
   lines.push(`> 原文链接: ${url}`);
-  lines.push(`> Local PDF: \`${slug}.pdf\` (preserved for direct viewing)`);
-  lines.push(`> Format: PDF · ${pageCount} slide${pageCount === 1 ? "" : "s"} · ${formatBytes(pdfSize)} · **slide-deck shape** (aspect ${opts.aspectRatio.toFixed(2)})`);
+  lines.push(`> Local PDF: \`${slug}.pdf\` (preserved alongside this content.md)`);
+  lines.push(`> Format: PDF · ${pageCount} slide${pageCount === 1 ? "" : "s"} · ${formatBytes(pdfSize)} · slide-deck shape (aspect ${opts.aspectRatio.toFixed(2)}) · rendered at ${slideWidthPx}×${slideHeightPx} px / ${SLIDE_DPI} DPI`);
   if (meta.author) lines.push(`> Author: ${meta.author}`);
   if (meta.subject) lines.push(`> Subject: ${meta.subject}`);
+  if (meta.creator || meta.producer) {
+    const tools = [meta.creator, meta.producer].filter(Boolean).join(" / ");
+    lines.push(`> Producer: ${tools}`);
+  }
   if (meta.creationDate) lines.push(`> Created: ${formatPdfDate(meta.creationDate)}`);
   lines.push("");
   lines.push("---");
   lines.push("");
-  lines.push("**Slide deck — intentional stub.**");
+  for (let i = 0; i < renderedFiles.length; i++) {
+    lines.push(`![Slide ${i + 1}](${slug}-slides/${renderedFiles[i]})`);
+    lines.push("");
+  }
+  lines.push("---");
   lines.push("");
-  lines.push(`This PDF has landscape page dimensions (aspect ratio ${opts.aspectRatio.toFixed(2)}, threshold ${SLIDE_ASPECT_THRESHOLD}); the fetcher classifies it as a presentation deck and does not extract slide-by-slide text or figures. Slide content is fundamentally visual (one image per slide, with overlaid text and graphics); text extraction yields fragments without spatial context, and OCR'ing each slide produces noise.`);
+  lines.push(`*End of deck — ${pageCount} slide${pageCount === 1 ? "" : "s"}. PDF preserved at \`${slug}.pdf\` for direct viewing.*`);
   lines.push("");
-  lines.push(`To consume the content:`);
-  lines.push("");
-  lines.push(`- **For LLM ingest**: read \`${slug}.pdf\` directly. Modern LLMs with PDF support handle slide decks well (one image per slide, faithful spatial layout).`);
-  lines.push(`- **For human review**: open the PDF in any viewer.`);
-  lines.push("");
+
+  const flags: string[] = ["pdf-slide-deck"];
+  if (renderErrors.length > 0) flags.push("_default-pdf-render-partial");
 
   return {
     markdown: lines.join("\n"),
     title: titleLine,
-    images: [],
+    images: renderedFiles.map((f) => `${slug}-slides/${f}`),
     metadata: {
       source: "_default-pdf",
       title: titleLine,
@@ -416,13 +486,19 @@ function composeSlideStub(opts: SlideOpts): Result {
       pdf_local_path: `${slug}.pdf`,
       pdf_metadata: meta,
       page_count: pageCount,
+      slides_rendered: renderedFiles.length,
+      slide_width_px: slideWidthPx,
+      slide_height_px: slideHeightPx,
+      render_dpi: SLIDE_DPI,
       aspect_ratio: Math.round(opts.aspectRatio * 100) / 100,
       pdf_size_bytes: pdfSize,
     },
-    flags: ["intentional-stub", "_default-pdf-slide-deck"],
+    flags,
     notes: [
-      `_default-pdf slide-deck: ${pageCount} slide(s), ${formatBytes(pdfSize)} source PDF (no text/figure extraction — read PDF directly)`,
+      `_default-pdf slide-deck: ${pageCount} slide(s) rendered at ${SLIDE_DPI} DPI, ${formatBytes(pdfSize)} source PDF` +
+      (renderErrors.length > 0 ? `, ${renderErrors.length} render error(s)` : ""),
     ],
+    error_detail: renderErrors.length > 0 ? renderErrors.slice(0, 5).join("\n") : undefined,
   };
 }
 
@@ -441,6 +517,10 @@ function chooseTitle(meta: Record<string, string>, fallback: string): string {
   if (meta.title && meta.title.length > 0) return meta.title;
   if (meta.subject && meta.subject.length > 0) return meta.subject;
   return `PDF: ${fallback}`;
+}
+
+function pad3(n: number): string {
+  return n.toString().padStart(3, "0");
 }
 
 function formatBytes(n: number): string {

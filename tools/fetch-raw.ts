@@ -110,6 +110,11 @@ export const NON_PROBLEMATIC_FLAGS_SET: ReadonlySet<string> = new Set([
   "intentional-stub",
   "pdf-rendered",
   "pdf-paper",
+  // `pdf-slide-deck` is the slide-shape branch of the PDF pipeline: each
+  // page renders to PNG and gets inlined as `![Slide N](...)`. The
+  // markdown body IS the content (one image per slide, faithful spatial
+  // layout); no text-floor / structure checks apply.
+  "pdf-slide-deck",
   // `_default-pdf-no-figures-extracted` fires on vector-only PDFs (TikZ/PGF
   // figures aren't extractable as raster). The paper still has full body
   // text + the preserved PDF for image-mode viewing — it's not a quality
@@ -332,15 +337,15 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   // lives in the rendered PNGs alongside, not in the markdown body.
   // Skip the size- and structure-based flags in either case.
   const isStub = ctx.extraFlags?.includes("intentional-stub") ?? false;
-  // `pdf-rendered` was the legacy page-screenshot output; `pdf-paper` is
-  // the current text-first paper extraction (body via pdftotext + figures
-  // via pdfimages). Both flag the markdown as "intentionally produced by
-  // the PDF pipeline" so the heuristic floors (short-body, no-headings,
-  // etc.) shouldn't fire — the content is shape-appropriate even if it
-  // doesn't match a normal HTML article.
+  // `pdf-rendered` (legacy page-screenshot output), `pdf-paper` (text-first
+  // paper extraction), and `pdf-slide-deck` (per-slide PNG rendering) all
+  // flag the markdown as "intentionally produced by the PDF pipeline" — the
+  // heuristic text-size / structure floors don't apply (the content is
+  // shape-appropriate even if it doesn't match a normal HTML article body).
   const isImageBearing =
     (ctx.extraFlags?.includes("pdf-rendered") ?? false) ||
-    (ctx.extraFlags?.includes("pdf-paper") ?? false);
+    (ctx.extraFlags?.includes("pdf-paper") ?? false) ||
+    (ctx.extraFlags?.includes("pdf-slide-deck") ?? false);
   // `structured-summary` signals that the markdown is a deliberate
   // metadata-shape document (commit summary + diff stat, compare-range
   // summary, etc.) where short-body floors don't apply — the value is
