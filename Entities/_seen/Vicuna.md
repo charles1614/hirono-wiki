@@ -6,9 +6,9 @@ refs: 1
 tier: seen
 ---
 
-# DeepSeek
+# Vicuna
 
-Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
+Open-weight chat-fine-tuned LLaMA variant from LMSYS; widely used as speculative-decoding benchmark target.
 
 ## Synthesis
 

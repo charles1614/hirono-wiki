@@ -2,13 +2,13 @@
 created: 2026-05-11T00:00:00.000Z
 updated: '2026-05-11'
 type: entity
-refs: 1
-tier: seen
+refs: 3
+tier: active
 ---
 
-# Blackwell
+# Megatron-LM
 
-NVIDIA's 2024 GPU architecture; B100/B200/B300/GB200; first NVFP4 native silicon.
+NVIDIA's original tensor + pipeline + data parallelism training framework; foundational reference for large-model training; now subsumed into Megatron-Core.
 
 ## Synthesis
 

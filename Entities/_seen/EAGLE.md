@@ -6,9 +6,9 @@ refs: 1
 tier: seen
 ---
 
-# H800
+# EAGLE
 
-NVIDIA Hopper GPU; export-controlled variant of H100 (cut interconnect bandwidth); widely used in China.
+Speculative-decoding family (Li et al. 2024); reuses target model's top-layer features for draft prediction; EAGLE-2 adds drafting tree; EAGLE-3 abandons feature prediction for direct token prediction.
 
 ## Synthesis
 

@@ -2,13 +2,13 @@
 created: 2026-05-11T00:00:00.000Z
 updated: '2026-05-11'
 type: entity
-refs: 2
-tier: seen
+refs: 4
+tier: active
 ---
 
-# CUTLASS
+# Llama
 
-NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks for cuBLAS + custom kernels.
+Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 (lowercase from v3.1); reference benchmark target for inference + training infra work.
 
 ## Synthesis
 

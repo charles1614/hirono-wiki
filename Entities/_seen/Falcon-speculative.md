@@ -2,13 +2,13 @@
 created: 2026-05-11T00:00:00.000Z
 updated: '2026-05-11'
 type: entity
-refs: 2
+refs: 1
 tier: seen
 ---
 
-# FlashMLA
+# Falcon-speculative
 
-DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~660 TFlops via "seesaw" scheduling.
+Speculative-decoding draft-prediction variant (Gao et al. 2024); predicts next feature with current feature sequence, similar shape to EAGLE.
 
 ## Synthesis
 

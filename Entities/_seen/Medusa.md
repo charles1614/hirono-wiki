@@ -2,13 +2,13 @@
 created: 2026-05-11T00:00:00.000Z
 updated: '2026-05-11'
 type: entity
-refs: 2
+refs: 1
 tier: seen
 ---
 
-# SGLang
+# Medusa
 
-Open-source LLM inference system; built on top of model-serving infrastructure; Tencent + LMSYS contributors prominent.
+Speculative-decoding method (Cai et al. 2024); attaches multiple prediction heads to the target model directly, no separate draft model; alternative to EAGLE's feature-reuse approach.
 
 ## Synthesis
 
