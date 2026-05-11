@@ -57,6 +57,16 @@ export interface ArticleSelectors {
   imagePrefix: string;
   /** Optional suffix appended to title for diagnostics (e.g. site name). */
   diagnosticTag?: string;
+  /**
+   * Optional per-host DOM transform run AFTER dropSelectors / replaceSelectors
+   * and AFTER the universal srcset upgrade, but BEFORE the body is handed to
+   * the generic markdown converter. Use for host-specific quirks like custom
+   * lazy-load attributes (blog.google's `data-loading="{...}"`, Medium's
+   * `data-src`, etc.) that can't be expressed as CSS selectors.
+   *
+   * The function mutates `bodyEl` in place. Return value is ignored.
+   */
+  preConvertTransform?: (bodyEl: Element, doc: Document) => void;
 }
 
 export interface ArticleConvertResult {
@@ -176,6 +186,22 @@ export function convertArticle(opts: ArticleConvertOpts): ArticleConvertResult {
     for (const el of Array.from(bodyEl.querySelectorAll(sel))) el.remove();
   }
 
+  // ── Upgrade responsive-image srcset to largest-candidate src ────────────
+  // Modern blog hosts ship `<img src="thumb.webp" srcset="thumb.webp 240w,
+  // medium.webp 800w, full.webp 1600w">` — the inline `src` is the
+  // small-viewport variant. Our downstream `<img>`-extractor reads `src`
+  // only, so we'd save the thumbnail. Pre-rewrite every `<img>` with a
+  // non-empty `srcset` (or with a `<picture><source srcset>` parent) so
+  // `src` points at the largest candidate. Surfaced concretely by
+  // blog.google's Ironwood post; the same trap applies to most
+  // responsive-image-using hosts.
+  upgradeImgSrcsetToLargest(bodyEl, doc);
+
+  // ── Per-host DOM transform (custom lazy-load attrs, etc.) ───────────────
+  if (selectors.preConvertTransform) {
+    selectors.preConvertTransform(bodyEl, doc);
+  }
+
   // ── Replace selectors with placeholder paragraphs ────────────────────────
   for (const { selector, replacementText } of selectors.replaceSelectors || []) {
     for (const el of Array.from(bodyEl.querySelectorAll(selector))) {
@@ -226,4 +252,103 @@ export function convertArticle(opts: ArticleConvertOpts): ArticleConvertResult {
     metadata: { title, description, publishedAt, authors },
     stats: { bodyChars: body.length, images: generic.imagesToDownload.length },
   };
+}
+
+/**
+ * Walk every `<img>` inside `root`. If it has a non-empty `srcset` (directly
+ * or via a `<picture><source srcset>` parent), rewrite its `src` attribute to
+ * the largest candidate URL. Removes the `srcset` attribute afterward to
+ * avoid downstream double-processing. Returns the count of upgraded `<img>`s
+ * (for tests + visibility).
+ *
+ * "Largest" semantics:
+ *   - Prefer width descriptors (`url 800w`); pick the largest `Nw`.
+ *   - If no widths present, fall back to DPR descriptors (`url 2x`); pick
+ *     the largest `Nx`.
+ *   - If neither, the candidate list is just URLs — use the last one (spec
+ *     says order-of-appearance ≠ priority, but in practice authors list
+ *     low-to-high; the last entry is usually the best).
+ *
+ * Exported for unit testing.
+ */
+export function upgradeImgSrcsetToLargest(root: Element, doc: Document): number {
+  let upgraded = 0;
+  for (const img of Array.from(root.querySelectorAll("img"))) {
+    let best: { url: string; rank: number } | null = null;
+
+    // Check <picture><source srcset> siblings.
+    const parent = img.parentElement;
+    if (parent && parent.tagName === "PICTURE") {
+      for (const source of Array.from(parent.querySelectorAll("source[srcset]"))) {
+        const cand = pickLargestSrcsetCandidate(source.getAttribute("srcset") || "");
+        if (cand && (!best || cand.rank > best.rank)) best = cand;
+      }
+    }
+
+    // Check the <img>'s own srcset.
+    const imgSrcset = img.getAttribute("srcset");
+    if (imgSrcset) {
+      const cand = pickLargestSrcsetCandidate(imgSrcset);
+      if (cand && (!best || cand.rank > best.rank)) best = cand;
+    }
+
+    if (best) {
+      const currentSrc = img.getAttribute("src") || "";
+      if (currentSrc !== best.url) {
+        img.setAttribute("src", best.url);
+        upgraded++;
+      }
+      img.removeAttribute("srcset");
+    }
+  }
+  return upgraded;
+}
+
+/**
+ * Parse one srcset attribute value, return the largest candidate.
+ *
+ * srcset grammar (HTML spec): comma-separated list of `URL [descriptor]`
+ * pairs, where descriptor is `Nw` (width in CSS pixels) or `Nx` (pixel-
+ * density), or absent (defaults to 1x). URLs cannot contain whitespace.
+ *
+ * Precedence rule (chosen for "give me the highest-resolution asset"):
+ *   1. Any `w`-descriptor candidate beats any `x`-descriptor candidate.
+ *      Width tells you the asset's actual pixel size — a 1600w variant
+ *      is unambiguously larger than a 3x@200px variant.
+ *   2. Within `w`s, the largest `Nw` wins. Within `x`s, the largest `Nx`.
+ *   3. If only unitless URLs appear, return the *last* one — authors
+ *      typically list low-to-high; the last entry is the best bet.
+ *
+ * The returned `rank` is the winning descriptor's numeric value (the
+ * width in CSS pixels or the DPR multiplier), useful for tests + logging.
+ *
+ * Returns null on empty / unparseable input.
+ *
+ * Exported for unit testing.
+ */
+export function pickLargestSrcsetCandidate(srcset: string): { url: string; rank: number } | null {
+  const trimmed = srcset.trim();
+  if (!trimmed) return null;
+  const candidates = trimmed.split(",").map((s) => s.trim()).filter(Boolean);
+  let bestW: { url: string; w: number } | null = null;
+  let bestX: { url: string; x: number } | null = null;
+  let fallback: string | null = null;
+  for (const c of candidates) {
+    // Match "URL" or "URL Nw" or "URL Nx" — URL is everything up to the last whitespace.
+    const m = c.match(/^(\S+)(?:\s+(\d+(?:\.\d+)?)(w|x))?$/);
+    if (!m) continue;
+    const [, url, num, unit] = m;
+    fallback = url;
+    if (!num || !unit) continue;
+    const n = parseFloat(num);
+    if (unit === "w") {
+      if (!bestW || n > bestW.w) bestW = { url, w: n };
+    } else {
+      if (!bestX || n > bestX.x) bestX = { url, x: n };
+    }
+  }
+  if (bestW) return { url: bestW.url, rank: bestW.w };
+  if (bestX) return { url: bestX.url, rank: bestX.x };
+  if (fallback) return { url: fallback, rank: 0 };
+  return null;
 }

@@ -24,35 +24,54 @@ tags: [tpu, inference, google, accelerator, hardware]
 - FP8 is "natively supported" on Ironwood; on v4/v5p the FP8 numbers were *emulated*. So FP8 is now a first-class precision on TPU, not just GPU.
 - Workload examples called out: Gemini 2.5, AlphaFold.
 
-### Ironwood vs Trillium — load-bearing spec table
+### TPU spec progression — reproduced from Fig 1 in raw (img-003)
 
-Reproduced verbatim from the body text (post doesn't include this as a single
-table; reconstructed because the comparison ratios + absolute values for
-Ironwood are scattered across bullets and read more clearly as a grid):
+The single most useful artifact in the post. Reproduced verbatim from the rendered
+figure (refetched after the srcset / blog.google `data-loading` fix landed in
+commit `<this commit>` — original capture had 1.4 KB thumbnail).
 
-| Spec | Ironwood (TPU v7) | Ratio vs Trillium (v6) |
+| Spec | TPU v4 (2022) | TPU v5p (2023) | **Ironwood (2025)** | v4 → Ironwood |
+|---|---|---|---|---|
+| Pod Size (chips) | 4,096 | 8,960 | 9,216 | 2.25× |
+| HBM | 32 GB @ 1.2 TB/s | 95 GB @ 2.8 TB/s | **192 GB @ 7.4 TB/s** | 6× cap / 6× BW |
+| Peak TFLOPS per chip | 275 | 459 | **4,614** | **16.8×** |
+
+Note: the body's perf-ratio claims are against *Trillium* (TPU v6), absent from this
+chart. The chart's *v4 vs Ironwood* comparison is much more dramatic — 17× peak
+flops/chip in one generation gap.
+
+### Ironwood — additional absolutes from body text
+
+| Spec | Ironwood | Source ratio |
 |---|---|---|
-| Peak TFLOPS (FP8, **native**, not emulated) | 4,614 | (Trillium FP8 was emulated) |
-| HBM capacity | 192 GB | 6× |
-| HBM bandwidth | 7.37 TB/s | 4.5× |
-| ICI bidirectional bandwidth | 1.2 TB/s | 1.5× |
-| Perf/watt | (absolute not stated) | **2×** |
+| ICI bidirectional bandwidth | 1.2 TB/s | 1.5× vs Trillium |
+| Perf/watt vs Trillium | — | 2× |
 | Perf/watt vs TPU v1 (2018) | — | ~30× |
-| Pod configurations | 256 chip / 9,216 chip | — |
-| 9,216-chip pod peak (FP8) | 42.5 EFLOPS | — |
+| 9,216-chip pod peak (FP8) | 42.5 EFLOPS | claimed 24× El Capitan |
 | 9,216-chip pod power | ~10 MW | — |
 
 ## Visual observations
 
-*Not populated — the four images in `raw/.../*.webp` are 1.1–6.3 KB
-responsive-image thumbnails (Google's CDN served us the small-viewport variant,
-not the readable figure). Img-001 is the Cloud Next 25 event logo (decorative);
-img-002 is the "FP8 peak flops" bar chart but text is illegible at the captured
-resolution; img-003 is the v4/v5p/Ironwood spec table screenshot also illegible;
-img-004 is the perf/watt bar chart, same problem. **Fetcher gap captured as
-a follow-up TODO** — `_default`/article-site-factory should prefer the
-largest `srcset` candidate, not the inline `src`. Body text already carries
-the headline numbers; ingesting from images would not change Key Claims here.*
+- **Fig 1 — TPU spec progression** (`blog-google-img-003.webp`, now 50 KB after
+  CDN-upgrade fix). v4 / v5p / Ironwood spec table with photo headers + absolute
+  numbers reproduced verbatim above. The 275 → 459 → 4,614 TFLOPS/chip progression
+  is the headline takeaway the body buries — body only quotes Ironwood's 4,614.
+
+- **Fig 2 — Peak FP8 perf/watt across all 6 generations** (`blog-google-img-004.webp`,
+  now 15 KB). Bar chart with explicit ratios (TPU v2 = 1.0 baseline):
+  v2=1.0 → v3=1.8 → v4=4.9 → v5p=5.2 → **Trillium=14.6** → **Ironwood=29.3**.
+  Confirms the body's "2× Trillium" claim exactly (29.3 / 14.6 = 2.01×) and the
+  "~30× TPU v1" claim (off by one — likely 30× vs *first Cloud TPU 2018* which is
+  v2 in this chart). Surfaces a new number: v5p → Ironwood is **5.6×**.
+
+- **Fig 3 — Peak FP8 flops growth chart** (`blog-google-img-002.webp`) —
+  ❌ download failed (the `width-1000` variant returns 403 on Google's CDN; only
+  `width-500` and `width-100` exist for this image). Flagged as
+  `blog-google-image-download-partial`. Recoverable with a targeted refetch
+  using `width-500` instead — added to follow-up.
+
+- **Fig 0 — event logo** (`blog-google-img-001.webp`, 6 KB) — Google Cloud Next 25
+  marketing image, decorative; no info content. Skip.
 
 ## Entities touched
 
