@@ -42,9 +42,9 @@ tags: [moe, training, parallelism, megatron, nvidia, mixtral, qwen, h100]
 
 **Fig 1 — Parallelism mappings with MoE Parallel Folding** (load-bearing — defines the paper's central concept)
 
-![Parallelism mappings — previous methods place EP-group as sub-group of DP (left, middle); Folding decouples attention/MoE topology (right)](../../raw/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-images/page-005.png)
+![Parallelism mappings — Legacy Mappings (left, EP4): attention + MoE share a uniform DP4 topology; with MoE Parallel Folding (right): attention runs TP2-DP2 / TP2-CP2 (4-rank topology) while MoE FFN runs ETP2-EP2 / ETP2-EP1 (independent topology), with explicit dispatcher arrows mapping tokens between them](../../raw/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-figures/figure-001.png)
 
-Visual contrast: previous methods place EP-group as sub-group of DP (left/middle) vs Folding's decoupled attention/MoE topology (right). The single most important diagram for understanding what "Folding" actually means architecturally — without it, "decoupled parallelism" is abstract.
+Three-panel diagram: Legacy mapping (left, EP4 — attention and MoE share one topology) vs MoE Parallel Folding (middle: attention TP2-DP2, MoE ETP2-EP2; right: attention TP2-CP2, MoE ETP2-EP1). The arrows are the **dispatcher work** — each layer-boundary needs token routing across two different parallelism topologies. The single most important diagram for understanding what "Folding" actually means architecturally; without it, "decoupled parallelism" is abstract.
 
 - **Fig 2 — Token dispatcher workflow with TP + EP** — How a 4-GPU MoE layer dispatches tokens across both parallelism dimensions. See PDF for exact page. Supporting (engineering complexity context).
 - **Fig 3 — Strong scaling up to 1024 GPUs** — MFU stays high as GPU count scales; competing strategies degrade. See PDF for exact page. Supporting (claim is in Key Claims).

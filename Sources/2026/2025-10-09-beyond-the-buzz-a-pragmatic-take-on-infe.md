@@ -39,9 +39,9 @@ The two formulas are the cleanest single takeaway from §5.1 for an operator siz
 
 **Fig 1 — Pareto frontier for DeepSeek-R1** (load-bearing — this is the paper's headline visual)
 
-![Pareto frontier — prefill-heavy traffic (left panel) shows disaggregation dominates co-located; generation-heavy (right panel) ties](../../raw/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-images/page-002.png)
+![Pareto frontier — prefill-heavy traffic (left panel) shows disaggregation dominates co-located; generation-heavy (right panel) ties](../../raw/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-figures/figure-001.png)
 
-Two panels: prefill-heavy traffic (left) vs generation-heavy (right). Disaggregation (orange/yellow points) dominates co-located (blue) in the left panel; basically ties in the right panel. **This single image is the core "disaggregation is not universal" argument** — without seeing the two-panel disparity, the conclusion reads like equivocation.
+Two panels: prefill-heavy traffic (left, ISL 16384 OSL 2048) vs generation-heavy (right, ISL 1024 OSL 32768). Disaggregation (blue Pareto curve) dominates co-located piggybacked (red) in the left panel; basically ties in the right panel. **This single image is the core "disaggregation is not universal" argument** — without seeing the two-panel disparity, the conclusion reads like equivocation.
 
 - **Fig 7 — Llama 8B/70B/405B disaggregated vs co-located** — Widening gap as model size grows; 405B panel has the most-dramatic disaggregation advantage. See PDF for exact page. Supporting (claim is in Key Claims).
 - **Fig 9 — Optimal ctx:gen ratio across models + latencies** — What "dynamic rate matching" hangs on. Single-ratio policies leave performance on the table. See PDF. Supporting.

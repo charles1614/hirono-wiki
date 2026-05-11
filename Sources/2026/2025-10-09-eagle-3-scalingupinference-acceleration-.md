@@ -42,11 +42,21 @@ EAGLE-3 paper (arXiv:2503.01840, v3 Apr 2025) — third generation of the EAGLE 
 
 ## Visual observations
 
-**Fig 1 — Scaling law on MT-bench (LLaMA 3.1 8B)** (load-bearing)
+**Fig 1 — Scaling law on MT-bench (LLaMA 3.1 8B)** (load-bearing — the novel-claim chart)
 
-![EAGLE-3 scaling law — top-right of page 1: speedup ratio + accept length both grow with data scale for EAGLE-3, flat for EAGLE-2](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--images/page-001.png)
+Top panel (speedup vs data scale):
+![EAGLE-3 vs EAGLE-2 speedup ratio across 1× / 2× / 4× / 8× data scale — EAGLE-3 climbs from 3.7× to 4.4×; EAGLE-2 flat near 3.2×](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/figure-001.png)
 
-Page 1 of the paper, with Fig 1 in the top-right and Fig 2 below it. **Fig 1 is the novel-claim chart**: two-panel diagram showing speedup-vs-data-scale (top) and accept-length-vs-data-scale (bottom) for EAGLE-2 (flat) vs EAGLE-3 (positive slope on both). The increasing-scaling-law claim is literally the slope of these lines. Fig 2 below it shows the speedup comparison bar chart across target models (Vicuna 13B / LLaMA 3.1 8B / 3.3 70B / DeepSeek-R1) — confirmation of the table reproduced above.
+Bottom panel (accept length vs data scale):
+![EAGLE-3 vs EAGLE-2 accept length across data scale — EAGLE-3 climbs from 5.2 to 6.1 tokens-accepted; EAGLE-2 flat near 4.0](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/aux-002-x2.png)
+
+EAGLE-2 (red) is flat across data scale on both speedup AND accept-length — the previous architecture's feature-prediction loss caps how much extra data can help. **EAGLE-3 (blue) has positive slopes on both** — the increasing-scaling-law claim is literally the slope of these lines. The scaling-law claim is the paper's main novelty; without seeing the curves, the "more data → more speedup" story reads like ordinary tuning.
+
+**Fig 2 — Speedup comparison across target models** (load-bearing)
+
+![Speedup bar chart across 5 target models × 7 methods — EAGLE-3 wins on all 5 (Vicuna 13B 5.6×, LLaMA-Instruct 3.1 8B 4.1×, LLaMA-Instruct 3.3 70B 4.4×, DeepSeek R1 LLaMA 8B 5.0×) at temperature=0](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/figure-002.png)
+
+Visual confirmation of the speedup-table reproduced above. EAGLE-3 is the rightmost bar in each cluster; HumanEval's 6.5× is the off-chart upper bound (the chart shows MT-bench / GSM8K averages).
 
 - **Fig 3 — Training-time test methodology** (`../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--images/page-002.png`) — Three-panel diagram showing the architectural progression: EAGLE (top, with `l_fea`) → EAGLE-without-feature-pred (middle, fixes scaling but breaks step-2 acceptance) → EAGLE-3 with training-time test (bottom, fixes both). Supporting — the textual explanation in Key Claims covers it; image is helpful for implementers.
 - **Fig 4 — Acceptance rate curves** (same page as Fig 3) — 0-α + 1-α vs data scale. Shows the step-2 acceptance-rate collapse when `l_fea` is removed alone, and recovery with training-time test. Supporting.

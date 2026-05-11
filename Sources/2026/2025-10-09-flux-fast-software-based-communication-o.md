@@ -41,9 +41,9 @@ tags: [communication-overlap, tensor-parallelism, kernel-fusion, bytedance, mega
 
 **Fig 1 — Non-overlapped TP communication fraction across workloads** (load-bearing — the case for the paper)
 
-![Non-overlapped TP communication fraction — stacked bars for GPT-3 175B + Llama-2 70B × {training, prefill, decode-64, decode-512} × {A100 PCIe, A100 NVL, H800 NVL}; comm is ~20-40% of runtime](../../raw/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-images/page-002.png)
+![TP communication fraction across 8 workloads × 3 hardware configs — A100 PCIe (red) shows 40-75% comm time; A100 NVL (green) 10-25%; H800 NVL (blue) 20-50%](../../raw/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-figures/figure-001.png)
 
-Without this chart, the speedup claims sound like edge optimization; with it, comm-overlap is core to the workload. Hatched portions = non-overlapped comm time; visible fraction varies but consistently 15-40% across all 8 workload × hardware combinations on the chart.
+Bar chart for GPT-3 175B + Llama-2 70B × {Training, Prefill, Decode 64, Decode 512} × {A100 PCIe, A100 NVL, H800 NVL}. **The headline takeaway is the A100 PCIe (red) numbers** — 65-75% of prefill / 40-50% of decode is TP communication on slow interconnects, making comm overlap *first-order* for non-NVLink deployments. Even on H800 NVL (the fastest tier), TP comm is consistently 20-50% of normalized time. Without this chart, the speedup claims sound like edge optimization; with it, comm-overlap is core to the workload.
 
 - **Fig 3 — Prior GEMM-ReduceScatter overlap with 2-way TP** — Illustration of how operation-level overlap works (and where its overhead comes from). See PDF for exact page. Supporting (context for why fusion is better than scheduling).
 - **Fig 4 — PyTorch (non-overlap) vs TransformerEngine (prior overlap) efficiency** — Shows TE's overlap efficiency vs PyTorch baseline. See PDF. Supporting.

@@ -42,7 +42,7 @@ HKUST + HIT paper (arXiv:2402.13499, Feb 2024 — predates Blackwell but remains
 
 **Fig 1 — Hopper SM diagram** (load-bearing)
 
-![Hopper architecture diagram — GPC, SM composition (RegFile, INT32, FP32, FP64, LD/ST, SFU, 4th-gen TC, TMA, 256 KB L1/Shared), SM-to-SM Network, L2 / HBM](../../raw/raindrop/arxiv.org/2026-01-15-benchmarking-and-dissecting-the-nvidia-h/2026-01-15-benchmarking-and-dissecting-the-nvidia-h-images/page-002.png)
+![Hopper architecture diagram — GPC, SM composition (RegFile 16384×32-bit, INT32×16, FP32×32, FP64×16, LD/ST×8, SFU, 4th-gen TC, TMA, 256 KB L1/Shared), SM-to-SM Network, L2 / HBM](../../raw/raindrop/arxiv.org/2026-01-15-benchmarking-and-dissecting-the-nvidia-h/2026-01-15-benchmarking-and-dissecting-the-nvidia-h-figures/figure-001.png)
 
 The single highest-density visual summary of what changed from Ampere. Shows GPC → SM unit composition (RegFile 16384×32-bit, INT32×16, FP32×32, FP64×16, LD/ST×8, SFU, 4th-gen TC, TMA, 256 KB L1/Shared), SM-to-SM Network for DSM, and the L2 / HBM hierarchy. Anyone optimizing a kernel on Hopper needs this picture in their head.
 
