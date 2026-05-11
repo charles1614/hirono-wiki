@@ -34,11 +34,19 @@ function pathOf(url: string): string {
 }
 
 import { renderPdfFromUrl } from "../_default/pdf-render.ts";
+import { fetchArxivHtmlFigures } from "./fetch-figures.ts";
 
 /** Extract `<id>` from an arxiv URL like `/abs/2402.13499` or `/pdf/2402.13499`. */
 function extractArxivId(url: string): string | null {
   const m = url.match(/\/(?:abs|pdf)\/([0-9]{4}\.[0-9]{4,5}|[a-z\-]+\/[0-9]{7})(?:v\d+)?(?:[\/.]|$)/);
   return m ? m[1] : null;
+}
+
+/** Extract `<id>v<N>` (with version) if the URL specifies one; else just `<id>`. */
+function extractArxivIdWithVersion(url: string): string | null {
+  const m = url.match(/\/(?:abs|pdf)\/([0-9]{4}\.[0-9]{4,5}|[a-z\-]+\/[0-9]{7})(v\d+)?(?:[\/.]|$)/);
+  if (!m) return null;
+  return m[1] + (m[2] ?? "");
 }
 
 function pdfStub(url: string): Result {
@@ -134,6 +142,23 @@ export const site: Site = {
         // Render path bailed (encrypted/corrupt/fetch-failed). Use
         // arxiv's existing stub which points at the /abs/ page.
         return pdfStub(url);
+      }
+      // Layer captioned HTML-extracted figures on top of the pdfimages
+      // output. Both live in <slug>-figures/ with non-colliding filename
+      // patterns (`figure-NNN.png` vs `fig-PPP-NNN.png`). HTML version
+      // may be unavailable for older / mathy papers — graceful no-op
+      // when so. The pdfimages output already provided in `r` is the
+      // fallback; we don't fail the fetch if the HTML layer doesn't.
+      const idWithVersion = extractArxivIdWithVersion(url);
+      if (idWithVersion && Array.isArray(r.flags) && r.flags.includes("pdf-paper")) {
+        const figuresDir = `${opts.slugDir.replace(/\/$/, "")}/${slug}-figures`;
+        const hr = fetchArxivHtmlFigures({ arxivId: idWithVersion, outDir: figuresDir });
+        // Surface the result in source.json notes for debugging.
+        const note = hr.ok
+          ? `arxiv-html-figures: layered ${hr.figuresWritten} captioned figures (from ${hr.htmlBytes}B HTML)`
+          : `arxiv-html-figures: skipped (${hr.reason})`;
+        const existingNotes = Array.isArray(r.notes) ? r.notes : [];
+        r.notes = [...existingNotes, note];
       }
       return r;
     }
