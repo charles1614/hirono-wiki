@@ -430,7 +430,7 @@ Before committing post-processor/adapter changes, re-export these AND check each
 | `huggingface.co/blog/moe` | GitHub-raw fallback fires, ~30KB body, 12 images | good · ~30KB |
 | `huggingface.co/spaces/mteb/leaderboard` | L2 skip, no `raw/` dir written | skipped (exit 0) |
 | `github.com/huggingface/trl/pull/3521` | 3 speakers (OP + 2 comments), ≥1 table, ≥4 fences, zero activity, zero `@`-mentions | good · ~6KB |
-| `github.com/openclaw/openclaw/issues/7827` | 4–5 speakers, split-header format, zero activity/avatars | good · ~8KB |
+| `github.com/sgl-project/sglang/issues/8965` | OP + ~12 commenters, split-speaker format, OTel-tracing FR, 4 visualization screenshots, zero activity/avatars | good · ~11KB |
 | `github.com/pytorch/torchtitan` | README raw fetch, ≥18 fences, 8 local badge images, no `<div>` | good · ~11KB |
 | `github.com/pytorch/pytorch/releases/tag/v2.5.0` | Release API body, ≥18 fences, ≥10 table rows, `> Released by ... · date · tag` metadata | good · ~91KB |
 | `github.com/ggml-org/llama.cpp/discussions/5138` | REST API body + 24 speakers (7 top + 17 `> replied on`) | good · ~9KB |

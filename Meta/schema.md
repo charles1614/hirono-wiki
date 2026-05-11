@@ -56,6 +56,10 @@ source_count: 7
 
 Frontmatter is **local-only** — the preprocessor strips it on upload and renders it as a visible Meta callout at the top of the Lark doc.
 
+**Two dates, distinct meanings**:
+- `created:` / `updated:` (frontmatter) — when the WIKI page was written / last edited.
+- `YYYY-MM-DD` prefix in `Sources/YYYY/YYYY-MM-DD-<slug>.md` — the SOURCE publication / capture date (per Raindrop bookmark `created` or the article's `<time>` element). A Source filed `2025-08-23-...` but frontmatter `created: 2026-05-11` is consistent — the source was published in 2025, we ingested it into the wiki on 2026-05-11.
+
 ## Wikilinks
 
 Use `[[Slug]]` syntax, Obsidian-compatible. Resolution is by **slug** (file basename without `.md`), unique across the whole repo.
@@ -291,91 +295,52 @@ URL normalization for dedup (see `tools/bin/build-sources-index.ts`): lowercase 
 
 ## Raw-source archive layer
 
-Per [[Karpathy]]'s invariant ("raw sources are immutable — the source of truth"), every `Sources/<slug>.md` summary has a paired local archive at `raw/<YYYY>/<slug>/` containing the full content we summarized from. This is what lets us re-ingest when conventions evolve and survives URL rot / provider disappearance.
+Per [[Karpathy]]'s invariant ("raw sources are immutable — the source of truth"), every `Sources/<slug>.md` summary has a paired local archive containing the full content we summarized from. This is what lets us re-ingest when conventions evolve and survives URL rot / provider disappearance.
 
 ### Structure (one dir per source)
 
 ```
-raw/
-└── 2026/
-    └── 2026-04-19-aws-trainium3-deep-dive/
-        ├── content.md              # fetched article text in markdown
-        ├── source.json             # fetch metadata (origin, ts, fetcher, quality flags, image manifest)
-        ├── images/                 # wechat/zhihu put assets here; xhs puts them flat
-        │   ├── img_001.png
-        │   └── ...
-        └── <noteid>_N.jpg          # xhs puts flat here
+raw/raindrop/<host>/<slug>/
+    ├── content.md              # fetched article text in markdown
+    ├── source.json             # fetch metadata (origin, ts, fetcher, quality flags, image manifest)
+    ├── revisions.jsonl         # append-only audit trail; one row per fetch
+    ├── <slug>.pdf              # preserved binary for PDF sources (arxiv, etc.)
+    ├── <slug>-images/          # per-page PNG renderings for PDFs
+    │   └── page-NNN.png
+    └── <slug>-img-NNN.{png,jpg,…}  # localized web-source images, siblings of content.md
 ```
 
-**Slug contract**: raw dir name = Source summary filename (minus `.md`). `tools/bin/lint.ts`'s `raw-orphan` check enforces the pairing.
+**Slug contract**: raw dir name = Source summary filename (minus `.md`). `tools/bin/lint.ts`'s `raw-orphan` check **lists** raw dirs not yet referenced by a Sources/ page — INFO-level (it's the ingest-ready inventory), not an error.
 
-**Append-only**: re-fetching a source writes `content-rev2.md` (then `-rev3`, etc.); original `content.md` never overwritten. Source summaries stay pointed at the latest revision implicitly — inspect `raw/<slug>/` to see all revisions.
+**Append-only audit trail**: `revisions.jsonl` gets a new row on every fetch (rev number, timestamp, content SHA, length, quality_status). On `hirono raindrop refetch`, the live `content.md` is overwritten with the new bytes by default, **but**:
+- The previous rev's metadata is preserved in `revisions.jsonl`.
+- The **downgrade-protection guard** (`isFetchRegression` in `tools/fetch-raw.ts`) refuses the write if the new fetch substantially regresses the previous — see [`corpus-pipeline.md`](corpus-pipeline.md) § "Backward edge: refetch regression" for the predicate.
 
-### The hirono CLI
+### Operator commands
 
-As of 2026-04-21 the canonical entry point for raw-source operations is
-`tools/bin/hirono.ts`. Previous scripts (`fetch-raw.ts`, `ingest_batch.ts`,
-`build-sources-index.ts`) still work but hirono is the long-term home;
-later phases will fold them under `hirono` subcommands.
+The canonical entry point is `tools/bin/hirono.ts`. See
+[`operator-workflows.md`](operator-workflows.md) §Command reference for the
+full surface (`refresh-cache`, `fetch`, `fetch-all`, `sync`, `refetch`,
+`verify`, `status`, `history`, `diff`, `store`, `fetch-lark`, `export`,
+`check`, `new`) and example flows. This file only governs the on-disk
+page conventions; it does not duplicate the command catalog.
 
-**Commands (Phase 1)**:
+### Post-processors
 
-- `hirono raindrop check [--input <path>] [--json]` — scan the cached
-  Raindrop corpus for (a) duplicate URLs, (b) hostname coverage gaps.
-  Reads `.wiki-raindrop-cache.json` (gitignored) by default. Exits
-  non-zero if duplicates exist or any uncovered hostname has ≥5
-  bookmarks — useful as a batch-close signal.
+Cross-cutting cosmetic cleanups live in `tools/sites/_shared/post-cleanup.ts`
+as `applyPostCleanups()`. The current list is the source of truth — when
+adapter-level fixes belong somewhere host-specific, they go in the host's
+site module, not here. See [`CLAUDE.md`](../CLAUDE.md) §5 + the
+post-cleanup.ts file itself for the live list (host-specific fixes belong
+in `tools/sites/<host>/converter.ts`, NOT in the cross-cutting layer).
 
-- `hirono raindrop refresh-cache [--token <t>]` — pull all bookmarks
-  from the Raindrop public API into the cache. Token comes from
-  `--token`, `$RAINDROP_TOKEN`, or `~/.config/hirono/raindrop-token`
-  (get one at https://app.raindrop.io/settings/integrations).
+### Project-local opencli adapters
 
-- `hirono raindrop fetch <id|url|slug> [--slug <s>] [--force] [--no-images]` —
-  fetch a single source into `raw/<year>/<slug>/`. Accepts (a) a
-  Raindrop bookmark ID (`123` or `raindrop:123`; looked up in cache),
-  (b) a raw URL with explicit `--slug`, or (c) an existing slug which
-  triggers a refetch. Runs the `applyPostCleanups` pipeline between
-  adapter output and `writeRawArchive`, which strips UI chrome,
-  resolves relative image URLs, collapses exploded SVG text, and
-  strips HTML color tags. **Append-only by default** — refetches
-  write `content-revN.md` rather than clobbering (helpful when a second
-  fetch is worse, e.g. SPA cold-cache). `--force` overwrites.
-
-- `hirono doctor [--fix]` — health check:
-  1. `opencli doctor` (extension + daemon).
-  2. `~/.opencli/clis/wiki-custom` symlink → `tools/opencli-adapters`
-     (the self-contained-project pattern; `--fix` creates it).
-  3. `node --check` on every adapter file under `tools/opencli-adapters/`.
-  4. Surface any `raw/<slug>/source.json` whose `quality_status != good`.
-
-**Post-processors** (see `tools/sites/_shared/post-cleanup.ts`):
-
-| Processor | Domain filter | What it does |
-|---|---|---|
-| `resolve-relative-image-urls` | all | Convert `![](/path)` → `![](https://host/path)`; emit absolute URLs to the downloader |
-| `deepwiki-strip-file-nav` | `wiki.litenext.digital` | Strip the file-sibling navigator block |
-| `github-strip-ui-chrome` | `github.com` | Strip "Pull Request Toolbar", "Expand file tree", line-change annotations |
-| `anthropic-strip-svg-explosion` | `anthropic.com` | Collapse char-per-line SVG text into a placeholder |
-| `strip-color-tags` | all | Remove `<text color="...">` verbatim tags |
-
-Pipeline order: site-specific strips first, then generic relative-URL
-resolver, then cosmetic cleanups. Each processor is pure (markdown-in,
-markdown-out); composition is order-independent for
-non-overlapping site filters but deterministic per the list in
-`PROCESSORS`.
-
-**Project-local opencli adapters**:
-
-Custom opencli adapters live under `tools/opencli-adapters/<site>/<name>.js`
-(committed to the repo). `hirono doctor --fix` creates a symlink from
-`~/.opencli/clis/wiki-custom` to that directory so opencli discovers
-the adapters at invocation time. This makes the repo self-contained —
-`git clone` + `hirono doctor --fix` is enough setup on a new machine.
-
-Phase 1 ships the infrastructure but no custom adapters yet; the first
-adapter comes when a site's quality problems can't be fixed with
-post-processors alone.
+Custom opencli adapters live under `tools/opencli/clis/<site>/<name>.js`
+(committed to the repo). `hirono doctor --fix` symlinks
+`~/.opencli/clis/wiki-custom` to that directory so opencli discovers them
+at invocation time. Makes the repo self-contained — `git clone` +
+`hirono doctor --fix` is enough setup on a new machine.
 
 **Cache file**:
 
@@ -560,17 +525,6 @@ npx tsx reindex.ts && npx tsx sync.ts up && npx tsx lint.ts
 git commit -m "ingest: batch-1 (N sources)"
 ```
 
-## Image handling
-
-Per [[Karpathy]]'s original method, images should ideally be downloaded locally for URL-rot durability. For this wiki we take a minimal stance:
-
-- **Default**: preserve image URLs as-is in source page bodies. Lark renders remote images via URL, which works for now.
-- **Summaries are text-only**: the ingest LLM fetches text-level content; visual claims (diagrams, charts) require click-through to the original source. Where an image is central to a source's claim, note it explicitly — e.g. *"See diagram at URL for the two-stage pipeline architecture."*
-- **Optional local download** (`tools/bin/ingest_batch.ts --download-images`, if built) saves images under `raw/assets/<date>-<slug>/`. Off by default; opt in when a specific source's visuals are worth the storage.
-- **Deferred to v1.5 if needed**: a post-hoc `tools/fetch-images.ts` that walks existing Source pages and backfills any still-remote images. Build when URL rot starts biting.
-
-This is a deliberate trade-off against the cost of storing ~2000 images at v1 scale. Revisit if the text-only summary quality becomes a real limitation.
-
 ## Lint operation
 
 Per Karpathy's three-operation model (ingest · query · lint), **lint** is a periodic health-check of the wiki's internal graph and structure. We do the mechanical parts in code, the judgment parts in session.
@@ -595,19 +549,31 @@ Per Karpathy's three-operation model (ingest · query · lint), **lint** is a pe
 - After every batch (v1 workflow) → `lint.ts` + a short LLM-invoked judgment pass.
 - Weekly / on-demand → deep LLM lint across all entity pages for contradictions.
 
-## v1 workflow: supervised batches
+## Ingest pace + batching
 
-v1 (full-corpus init) is **not** a single autonomous 700-source run. It's a sequence of supervised 20–50 source batches, one per session, with lint + review between.
+Ingest is **session-scoped + supervised**, not autonomous bulk. Two paths,
+either is valid:
 
-1. **Queue**: `tools/bin/ingest_batch.ts plan <candidates.json>` adds non-duplicate candidates to `.wiki-batch-state.json`.
-2. **Work**: per pending item, the ingest LLM fetches content (Raindrop MCP / lark-hirono fetch / WebFetch) and writes source + entity/topic files. Calls `ingest_batch mark-done <id>` or `mark-errored <id> <msg>`.
-3. **Batch close**: run `reindex.ts` → `sync.ts up` → `lint.ts`. Address any lint issues before calling the batch done.
-4. **Commit per batch** (not per item) so `git log` shows batch boundaries cleanly.
-5. **Pause between batches**: read a few of the source pages, see if conventions feel right. If not, update `schema.md` and regenerate affected pages before next batch.
+- **Conversational** (preferred for small/curated runs, ≤ 10 sources):
+  chat with Claude per slug — "ingest `<slug>`" — Claude reads
+  `raw/raindrop/<host>/<slug>/content.md` (and `<slug>.pdf` when present),
+  writes `Sources/YYYY/<slug>.md`, touches Entities + Topics, appends a
+  log entry. See [`README.md`](../README.md) §"How to use the wiki" Mode 2.
 
-Priority order for v1 candidates:
-- Remaining 40 highlighted Raindrop bookmarks (user-curated high-signal)
-- Space 1 "Hirono Raw" nodes the user picks (existing curated knowledge)
-- Unhighlighted Raindrop (~540; lowest signal; dedupe aggressively; many may be skipped after manual review)
+- **Programmatic batch** (for queued-up backlogs, 20-50 sources per batch):
+  `npx tsx tools/bin/ingest_batch.ts plan <candidates.json>` queues; per
+  pending item the LLM fetches + writes; `ingest_batch mark-done` /
+  `mark-errored` advances state.
 
-Estimated cost: ~700 sources at ~30s-3min of LLM time each, in batches of 30, over ~20 sessions.
+Either way, the **batch-close ritual** is the same:
+
+```bash
+npx tsx tools/bin/reindex.ts             # refs + tier promotions + indexes
+npx tsx tools/bin/lint.ts                # schema + dead-link checks
+npx tsx tools/bin/build-sources-index.ts # URL → slug map (for state-derivation)
+git commit -m "ingest: ..."              # commit-per-batch, not per slug
+```
+
+After each batch: read 2-3 of the new Source pages. If conventions feel
+wrong, **update this schema doc first**, then regenerate affected pages.
+That's the discipline that keeps the corpus consistent as it grows.

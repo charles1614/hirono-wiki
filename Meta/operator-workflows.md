@@ -132,15 +132,15 @@ hirono raindrop status
 
 ### What to expect
 
-After step 8 on a fresh ingest of ~580 bookmarks:
+After step 8 on a fresh ingest of ~560 bookmarks:
 
 ```
-# Raindrop sources health (578 bookmarks)
+# Raindrop sources health (~560 bookmarks)
 Generated: 2026-MM-DDTHH:MM:SSZ
-Clean: ~540 · Stub: ~32 · Fetch error: ~6
+Clean: ~360 · Stub: ~190 · Fetch error: ~10
 ```
 
-The bulk classifies as `clean`. The remaining ~38 break down into:
+The bulk classifies as `clean`. The not-yet-good remainder break down into:
 
 - ~9 `upstream-auth-gated` (foreign feishu tenants, x.com if not signed in)
 - ~9 `upstream-spa-no-content` (pure SPAs with no static body)
@@ -569,7 +569,7 @@ decision.
 report ends with a `## Host coverage overview` block:
 
 ```
-Total hosts: 126 (578 bookmarks)
+Total hosts: ~125 (~560 bookmarks)
 - Dedicated-module covered: 36 hosts (488 bookmarks)
 - _default-routed: 90 hosts (90 bookmarks)
   - producing clean MD: 78 hosts

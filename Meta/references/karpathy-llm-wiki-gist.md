@@ -20,6 +20,15 @@ project's own docs (CLAUDE.md, Meta/schema.md, Meta/corpus-pipeline.md,
 Meta/operator-workflows.md) disagree, the project docs win.
 -->
 
+> **Reader note**: this is the original inspiration, preserved verbatim.
+> For what *this project* actually does today, the spec is
+> [`Meta/schema.md`](../schema.md) — including the three-tier image
+> rule (load-bearing / supporting / decorative). Karpathy's gist
+> recommends downloading images via an Obsidian Attachment Folder; this
+> project localizes images at fetch time into
+> `raw/raindrop/<host>/<slug>/` and references them by relative path
+> from `Sources/`. Same spirit, different mechanics.
+
 # LLM Wiki
 
 A pattern for building personal knowledge bases using LLMs.

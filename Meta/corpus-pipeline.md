@@ -68,7 +68,7 @@ jq '[.slugs[].state] | group_by(.) | map({state: .[0], count: length})' raw/rain
                 │ hirono raindrop refresh-cache
                 ▼
    ┌──────────────────────────┐
-   │ .wiki-raindrop-cache.json│  local snapshot (567 bookmarks today)
+   │ .wiki-raindrop-cache.json│  local snapshot (~560 bookmarks)
    └────────────┬─────────────┘
                 │ hirono raindrop fetch-all     (new bookmarks → fetch)
                 │ hirono raindrop sync          (existing slugs → maybe refetch)

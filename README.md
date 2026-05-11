@@ -60,7 +60,7 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 │   ├── fetch-raw-handlers.ts      CLI handlers for hirono raindrop
 │   ├── hirono/                    raindrop / doctor subcommand impls
 │   ├── shared/                    infra utils (atomic-write, browser-lock)
-│   └── __tests__/                 1095+ unit tests + per-host snapshots
+│   └── __tests__/                 30 test files; per-host snapshots, fixtures, structural rules
 │
 ├── docs/                        ← architecture deep-dives
 │   └── fetcher-architecture.md
