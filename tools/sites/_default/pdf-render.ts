@@ -221,14 +221,16 @@ function composePaperContent(opts: PaperOpts): Result {
 
   // Extract body text via pdftotext. -layout preserves column structure
   // (single-column papers come out clean; 2-column gets reasonable output).
+  // -nopgbrk drops the form-feed page-break characters.
   let bodyText = "";
   let textExtractFailed = false;
   try {
-    bodyText = execFileSync(
+    const raw = execFileSync(
       "pdftotext",
-      ["-layout", "-enc", "UTF-8", pdfPath, "-"],
+      ["-layout", "-nopgbrk", "-enc", "UTF-8", pdfPath, "-"],
       { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 },
     );
+    bodyText = cleanPdfText(raw);
   } catch (e) {
     textExtractFailed = true;
     bodyText = "";
@@ -521,6 +523,100 @@ function chooseTitle(meta: Record<string, string>, fallback: string): string {
 
 function pad3(n: number): string {
   return n.toString().padStart(3, "0");
+}
+
+/**
+ * Clean raw `pdftotext -layout` output into something readable as markdown.
+ *
+ * pdftotext preserves the PDF's column-based spatial layout — centered
+ * title blocks get ~50 spaces of leading indent, page-footer text appears
+ * mid-flow, the arxiv vertical banner shows up as a random line. The raw
+ * dump is technically correct but unreadable.
+ *
+ * Passes (order matters):
+ *   1. Per-line trim (drops the centered-text indent + trailing whitespace).
+ *   2. Drop arxiv vertical-banner lines (`arXiv:NNNN.NNNNNvN [cs.XX] ...`).
+ *   3. Drop page-footer boilerplate (`Preprint. Under review.`, conference
+ *      copyright lines, bare page numbers).
+ *   4. Re-join hyphenated line-breaks (`infer-\nence` → `inference`) inside
+ *      paragraphs — they're an artifact of PDF line-wrapping, not real
+ *      hyphenation.
+ *   5. Collapse runs of 3+ blank lines into 2 (preserve paragraph breaks).
+ *   6. Strip leading + trailing blank lines from the whole document.
+ */
+function cleanPdfText(raw: string): string {
+  // Pass 1: per-line trim
+  let lines = raw.split(/\r?\n/).map((line) => line.replace(/\s+$/, "").replace(/^\s+/, ""));
+
+  // Pass 2 + 3: drop boilerplate
+  const DROP_PATTERNS: RegExp[] = [
+    /^arXiv:\s*\d+\.\d+v?\d*\s*\[/i,          // arxiv banner
+    /^Preprint\.\s*Under\s+review\.?\s*$/i,    // arxiv preprint footer
+    /^Under\s+review\s+as\s+a\s+conference\s+paper/i,
+    /^Published\s+as\s+a\s+conference\s+paper/i,
+    /^Copyright\s+©?\s*\d{4}/i,                // generic copyright
+    /^\d{1,3}\s*$/,                            // bare page number
+    /^Page\s+\d+\s+of\s+\d+$/i,                // "Page N of M"
+  ];
+  lines = lines.filter((line) => !DROP_PATTERNS.some((re) => re.test(line)));
+
+  // Pass 4: collapse line-wrap hyphenation. PDF line-breaks can hit two
+  // shapes:
+  //   - Syllable break: "infer-\nence"     → should be "inference"
+  //   - Compound word:  "prefill-\nheavy"  → should be "prefill-heavy"
+  // Disambiguating requires a dictionary; we don't have one. The safest
+  // collapse is to keep the hyphen but remove the line break, joining the
+  // tokens. That gives "infer-ence" (slightly ugly but readable) and
+  // "prefill-heavy" (perfectly correct). Net win: real compound words
+  // never get destroyed; the syllable-break case stays legible.
+  const merged: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cur = lines[i];
+    const next = lines[i + 1];
+    if (
+      /[a-z]-$/.test(cur) &&  // ends in lowercase + hyphen
+      next &&
+      /^[a-z]/.test(next)     // next starts lowercase
+    ) {
+      merged.push(cur + next);  // keep the hyphen, drop the line break
+      i++;
+    } else {
+      merged.push(cur);
+    }
+  }
+  lines = merged;
+
+  // Pass 5: drop the cover-page title block. Title + authors are already
+  // in the frontmatter; the body should start at the actual content.
+  // Look for the first line matching the canonical paper-section openers
+  // ("Abstract", "1 Introduction", "I. INTRODUCTION", etc.) within the
+  // first ~40 lines. If found, drop everything before it.
+  const SECTION_OPENERS: RegExp[] = [
+    /^Abstract$/,
+    /^ABSTRACT$/,
+    /^Introduction$/,
+    /^1\s+Introduction$/,
+    /^1\.\s+Introduction$/,
+    /^I\.\s+INTRODUCTION$/i,
+    /^Executive\s+Summary$/i,
+  ];
+  const HEAD_SEARCH_LIMIT = 40;
+  let startIdx = 0;
+  for (let i = 0; i < Math.min(lines.length, HEAD_SEARCH_LIMIT); i++) {
+    if (SECTION_OPENERS.some((re) => re.test(lines[i]))) {
+      startIdx = i;
+      break;
+    }
+  }
+  if (startIdx > 0) lines = lines.slice(startIdx);
+
+  // Pass 6: collapse 3+ blank-line runs to 2 (paragraph break)
+  let out = lines.join("\n").replace(/\n{3,}/g, "\n\n");
+
+  // Pass 7: strip leading + trailing blank lines
+  out = out.replace(/^\s*\n+/, "").replace(/\n+\s*$/, "\n");
+
+  return out;
 }
 
 function formatBytes(n: number): string {
