@@ -10,9 +10,71 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 
 ## Active (≥3 refs)
 
-_(none yet)_
+- **[[NVIDIA]]** _(4 refs)_ — Dominant ML accelerator vendor; CUDA platform owner; GPU architectures: Ampere → Ada → Hopper → Blackwell.
+- **[[NVFP4]]** _(3 refs)_ — NVIDIA's 4-bit floating-point format introduced with Blackwell; positioned as the next standard low-precision training format after FP8.
+- **[[vLLM]]** _(3 refs)_ — Open-source LLM inference engine; PagedAttention; continuous batching; the dominant production inference system today.
 
 ## Seen (1–2 refs)
 
-_(none yet)_
+- **[[CUDA]]** _(2 refs)_ — NVIDIA's GPU programming platform — language extensions, runtime, toolkit, libraries.
+- **[[CUTLASS]]** _(2 refs)_ — NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks for cuBLAS + custom kernels.
+- **[[FlashMLA]]** _(2 refs)_ — DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~660 TFlops via "seesaw" scheduling.
+- **[[H100]]** _(2 refs)_ — NVIDIA Hopper datacenter GPU (compute capability 9.0); the production workhorse before Blackwell.
+- **[[OpenTelemetry]]** _(2 refs)_ — Vendor-neutral observability standard; spans/traces/metrics/logs; consumed by Jaeger/Zipkin/Perfetto/Grafana.
+- **[[PyTorch]]** _(2 refs)_ — Dominant ML framework for research and production; graph compilation via torch.compile; Meta-maintained.
+- **[[SGLang]]** _(2 refs)_ — Open-source LLM inference system; built on top of model-serving infrastructure; Tencent + LMSYS contributors prominent.
+- **[[TensorRT-LLM]]** _(2 refs)_ — NVIDIA's LLM-specific inference engine; built on TensorRT; competitor to vLLM/SGLang in NVIDIA-stack serving.
+- **[[Triton]]** _(2 refs)_ — OpenAI's GPU-kernel DSL; competitor to CUDA Tile + Pallas; widely adopted across vLLM/SGLang for custom kernels.
+- **[[Ada]]** _(1 refs)_ — NVIDIA GPU architecture (compute capability 8.9), powering RTX 40-series consumer cards.
+- **[[AlphaFold]]** _(1 refs)_ — DeepMind's protein-structure-prediction model; Nobel-cited; runs on Google TPU.
+- **[[Ampere]]** _(1 refs)_ — NVIDIA GPU architecture (compute capability 8.0/8.6), A100 generation.
+- **[[B200]]** _(1 refs)_ — NVIDIA Blackwell datacenter GPU, second-generation tensor-core silicon at the high end.
+- **[[Blackwell]]** _(1 refs)_ — NVIDIA's 2024 GPU architecture; B100/B200/B300/GB200; first NVFP4 native silicon.
+- **[[cuBLAS]]** _(1 refs)_ — NVIDIA's CUDA BLAS library; matmul + GEMM kernels; tuned per architecture.
+- **[[CUDA Tile]]** _(1 refs)_ — NVIDIA's tile-based programming model (CUDA 13.1+); cuTile Python DSL + Tile IR; sits above SIMT.
+- **[[cuTile Python]]** _(1 refs)_ — Python DSL for CUDA Tile programming (CUDA 13.1+); kernels compile to Tile IR.
+- **[[DeepFlow]]** _(1 refs)_ — An LLM inference system; named alongside vLLM/SGLang/Mooncake in the Survey of LLM Inference Systems.
+- **[[DeepSeek]]** _(1 refs)_ — Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
+- **[[FlashAttention]]** _(1 refs)_ — The original IO-aware fused attention kernel (Dao et al.); v1/v2/v3; foundation for most modern attention kernel work.
+- **[[FP8]]** _(1 refs)_ — 8-bit floating-point format; the previous-generation widely-adopted low-precision training format.
+- **[[Free-Threaded Python]]** _(1 refs)_ — CPython build (PEP 703) that disables the GIL; experimental in 3.13; production-ready timeline unclear.
+- **[[GB200]]** _(1 refs)_ — NVIDIA Grace-Blackwell superchip (Grace CPU + 2× B200); deployed in GB200 NVL72 racks (72 chips).
+- **[[Gemini]]** _(1 refs)_ — Google DeepMind's frontier-LLM family; runs on Google TPU.
+- **[[GIL]]** _(1 refs)_ — Python's Global Interpreter Lock; serializes Python bytecode execution; root cause of subprocess-based parallelism in CPython.
+- **[[Google]]** _(1 refs)_ — Tech company; AI lab (DeepMind); TPU silicon vendor; Pathways runtime; competitor to OpenAI/Anthropic/Meta.
+- **[[GPT-OSS]]** _(1 refs)_ — OpenAI's open-weight GPT model family released in 2025; includes GPT-OSS-120B used in TRT-LLM serving guide.
+- **[[Grafana]]** _(1 refs)_ — Open-source observability dashboard; renders Prometheus metrics + OpenTelemetry data.
+- **[[H200]]** _(1 refs)_ — NVIDIA Hopper GPU with more HBM than H100; SM-compatible.
+- **[[H800]]** _(1 refs)_ — NVIDIA Hopper GPU; export-controlled variant of H100 (cut interconnect bandwidth); widely used in China.
+- **[[Hopper]]** _(1 refs)_ — NVIDIA's 2022 GPU architecture; H100/H200/H800/GH200; introduced WGMMA, TMA, FP8.
+- **[[Jaeger]]** _(1 refs)_ — Open-source distributed-tracing system; consumes OpenTelemetry spans; request-centric visualization.
+- **[[llm.c]]** _(1 refs)_ — Karpathy's pedagogical LLM training implementation in pure C/CUDA.
+- **[[Meta]]** _(1 refs)_ — Meta Platforms; AI Research; Llama models; Reality Labs; FAIR; PyTorch maintainer.
+- **[[MLA]]** _(1 refs)_ — Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in DeepSeek-V2/V3; FlashMLA is its decode kernel.
+- **[[MoE]]** _(1 refs)_ — Mixture-of-Experts; sparse-activation architecture; current frontier-model default (DeepSeek-V3, GPT-OSS, GLM-4.6, Mixtral).
+- **[[Mooncake]]** _(1 refs)_ — Moonshot AI's LLM inference system; KV-cache-centric serving architecture; named in the Survey of LLM Inference Systems.
+- **[[nanoGPT]]** _(1 refs)_ — Karpathy's minimal GPT training implementation; ~300 lines Python; pedagogical reference.
+- **[[NIXL]]** _(1 refs)_ — A KV-cache transfer backend used by vLLM for cross-instance KV migration (PD-disaggregation).
+- **[[Nsight Compute]]** _(1 refs)_ — NVIDIA's kernel-level profiler; SM/warp metrics, source-line attribution; integrated with CUDA toolkit.
+- **[[Nsight Systems]]** _(1 refs)_ — NVIDIA's system-wide profiler; timeline view across CPU/GPU/network; complementary to Nsight Compute.
+- **[[OpenAI]]** _(1 refs)_ — AI lab; ChatGPT; GPT models; Triton kernel language; recently OpenAI-MoE-kernels-on-Hopper outperform NVIDIA's own.
+- **[[Pallas]]** _(1 refs)_ — Google's kernel-authoring DSL for TPU/GPU, built on JAX; analogous to Triton + CUDA Tile.
+- **[[Pathways]]** _(1 refs)_ — Google's distributed ML runtime; lets one program span tens of thousands of TPU chips; powers Gemini.
+- **[[Perfetto]]** _(1 refs)_ — Google's tracing visualization tool; thread-centric timeline view; consumes Chrome-Trace + protobuf traces.
+- **[[picoGPT]]** _(1 refs)_ — Another minimal GPT implementation in the nanoGPT lineage; pedagogical artifact.
+- **[[Prometheus]]** _(1 refs)_ — Open-source metrics system; pull-based scraping; histograms + counters + gauges; dominant ecosystem for app metrics.
+- **[[PyTorch Profiler]]** _(1 refs)_ — PyTorch's built-in performance profiler; traces Python stack + CUDA events; limited under subprocesses.
+- **[[Qwen]]** _(1 refs)_ — Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacent alternative.
+- **[[Reality Labs]]** _(1 refs)_ — Meta's AR/VR/spatial-computing org; uses GPU Efficiency Team; built SPDL for internal training pipelines.
+- **[[SparseCore]]** _(1 refs)_ — Google TPU accelerator for ultra-large embeddings; ranking/recommendation workloads; expanded scope in Ironwood.
+- **[[SPDL]]** _(1 refs)_ — Scalable and Performant Data Loading; Meta Reality Labs' thread-based PyTorch DataLoader replacement.
+- **[[Tile IR]]** _(1 refs)_ — NVIDIA's new virtual ISA for tile-based GPU programming (CUDA 13.1+); compilation target for cuTile Python.
+- **[[TMA]]** _(1 refs)_ — Tensor Memory Accelerator; Hopper+ instruction for async global↔shared memory copies; used heavily in FlashAttention-3 + FlashMLA.
+- **[[TorchAudio]]** _(1 refs)_ — PyTorch's audio domain library; media decoding utilities; used in dataloader pipelines.
+- **[[TorchVision]]** _(1 refs)_ — PyTorch's vision domain library; image transforms + dataset utilities.
+- **[[TPU]]** _(1 refs)_ — Google's family of ML accelerators; v2 → v3 → v4 → v5p/v5e → Trillium (v6) → Ironwood (v7).
+- **[[Trainium3]]** _(1 refs)_ — AWS's third-generation training accelerator; positioned as a credible NVIDIA alternative.
+- **[[Trillium]]** _(1 refs)_ — Google's sixth-generation TPU (v6); Ironwood's predecessor.
+- **[[WGMMA]]** _(1 refs)_ — Hopper+ instruction for async warpgroup-level matrix multiply; cornerstone of FlashAttention-3 + FlashMLA.
+- **[[Zipkin]]** _(1 refs)_ — Open-source distributed-tracing system (Twitter origin); consumes OpenTelemetry spans; alternative to Jaeger.
 

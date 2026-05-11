@@ -1,3 +1,9 @@
+---
+created: 2026-05-11
+updated: 2026-05-11
+type: meta
+---
+
 <!--
 Reference doc, not a binding spec. Karpathy's gist describing the
 "LLM-maintained personal wiki" pattern that loosely inspired this
