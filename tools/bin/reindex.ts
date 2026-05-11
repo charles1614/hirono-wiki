@@ -26,7 +26,7 @@ import {
 
 const PROMOTION_THRESHOLD = 3;
 const THIS_FILE = fileURLToPath(import.meta.url);
-const REPO_ROOT = resolve(dirname(THIS_FILE), "..");
+const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..");
 
 // ---------------------------------------------------------------------------
 // parse + wikilink extraction
