@@ -1,6 +1,6 @@
 ---
-created: 2026-05-12T00:00:00.000Z
-updated: '2026-05-11'
+created: 2026-05-12
+updated: 2026-05-11
 type: entity
 refs: 2
 tier: seen

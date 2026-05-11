@@ -218,6 +218,32 @@ export function computeObservationGaps(
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+/**
+ * Normalize frontmatter for re-serialization. YAML parses unquoted dates
+ * (`2026-05-12`) as JavaScript `Date` objects; `matter.stringify` then
+ * renders them as full ISO timestamps (`2026-05-12T00:00:00.000Z`),
+ * mutating the on-disk format even when the field isn't being changed.
+ *
+ * Fix: coerce `created:` and `updated:` Date values back to YYYY-MM-DD
+ * strings before stringify. Other Date-typed fields (currently none in
+ * the schema) would survive unchanged.
+ *
+ * Per `Meta/schema.md` decision D7 (date format normalization).
+ */
+function normalizeDateFields(fm: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...fm };
+  for (const key of ["created", "updated"]) {
+    const v = out[key];
+    if (v instanceof Date) {
+      out[key] = v.toISOString().slice(0, 10);
+    } else if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}T/.test(v)) {
+      // Already-stringified ISO timestamp from a prior pass — strip back.
+      out[key] = v.slice(0, 10);
+    }
+  }
+  return out;
+}
+
 interface Pending {
   oldPath: string;
   newPath: string;        // may equal oldPath
@@ -244,7 +270,7 @@ function planEntityUpdate(doc: DocMeta, refs: number): Pending | null {
   const newFm: Record<string, unknown> = { ...fm, refs };
   if (willPromote) newFm.tier = "active";
   newFm.updated = today();
-  const newContent = matter.stringify(doc.body, newFm);
+  const newContent = matter.stringify(doc.body, normalizeDateFields(newFm));
 
   const reasonParts: string[] = [];
   if (refsChanged) reasonParts.push(`refs ${currentRefs ?? "?"} → ${refs}`);
@@ -269,7 +295,7 @@ function planTopicUpdate(doc: DocMeta, sourceCount: number): Pending | null {
   return {
     oldPath: doc.repo_path,
     newPath: doc.repo_path,
-    newContent: matter.stringify(doc.body, newFm),
+    newContent: matter.stringify(doc.body, normalizeDateFields(newFm)),
     reason: `source_count ${current ?? "?"} → ${sourceCount}`,
   };
 }

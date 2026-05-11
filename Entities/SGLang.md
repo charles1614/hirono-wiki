@@ -1,6 +1,6 @@
 ---
-created: 2026-05-11T00:00:00.000Z
-updated: '2026-05-11'
+created: 2026-05-11
+updated: 2026-05-11
 type: entity
 refs: 4
 tier: active
@@ -12,8 +12,11 @@ Open-source LLM inference system; built on top of model-serving infrastructure; 
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+Open-source LLM inference system (Tencent + LMSYS-affiliated contributors). 2025 H2 priorities (issue #8210) include distributed-serving enhancement, of which built-in OpenTelemetry-based request tracing (issue #8965, PR #9962) is foundational — request-centric Jaeger view + thread-centric Perfetto view + Perfetto/PyTorch-Profiler trace merging. Ships **EAGLE-3 speculative decoding in production** with **40% throughput improvement at batch size 64** (refuting the conventional wisdom that speculation degrades large-batch throughput). Anchor case in Pan & Li's 2025 survey of LLM inference systems alongside vLLM, Mooncake, and DeepFlow.
 
 ## Observations
 
-- (auto-populated as Sources cite this entity)
+- Issue #8965 (Aug 2025, author `sufeng-buaa`) proposes a built-in **OpenTelemetry-based request tracing framework** — request-centric Jaeger view + thread-centric Perfetto view + ability to **merge Perfetto traces with PyTorch Profiler data**. Resolves OTel's single-context-tracking limitation that continuous-batching otherwise breaks. PD-disaggregation is first-class. Issue auto-closed Nov 2025; feature shipped via PR #9962. Sub-task of the 2025 H2 Distributed Serving Enhancement roadmap. — [[2025-11-17-feature-sglang-tracing-fine-grained-trac]]
+- Referenced as part of the inference-stack landscape Flux benchmarks against (Flux compares directly against vLLM; SGLang is in the broader competitive frame). — [[2025-10-09-flux-fast-software-based-communication-o]]
+- Ships **production-grade EAGLE-3 integration**: 40% throughput improvement at batch size 64. The number directly refutes the assumption that speculative sampling reduces throughput at large batch — and is the headline application-level proof point for the EAGLE-3 scaling-law paper. — [[2025-10-09-eagle-3-scalingupinference-acceleration-]]
+- Covered as a named LLM-inference system in Pan & Li's "A Survey of LLM Inference Systems" (arXiv:2506.21901, June 2025) alongside vLLM, Mooncake, and DeepFlow under a cs.DB framing. — [[2026-05-08-a-survey-of-llm-inference-systems]]
