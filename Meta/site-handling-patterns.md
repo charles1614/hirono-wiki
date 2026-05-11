@@ -1044,6 +1044,83 @@ These are mistakes the existing modules learned to avoid. Documented to keep the
 
 ---
 
+## §7 Direction-finding for new hosts (cross-host patterns)
+
+Don't start from blank. Every verified host falls into one of a handful of *shapes*, has chrome from a small set of *categories*, and yields to ordering *invariants* that existing recipes have validated. Use the catalogues below as a map: classify the shape, scan for chrome categories, plan the cleanup ordering. The §4 recipes are then targeted reference material, not first-principles work.
+
+### §7.i. Content-shape taxonomy
+
+After reading 2–3 sample URLs from a new host, classify into one of these. Each shape has a recipe template — the cleanup converges much faster when you know which template you're aiming at.
+
+| Shape | Signal | Recipe template | Reference sites |
+|---|---|---|---|
+| **Article** | Single prose body, one author/date, may have images/code/tables | H1 title + `> 原文链接:` + optional `> Authors:` callout + body. Strip header chrome (nav, share row), strip footer chrome (subscribe, related, tags). | aleksagordic, blog.google, intuitionlabs, qwen, sspai |
+| **Thread / conversation** | Repeated `[Name][@handle][date][body]` blocks; flat or nested replies | Per-message card: `**Name** [@handle](profile) · [date](url)` byline, body, `---` between cards | x.com, linux.do, reddit |
+| **PR / issue / discussion** | OP + activity timeline + threaded comments + reactions | Split-speaker: `## username` heading + `> opened/commented/replied on … · Role` blockquote + body. Strip activity events, reactions, avatars per CLAUDE.md §3 | github.com PR/issue/discussion |
+| **Catalog / table page** | Page is mostly a structured table/note with metadata fields | Title + author/metadata callout + flattened table. Image-only variants get explicit "Text content unavailable" marker | xhs, github releases |
+| **Data / interactive viz** | Interactive chart/dashboard; real data lives in JS state or a CSV download | Intro prose + `## Dataset (top N of M rows)` markdown table built from the CSV | epoch.ai |
+| **Wiki / docs** | Multi-page hierarchy, mermaid diagrams, rich tables, code refs | Body + spliced mermaid fences + spliced table contents (see DeepWiki recipe in `Meta/fix-recipes.md`) | deepwiki.com, wiki.litenext.digital |
+| **Gallery / SPA** | React-rendered grid with dropdown filters; "content" lives in JS state | Best-achievable: capture visible prose, flag interactive UI as known-limit, do NOT lock fixtures around partial output | sebastianraschka.com |
+
+If a host matches none of these, *say so explicitly to the user before guessing*. Adding a new shape is a deliberate design decision, not a fallback.
+
+### §7.ii. Universal chrome categories
+
+These categories appear on almost every content host in some combination. Scan for them in the first/last 30 lines of any new sample. For each present: reuse the `Meta/fix-recipes.md` recipe regex if one matches, else write a new line-filter following the same shape.
+
+| Category | Common shapes | Already-handled hosts |
+|---|---|---|
+| **Profile / avatar links** | `[\n\n![](avatar)\n\n](/handle)`, `[\n\nName\n![](badge)\n\n](/handle)`, bare `[@name](/name)` | x.com, github, sspai, huggingface |
+| **Engagement metrics** | `[\n\nNN.NM\n\n查看](.../analytics)`, reactions bars, "N people reacted", view-count text | x.com, github releases, zhihu |
+| **Sidebars / rails** | `## Trending`, `## What's happening`, `## 当前趋势`, recent-articles lists, related-posts blocks | x.com, blog.google, sebastianraschka |
+| **Subscribe / signup prompts** | "Subscribe to X", "Join N readers", `Ready for more?`, `Discussion about this post`, `点击 订阅 到 …` | substack/magazine, intuitionlabs, sspai, x.com |
+| **Author / footer cards** | Author bio below content, tag chains, social-share rows, copyright lines, byline-tail metadata | most blogs (blog.google, intuitionlabs, hf, sspai) |
+| **Editor / UI controls** | "Heading / Bold / Italic" toolbar text, "Markdown is supported", "Comment Write Preview", "Add your comment here…" | github |
+| **Skeletons / loading states** | "Loading…", "加载中", "Please wait" in <2 KB body | many SPAs before browser-eval delay completes |
+| **Login / paywall walls** | "Sign in to X", "请登录", "This post is for paid subscribers", "Don't miss what's happening" | x.com (gated), feishu, substack paid |
+| **Page-title duplicate** | Body re-emits the H1 from page chrome (creating two `# ` headings) | github (PR/issue title), substack, weixin |
+
+### §7.iii. Cleanup ordering invariants
+
+Order is load-bearing across all hosts. Generic regexes cannibalize specific ones if they run first. Five rules, derived from the bugs that bit each host listed:
+
+1. **Specific before generic.** When a specific rule ("drop view-count blocks at `.../analytics`") and a generic rule ("unwrap any `[\n\nText\n\n](url)`") both match the same shape, the specific one runs FIRST. Otherwise the generic rule turns the specific shape into bare text and the specific rule has nothing left to match. *Symptom of violation:* bare numbers like `3.3万` floating between paragraphs (x.com, first iteration).
+2. **Specific images before generic image-link drop.** Photo embeds (`.../photo/N`), figure captions, click-to-enlarge thumbnails, and link-card images must be unwrapped before any "drop standalone `[\n\n![](*)\n\n](*)`" rule. *Symptom:* missing inline images that should have been preserved (x.com photos, second iteration).
+3. **Truncate rails / footers EARLY.** Trailing-sidebar cuts (`## 当前趋势` → end, `## Related stories` → end) run before line-level filters. The rail/footer often contains lines (`显示更多`, `订阅`, "Subscribe to") that a generic filter would also match, but cutting the section saves cycles and avoids over-deleting in the body. *Symptom of violation:* in-body legitimate "Subscribe" mentions get stripped (false positive on a paragraph in a content article).
+4. **Identity / byline collapse AFTER unwraps, BEFORE separator insertion.** The byline-collapse regex needs the unwrappers to have already run so it sees `Name\n@handle\n[date](url)`, not still-wrapped `[\n\nName\n\n](/handle)`. The card-separator (`---`) insertion needs the byline already collapsed so it can anchor on the bold-name-then-handle shape. *Symptom of violation:* either no separators inserted, or separators inserted before raw unwrapped text (x.com, third iteration before reordering).
+5. **Image localization is the LAST step before §2 frontmatter assembly.** Earlier pipeline stages can still rewrite image URLs (relative-resolve, click-to-enlarge unwrap, embedded photo unwrap, referer-protected re-fetch). Localize once, at the boundary, so `processImages` sees the final URL set. *Symptom of violation:* `![](https://...)` remote URLs surviving to final output (caught by the CLAUDE.md §1 `remote_imgs` block-ship gate).
+
+### §7.iv. First-pass eye-read checklist
+
+For every new host, scan the first generated sample for these defects before showing it to the user. Each item is something an existing host previously shipped wrong.
+
+| Where to look | What to scan for |
+|---|---|
+| **Top 30 lines** | Nav bar bleed, language-picker chrome, "Skip to content" links, breadcrumbs, share-button rows, **duplicate H1** from page-title block, frontmatter `> 原文链接:` present and on its own line |
+| **Tail 30 lines** | Subscribe footer, related-posts list, tag chain, author bio card, "More from this author", trending sidebar, copyright/year, social-share row, comment-count line |
+| **One mid-document section** | **Multi-line link wrappers** (`[\n\n![](*)\n\n*\n\n](url)`) — these render but read as broken markdown; **paragraph-spaced bylines** (3+ blank-line gaps where one would render right); **bare relative URLs** (`](/path)` instead of `](https://host/path)`); orphan `**Label:**` lead-ins after a removed cell-run |
+| **Code / tables / images** | Every code block fenced with a language tag (not `<table>`-rendered — Hexo `figure.highlight` defect); table cells flattened (no `<div>` / `<h*>` / `<br>` inside `td`); every `![](*)` resolves to a local file in `<slug>-images/`; title attributes preserved on rewritten refs |
+| **Math / footnotes / currency** | `$NNN` not auto-italicized as math (escape to `\$NNN`); `\[1]` footnote refs unescaped to `[1]`; KaTeX triplets collapsed (HF blog: V1+V3 suffix-match); single-`_{...}` per formula (multi-subscript breaks lark-cli) |
+| **Heading hierarchy** | Exactly one `# ` H1 (frontmatter title); no empty `## ` lines; no Chinese ordinal headings (`## 一、` → `## 1`); H2/H3 numbering consistent across siblings |
+| **Whitespace** | No `\n{3,}` runs; no triple-newline around spliced blocks; no orphan blank lines around removed chrome; standalone images on their own lines |
+| **Conversation hosts only** | Each speaker has a single byline line, NOT 3 paragraphs; `---` (or equivalent) separator visible between speakers; relative date links resolved to absolute |
+
+If the sample fails any item: fix the cleanup, regenerate, scan again. Don't show the user a sample with known defects — every iteration has context cost. The checklist exists so the cost is paid once, by you, before the user sees it.
+
+### §7.v. Where cleaner data may hide (source-of-truth detection)
+
+For a new host, check these alternatives in order before settling for plain rendered-HTML extraction. Listed by frequency of yielding cleaner data on the verified hosts:
+
+1. **REST / GraphQL API** of the host returning structured JSON we can convert ourselves. *Used by:* github (issue/PR/discussion/release APIs).
+2. **Raw markdown mirror** in a public repo or CDN. *Used by:* huggingface blog (mirrored at `github.com/huggingface/blog`); github file/repo content via `raw.githubusercontent.com`.
+3. **Inline hydration JSON** in `<script>` tags. Next.js / React SPAs often ship the page state as `self.__next_f.push([...])` or `__NEXT_DATA__`. *Used by:* deepwiki.com (mermaid sources live in hydration).
+4. **DOM attribute data** for embedded widgets. *Used by:* wiki.litenext.digital deepwiki (`.mermaid[data-original-text]`).
+5. **Linked downloads** (CSV, JSON, PDF). *Used by:* epoch.ai (`<a href="*.csv">` for the actual dataset).
+6. **`<meta>` tags** for shape and metadata hints — `og:type`, `og:url`, `article:author`, `article:published_time`. Always cheap to read; useful for shape classification (5e.i).
+7. **`<head>` `<title>`** as last-resort title fallback when body extraction misses the title.
+
+If any of these returns cleaner data than the rendered HTML, the site module's fetcher should use *that* source. The site module owns the conversion either way — what changes is just which input it reads from.
+
 ## How to extend this file
 
 After fixing a sub-good site:

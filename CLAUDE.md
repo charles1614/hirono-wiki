@@ -13,6 +13,8 @@ Match your intent to the canonical doc; don't re-derive what's already written d
 | Triage a sub-good site, build a new site adapter, or look up a specific defect pattern (SPA hydration, auth-walled, mermaid splice, etc.) | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) — symptom→cause→remediation index |
 | Architectural overview of the fetcher (site module contract, `_default` catchall, opencli vs legacy) | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
 | Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
+| **Fix recipes — full regex bodies + tables for every documented-symptom-to-commit fix** (activity-timeline leak, DeepWiki mermaid splice, mdnice quirks, GitHub UI chrome, KaTeX triplets, avatar residuals, etc.) | [`Meta/fix-recipes.md`](Meta/fix-recipes.md) — CLAUDE.md §4 is the symptom→recipe index pointing here |
+| Per-file / per-export code pointers for the fetch / lint / ingest toolchain | [`docs/code-map.md`](docs/code-map.md) — CLAUDE.md §8 is the top-level summary pointing here |
 | Pending punch-list after the most recent bulk fetch | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
 | Wiki page conventions (frontmatter, page types, tier rules — the governance layer for `Sources/`, `Entities/`, `Topics/`). **As of the pre-scale schema lockdown (2026-05-11): per-Source `## Open questions` was removed; cross-source research questions now live in `Topics/<X>.md ## Open threads`; source-specific re-fetch TODOs live in the Source's `## Raw source` footer. `## What this changes` is explicitly optional. `tags:` frontmatter is lint-required.** | [`Meta/schema.md`](Meta/schema.md) |
 | Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
@@ -124,148 +126,20 @@ Discussion replies use `> replied on ...` (distinct from `> commented on ...` so
 
 ## 4. Fix recipes
 
-**When §1 flags a bug whose shape matches a recipe below, apply — don't ask.** The recipes exist so documented-symptom bugs become commits, not tickets. "Want me to fix?" after finding a recipe-matched bug wastes a round-trip. The pause to ask is only warranted when the fix is novel, destructive, or scope-unclear — not when the recipe is right here. On zhihu I ran §1, found `tables=0`, wrote an abstract report, and asked permission to fix instead of applying the `<table>` DOM-extraction recipe I'd already used for deepwiki. Don't do that.
+**When §1 flags a bug whose shape matches a recipe below, apply — don't ask.** Full regex bodies + tables live in [`Meta/fix-recipes.md`](Meta/fix-recipes.md); this section is the symptom-to-recipe index.
 
-### Missing body / comments / tables / code blocks
-
-Check raw HTML first: `curl -sfL <url> -A 'Mozilla/5.0' | grep -c '<keyword-from-body>'`. If HTML has it and opencli doesn't, use a fallback:
-
-| URL pattern | Fallback |
+| Symptom | Recipe (in `Meta/fix-recipes.md`) |
 |---|---|
-| `huggingface.co/blog/<slug>` | `raw.githubusercontent.com/huggingface/blog/main/<slug>.md` (parse YAML frontmatter) |
-| `github.com/<o>/<r>/pull/<n>` | REST `.../pulls/<n>` + `/issues/<n>/comments` |
-| `github.com/<o>/<r>/issues/<n>` | REST `.../issues/<n>` + `/issues/<n>/comments` |
-| `github.com/<o>/<r>/discussions/<n>` | REST `.../discussions/<n>` + `/discussions/<n>/comments` (flat; replies have `parent_id`) |
-| `github.com/<o>/<r>/releases/tag/<v>` | REST `.../releases/tags/<v>` |
-| `github.com/<o>/<r>[/blob/<b>/<p>\|/tree/<b>\|/]` | `raw.githubusercontent.com/<o>/<r>/<branch>/<path>` (default path `README.md`) |
-| `huggingface.co/spaces/<o>/<n>` | `AUTO_SKIP_RULES` L2 skip, no output |
+| Missing body / comments / tables / code blocks | "Missing body / comments / tables / code blocks" — fallback table for HF blog / github API / raw-mirror routing. Rate-limit note: set `GITHUB_TOKEN` for 5000/hr. |
+| Activity timeline leak (`merged`, `mentioned this`, `pushed a` lines bleeding through) | "Activity timeline leaking through" — regex shape + ordering rules for the 4 avatar-residual prefix variants. |
+| DeepWiki mermaid diagrams as orphan labels (`Cluster GPU Resources` floating loose) | "DeepWiki mermaid diagrams leaking as orphan labels" — covers wiki.litenext.digital data-attr + deepwiki.com hydration-JSON paths; `isDiagramNode` thresholds + `minRun` heuristic; `deepwiki-mermaid-splice-incomplete` guard. |
+| WeChat / mdnice malformed bold / lists / multi-line code (Layer-4 hosts) | "WeChat / mdnice malformed bold + lists + code" — 11-row symptom table: unbalanced `*`, nested `<strong>`, mis-tagged `data-lang`, jsdom style-shorthand crash, SVG-diagram-as-image, etc. |
+| x.com / Twitter | "x.com / Twitter" — deterministic stub only (auth-walled). Visible-content extraction lives in git history. |
+| KaTeX triple-rendered math (HuggingFace blog) | "KaTeX triple-rendered math" — V1/V3 suffix-match collapse + `\\cmd → \cmd` cleanup. |
+| Avatar residuals / badges (3 DOM shapes) | "Avatar residuals / badges" — process order: Nested → Separated → Bare `[@name](/name)`. |
+| GitHub UI chrome bleed-through (CI / Verified / Editor toolbar / Release reactions / etc.) | "GitHub UI chrome bleed-through" — 10-row category table + `match` predicate (DO NOT widen beyond `pull|issues|discussions/\d+`) + 14-stage post-processor ordering. |
 
-**Rate limits**: GitHub REST API anon = 60/hr. Set `GITHUB_TOKEN` env var for 5000/hr — required for bulk jobs.
-
-### Activity timeline leaking through
-
-The strip regex must handle multiple prefix shapes from the same source (depends on whether avatar-strip has run yet):
-
-- `- NAME verb ...`                          (clean bullet)
-- ` - NAME verb ...`                         (leading WS from stripped avatar)
-- `[@NAME](/NAME) - NAME verb ...`           (avatar kept alt `@` prefix)
-- `[NAME](/NAME) - NAME verb ...`            (avatar text preserved as plain link)
-
-Regex shape: `^\s*(?:-\s+|\[@?[A-Za-z0-9_-]+\]\(\/[A-Za-z0-9_-]+\)\s*-?\s*)[A-Za-z0-9_-]+\s+(?:VERB_KEYWORDS)\b[^\n]*$`. Keep VERB_KEYWORDS as short keywords (`merged`, `mentioned this`, `added`, `self-assigned`, `deleted the`, `restored the`, `changed the title`, `approved these changes`, `reviewed`, `requested`, `closed this as`, `locked as`, `pushed a`, `reopened this`, `assigned`, `removed`, `and removed`) — let `[^\n]*$` consume anything after the verb. Don't try to match specific SHA/URL shapes; tooltips with `)` in them break that.
-
-Additional strips: commit-ref bullets (`- [\`sha\`](url) title`), short-SHA followups (`` `[sha](url)` ``), pathological 3-link merge commits (any backticked line containing `/commit/<sha>`), `…X\_pack` truncation tails, orphan `[Title #NNN](/org/repo/pull/N)` cross-refs, bare `[NAME](/NAME)` user-link lines, `## Activity` header.
-
-### DeepWiki mermaid diagrams leaking as orphan labels
-
-Symptom: text like `Cluster GPU Resources` / `Total GPUs requested` / `_create_placement_group(num_gpus)\nPACK strategy` appears as loose paragraphs outside any ```` ```mermaid ```` fence. These are node labels from a mermaid diagram that opencli's DOM-to-markdown converter flattened into text.
-
-DeepWiki stores mermaid source in different places depending on the host:
-- **wiki.litenext.digital**: `.mermaid[data-original-text]` attribute on each `<div>` — straightforward attribute pull.
-- **deepwiki.com**: no DOM attribute; source lives as `\`\`\`mermaid\n...\`\`\`` fences inside Next.js hydration scripts (`self.__next_f.push(...)`). Hydration ships the ENTIRE wiki's mermaids (not just the current page), so the extractor caps results to `document.querySelectorAll('svg[id^="mermaid"]').length` — the number of SVGs actually rendered on this page, in document order.
-
-`extractDeepwikiMermaidSources` tries the data-attr strategy first, falls back to script-scan + SVG-count cap. `spliceDeepwikiMermaid` then replaces runs of orphan node-label lines with `\`\`\`mermaid ... \`\`\`` fences.
-
-**When the splice misses a diagram**, it's because `isDiagramNode` rejected some of the label lines or the orphan run was shorter than the minimum-run threshold, so the splicer left the orphan text alone.
-
-Recipe: `isDiagramNode` must accept:
-- Any line containing `\\n` or `\\_` (mermaid-label literal escapes — strong affirmative signal, accept up to ~200 chars)
-- Short-enough plain text (≤ 80 chars, ≤ 10 whitespace tokens, no markdown markers, no numbered-list/URL/image-prefix)
-
-The previous thresholds (40 chars / 5 tokens) rejected labels like `Critic slice (optional)\n[actor_num_gpus : actor+critic_num_gpus]`, breaking the diagram-node run after only 2 matches.
-
-**Adaptive minimum-run threshold.** The splicer's `minRun` is derived from the smallest extracted source's node-line count, clamped to `[3, 6]`. This catches small sequence/state/ER diagrams (often 3–4 labels) without false-splicing normal short-line clusters. Old hard-coded `>= 6` missed any diagram whose exploded form had fewer than 6 label lines — e.g. the JAX overview's architecture subgraph.
-
-**Silent-miss guard — `deepwiki-mermaid-splice-incomplete` / `deepwiki-table-splice-incomplete`.** Both splicers return `{placed, total}` / `{matched, skipped}`. When placed < total or skipped > 0, the adapter emits the corresponding flag + a `WARNING — extracted N but only placed M` note into `source.json`. Grep for these flags after bulk-fetches to surface diagrams/tables that were extracted but couldn't be reinserted (usually: heading text drift for tables, or `isDiagramNode` rejection for mermaid).
-
-### WeChat / mdnice malformed bold + lists + code (Layer-4 hosts)
-
-mdnice (the editor most weixin authors use) emits HTML with several
-quirks that Markdown converters mishandle. opencli's weixin adapter has
-no raw-HTML option, so we extract `#js_content` outerHTML via
-`browser eval` and convert in
-`tools/sites/weixin/converter.ts`. The recipes below are
-encoded there; reference implementations for any new Layer-4 host.
-
-| Symptom | Cause | Fix in converter |
-|---|---|---|
-| `-   • text` / `1.  1. text` | mdnice injects visual bullet/number AS TEXT inside each `<li>` | `stripListMarkerPrefixes` — trim leading `[•·●◦‧▪◆■▶►]` or `[0-9]+[.、)]` from the first text node of every `<li>` |
-| `**作者**丨何煦阳**` (5 unbalanced `*`) | Adjacent `<strong>A</strong><strong>B</strong>` siblings → turndown emits `**A****B**`; naive `\*{4,}` collapse breaks the closing pair | HTML-level: `unwrapInertSpans` first (pure-style `<span>` wrappers block adjacency detection), then `normalizeEmphasis` Pass 2 merges adjacent same-type siblings |
-| `******text******` (6+ `*`) | `<strong><strong><strong>X</strong></strong></strong>` self-nesting up to 3 levels | `normalizeEmphasis` Pass 1 — LOOP unwrap until stable (8 passes max) |
-| `## **title**` redundant bold | `<h2><strong>title</strong></h2>` | Post-turndown regex strips `^(#{1,6}\s+)\*+\s*([^*\n]+?)\s*\*+\s*$` → `$1$2` |
-| Empty `## ` heading lines | H1 with whitespace-only first child → `enforceSingleH1` demotes to empty `## ` | Post-turndown regex drops `^#{1,6}\s*$\n?` |
-| Multi-line code collapsed to 1 line | mdnice splits a code block into lines via `<br>` (Shape A2) or per-line `<code>` children (Shape B) or per-line `<p>`/`<section>` siblings (Shape C); `Node.textContent` silently drops `<br>` | `textWithLineBreaks(el)` — manual tree walk emitting `\n` for `<br>` AND between `<p>`/`<div>`/`<section>` block siblings. Single rule branches on `<code>`-child count: multi → join with `\n`; single → text + lang from `class="language-X"`; bare `<pre>` → walk-with-breaks |
-| YAML/code body content silently lost | Single `<pre>` with multi `<code>` children, taking only `.querySelector("code")` returns just the first line | Use `Array.from(pre.children).filter(c => c.tagName === "CODE")` and join all with `\n` |
-| `data-lang="sql"` mislabel | mdnice frequently mis-tags actual YAML/bash/text as `sql` | For multi-`<code>` shape, IGNORE `data-lang`. Single-`<code>` shape can trust `<code class="language-X">` (more reliable) |
-| jsdom CSS-shorthand crash | malformed `style="background:..."` from mdnice trips jsdom 23+ | Strip `style="..."` from raw HTML before passing to JSDOM (regex pre-pass) |
-| SVG diagrams flattened to garbage | WeChat embeds mermaid-rendered flowcharts as inline `<svg>` with `<foreignObject>` labels, not `<text>`. Source recovery is INFEASIBLE — mdnice strips every `class` and `id` from the rendered SVG, leaving anonymous `<g>`/`<rect>`/`<path>` with no semantic structure to reconstruct mermaid from. Save SVG-as-image. | `processSvgs(doc, root, originalSvgs)`: real (≥2KB OR has `aria-roledescription` matching flowchart/sequence/diagram/graph) → save as `weixin-svg-NNN.svg` standalone file + `<img data-local-svg="1" src="…">` placeholder; decorative (~500-byte 3-ellipse dots) → drop. CRITICAL: harvest pristine SVG bytes BEFORE the style-strip pass, otherwise the saved file renders as black-on-white wireframe with broken markers (mermaid's visual semantics live entirely in inline styles) |
-| SVG placeholder removed by `normalizeImages` | The placeholder `<img src="weixin-svg-001.svg">` has a relative URL → `normalizeImages`'s http-only filter treats it as a tracking pixel | Tag SVG placeholders with `data-local-svg="1"`; `normalizeImages` checks for it and skips |
-
-### x.com / Twitter
-
-`tools/sites/x-twitter/` emits a deterministic stub for every URL — Twitter/X requires login to render content reliably. Visible-content extraction is preserved in git history (the legacy `xMetadataStub`'s 13-step pipeline) and can be revived if/when authenticated fetching becomes practical, but the active path is stub-only.
-
-### KaTeX triple-rendered math (HuggingFace blog)
-
-Each inline formula appears 3x: text-fallback + LaTeX-source (with `\\cmd`) + alt-text-fallback. `collapseHfTripleMath` uses V1/V3 suffix-match to collapse. After collapse, convert `\\cmd` → `\cmd` — LaTeX `\\` means newline, not a command escape. Single-variable `N N N → $N$` is a separate pass (no `\\` to anchor on).
-
-### Avatar residuals / badges
-
-Three DOM shapes to process in order:
-
-1. **Nested** `[![alt](img)TEXT?](url)` — inspect URL:
-   - URL is `/username` + TEXT empty → drop whole unit
-   - URL is external (http) → keep `[alt](url)` (badge pattern)
-   - Otherwise → keep `[TEXT](url)` (explicit username)
-2. **Separated** `![alt](img) [name](/name)` → keep user link, drop image
-3. **Bare `[@name](/name)`** → strip (residual from avatar passes)
-
-After: sweep inline empty-anchor sequences `(?:\[\s*\]\([^)]+\)\s*){2,}` and single-remnant prefixes before event bullets `^\s*\[\s*\]\([^)]+\)\s+(?=-\s+\S)`.
-
-### GitHub UI chrome bleed-through
-
-Categorized patterns in `githubStripUIChrome`:
-
-| Category | Lines to strip |
-|---|---|
-| CI status | `Loading`, `Loading status checks…`, `### Uh oh!`, `There was an error while loading. Please reload this page.`, `## Sorry, something went wrong.` |
-| Signed commit | `Verified`, `# Verified`, `This commit was created on GitHub.com...`, `GPG key ID:`, `[Learn about vigilant mode]` |
-| Editor toolbar (standalone + bulleted) | `Heading` / `Bold` / `Italic` / `Quote` / `Code` / `Link` / `Numbered list` / `Unordered list` / `Task list` / `Attach files` / `Mention` / `Reference` / `Saved replies` / `Slash commands` / `Menu` / `Comment Write Preview` / `Add your comment here...` / `Markdown is supported` |
-| Release top | `Compare`, `# Choose a tag to compare`, `Filter`, `No results found`, `[View all tags]` |
-| Release bottom | `Assets N` + emoji reactions bar + `All reactions`, `N people reacted` |
-| PR tabs / events | `## Conversation`, `Hide details View details`, `Issue body actions`, `More actions`, role-alone `Contributor\|Member\|Owner\|Collaborator`, `N tasks`, `N participants` |
-| Label concat | `[bugSomething isn't working](labels-url)Something isn't working` → `` [`bug`](url) `` |
-| Self-link | `[[Title](#top)#NNNN]`, `[Title](#top) #NNNN`, `[Return to top]` |
-| Discussion | multi-line category link `[\n\n📣\n\nAnnouncements](/.../categories/...)` |
-| Dup-H1 block | everything between `\n---\n` and the first recognized speaker heading (OP / comment / discussion announcement) |
-
-### githubStripUIChrome match predicate
-
-```ts
-match: (u, h) => h === "github.com" && /\/(?:pull|issues|discussions)\/\d+/.test(u)
-```
-
-**Do not widen this.** Raw-fetched content (`/blob/`, `/tree/`, `/releases/tag/`, repo main) arrives as clean markdown with no DOM chrome. Running the aggressive dup-H1 strip on it wipes real README content — I once ate 2 KB of content (intro paragraphs, badges, `## Latest News`) between `---` and `## Overview` because the match was too broad.
-
-### Post-processor ordering inside githubStripUIChrome
-
-When adding a new collapse, insert it at the right stage — order is load-bearing:
-
-1. Block-level pre-strips: dup-H1 + leading-chrome → CI-loading → Verified → release-top → release-reactions → discussion-category link
-2. OP identity collapse (needs avatars intact)
-3. OP-body heading demotion (after OP collapse, anchored on `> opened this`)
-4. Label collapse (before activity events — labels appear inside verb phrases)
-5. Activity event strip (keyword-based, all prefix shapes)
-6. Pagination chrome + "N remaining items" note
-7. Comment header collapse
-8. Commit-entry / alt-format commit-ref collapse
-9. `Hide details View details` inline prefix strip
-10. **Avatar strip** (three variants + bare `[@name](/name)` — only NOW do we flatten)
-11. Discussion-specific post-avatar cleanups (duplicate author, leading `[](/user) -`)
-12. Inline empty-anchor sweep
-13. Line-level filter + sidebar cutoffs
-14. Trailing-avatar trim (3 iterations — avatars become newly-trailing after step 13)
-
-A regex that fails because its input shape differs from expectation is usually an ordering problem, not a regex bug.
+**The pause to ask is only warranted when the fix is novel, destructive, or scope-unclear.** If the recipe is documented, apply it. The recipes exist so documented-symptom bugs become commits, not tickets. ("Want me to fix?" after finding a recipe-matched bug wastes a round-trip — on zhihu I ran §1, found `tables=0`, wrote an abstract report, and asked permission instead of applying the `<table>` DOM-extraction recipe. Don't do that.)
 
 ## 5. New-URL / new-host protocol
 
@@ -344,80 +218,7 @@ There is no legacy location for new code. All host-specific cleanup belongs in t
 
 ### 5e. Direction-finding for new hosts (cross-host patterns)
 
-Don't start from blank. Every verified host falls into one of a handful of *shapes*, has chrome from a small set of *categories*, and yields to ordering *invariants* that existing recipes have validated. Use the catalogues below as a map: classify the shape, scan for chrome categories, plan the cleanup ordering. The §4 recipes are then targeted reference material, not first-principles work.
-
-#### 5e.i. Content-shape taxonomy
-
-After reading 2–3 sample URLs from a new host, classify into one of these. Each shape has a recipe template — the cleanup converges much faster when you know which template you're aiming at.
-
-| Shape | Signal | Recipe template | Reference sites |
-|---|---|---|---|
-| **Article** | Single prose body, one author/date, may have images/code/tables | H1 title + `> 原文链接:` + optional `> Authors:` callout + body. Strip header chrome (nav, share row), strip footer chrome (subscribe, related, tags). | aleksagordic, blog.google, intuitionlabs, qwen, sspai |
-| **Thread / conversation** | Repeated `[Name][@handle][date][body]` blocks; flat or nested replies | Per-message card: `**Name** [@handle](profile) · [date](url)` byline, body, `---` between cards | x.com, linux.do, reddit |
-| **PR / issue / discussion** | OP + activity timeline + threaded comments + reactions | Split-speaker: `## username` heading + `> opened/commented/replied on … · Role` blockquote + body. Strip activity events, reactions, avatars per §3 | github.com PR/issue/discussion |
-| **Catalog / table page** | Page is mostly a structured table/note with metadata fields | Title + author/metadata callout + flattened table. Image-only variants get explicit "Text content unavailable" marker | xhs, github releases |
-| **Data / interactive viz** | Interactive chart/dashboard; real data lives in JS state or a CSV download | Intro prose + `## Dataset (top N of M rows)` markdown table built from the CSV | epoch.ai |
-| **Wiki / docs** | Multi-page hierarchy, mermaid diagrams, rich tables, code refs | Body + spliced mermaid fences + spliced table contents (see DeepWiki recipe in §4) | deepwiki.com, wiki.litenext.digital |
-| **Gallery / SPA** | React-rendered grid with dropdown filters; "content" lives in JS state | Best-achievable: capture visible prose, flag interactive UI as known-limit, do NOT lock fixtures around partial output | sebastianraschka.com |
-
-If a host matches none of these, *say so explicitly to the user before guessing*. Adding a new shape is a deliberate design decision, not a fallback.
-
-#### 5e.ii. Universal chrome categories
-
-These categories appear on almost every content host in some combination. Scan for them in the first/last 30 lines of any new sample. For each present: reuse the §4 recipe regex if one matches, else write a new line-filter following the same shape.
-
-| Category | Common shapes | Already-handled hosts |
-|---|---|---|
-| **Profile / avatar links** | `[\n\n![](avatar)\n\n](/handle)`, `[\n\nName\n![](badge)\n\n](/handle)`, bare `[@name](/name)` | x.com, github, sspai, huggingface |
-| **Engagement metrics** | `[\n\nNN.NM\n\n查看](.../analytics)`, reactions bars, "N people reacted", view-count text | x.com, github releases, zhihu |
-| **Sidebars / rails** | `## Trending`, `## What's happening`, `## 当前趋势`, recent-articles lists, related-posts blocks | x.com, blog.google, sebastianraschka |
-| **Subscribe / signup prompts** | "Subscribe to X", "Join N readers", `Ready for more?`, `Discussion about this post`, `点击 订阅 到 …` | substack/magazine, intuitionlabs, sspai, x.com |
-| **Author / footer cards** | Author bio below content, tag chains, social-share rows, copyright lines, byline-tail metadata | most blogs (blog.google, intuitionlabs, hf, sspai) |
-| **Editor / UI controls** | "Heading / Bold / Italic" toolbar text, "Markdown is supported", "Comment Write Preview", "Add your comment here…" | github |
-| **Skeletons / loading states** | "Loading…", "加载中", "Please wait" in <2 KB body | many SPAs before browser-eval delay completes |
-| **Login / paywall walls** | "Sign in to X", "请登录", "This post is for paid subscribers", "Don't miss what's happening" | x.com (gated), feishu, substack paid |
-| **Page-title duplicate** | Body re-emits the H1 from page chrome (creating two `# ` headings) | github (PR/issue title), substack, weixin |
-
-#### 5e.iii. Cleanup ordering invariants
-
-Order is load-bearing across all hosts. Generic regexes cannibalize specific ones if they run first. Five rules, derived from the bugs that bit each host listed:
-
-1. **Specific before generic.** When a specific rule ("drop view-count blocks at `.../analytics`") and a generic rule ("unwrap any `[\n\nText\n\n](url)`") both match the same shape, the specific one runs FIRST. Otherwise the generic rule turns the specific shape into bare text and the specific rule has nothing left to match. *Symptom of violation:* bare numbers like `3.3万` floating between paragraphs (x.com, first iteration).
-2. **Specific images before generic image-link drop.** Photo embeds (`.../photo/N`), figure captions, click-to-enlarge thumbnails, and link-card images must be unwrapped before any "drop standalone `[\n\n![](*)\n\n](*)`" rule. *Symptom:* missing inline images that should have been preserved (x.com photos, second iteration).
-3. **Truncate rails / footers EARLY.** Trailing-sidebar cuts (`## 当前趋势` → end, `## Related stories` → end) run before line-level filters. The rail/footer often contains lines (`显示更多`, `订阅`, "Subscribe to") that a generic filter would also match, but cutting the section saves cycles and avoids over-deleting in the body. *Symptom of violation:* in-body legitimate "Subscribe" mentions get stripped (false positive on a paragraph in a content article).
-4. **Identity / byline collapse AFTER unwraps, BEFORE separator insertion.** The byline-collapse regex needs the unwrappers to have already run so it sees `Name\n@handle\n[date](url)`, not still-wrapped `[\n\nName\n\n](/handle)`. The card-separator (`---`) insertion needs the byline already collapsed so it can anchor on the bold-name-then-handle shape. *Symptom of violation:* either no separators inserted, or separators inserted before raw unwrapped text (x.com, third iteration before reordering).
-5. **Image localization is the LAST step before §2 frontmatter assembly.** Earlier pipeline stages can still rewrite image URLs (relative-resolve, click-to-enlarge unwrap, embedded photo unwrap, referer-protected re-fetch). Localize once, at the boundary, so `processImages` sees the final URL set. *Symptom of violation:* `![](https://...)` remote URLs surviving to final output (caught by the §1 `remote_imgs` block-ship gate).
-
-#### 5e.iv. First-pass eye-read checklist
-
-For every new host, scan the first generated sample for these defects before showing it to the user. Each item is something an existing host previously shipped wrong.
-
-| Where to look | What to scan for |
-|---|---|
-| **Top 30 lines** | Nav bar bleed, language-picker chrome, "Skip to content" links, breadcrumbs, share-button rows, **duplicate H1** from page-title block, frontmatter `> 原文链接:` present and on its own line |
-| **Tail 30 lines** | Subscribe footer, related-posts list, tag chain, author bio card, "More from this author", trending sidebar, copyright/year, social-share row, comment-count line |
-| **One mid-document section** | **Multi-line link wrappers** (`[\n\n![](*)\n\n*\n\n](url)`) — these render but read as broken markdown; **paragraph-spaced bylines** (3+ blank-line gaps where one would render right); **bare relative URLs** (`](/path)` instead of `](https://host/path)`); orphan `**Label:**` lead-ins after a removed cell-run |
-| **Code / tables / images** | Every code block fenced with a language tag (not `<table>`-rendered — Hexo `figure.highlight` defect); table cells flattened (no `<div>` / `<h*>` / `<br>` inside `td`); every `![](*)` resolves to a local file in `<slug>-images/`; title attributes preserved on rewritten refs |
-| **Math / footnotes / currency** | `$NNN` not auto-italicized as math (escape to `\$NNN`); `\[1]` footnote refs unescaped to `[1]`; KaTeX triplets collapsed (HF blog: V1+V3 suffix-match); single-`_{...}` per formula (multi-subscript breaks lark-cli) |
-| **Heading hierarchy** | Exactly one `# ` H1 (frontmatter title); no empty `## ` lines; no Chinese ordinal headings (`## 一、` → `## 1`); H2/H3 numbering consistent across siblings |
-| **Whitespace** | No `\n{3,}` runs; no triple-newline around spliced blocks; no orphan blank lines around removed chrome; standalone images on their own lines |
-| **Conversation hosts only** | Each speaker has a single byline line, NOT 3 paragraphs; `---` (or equivalent) separator visible between speakers; relative date links resolved to absolute |
-
-If the sample fails any item: fix the cleanup, regenerate, scan again. Don't show the user a sample with known defects — every iteration has context cost. The checklist exists so the cost is paid once, by you, before the user sees it.
-
-#### 5e.v. Where cleaner data may hide (source-of-truth detection)
-
-For a new host, check these alternatives in order before settling for plain rendered-HTML extraction. Listed by frequency of yielding cleaner data on the verified hosts:
-
-1. **REST / GraphQL API** of the host returning structured JSON we can convert ourselves. *Used by:* github (issue/PR/discussion/release APIs).
-2. **Raw markdown mirror** in a public repo or CDN. *Used by:* huggingface blog (mirrored at `github.com/huggingface/blog`); github file/repo content via `raw.githubusercontent.com`.
-3. **Inline hydration JSON** in `<script>` tags. Next.js / React SPAs often ship the page state as `self.__next_f.push([...])` or `__NEXT_DATA__`. *Used by:* deepwiki.com (mermaid sources live in hydration).
-4. **DOM attribute data** for embedded widgets. *Used by:* wiki.litenext.digital deepwiki (`.mermaid[data-original-text]`).
-5. **Linked downloads** (CSV, JSON, PDF). *Used by:* epoch.ai (`<a href="*.csv">` for the actual dataset).
-6. **`<meta>` tags** for shape and metadata hints — `og:type`, `og:url`, `article:author`, `article:published_time`. Always cheap to read; useful for shape classification (5e.i).
-7. **`<head>` `<title>`** as last-resort title fallback when body extraction misses the title.
-
-If any of these returns cleaner data than the rendered HTML, the site module's fetcher should use *that* source. The site module owns the conversion either way — what changes is just which input it reads from.
+Content-shape taxonomy, universal chrome categories, cleanup ordering invariants, first-pass eye-read checklist, and source-of-truth detection heuristics — all live in [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) §7. Read it before writing a new site module; the catalogues classify the host shape, scan for chrome categories, and plan cleanup ordering so you converge on the right recipe instead of starting from blank.
 
 ## 6. Regression set
 
@@ -543,60 +344,16 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
 
 ## 8. Code pointers
 
-- **`tools/fetch-raw.ts`** — library: single dispatch point + raw-archive layout:
-  - `AUTO_SKIP_RULES` — URL refuse-list (currently HF Spaces, L2 skip)
-  - `HOST_MIN_BODY_SIZES` — per-host+URL-path size bands
-  - `classifyQuality` — flag assembly; consumes `intentional-stub`
-  - `fetchUrlAndStore` — calls `routeSite(url).fetch()`, runs image processing + post-cleanup, writes raw archive. Exactly one site-module call.
-  - status helpers: `parseFetchDecisions`, `listRawSlugs`, `buildStatusReport`, `buildSyncPlan`, `remediationFor`, `executeFetchPlanItem`, `printStatusReport`
-- **`tools/fetch-raw-handlers.ts`** — CLI handler library for the
-  raindrop fetch pipeline (`fetch`, `refetch`, `sync`, `verify`,
-  `status`, `store`, `fetch-lark`). Dispatched from
-  `tools/bin/hirono.ts`; imports from `tools/fetch-raw.ts`.
-- **`tools/bin/`** — CLI entry-point scripts (each starts with shebang):
-  - `hirono.ts` — single entry point. Subcommands:
-    - `raindrop {check, refresh-cache, new, fetch, refetch, sync, verify,`
-      `status, history, diff, fetch-all, store, fetch-lark, export}`
-    - `doctor`
-  - `lint.ts`, `reindex.ts`, `preprocess.ts`, `sync.ts`, `reconcile_light.ts`, `reconcile_heavy.ts`, `ingest_batch.ts`, `build-sources-index.ts`, `build-mention-map.ts`, `find-dupes.ts`, `sweep-issues.ts`
-- **`tools/sites/`** — every host module:
-  - `<host>/index.ts` — `Site` contract export with `match(url)` + `fetch(url, opts)`
-  - `<host>/test-hooks.ts` — re-export from index.ts (factory does it for you)
-  - `<host>/converter.ts` — only for hosts with custom DOM logic (weixin, xhs, deepwiki, etc.); factory hosts inline this
-  - `xhs/browser-extract.ts` — xhs-specific opencli browser extractors (kept under `xhs/` so all xhs code lives in one dir)
-  - `index.ts` — `routeSite(url) → Site` (TOTAL — never null thanks to `_default`)
-  - `test-hooks-registry.ts` — central registry of every module's test hooks
-  - `_default/` — catch-all module, registered LAST
-  - `_shared/article-site-factory.ts` — `makeArticleSite({...})` for blog-shape hosts
-  - `_shared/article-converter.ts` — selector-driven JSDOM extractor
-  - `_shared/post-cleanup.ts` — `applyPostCleanups()` + 8 host-agnostic cosmetic cleanups
-  - `_shared/markdown-cleanups.ts` — bold-spacing walker + quad-asterisk collapse
-  - `_shared/generic-converter.ts` — JSDOM + turndown plumbing
-  - `_shared/types.ts` + `_shared/test-hooks-types.ts` — contracts
-  - `_shared/browser-eval-json.ts` — opencli eval-stdout JSON parser
-  - `_shared/browser-helpers.ts` — `sleepMs`, `closeBrowser`, `runOpencli`, `browserTimeoutMs`, `opencliDoctorOk` (used by every D-bucket module)
-- **`tools/shared/`** — infrastructure utilities (not site- or hirono-specific):
-  - `atomic-write.ts` — atomic file writes
-  - `browser-lock.ts` — machine-wide opencli concurrency lock
-- **`tools/hirono/`** — `hirono` CLI for raindrop-driven bulk fetching:
-  - `doctor.ts` — environment health check
-  - `adapter-paths.ts` — opencli `~/.opencli/clis/` symlink helpers (used only by doctor)
-  - `raindrop/` — `check`, `export`, `fetch-all`, `refresh-cache` subcommands
-- **`tools/opencli/`** — in-repo home of project-local opencli adapters:
-  - `clis/<site>/<name>.js` — adapter source (git-tracked); empty until a site needs one
-  - `sites/<site>/` — accumulated recon notes per site
-  - `install-symlinks.sh` — idempotent bootstrap that links into `~/.opencli/clis/`
-  - `host-counts.json` — graduation watchdog snapshot
-- **`tools/__tests__/`**:
-  - `coverage-gate.test.ts` — every registered site module must have ≥1 fixture + ≥1 snapshot
-  - `per-host-snapshot.test.ts` — per-host snapshot regression suite (sidecar match + hard-rule defects + image-ref existence)
-  - `converter-fixtures.test.ts` — byte-equal regression test for converters (frozen input → frozen `expected.md`)
-  - `post-process-fixtures.test.ts` — fixture pairs for each cross-cutting cleanup
-  - `structural-rules.ts` — defect-shape validators (no-quad-asterisk-runs, no-multi-line-link-wrappers, etc.)
-  - `approve.ts` — unified capture command (fetch → eye-read → diff → fixture + snapshot)
-  - `capture-fixtures.ts`, `snapshot-create.ts`, `snapshot-helpers.ts` — capture primitives
-  - `snapshots/<host>/<slug>.{md,invariants.json}` + `<slug>-images/` — per-host snapshots
-  - `fixtures/converters/<host>/<name>.{input.json,expected.md,expected.json}` — frozen converter fixtures
+Top-level entry points; click through to [`docs/code-map.md`](docs/code-map.md) for the per-file / per-export breakdown.
+
+- **`tools/fetch-raw.ts`** — library: single dispatch point + raw-archive layout (`AUTO_SKIP_RULES`, `HOST_MIN_BODY_SIZES`, `classifyQuality`, `fetchUrlAndStore`, `downloadImage`, status helpers).
+- **`tools/fetch-raw-handlers.ts`** — CLI handler library for the raindrop fetch pipeline. Dispatched from `tools/bin/hirono.ts`.
+- **`tools/bin/`** — CLI entry-point scripts: `hirono.ts` (single entry with `raindrop {…}` + `doctor`), `lint.ts`, `reindex.ts`, `preprocess.ts`, `sync.ts`, `ingest_batch.ts`, `build-sources-index.ts`, etc.
+- **`tools/sites/`** — every host module (`<host>/index.ts` + `test-hooks.ts` + optional `converter.ts`). `_default/` is registered LAST as the catch-all. `_shared/` holds the article-site factory + post-cleanup pipeline + types.
+- **`tools/shared/`** — infrastructure utilities: `atomic-write.ts`, `browser-lock.ts`.
+- **`tools/hirono/`** — `hirono` CLI for raindrop-driven bulk fetching: `doctor.ts`, `raindrop/{check,export,fetch-all,refresh-cache}.ts`.
+- **`tools/opencli/`** — in-repo home of project-local opencli adapters (`clis/<site>/`, `host-counts.json` graduation snapshot).
+- **`tools/__tests__/`** — coverage gate, per-host snapshots, converter fixtures, post-process fixtures, structural rules, `approve.ts` capture command. See `docs/code-map.md` for the per-file purpose.
 
 ## Auto-capturing learnings (no reminder needed)
 
