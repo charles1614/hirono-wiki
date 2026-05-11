@@ -2,13 +2,13 @@
 created: 2026-05-11T00:00:00.000Z
 updated: '2026-05-11'
 type: entity
-refs: 2
-tier: seen
+refs: 3
+tier: active
 ---
 
-# Hopper
+# TensorRT-LLM
 
-NVIDIA's 2022 GPU architecture; H100/H200/H800/GH200; introduced WGMMA, TMA, FP8.
+NVIDIA's LLM-specific inference engine; built on TensorRT; competitor to vLLM/SGLang in NVIDIA-stack serving.
 
 ## Synthesis
 
