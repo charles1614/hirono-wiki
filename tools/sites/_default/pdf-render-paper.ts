@@ -59,6 +59,13 @@ export interface PaperOpts {
 /** Filenames the `pdfimages` path owns. */
 const PDFIMAGES_FILE_PATTERN = /^fig-\d{3}-\d+\.(png|jpg|jpeg|tiff|gif|webp)$/i;
 
+/**
+ * Filename pattern owned by the Marker extractor path. Swept when
+ * running pdfimages so an extractor downgrade (Marker → pdftotext)
+ * doesn't leave orphan `marker-page-*` files behind.
+ */
+const MARKER_FILE_PATTERN = /^marker-page-\d+-\d+\.(png|jpe?g|webp)$/i;
+
 interface BodyExtraction {
   body: string;
   /** Marker-emitted image filenames (relative to figuresDir). Empty for pdftotext. */
@@ -223,7 +230,11 @@ function extractPdfimagesFigures(
   pdfPath: string,
   figuresDir: string,
 ): PdfimagesFigure[] {
+  // Sweep both this path's pattern (prior pdftotext run) and Marker's
+  // pattern (prior Marker run). Without the second sweep, an extractor
+  // downgrade (Marker → pdftotext) leaves orphan `marker-page-*` files.
   cleanFilesMatching(figuresDir, PDFIMAGES_FILE_PATTERN);
+  cleanFilesMatching(figuresDir, MARKER_FILE_PATTERN);
   if (!existsSync(figuresDir)) mkdirSync(figuresDir, { recursive: true });
 
   try {

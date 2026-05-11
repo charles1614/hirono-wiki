@@ -63,6 +63,14 @@ const FAIL = (reason: string): MarkerExtractResult => ({
 /** Filename pattern this module owns. Used to clean stale files on refetch. */
 const MARKER_FILE_PATTERN = /^marker-page-\d+-\d+\.(png|jpe?g|webp)$/i;
 
+/**
+ * Filename pattern owned by the pdftotext+pdfimages extractor path. We
+ * sweep these too when staging Marker output, otherwise a slug whose
+ * previous fetch used pdftotext leaves orphan `fig-*` files behind
+ * when the operator opts into Marker.
+ */
+const PDFIMAGES_FILE_PATTERN = /^fig-\d{3}-\d+\.(png|jpe?g|webp|tiff|gif)$/i;
+
 /** Filename pattern Marker emits. We rename to MARKER_FILE_PATTERN. */
 const MARKER_OUTPUT_PATTERN = /^_page_(\d+)_(?:Figure|Picture)_(\d+)\.(png|jpe?g|webp)$/i;
 
@@ -169,7 +177,12 @@ function stageMarkerImages(
   markerOutDir: string,
   figuresDir: string,
 ): Map<string, string> {
+  // Clean both Marker's own pattern (prior Marker run) and the
+  // pdftotext+pdfimages pattern (prior non-Marker run). Without the
+  // second sweep, switching extractor mode mid-corpus leaves orphan
+  // `fig-*` files referenced nowhere in content.md.
   cleanFilesMatching(figuresDir, MARKER_FILE_PATTERN);
+  cleanFilesMatching(figuresDir, PDFIMAGES_FILE_PATTERN);
   if (!existsSync(figuresDir)) mkdirSync(figuresDir, { recursive: true });
 
   const renamed = new Map<string, string>();
