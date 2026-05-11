@@ -16,6 +16,7 @@ Match your intent to the canonical doc; don't re-derive what's already written d
 | Pending punch-list after the most recent bulk fetch | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
 | Wiki page conventions (frontmatter, page types, tier rules — the governance layer for `Sources/`, `Entities/`, `Topics/`) | [`Meta/schema.md`](Meta/schema.md) |
 | Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
+| External inspiration — Karpathy's "LLM Wiki" gist (the loose pattern this project rhymes with; not a binding spec) | [`Meta/references/karpathy-llm-wiki-gist.md`](Meta/references/karpathy-llm-wiki-gist.md) |
 | What this file (`CLAUDE.md`) covers | the section list immediately below — quality rules, fidelity check, output contract, formatting rules, fix recipes, regression set, code pointers |
 
 This file deliberately overlaps with the docs above on a few load-bearing topics (output contract, fidelity checks, fix recipes) — those are the rules that should fire on every commit, regardless of whether the operator opened the workflow / patterns docs first. When in doubt about a workflow or a per-site fix, defer to the dedicated doc.
