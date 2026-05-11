@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-11
 type: source
-raw_source: https://intuitionlabs.ai/articles/google-tpus-architecture-performance-gemini-3
+raw_source: https://intuitionlabs.ai/pdfs/google-tpus-explained-architecture-performance-for-gemini-3.pdf
 tags: [tpu, google, ironwood, gemini, hardware, ai-hardware-comparison, tpu-vs-gpu]
 ---
 

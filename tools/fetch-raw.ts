@@ -1519,11 +1519,21 @@ export function rebuildRawIndex(
     const bm = link ? byUrl.get(link) : undefined;
     // Derive the 3-state field. See `SlugState` JSDoc + Meta/
     // corpus-pipeline.md for the state machine.
+    //
+    // Precedence: "ingested" wins over "not-yet-good" — once a Source
+    // page references this URL, the wiki layer (the persistent
+    // compounding artifact) treats the slug as ingested. A later
+    // refetch that flags the raw archive (e.g. one image fails to
+    // download) doesn't regress the wiki state — the operator may
+    // want to re-ingest after a refetch, but until they do, ingested
+    // is the load-bearing state. Reflects Karpathy's "wiki is the
+    // canonical artifact" — quality of the raw matters less than
+    // whether the wiki has consumed it.
     let state: SlugState;
-    if (info.quality_status !== "good") {
-      state = "not-yet-good";
-    } else if (link && ingestedUrls.has(normalizeUrl(link))) {
+    if (link && ingestedUrls.has(normalizeUrl(link))) {
       state = "ingested";
+    } else if (info.quality_status !== "good") {
+      state = "not-yet-good";
     } else {
       state = "ingest-ready";
     }

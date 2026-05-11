@@ -1,56 +1,242 @@
-# HIRONO WIKI (canonical)
+# HIRONO WIKI
 
-Personal LLM-maintained wiki inspired by [Karpathy's method](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), adapted to a Lark + Raindrop stack.
+Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), adapted to a Raindrop + Lark + TypeScript stack. The repo is the **canonical source of truth**; everything else (Raindrop bookmarks, fetched raw archives, Lark Space 2 projection) is read or projected from it.
 
-## Architecture
+## What this repo holds
 
 ```
-Raw sources         →  this repo (canonical)  →  Lark Space 2 (projection)
-  Raindrop              plain .md + git            read-only mobile view
-  Lark Space 1          ↑ source of truth          auto-backlinks + graph
+.
+├── README.md                    ← you are here
+├── CLAUDE.md                    ← rules + recipes for the LLM agent
+│
+├── Sources/                     ← THE WIKI: one summary per ingested source
+│   └── YYYY/
+│       └── YYYY-MM-DD-<slug>.md
+│
+├── Entities/                    ← people / projects / products / models
+│   ├── <Name>.md                  active tier (≥3 incoming refs)
+│   └── _seen/<Name>.md            seen tier (1–2 refs; auto-promoted at 3)
+│
+├── Topics/                      ← synthesis pages across multiple sources
+│   └── <Topic Name>.md
+│
+├── Meta/                        ← governance + catalog (NOT content)
+│   ├── schema.md                  page conventions (frontmatter, structure)
+│   ├── corpus-pipeline.md         the 3-state state machine
+│   ├── operator-workflows.md      command runbooks
+│   ├── site-handling-patterns.md  per-host fetcher debugging
+│   ├── post-fetch-todo.md         bulk-fetch punch list
+│   ├── linting-notes.md           drift / contradictions / cleanup
+│   ├── log-2026.md                append-only history of ingests / queries
+│   ├── index.md  +  index-*.md    auto-regenerated catalogs
+│   ├── fetch-decisions.md         human-authored "accept this stub as-is"
+│   ├── sources-health-overrides.md
+│   ├── references/                external inspiration docs (Karpathy gist)
+│   └── _archive/                  retired meta-docs
+│
+├── raw/raindrop/<host>/<slug>/  ← RAW ARCHIVE (gitignored, immutable)
+│   ├── content.md                 fetched markdown (the source of truth body)
+│   ├── source.json                fetch metadata + quality_flags
+│   ├── revisions.jsonl            append-only audit trail of refetches
+│   ├── <slug>-images/             per-page PNG renderings (for PDFs)
+│   ├── <slug>.pdf                 preserved binary (for PDF sources)
+│   └── <slug>-img-*.{png,jpg,…}   localized images (web sources)
+│
+├── tools/                       ← TypeScript pipeline + helpers
+│   ├── bin/
+│   │   ├── hirono.ts              canonical CLI entrypoint
+│   │   ├── reindex.ts             rebuild Meta/index*.md + ref counts
+│   │   ├── lint.ts                schema + dead-link checks
+│   │   ├── build-sources-index.ts URL → slug map (.wiki-sources-index.json)
+│   │   ├── ingest_batch.ts        batch-driven ingest workflow
+│   │   ├── preprocess.ts          markdown → Lark-ready
+│   │   └── sync.ts                upload to Lark Space 2 projection
+│   ├── sites/<host>/              per-host fetcher modules
+│   │   ├── index.ts                 Site contract (match + fetch)
+│   │   ├── converter.ts             custom DOM logic (optional)
+│   │   ├── _shared/                 article-site factory + post-cleanup
+│   │   └── _default/                catch-all module (registered last)
+│   ├── fetch-raw.ts               central pipeline library
+│   ├── fetch-raw-handlers.ts      CLI handlers for hirono raindrop
+│   ├── hirono/                    raindrop / doctor subcommand impls
+│   ├── shared/                    infra utils (atomic-write, browser-lock)
+│   └── __tests__/                 1095+ unit tests + per-host snapshots
+│
+├── docs/                        ← architecture deep-dives
+│   └── fetcher-architecture.md
+│
+├── .wiki-raindrop-cache.json    ← gitignored: Raindrop API snapshot
+└── .wiki-sources-index.json     ← gitignored: URL → ingested-slug map
 ```
 
-This repo is the source of truth. Lark Space 2 "HIRONO WIKI" is a one-way projection rebuilt from this repo. Raindrop bookmarks and Lark Space 1 "Hirono Raw" are raw sources — read, never written.
+## How the data flows
 
-## Layout
+```
+   Raindrop bookmarks            Lark Space 1 "Hirono Raw"
+   (562 today, source of truth        (curated knowledge nodes)
+    for "URLs I care about")                  │
+            │                                 │
+            │ hirono raindrop refresh-cache   │ lark-hirono fetch
+            ▼                                 ▼
+   ┌──────────────────────────────────────────────────┐
+   │  .wiki-raindrop-cache.json                       │
+   │  (local snapshot of the bookmark corpus)         │
+   └──────────────┬───────────────────────────────────┘
+                  │ hirono raindrop fetch-all  (new bookmarks → fetch)
+                  │ hirono raindrop sync       (existing → maybe refetch)
+                  │ hirono raindrop refetch    (one-shot, --force OK)
+                  ▼
+   ┌──────────────────────────────────────────────────┐
+   │  raw/raindrop/<host>/<slug>/                     │
+   │    ├── content.md  ── source.json                │
+   │    ├── revisions.jsonl  (audit trail)            │
+   │    └── images / PDFs                             │
+   └──────────────┬───────────────────────────────────┘
+                  │ rebuildRawIndex (auto on every write)
+                  ▼
+   ┌──────────────────────────────────────────────────┐
+   │  raw/raindrop/_index.json                        │
+   │    each slug's state =                           │
+   │      "not-yet-good"  │  "ingest-ready"  │ "ingested" │
+   └──────────────┬───────────────────────────────────┘
+                  │
+        ┌─────────┴───────────┬──────────────────────────┐
+        ▼                     ▼                          ▼
+   not-yet-good          ingest-ready                ingested
+   (extraction has       (clean raw, no              (Sources/.../<slug>.md
+    problems; debug       Sources/ summary            exists; frozen-slug
+    loop driven by        yet — LLM ingest            guard protects from
+    failure_kind)         queue)                      accidental refetch)
+        │                     │
+        │ (refetch)           │ (LLM reads content.md → writes Sources/...)
+        ▼                     ▼
+   ┌──────────────────────────────────────────────────┐
+   │  Sources/YYYY/<slug>.md   (the wiki layer)       │
+   │      TL;DR + Key claims + Visual obs +           │
+   │      Entities touched + Topics touched           │
+   └──────────────┬───────────────────────────────────┘
+                  │ tools/bin/reindex.ts
+                  ▼
+   ┌──────────────────────────────────────────────────┐
+   │  Entities/   Topics/   Meta/index*.md            │
+   │      (compounding artifact:                      │
+   │       refs counted, tier promotions, source      │
+   │       counts, indexes regenerated)               │
+   └──────────────┬───────────────────────────────────┘
+                  │ tools/bin/sync.ts upload-*
+                  ▼
+   ┌──────────────────────────────────────────────────┐
+   │  Lark Space 2 "HIRONO WIKI"  (read-only mobile)  │
+   │  one-way projection; NEVER edit there            │
+   └──────────────────────────────────────────────────┘
+```
 
-- `Meta/` — schema, index, log, linting notes (governance + catalog)
-- `Sources/YYYY/` — one doc per ingested source, year-partitioned
-- `Entities/` — people, projects, papers, products (≥3 refs); `Entities/_seen/` holds 1–2-ref stubs
-- `Topics/` — synthesis pages that weave across sources
-- `tools/` — ingest / preprocess / sync / reconcile (TypeScript)
+## The 3-state model in one paragraph
 
-## Read this first
+Every URL in the corpus is in **exactly one** of three states, derived from `raw/raindrop/_index.json`:
 
-- Conventions: [Meta/schema.md](Meta/schema.md)
-- Catalog overview: [Meta/index.md](Meta/index.md)
-- Current-year log: [Meta/log-2026.md](Meta/log-2026.md)
+- **`not-yet-good`** — raw extraction has problems (auth-walled, paywalled, SPA empty, content too short). Cannot be ingested as-is. Resolved via the debug loop in `Meta/site-handling-patterns.md` or by accepting the stub as-is in `Meta/fetch-decisions.md`.
+- **`ingest-ready`** — raw is clean (`quality_status = good`) but no `Sources/.../<slug>.md` exists yet. The LLM ingest queue.
+- **`ingested`** — Source page exists in `Sources/YYYY/`. The slug is now part of the wiki's compounding graph. **Frozen-slug guard** prevents accidental refetch.
 
-## Writing
-
-The **LLM writes**. You chat with Claude and it edits files here. Direct local edits work too — it's plain markdown. Use Obsidian, VS Code, or anything.
-
-**Do not edit in Lark Space 2.** That's the projection; any manual Lark edits are overwritten on next sync. Edit here, or chat with Claude, or run `tools/ingest.ts` for new sources.
-
-## Sync to Lark
+Bulk view:
 
 ```bash
-cd tools
-npx tsx sync.ts upload <path>             # one doc
-npx tsx sync.ts upload-changed            # everything changed since last sync
-npx tsx reconcile_light.ts                # cheap drift check (flag-only)
-npx tsx reconcile_heavy.ts --dry-run      # full payload diff, no changes
+jq '[.slugs | to_entries | .[] | .value.state] | group_by(.) | map({state: .[0], n: length})' raw/raindrop/_index.json
+# → e.g. [{state: "ingested", n: 16}, {state: "ingest-ready", n: 348}, {state: "not-yet-good", n: 198}]
 ```
 
-## Raw sources (read-only)
+Full design + per-scenario runbooks: [`Meta/corpus-pipeline.md`](Meta/corpus-pipeline.md).
 
-- **Raindrop** bookmarks via Raindrop MCP (579 bookmarks; 41 highlighted)
-- **Lark Space 1 "Hirono Raw"** — `space_id 7620053427331681234` — read via `lark-wiki` + `lark-doc` skills
+## Where to look — by intent
+
+| What I want to do | Read this |
+|---|---|
+| Understand the corpus state machine end-to-end | [`Meta/corpus-pipeline.md`](Meta/corpus-pipeline.md) |
+| Run / understand operator commands | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) |
+| Debug a sub-good site, add a new host adapter, look up a defect pattern | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) |
+| Understand the fetcher architecture | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
+| Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
+| Wiki page conventions (frontmatter, page types, tier rules, image rules) | [`Meta/schema.md`](Meta/schema.md) |
+| Pending punch-list after the most recent bulk fetch | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
+| Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
+| Quality rules + fix recipes (what fires on every commit) | [`CLAUDE.md`](CLAUDE.md) |
+| Karpathy's original LLM-wiki gist (inspiration, not binding) | [`Meta/references/karpathy-llm-wiki-gist.md`](Meta/references/karpathy-llm-wiki-gist.md) |
+
+## The four content buckets (which folder = which page type)
+
+This is the question that confuses newcomers most. Every `.md` file in this repo belongs to exactly one of these buckets, and the bucket determines the rules:
+
+| Bucket | Path | `type:` frontmatter | What lives here | Who writes it |
+|---|---|---|---|---|
+| **Sources** | `Sources/YYYY/` | `source` | One file per **ingested source** (a Raindrop URL, a Lark wiki node, a paper). Summary in the §schema template shape: TL;DR + Key claims + Visual observations + Entities/Topics touched + Open questions. | LLM, reading raw `content.md` |
+| **Entities** | `Entities/<Name>.md` (active) or `Entities/_seen/<Name>.md` (seen) | `entity` | One file per **distinct thing the corpus references** — a person, project, model, framework, paper, hardware. Has an Observations log (append-only, each bullet cited to a Source) and a Synthesis section (regenerated from Observations). Auto-tier-promoted from `_seen` → active at **≥3 incoming refs**. | LLM ingest pass + reindex (refs / tier auto-maintained) |
+| **Topics** | `Topics/<Topic Name>.md` | `topic` | One file per **synthesis or cross-cutting theme** — "Inference Disaggregation", "Kernel Authoring Languages", "MoE Serving". Filed either from a query (`query \| <question>`) or noticed as a recurring cluster during ingest. Has `source_count` tracking how many Sources cite it. | LLM, on query OR during ingest when a Source touches a theme |
+| **Meta** | `Meta/*.md` (+ `Meta/_archive/`, `Meta/references/`) | `meta` | **Governance + catalogs + logs** — schema, indexes (auto-regen), the year's log, linting notes, the pipeline docs. Not content; it's *how the rest is organized*. | Human + LLM, append-only for logs |
+
+**Quick litmus test**:
+- "This describes a source I read." → **Sources/**
+- "This describes a single named thing the corpus talks about." → **Entities/**
+- "This is a synthesis across multiple sources, or an answer to a question." → **Topics/**
+- "This is rules, indexes, history, or tooling docs." → **Meta/**
+
+## Current state (regenerated by `tools/bin/reindex.ts`)
+
+```
+Sources:          16
+Entities active:  15      (≥3 refs)
+Entities seen:    78      (1-2 refs)
+Topics:           22
+Total wiki pages: 131
+
+raw/raindrop/_index.json:
+  ingested:       16
+  ingest-ready:   348
+  not-yet-good:   198
+  ────────────────────
+  total slugs:    562   (one per Raindrop bookmark)
+```
+
+## Quickstart for an operator
+
+```bash
+# 1. Refresh bookmark cache from Raindrop API
+npx tsx tools/bin/hirono.ts raindrop refresh-cache
+
+# 2. Fetch new bookmarks (skips already-good slugs)
+npx tsx tools/bin/hirono.ts raindrop fetch-all
+
+# 3. See what needs attention
+npx tsx tools/bin/hirono.ts raindrop status
+
+# 4. Retry the flagged ones after fixing a site adapter
+HIRONO_BROWSER_OPEN_TIMEOUT_MS=90000 \
+  npx tsx tools/bin/hirono.ts raindrop fetch-all --retry-flagged
+
+# 5. After ingest (LLM writes new Sources/ pages):
+npx tsx tools/bin/reindex.ts            # refs + tier promotions + indexes
+npx tsx tools/bin/lint.ts               # schema + dead-link checks
+npx tsx tools/bin/build-sources-index.ts # URL → slug map (for state-derivation)
+
+# 6. Project to Lark Space 2 (read-only mobile view)
+cd tools && npx tsx sync.ts upload-changed
+```
+
+## The "LLM writes, you curate" rule
+
+You **chat with the LLM** and it edits files here. Direct local edits work too — it's plain markdown.
+
+**Don't edit in Lark Space 2.** That's the read-only projection. Edit here, or chat with the agent, or run the ingest pipeline for new sources.
+
+## Raw sources (read-only, never modified)
+
+- **Raindrop**: 562 bookmarks via Raindrop MCP. Cache at `.wiki-raindrop-cache.json`.
+- **Lark Space 1 "Hirono Raw"**: `space_id 7620053427331681234` — read via `lark-hirono` skill.
 
 ## Projection target
 
-- **Lark Space 2 "HIRONO WIKI"** — `space_id 7630375570303372466`
+- **Lark Space 2 "HIRONO WIKI"**: `space_id 7630375570303372466` — one-way mirror; reset by full re-upload.
 
 ---
 
-Plan: `~/.claude/plans/it-s-an-guide-that-vivid-pebble.md`
+If anything in this README is wrong, the canonical answer lives in the file linked from "Where to look — by intent." This is the table of contents, not the authoritative spec.

@@ -1139,6 +1139,46 @@ test("rebuildRawIndex: state field is 'ingested' when URL is in sources index", 
   } finally { t.cleanup(); }
 });
 
+test("rebuildRawIndex: 'ingested' wins over 'not-yet-good' when slug is in sources index AND raw is flagged", () => {
+  // Edge case: a slug is ingested into the wiki layer (Sources/.../<slug>.md
+  // exists, URL is in the sources-index), then later a refetch flags the raw
+  // archive (e.g. one image fails to download). The wiki layer is still the
+  // canonical artifact; quality regressions on the raw side after-the-fact
+  // don't reset the slug to not-yet-good. Operator may choose to re-ingest
+  // (or not) but until they do, the state is 'ingested'. Surfaced concretely
+  // by the blog.google Ironwood slug after the srcset-fix refetch flagged
+  // one image-download as partial.
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-ingested-but-flagged", "2026", {
+      origin: "url:https://example.com/ingested-flagged",
+      origin_url: "https://example.com/ingested-flagged",
+      fetcher: "opencli", fetcher_reason: "direct", content_sha: "a",
+      content_length: 5000,
+      // raw is flagged (image-download-partial-style scenario)
+      quality_flags: ["image-download-partial"],
+      quality_status: "flagged",
+      images: [], notes: [],
+    });
+    const sourcesIndexPath = join(t.root, "sources.json");
+    // Sources/<slug>.md exists (URL in index)
+    writeFileSync(sourcesIndexPath, JSON.stringify({
+      "https://example.com/ingested-flagged": {
+        slug: "2026-04-01-ingested-but-flagged",
+        repo_path: "Sources/2026/2026-04-01-ingested-but-flagged.md",
+        raw_source: "https://example.com/ingested-flagged",
+        ingested_at: "2026-04-01",
+      },
+    }));
+    const index = rebuildRawIndex(t.root, join(t.root, "no-cache.json"), sourcesIndexPath);
+    assert.equal(
+      index.slugs["2026-04-01-ingested-but-flagged"].state,
+      "ingested",
+      "Ingested-with-flagged-raw should stay ingested — the wiki layer is the canonical artifact",
+    );
+  } finally { t.cleanup(); }
+});
+
 test("rebuildRawIndex: state field handles share-aggregator unwrap (P-32)", () => {
   // Slug stored under the unwrapped target; sources-index keyed by
   // the wrapper URL. The unwrap-aware widening in loadIngestedUrlSet
