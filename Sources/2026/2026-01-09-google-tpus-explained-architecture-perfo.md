@@ -52,6 +52,10 @@ IntuitionLabs technical report (Dec 19 2025, revised Apr 17 2026, 16 pp, 35-min 
   - ~30× the original v1 power efficiency.
   - **"Inference-first"** — designed for trillions of real-time queries (vs v6e's training-first orientation).
 
+## Visual observations
+
+*Source PDF has no load-bearing figures.* Marker extracted 14 tiny (138×38 px / 1.8 KB) JPEGs that are decorative — IntuitionLabs's logo/branding repeated per page, not actual figures. The report's substance lives entirely in the cross-generation Table 1 (TPU generations summary) and Table 2 (performance comparisons) — both transcribed into the Key Claims above. For the corresponding visual artifacts published by Google directly (FP8-perf bar chart, side-by-side TPU spec card, perf/W bar chart), see [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]].
+
 ## What this changes
 
 - **For the GPU vs TPU debate**: the report makes the strongest case yet for TPU's competitive position. Gemini 3 trained-and-served entirely on TPU is the existence proof. If the 1.2-1.7× perf at 53-77% power numbers hold at v7 scale, the TCO gap vs Nvidia widens.

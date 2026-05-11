@@ -21,6 +21,14 @@ vLLM PR #26811 (merged Oct 29 2025 by `simon-mo`) — exposes **per-KVConnector 
 - **The connector being exposed is NIXL** — vLLM's primary KV-transfer backend for PD-disaggregated serving. NIXL's metrics weren't visible to operator dashboards before this PR; PD-disagg deployments were operating with a blind spot on the data-plane.
 - **Branch**: `nixl-prometheus` → `main`. **Labels**: `ready`, `v1`, `kv-connector`. Falls under the v1 metrics path — important for forward compat as the v1 engine becomes the default.
 
+## Visual observations
+
+**Prometheus-Grafana KVConnector dashboard** (load-bearing — shows the concrete metric surface this PR exposes)
+
+![Grafana dashboard panel rendering the new KVConnector metrics exposed by the PR: NIXL transfer durations, sizes, counts — the operator-visible artifact this PR enables](../../raw/raindrop/github.com/2025-11-20-kvconnector-add-metrics-to-prometheus-gr/github-img-001.png)
+
+The concrete UX the PR delivers. Without this, "metrics in Prometheus" stays abstract; with it, the operator sees exactly what dashboards a PD-disaggregated vLLM cluster gains.
+
 ## What this changes
 
 - **For operators running PD-disaggregated vLLM**: KV-transfer observability is now in Prometheus by default. Long-tail KV-transfer latency becomes a first-class metric for SLO tracking. Pairs with [[2025-11-17-feature-sglang-tracing-fine-grained-trac]] (SGLang goes spans-first; vLLM goes metrics-first — same observability need, different shapes).

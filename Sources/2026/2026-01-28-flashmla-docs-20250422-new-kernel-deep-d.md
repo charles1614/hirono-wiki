@@ -56,7 +56,11 @@ DeepSeek-AI's deep-dive into the **new FlashMLA decoding kernel** (April 22 2025
 
 ## Visual observations
 
-- **MLA Kernel Schedule** (SVG diagram, load-bearing): the schedule diagram visualizes the 12-step seesaw schedule with the two warpgroups + memory accesses + TMA copies all laid out on a timeline. Anyone implementing this kernel needs this diagram open.
+**MLA Kernel Schedule — the seesaw 12-step timeline** (load-bearing — the algorithm IS this diagram)
+
+![FlashMLA kernel schedule: two warpgroups operating on alternating KV blocks K0/K1 with the vertically-split output O_L/O_R, TMA copies interleaved with WGMMA compute, full 12-step seesaw schedule visualized as a timeline](../../raw/raindrop/github.com/2026-01-28-flashmla-docs-20250422-new-kernel-deep-d/github-img-001.svg)
+
+The 12-step seesaw schedule from the Key Claims section, rendered on a real timeline showing where each warpgroup's compute lives, where TMA copies are launched, and how the output halves O_L/O_R rotate. Implementing this kernel without this diagram open is impractical — the textual algorithm describes *what* each step does but not the temporal interleaving that makes the CUDA-Core / Tensor-Core overlap work.
 
 ## What this changes
 

@@ -27,6 +27,16 @@ NVIDIA's CUDA 13.1 release post (Dec 4 2025) frames itself as **"the largest and
   - Compute Sanitizer 2025.4 — compile-time patching via `nvcc -fdevice-sanitize=memcheck`. Faster runs + more subtle memory errors caught (base-and-bounds analysis between adjacent allocations).
 - **CUDA programming guide rewritten** for both novice and advanced programmers. Significant signal that NVIDIA expects the audience to expand with Tile programming.
 
+## Visual observations
+
+**Nsight Compute 2025.4 Tile-kernel profiling output** (load-bearing for the developer tooling claim)
+
+![Nsight Compute graphical profiler output showing the new Tile Statistics section: Tile dimensions, utilization of important pipelines, mapping back to high-level cuTile kernel source — visualizes how CUDA Tile kernels are profiled differently from SIMT kernels](../../raw/raindrop/developer.nvidia.com/2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro/developer-nvidia-img-002.png)
+
+The concrete UX for Tile-kernel optimization. Without this, "Nsight supports Tile profiling" is abstract; with it, you see the new Tile Statistics section that authors will actually use.
+
+- **`developer-nvidia-img-001.webp` / `*-003.webp` / `*-004.webp` / `*-005.webp`** (supporting): decorative diagrams illustrating CUDA Tile concepts. The Nsight screenshot above carries the load-bearing content.
+
 ## What this changes
 
 - **For kernel authors**: a new abstraction level is now official. The "we can't keep writing per-arch kernels for every new GPU" pain is real (cf. [[2025-10-09-flux-fast-software-based-communication-o]] showing how much CUTLASS-level tuning takes per arch); cuTile is NVIDIA's answer.
