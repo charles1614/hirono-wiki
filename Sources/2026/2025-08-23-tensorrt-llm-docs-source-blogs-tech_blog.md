@@ -27,13 +27,7 @@ NVIDIA's official deployment guide for serving **gpt-oss-120b** on [[TensorRT-LL
 - **H200 quirk**: the OpenAI-shipped Triton MoE kernels are optimized for the H200 — the TRTLLM MoE backend is *not* supported on Hopper. So on H200 the only path is `backend: TRITON`. CUTLASS support on Hopper is "still ongoing." The NGC container already ships the Triton kernels.
 - **Container is canonical**: `nvcr.io/nvidia/tensorrt-llm/release:1.1.0rc1`. Multi-platform (x64 + arm64). Mounts `~/.cache` to avoid re-downloading model weights.
 - **trtllm-bench → trtllm-serve translation** is mechanical: benchmark commands map 1:1 to serve commands (same `--tp`, `--ep`, `--max_batch_size`, `--config`).
-
-## Troubleshooting essentials
-
-- OOM → reduce `--max_batch_size`, `--max_num_tokens`, or `--kv_cache_free_gpu_memory_fraction` (default in their example: 0.9).
-- Per-iteration debug → `print_iter_log: true` in extra-LLM-API YAML.
-- Container startup failure → check NVIDIA Container Toolkit install.
-- Port 8000 conflicts → standard `--port` override.
+- **Operator gotchas** the post calls out: OOM → reduce `--max_batch_size` / `--max_num_tokens` / `--kv_cache_free_gpu_memory_fraction` (default 0.9); per-iteration debug via `print_iter_log: true` in extra-LLM-API YAML; container startup failure → check NVIDIA Container Toolkit; port 8000 conflicts → `--port` override.
 
 ## What this changes
 
@@ -48,12 +42,6 @@ NVIDIA's official deployment guide for serving **gpt-oss-120b** on [[TensorRT-LL
 ## Topics touched
 
 [[LLM Inference Systems]], [[MoE Serving]], [[Accelerator Economics]]
-
-## Open questions
-
-- The "communication implementation for >4 GPUs is suboptimal" hint — what's the bottleneck (NVLink saturation? collectives bandwidth?), and what does the planned fix look like? Likely cross-references upcoming TRTLLM releases.
-- Stream interval = 10 as a detokenization-overhead workaround — is this a general continuous-batching problem (cf. SGLang's tracing work in [[2025-11-17-feature-sglang-tracing-fine-grained-trac]]) or specifically TensorRT-LLM's tokenizer path?
-- How do the gpt-oss-120b numbers scale to other MoE shapes (DeepSeek-V3, Mixtral 8×22B)? The config knobs are model-agnostic but the ceilings might not be.
 
 ## Raw source
 

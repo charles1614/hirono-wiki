@@ -63,7 +63,6 @@ This is the system-design crystallization: a disaggregated deployment that *can'
 - **Identifies the load-bearing system primitive**: dynamic rate matching. If your disagg system pins Ctx:Gen statically, you've baked in suboptimality across latency regimes. Future serving stacks (cf. [[2025-11-17-feature-sglang-tracing-fine-grained-trac]] tracing, [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] metrics) need rate-matcher visibility.
 - **Closes the "KV bandwidth bottleneck" hypothesis**: the math says modern datacenter bandwidth is sufficient. Stop using bandwidth as the excuse for not deploying disagg.
 - **CPP** as a named technique enters the toolkit — useful prior art for any inference-system design discussion involving long-context prefill.
-- **Pairs with**: [[2025-10-09-eagle-3-scalingupinference-acceleration-]] (speculation; orthogonal but composable axis), [[2025-10-09-flux-fast-software-based-communication-o]] (FLUX targets the comm-comp overlap that disagg exposes).
 
 ## Entities touched
 
@@ -72,13 +71,6 @@ This is the system-design crystallization: a disaggregated deployment that *can'
 ## Topics touched
 
 [[LLM Inference Systems]], [[Inference Disaggregation]], [[Pareto Frontier Optimization]], [[KV Cache Management]]
-
-## Open questions
-
-- The simulator is "proprietary, high-fidelity" — claims like "100k+ design points" hinge on its fidelity. What's its measured accuracy vs real deployment? The paper doesn't quantify simulator error bars.
-- All numbers are normalized — convenient for trends, but how do you translate "Pareto win of X" to dollars/W for capacity planning?
-- The MLA piggyback overhead mitigation (caching up-projected KV) — is this in any open-source serving stack yet (cf. [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]])?
-- Future work flags speculation + KV reuse + new attention as orthogonal axes. The interaction between disagg + speculation specifically is unexplored (EAGLE-3 is a decode-side technique; would EAGLE benefit relatively more in a disagg setting?).
 
 ## Raw source
 

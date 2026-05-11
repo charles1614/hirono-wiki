@@ -64,7 +64,6 @@ Concrete proof of the "FP8 LLM speedups are not the 2× peak rates suggest" clai
 - **For LLM-stack maintainers**: the TE-limitation findings (Softmax/GeLU not FP8, DotProductAttention bypasses FP8 TC) are practical — they explain why FP8 LLM speedups are not the headline 2× over FP16 that tensor-core peak rates would suggest.
 - **For Ampere → Hopper migration planning**: instruction-level cross-comparison clarifies which workloads actually benefit from Hopper. Pure FP16 compute: marginal. FP8 + lots of async copy: large.
 - **For workload designers**: DPX hardware exists; few LLM workloads use dynamic programming. But adjacent domains (speculative decoding tree search, sequence alignment in scientific computing) could leverage DPX.
-- **Pairs with**: [[2025-10-09-eagle-3-scalingupinference-acceleration-]] (uses TC FP8 in real prod stack), [[2025-10-09-flux-fast-software-based-communication-o]] (CUTLASS-based comm-overlap also targets H100 H800), [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] (CUDA 13.1 Tile programming model attempts to abstract away exactly the kind of arch-specific tuning this paper documents).
 
 ## Entities touched
 
@@ -73,14 +72,6 @@ Concrete proof of the "FP8 LLM speedups are not the 2× peak rates suggest" clai
 ## Topics touched
 
 [[GPU Microarchitecture]], [[Tensor Core Programming]], [[FP8 Computation]], [[GPU Performance Modeling]]
-
-## Open questions
-
-- The paper is from Feb 2024 (v1). FP8 LLM ecosystem has matured significantly since (TransformerEngine v1.x → v2.x, vLLM FP8, etc.) — do the TE limitations (Softmax/GeLU/Attention) still hold in 2025/2026 versions?
-- **Blackwell (B100/B200)** isn't covered (paper predates Blackwell release). The natural follow-up: re-run all microbenchmarks on Blackwell + FP4 + 5th-gen Tensor Cores.
-- DPX adoption — has anyone published a real LLM-adjacent use of DPX? Speculative-decoding tree pruning is a natural fit but not yet seen in OSS implementations.
-- The application-level LLaMA benchmark uses input=128 + output=128 + batch=8. **Realistic workloads have much longer contexts.** How do the relative FP8 vs FP16 gains scale with context length?
-- TMA + DSM interaction: do they compose well, or is using both simultaneously bandwidth-bottlenecked? Worth a follow-up.
 
 ## Raw source
 

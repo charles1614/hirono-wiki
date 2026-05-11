@@ -63,7 +63,6 @@ The inference recipe in one picture. Anyone implementing EAGLE-3 reads this.
 - **For training data**: the discovery that draft-model quality scales with data parallels the target-model story. Investing in EAGLE-3 training data (vs better target models) becomes a meaningful axis.
 - **For research**: removing constraints can unlock scaling laws. The HASS comparison is instructive — same attention-mask trick, different motivation, very different outcome. The principled-architecture lesson generalizes.
 - **For the EAGLE line**: this is the third major iteration; the trajectory is "remove constraint, gain scale." Likely there's an EAGLE-4 that pushes this further (multi-layer fusion is one degree of freedom; what's the next constraint to remove?).
-- **Pairs with**: [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] (orthogonal axis — disaggregation), [[2025-10-09-flux-fast-software-based-communication-o]] (orthogonal — comm-comp overlap).
 
 ## Entities touched
 
@@ -72,14 +71,6 @@ The inference recipe in one picture. Anyone implementing EAGLE-3 reads this.
 ## Topics touched
 
 [[Speculative Decoding]], [[LLM Inference Systems]], [[Scaling Laws]]
-
-## Open questions
-
-- The paper observes the scaling law on 8B-target. Does it hold at 70B+ as the draft-model capacity ceiling differs? The 70B numbers are good but the data-scaling curve isn't shown there.
-- "Larger data size would lead to further improved speedup ratio" — at what point does the scaling plateau? Other scaling laws (Chinchilla-style) have inflection points; what does the draft-model curve look like at 10× more data?
-- Multi-layer feature fusion as 3k→k FC is a specific choice. Why three layers (low/mid/high)? Would 5-layer fusion or learned-layer-selection do better? Architecturally simple but unexplored.
-- The "context-aware dynamic draft tree" from EAGLE-2 — how does its branching policy interact with training-time test? They claim "fully compatible" but the dynamics seem coupled.
-- DeepSeek-V3's multi-token prediction was inspired by EAGLE → EAGLE-3 was inspired by DeepSeek-V3's MTP. Is there an MTP-EAGLE-3 hybrid that's better than either?
 
 ## Raw source
 

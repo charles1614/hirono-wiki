@@ -47,7 +47,6 @@ Meta Reality Labs blog (Nov 22 2024) introducing [SPDL](https://github.com/faceb
 - **For training-infra teams**: Data loading is often the silent throughput killer at large GPU counts. SPDL gives a 2-3× lever even without FT Python. Worth evaluating against PyTorch DataLoader v1 + v2 for any GPU-utilization-bound training workload.
 - **For the Python ecosystem**: SPDL is a concrete validation that FT Python's performance gains are real for production ML workloads, not just a theoretical exercise. The 30% headroom suggests training stacks will move to FT Python ASAP once 3.13t stabilizes.
 - **For library authors**: SPDL's success rests on its component libraries releasing the GIL. This re-prioritizes "release the GIL in the C extension" as a critical Python-ecosystem competence. NumPy/PyTorch/Pillow etc. mostly do; less-mature libraries may need to follow.
-- **Pairs with**: [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]] (inference throughput tuning at GPU level — SPDL is the training-side analog at the data-pipeline level), [[2025-11-17-feature-sglang-tracing-fine-grained-trac]] (observability — SPDL's "per-stage measurability" principle is the same instinct).
 
 ## Entities touched
 
@@ -56,14 +55,6 @@ Meta Reality Labs blog (Nov 22 2024) introducing [SPDL](https://github.com/faceb
 ## Topics touched
 
 [[Data Loading]], [[LLM Training Systems]], [[GPU Utilization]], [[Python Concurrency]]
-
-## Open questions
-
-- Concrete benchmark setup: which dataset, which model, which GPU count? The 2-3× and +30% numbers are headline; the underlying workload would tell us how representative.
-- How does SPDL compare to **NVIDIA DALI** (the established alternative for high-throughput dataloading)? DALI is C++-based, GPU-side decoding; very different architecture but same goal.
-- SPDL's threading model + Free-Threaded Python on a contended CPU pool: any benchmarks showing thread-context-switch overhead at very high concurrency? Subprocess models avoid that via OS-scheduler isolation.
-- Failure-mode story: SPDL says "fault tolerant," but the post doesn't detail retry/backoff semantics. What's the production behavior on transient network failure (which is THE common failure mode at-scale)?
-- Adoption path inside Meta: is SPDL the default for new training pipelines now? Worth tracking the GitHub repo's adoption signals.
 
 ## Raw source
 

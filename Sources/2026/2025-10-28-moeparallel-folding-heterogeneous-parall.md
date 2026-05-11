@@ -54,7 +54,6 @@ The whole paper's contribution in one diagram. Without this, the "decouple atten
 - **For MoE pretraining at scale**: the load-bearing recipe ships in Megatron-Core. Teams training their own MoE foundation models can adopt this directly. The 49.3% MFU on Mixtral 8×22B is a meaningful baseline for "what's achievable."
 - **For framework design**: heterogeneous parallelism mappings between layer types is a generalizable principle. Vision-language, speech-language, MoD-MoE-mix architectures all have layer-type heterogeneity that could benefit from analogous folding.
 - **For pre-training infra teams**: the EP-degree ceiling (`≤ DP`) was a real-world constraint that limited MoE scaling. Removing it changes what TP/EP/DP allocations are feasible at 512+ GPUs.
-- **Pairs with**: [[2025-10-09-flux-fast-software-based-communication-o]] (comm-overlap; AlltoAll fusion is the natural next layer of optimization for the EP path), [[2025-12-14-geeeekexplorer-nano-vllm-nano-vllm]] (inference-side MoE serving, the inverse problem).
 
 ## Entities touched
 
@@ -63,14 +62,6 @@ The whole paper's contribution in one diagram. Without this, the "decouple atten
 ## Topics touched
 
 [[MoE Training]], [[Hybrid Parallelism]], [[Tensor Parallelism]], [[Expert Parallelism]], [[Context Parallelism]], [[Pipeline Parallelism]], [[LLM Training Systems]]
-
-## Open questions
-
-- The framework demonstrates 5-D parallelism. Could a 6th dim (sequence parallelism within attention TP, à la Megatron-SP) be folded similarly? The paper doesn't address SP explicitly.
-- Mixtral 8×22B at 49.3% MFU is a strong number. What's the ceiling on the same hardware with the same model? The gap-to-ceiling tells us where future engineering work has highest leverage.
-- The token dispatcher handles both dropping and dropless. Which is recommended for which scenario? The paper presents both as supported, doesn't compare quality vs throughput tradeoffs directly.
-- DeepSeek-MoE-style fine-grained MoE (256+ small experts, 8+ active) stresses the EP/AllToAll path more than Mixtral's 8 experts. Does Parallel Folding still extract similar gains at that fine-grain?
-- For 128K-context training: how does CP scaling interact with MoE Parallel Folding? CP only attaches to the attention side of the fold — implications for long-context MoE training are non-trivial.
 
 ## Raw source
 

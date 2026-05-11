@@ -36,7 +36,6 @@ Survey paper (James Pan + Guoliang Li, arXiv:2506.21901 v1, Jun 27 2025, 25pp) �
 - **As a reference**: when discussing a new inference technique, having a single citation that covers the landscape (rather than 30+ paper-by-paper refs) is invaluable. This survey takes that role for 2025.
 - **For practitioners building inference stacks**: the load-prediction / adaptive-mechanism / cost-reduction framing is a useful checklist for new techniques. Each existing technique can be classified into which primitives it leans on.
 - **For research direction**: the cs.DB framing nudges researchers to revisit classical DB techniques (cost-based query optimization, multi-version concurrency, semi-join reduction) for LLM inference contexts.
-- **Pairs with**: [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] (focused study of disaggregation, one of the architectures the survey covers), [[2025-11-17-feature-sglang-tracing-fine-grained-trac]] (observability for the systems the survey reviews), [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] (kernel-design instance of one of the survey's pillars).
 
 ## Entities touched
 
@@ -45,13 +44,6 @@ Survey paper (James Pan + Guoliang Li, arXiv:2506.21901 v1, Jun 27 2025, 25pp) �
 ## Topics touched
 
 [[LLM Inference Systems]], [[Inference Disaggregation]], [[KV Cache Management]], [[Quantization]], [[Serverless LLM Serving]], [[Database Systems × ML Systems]]
-
-## Open questions
-
-- **PDF not fetched** — the abstract alone gives the skeleton; the full survey would let us cite specific frameworks vs primitives. **Worth re-fetching with the `/pdf/` URL** to extract the per-system feature comparison tables (which exist somewhere in 25 pages).
-- The survey is from Jun 2025. Active inference work in late 2025 / early 2026 (Marker-quality PDF extraction era) has shipped major changes — speculative decoding at production scale ([[2025-10-09-eagle-3-scalingupinference-acceleration-]]), FP4 inference (NVFP4 lineage), MLA optimizations ([[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]). A 2026 follow-up survey would be valuable.
-- **Authors' database background** (Guoliang Li is well-known in DB research): how heavily does the survey lean on DB techniques? Useful to know for someone deciding whether to study it.
-- **Single-replica → multi-replica → disaggregated → serverless** ordering — the survey treats serverless as the most-composed form. Is that the right framing, or is serverless orthogonal (any of the prior three could be serverlessified)?
 
 ## Raw source
 

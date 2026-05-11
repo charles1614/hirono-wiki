@@ -77,14 +77,6 @@ The 12-step seesaw schedule from the Key Claims section, rendered on a real time
 
 [[Attention Kernels]], [[GPU Kernel Scheduling]], [[Decoding Optimization]], [[MoE Serving]]
 
-## Open questions
-
-- **Why does DeepSeek not TP decode?** The post asserts it as fact without justification. Decode-side TP is a common optimization for KV-bandwidth-bound workloads. There's an architectural / serving-economics reason here worth understanding.
-- **80% Tensor-Core utilization** — what's eating the other 20%? More TMA pipelining? Better register allocation? The 100% ceiling would mean ~865 TFlops achievable; they reach 660.
-- The "seesaw" pattern is well-suited to two-warpgroup designs. **Does it generalize to four warpgroups** on next-gen GPUs (Blackwell SM has more registers + different WGMMA shape)?
-- **Cache-hint experiments** for `EVICT_FIRST` — what was the L2 hit rate before/after? The post claims improvement but no numbers.
-- **The seesaw schedule mathematical proof** — accepted on inspection; the post claims equivalence to FA's online softmax. Has anyone written a formal proof?
-
 ## Raw source
 
 [github.com/deepseek-ai/FlashMLA/.../20250422-new-kernel-deep-dive.md](https://github.com/deepseek-ai/FlashMLA/blob/main/docs/20250422-new-kernel-deep-dive.md) — ~7 KB markdown, 1 SVG diagram, with the full algorithm + math. Authored by Jiashi Li, Shengyu Liu (DeepSeek-AI), April 22 2025. Read 2026-05-11.

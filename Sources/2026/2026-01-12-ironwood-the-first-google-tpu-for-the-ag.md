@@ -58,7 +58,6 @@ The "30× more efficient than v2" claim visualized. This is the chart that ancho
 - **Establishes Ironwood as official**. The IntuitionLabs report ([[2026-01-09-google-tpus-explained-architecture-perfo]]) relies on third-party analyst numbers; this is Google's primary-source confirmation of 4,614 TFLOPS, 192 GB HBM, 9,216-chip pods, 42.5 EFLOPS, 2× perf/W over Trillium. Treat as canonical.
 - **El Capitan claim** is the rhetorical anchor. "24× El Capitan" gives non-experts a scale comparison. (Caveat: El Capitan is a general-purpose HPC system; Ironwood is AI-specific. The comparison is not apples-to-apples on workloads outside dense linear algebra + collective comm.)
 - **FP8 native on Ironwood** removes the emulation tax Trillium and v5p paid. Combined with 192 GB HBM, large-context inference (1M+ tokens for Gemini 3) becomes economically tractable.
-- **Pairs with**: [[2026-01-09-google-tpus-explained-architecture-perfo]] (third-party analysis with cross-gen context; Ironwood numbers confirmed here are stated as projections there).
 
 ## Entities touched
 
@@ -67,13 +66,6 @@ The "30× more efficient than v2" claim visualized. This is the chart that ancho
 ## Topics touched
 
 [[AI Accelerators]], [[LLM Inference Systems]], [[FP8 Computation]], [[Power Efficiency]], [[Accelerator Economics]]
-
-## Open questions
-
-- Native-FP8 vs emulated-FP8 — what's the practical perf delta on real workloads (e.g. LLaMA 405B inference)? Useful for comparing Ironwood's listed FLOPS to "real workload throughput."
-- Ironwood's claim "24× El Capitan" — the metric is total FLOPS but accelerator-only. El Capitan's 1.7 EFLOPS is FP64. Ironwood's 42.5 EFLOPS is FP8. **Different precisions, not directly comparable** without normalization. Worth flagging.
-- "9,216 chips" — peculiar number. Likely `1024 × 9` or factor of 768. Why this specifically? Bisectional-bandwidth fits at this scale?
-- Available power as "one of the constraints" — does Ironwood + AI Hypercomputer become a competitive moat against Nvidia, or does Nvidia + grid-power-PPA close the gap?
 
 ## Raw source
 

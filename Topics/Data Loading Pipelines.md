@@ -2,7 +2,7 @@
 created: 2026-05-11T00:00:00.000Z
 updated: '2026-05-11'
 type: topic
-source_count: 0
+source_count: 1
 ---
 
 # Data Loading Pipelines
@@ -18,6 +18,8 @@ source_count: 0
 ## Open threads
 
 - (to be filled in)
+- SPDL vs NVIDIA DALI head-to-head: DALI is C++-based GPU-side decoding (very different architecture, same goal of saturating GPUs). The SPDL post doesn't compare; concrete benchmarks would clarify when to pick each. — [[2026-01-20-introducing-spdl-faster-ai-model-trainin]]
+
 
 ## Sources drawn on
 

@@ -44,13 +44,6 @@ The concrete UX the PR delivers. Without this, "metrics in Prometheus" stays abs
 
 [[LLM Inference Systems]], [[Inference Disaggregation]], [[KV Cache Management]], [[Observability]]
 
-## Open questions
-
-- The transfer-vs-post-time minimum question — what's the actual ordering in practice, and does it imply a bottleneck somewhere on the data plane that's not yet metric-instrumented?
-- The KVConnectorStats abstraction — what's the full metric surface? The PR exposes a subset; what's planned for future expansion (queue depths, retransmit counts, NIXL fabric-level errors)?
-- Pairs with the SGLang tracing FR ([[2025-11-17-feature-sglang-tracing-fine-grained-trac]]) — two ecosystems independently building observability infra. Is there a convergence opportunity (e.g. OTel spans + Prometheus metrics emitted by the same instrumentation)?
-- Mooncake (an external KV-store backend) is on the horizon for vLLM. Does it slot cleanly into KVConnectorStats, or will it need extension?
-
 ## Raw source
 
 [github.com/vllm-project/vllm/pull/26811](https://github.com/vllm-project/vllm/pull/26811) — small PR (+365 / -29, 6 files). Merged 2025-10-29 by `simon-mo`. Follow-up to PR #22188. Contributors: NickLucche (author), markmc (refactored to generic abstraction), simon-mo (approver). Read 2026-05-11.

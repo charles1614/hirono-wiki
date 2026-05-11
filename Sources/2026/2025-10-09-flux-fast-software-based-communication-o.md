@@ -64,7 +64,6 @@ The "prior overlap can be negative" empirical proof — directly motivates the S
 - **For inference stacks** (vLLM, [[SGLang]], [[TensorRT-LLM]]): the prefill 1.66× / decode 1.30× gains specifically apply to TP-only deployment. Composable with disaggregation ([[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]) — Flux improves the within-pool execution, disagg improves the across-pool pipeline.
 - **For kernel authors**: the design pattern is "fuse comm primitives into compute kernels, don't schedule them as independent kernels." This is a generalizable lesson — relevant to flash-attention-style fusions and any latency-bound producer-consumer pair on GPUs.
 - **For CUTLASS as platform**: validates CUTLASS as the right substrate for next-gen fused kernels. Counter-example to "we should write everything in Triton."
-- **Pairs with**: [[2025-10-09-eagle-3-scalingupinference-acceleration-]] (orthogonal — decode-side technique), [[2025-10-28-moeparallel-folding-heterogeneous-parall]] (MoE parallelism — where AlltoAll comm overlap matters even more).
 
 ## Entities touched
 
@@ -73,14 +72,6 @@ The "prior overlap can be negative" empirical proof — directly motivates the S
 ## Topics touched
 
 [[Tensor Parallelism]], [[Communication-Computation Overlap]], [[Kernel Fusion]], [[LLM Training Systems]], [[LLM Inference Systems]]
-
-## Open questions
-
-- The "up to 96% overlap" headline — what's the floor? Practical deployments span workloads; some specific (small-m) cases might still hit the negative-overlap region. Is Flux's auto-tuning robust enough that operators never hit a regression vs non-overlap?
-- The paper is mostly TP within a single node (NVLink/PCIe). How does Flux scale beyond NVLink boundaries (cross-node TP via Infiniband, which most operators avoid for latency reasons)?
-- CUTLASS-based kernel fusion has a per-target-arch cost. As Blackwell ships (cf. [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]), how much Flux re-tuning does Blackwell require?
-- vLLM specifically — has the Flux integration landed? The paper compares vs vanilla vLLM; production vLLM may have absorbed Flux-like techniques. Worth cross-checking PR history.
-- AlltoAll for MoE: how does Flux's fused-kernel approach compare against the per-EP-instance pipelining patterns used in modern MoE serving (e.g. DeepSeek-V3)?
 
 ## Raw source
 

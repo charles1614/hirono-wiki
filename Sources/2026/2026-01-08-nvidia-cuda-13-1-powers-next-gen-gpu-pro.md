@@ -37,14 +37,6 @@ The concrete UX for Tile-kernel optimization. Without this, "Nsight supports Til
 
 - **`developer-nvidia-img-001.webp` / `*-003.webp` / `*-004.webp` / `*-005.webp`** (supporting): decorative diagrams illustrating CUDA Tile concepts. The Nsight screenshot above carries the load-bearing content.
 
-## What this changes
-
-- **For kernel authors**: a new abstraction level is now official. The "we can't keep writing per-arch kernels for every new GPU" pain is real (cf. [[2025-10-09-flux-fast-software-based-communication-o]] showing how much CUTLASS-level tuning takes per arch); cuTile is NVIDIA's answer.
-  - But: cuTile is Python-only in this release; large-scale production kernels (FlashAttention, vLLM PA kernels) are CUDA C++/CUTLASS. The C++ landing is the milestone to watch.
-- **For multi-tenant inference**: green-contexts-in-runtime + static MPS partitioning + MLOPart are all toolkit-level upgrades for **predictable GPU sharing**. Relevant to PD-disaggregation (separate prefill and decode pools per green context) and to MPS-based inference deployments.
-- **For training operators on Blackwell**: cuBLAS FP32/FP64 Tensor-Core emulation matters for scientific workloads + the mixed-precision training paths that still need real FP64 for some operations. On GB200, free-ish FP64 via emulation changes algorithm choice.
-- **For NVIDIA's competitive posture**: the rewrite-from-the-ground-up framing is unusual. Likely a response to Triton's gravitational pull on kernel authors + the broader compiler-first push from Mojo, TVM, JAX. NVIDIA's bet: stay open with a virtual ISA layer (Tile IR), keep the perf-portability story believable.
-
 ## Entities touched
 
 [[CUDA]], [[CUDA Tile]], [[cuTile Python]], [[CUDA Tile IR]], [[Nsight Compute]], [[Compute Sanitizer]], [[Green Contexts]], [[MLOPart]], [[MPS]], [[cuBLAS]], [[Ampere]], [[Hopper]], [[Blackwell]], [[B200]], [[B300]], [[GB200]], [[RTX PRO 6000]], [[NVIDIA]]
@@ -52,13 +44,6 @@ The concrete UX for Tile-kernel optimization. Without this, "Nsight supports Til
 ## Topics touched
 
 [[GPU Programming Models]], [[Kernel Authoring]], [[Multi-Tenancy on GPUs]], [[FP Emulation]]
-
-## Open questions
-
-- **cuTile Python vs Triton** — what's the boundary? Both target the "above SIMT" sweet spot; both have Python frontends. cuTile claims compiler-managed tensor-core mapping; Triton has that too. Worth a careful comparison in a follow-up.
-- **CUDA Tile C++** — when does it land? The Python-only-today positioning suggests this is the larger drop. Production stacks (vLLM, TRTLLM, etc.) won't move until C++ ships.
-- **MLOPart**: how is it different from MIG (Multi-Instance GPU)? Both partition a single GPU; MIG provides isolation, MLOPart provides memory-locality optimization. Are they orthogonal (combine them?) or competing?
-- **Green contexts** scaling: any limit on how many green contexts you can create on a single GPU? Practical concern for fine-grained scheduling experiments.
 
 ## Raw source
 

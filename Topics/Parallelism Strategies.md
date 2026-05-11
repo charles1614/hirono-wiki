@@ -2,7 +2,7 @@
 created: 2026-05-11T00:00:00.000Z
 updated: '2026-05-11'
 type: topic
-source_count: 0
+source_count: 1
 ---
 
 # Parallelism Strategies
@@ -18,6 +18,9 @@ source_count: 0
 ## Open threads
 
 - (to be filled in)
+- Can a 6th dim (Megatron-SP-style sequence parallelism within attention TP) be folded similarly in MoE Parallel Folding? — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+- For 128K-context training: how does Context Parallelism interact with MoE Parallel Folding? CP only attaches to the attention side of the fold — implications for long-context MoE training are non-trivial. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+
 
 ## Sources drawn on
 

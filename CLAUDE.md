@@ -14,7 +14,7 @@ Match your intent to the canonical doc; don't re-derive what's already written d
 | Architectural overview of the fetcher (site module contract, `_default` catchall, opencli vs legacy) | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
 | Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
 | Pending punch-list after the most recent bulk fetch | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
-| Wiki page conventions (frontmatter, page types, tier rules — the governance layer for `Sources/`, `Entities/`, `Topics/`) | [`Meta/schema.md`](Meta/schema.md) |
+| Wiki page conventions (frontmatter, page types, tier rules — the governance layer for `Sources/`, `Entities/`, `Topics/`). **As of the pre-scale schema lockdown (2026-05-11): per-Source `## Open questions` was removed; cross-source research questions now live in `Topics/<X>.md ## Open threads`; source-specific re-fetch TODOs live in the Source's `## Raw source` footer. `## What this changes` is explicitly optional. `tags:` frontmatter is lint-required.** | [`Meta/schema.md`](Meta/schema.md) |
 | Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
 | External inspiration — Karpathy's "LLM Wiki" gist (the loose pattern this project rhymes with; not a binding spec) | [`Meta/references/karpathy-llm-wiki-gist.md`](Meta/references/karpathy-llm-wiki-gist.md) |
 | What this file (`CLAUDE.md`) covers | the section list immediately below — quality rules, fidelity check, output contract, formatting rules, fix recipes, regression set, code pointers |

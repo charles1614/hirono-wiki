@@ -61,7 +61,6 @@ IntuitionLabs technical report (Dec 19 2025, revised Apr 17 2026, 16 pp, 35-min 
 - **For the GPU vs TPU debate**: the report makes the strongest case yet for TPU's competitive position. Gemini 3 trained-and-served entirely on TPU is the existence proof. If the 1.2-1.7× perf at 53-77% power numbers hold at v7 scale, the TCO gap vs Nvidia widens.
 - **For inference operators**: Ironwood's inference-first framing + 192 GB HBM/chip targets the exact use case that's bottlenecking GPU clouds today (large-context multimodal inference at scale).
 - **For ML system designers**: AI Hypercomputer is a model for vertical integration. Even outside Google, the lesson is "tighter co-design wins" — Cerebras, Tenstorrent, Groq are all pushing toward similar stack integration. The pure-merchant-silicon strategy (just sell chips, let customers integrate) has a structural disadvantage on energy.
-- **Pairs with**: [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] (Google's own Ironwood announcement; this report references it but Google's primary-source post adds details), [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] (H100 baseline this TPU report compares against).
 
 ## Entities touched
 
@@ -70,14 +69,6 @@ IntuitionLabs technical report (Dec 19 2025, revised Apr 17 2026, 16 pp, 35-min 
 ## Topics touched
 
 [[AI Accelerators]], [[Accelerator Economics]], [[Vertical Integration]], [[LLM Training Systems]], [[LLM Inference Systems]]
-
-## Open questions
-
-- The IntuitionLabs report leans heavily on cited numbers (LinkedIn analyses, third-party blogs) for the Ironwood specs. **What does Google's official spec sheet say?** Worth cross-referencing the primary [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] post.
-- TPU v7's "inference-first" framing — what's actually different architecturally? Smaller training-only dataflow units? Different array dimensions? More HBM per chip at the expense of compute density?
-- The 1.2-1.7× perf-at-53-77%-power claim against A100 is from a 2023 Google paper. **Does it hold against H100 / B200?** H100 is significantly faster than A100 per chip.
-- AI Hypercomputer + Pathways + JAX + XLA stack: how much is open vs locked-in? Pathways is mostly closed. JAX is open but the JAX-on-TPU performance gap vs JAX-on-GPU is substantial.
-- The "Gemini 3 entirely on TPU" claim — does that include the training of foundation embeddings, RLHF, eval infra? Or just the main pre-training run? Distinction matters for "could a competitor replicate this without TPU access."
 
 ## Raw source
 

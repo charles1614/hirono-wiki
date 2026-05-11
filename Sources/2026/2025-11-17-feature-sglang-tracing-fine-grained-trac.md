@@ -60,14 +60,6 @@ Perfetto view of the same execution transposed: threads on rows, request segment
 
 [[LLM Inference Systems]], [[Inference Disaggregation]], [[Distributed-Serving Observability]]
 
-## Open questions
-
-- The OpenTelemetry single-context-tracking fix is generally useful for any continuous-batching server — has the SGLang team upstreamed it, or is this an SGLang-local patch?
-- How does SGLang tracing compare to vLLM's metrics/Prometheus story (cross-ref [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]])? vLLM goes Prometheus-first for metrics; SGLang goes OTel-spans-first for tracing. These are different observability shapes — do the ecosystems converge or stay specialized?
-- Continuous-batching context misalignment is a real cross-cutting problem. Does this pattern generalize to any batched-async server, or is it specific to LLM-request decoding?
-- The Perfetto-merged-with-PyTorch-Profiler artifact is the most novel claim. What's the join key — timestamps? thread IDs? Process boundaries make naive joins hard.
-- The mini-LB deprecation in favor of "sglang model gateway" — what is gateway's surface and why is it the better home for tracing? Worth tracking the v2 PRs.
-
 ## Raw source
 
 [github.com/sgl-project/sglang/issues/8965](https://github.com/sgl-project/sglang/issues/8965) — ~11 KB body + 4 visualization screenshots. 18 comments across 6 months (Aug 2025 → Feb 2026). Closed Nov 3 2025 by inactivity bot. Read 2026-05-11.

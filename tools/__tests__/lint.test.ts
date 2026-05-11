@@ -16,7 +16,7 @@ function bucketStubs(root: string): void {
   mkdirSync(join(root, "Topics"));
 }
 
-function writeSource(root: string, slug: string, body: string, fm = "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x"): void {
+function writeSource(root: string, slug: string, body: string, fm = "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [test]"): void {
   writeFileSync(
     join(root, `Sources/2026/${slug}.md`),
     `---\n${fm}\n---\n\n${body}\n`,
@@ -153,6 +153,28 @@ test("frontmatter: missing required field flagged", () => {
     );
     const issues = runLint(root, { checks: ["frontmatter"] });
     assert.ok(issues.some((i) => i.detail.includes("raw_source")));
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("frontmatter: Sources without tags is flagged (pre-scale lockdown)", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    // Sources require `tags` as a non-empty list as of the pre-scale
+    // schema lockdown. Missing `tags` key:
+    writeFileSync(
+      join(root, "Sources/2026/s1.md"),
+      `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\n---\n\nbody\n`,
+    );
+    const issues1 = runLint(root, { checks: ["frontmatter"] });
+    assert.ok(issues1.some((i) => i.detail.includes("tags")), `missing tags should flag; got ${JSON.stringify(issues1)}`);
+    // Empty list also rejected — the spirit of the check is "≥1 tag":
+    writeFileSync(
+      join(root, "Sources/2026/s1.md"),
+      `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: []\n---\n\nbody\n`,
+    );
+    const issues2 = runLint(root, { checks: ["frontmatter"] });
+    assert.ok(issues2.some((i) => i.detail.includes("tags") && i.detail.includes("non-empty")), `empty tags should flag; got ${JSON.stringify(issues2)}`);
   } finally { rmSync(root, { recursive: true }); }
 });
 

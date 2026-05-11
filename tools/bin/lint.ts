@@ -391,7 +391,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
   const required: Record<Bucket, string[]> = {
     Meta:     ["type", "created", "updated"],
-    Sources:  ["type", "created", "updated", "raw_source"],
+    Sources:  ["type", "created", "updated", "raw_source", "tags"],
     Entities: ["type", "created", "updated", "refs", "tier"],
     Topics:   ["type", "created", "updated", "source_count"],
   };
@@ -412,6 +412,21 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
           path: doc.repo_path,
           detail: `missing required frontmatter field: ${key}`,
         });
+        continue;
+      }
+      // Sources `tags` must be a non-empty list. An empty `[]` literally
+      // satisfies the "key present" check above but provides no signal
+      // for corpus-level filtering — explicitly reject.
+      if (doc.bucket === "Sources" && key === "tags") {
+        const tags = fm[key];
+        if (!Array.isArray(tags) || tags.length === 0) {
+          issues.push({
+            kind: "frontmatter",
+            severity: "error",
+            path: doc.repo_path,
+            detail: `Sources frontmatter "tags" must be a non-empty list`,
+          });
+        }
       }
     }
     if (fm.type && fm.type !== expectedType[doc.bucket]) {

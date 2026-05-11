@@ -31,13 +31,16 @@ type: source | entity | topic | meta
 ---
 ```
 
-**Sources** additionally require `raw_source:` and may include `tags:`:
+**Sources** additionally require `raw_source:` and `tags:`:
 
 ```yaml
 raw_source: https://example.com/article            # or lark://docx/...
-tags: [rl, infra]                                   # optional
-highlights: true                                    # raindrop highlighted subset
+tags: [rl, infra]                                   # ≥1 tag, lint-enforced
 ```
+
+`tags:` is checked by `tools/bin/lint.ts` — Sources without at least one
+tag fail lint. No controlled vocabulary at present (revisit at 100+ sources);
+domain-descriptive kebab-case is the convention.
 
 **Entities** additionally track reference count (auto-maintained by `tools/bin/reindex.ts`):
 
@@ -84,7 +87,7 @@ created: 2026-04-19
 updated: 2026-04-19
 type: source
 raw_source: <URL>
-tags: [optional, tags]
+tags: [at, least, one, tag]
 ---
 
 # [2026-04-19] Human Title
@@ -99,7 +102,7 @@ tags: [optional, tags]
 - Claim two.
 - Claim three.
 
-## Visual observations
+## Visual observations  ← optional
 
 *Optional. Populate only when images carry information not already in the body text.
 Heuristic: always for xhs / weixin / zhihu-image-heavy hosts; also for any source
@@ -145,6 +148,19 @@ HBM 32 GB → 95 GB → 192 GB; TFLOPS/chip 275 → 459 → 4,614.
 - **Fig 13 — Post-init throughput chart** (`../../raw/raindrop/ai.meta.com/<slug>/default-img-013.png`) — SPDL @ 32 workers hits 7,700 FPS vs PyTorch's 6,500 FPS. (Numbers already in Key Claims; image is verification material.)
 ```
 
+## What this changes  ← optional
+
+*Optional. Include when the source's downstream-impact framing is genuinely
+additive to Key claims (e.g. "first publicly-documented 4-bit pretraining run
+matching FP8 quality" — that's a landscape claim, not a Key-claim restatement).
+Skip when this would just paraphrase Key claims.*
+
+- One or two bullets on what this source changes about the surrounding
+  literature, the operator stack, or the design space. Cite Entities/Topics
+  with `[[wikilinks]]` naturally inline; don't use a structural "Pairs with:"
+  bullet — cross-links belong in `## Entities touched` / `## Topics touched`
+  or as inline wikilinks in Key claims.
+
 ## Entities touched
 
 [[Megatron]], [[NVIDIA]], [[DeepMind]]
@@ -153,14 +169,18 @@ HBM 32 GB → 95 GB → 192 GB; TFLOPS/chip 275 → 459 → 4,614.
 
 [[Training Infrastructure]], [[Distributed Training]]
 
-## Open questions
-
-- Question the source raises but doesn't answer.
-
 ## Raw source
 
-<URL or lark://docx/...>
+<URL or lark://docx/...> — short prose with format, length, fetch date.
+Source-specific provenance TODOs ("PDF not fetched; re-fetch /pdf/ URL to
+unlock figures") also go here.
 ```
+
+**Section order is load-bearing.** Pages SHOULD follow the order shown
+above; reordering hurts scan-ability across the corpus. Optional sections
+(`## Visual observations`, `## What this changes`) can be skipped, but
+when present they go at the position shown. The order is not lint-enforced;
+it's a convention.
 
 ### Source-page rules
 
@@ -184,6 +204,26 @@ directly over the per-page PNG renderings — same data, much cheaper.
 content. If it makes a claim about an Entity, the Entity's Observations block
 gets a corresponding bullet citing this Source. Same compounding rule as Key
 Claims.
+
+**Open questions don't live at the Source level.** Karpathy's pattern treats
+unresolved questions as a lint-time / cross-cutting concern, and per-Source
+sections don't compound — they're locked to a single page future-you won't
+reopen. Route questions by type:
+
+- **Source-specific re-fetch TODOs / provenance notes** → `## Raw source`
+  footer (e.g. `"PDF not fetched; re-fetch with /pdf/ URL to unlock figures"`).
+- **Cross-source research questions** → `Topics/<X>.md ## Open threads` (the
+  Topic schema already has this section). When the same question gets asked
+  by three sources, it's evidence the Topic page needs more synthesis.
+- **Source-internal critique** ("authors assert X without justifying") →
+  fold into the relevant `## Key claims` bullet as a continuation (`— authors
+  don't justify why X; treated as a primitive`).
+- **Filler** ("what's perf at scale?", "is it open-source?") → drop.
+
+**`## What this changes` is optional.** Include it when the source carries
+genuine landscape-shift framing additive to Key claims; skip when it would
+just paraphrase. Light blog posts and small PRs usually don't need it;
+substantive papers and announcements usually do.
 
 ## Entity page structure
 

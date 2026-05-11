@@ -32,7 +32,6 @@ NVIDIA paper (89-author group led by Felix Abecassis et al., arXiv:2509.25149, v
 - **For NVIDIA's hardware positioning**: NVFP4 is Blackwell-specific. This paper is the existence proof that justifies the FP4 tensor-core silicon investment. Expect NVIDIA to lean hard on this for B200/GB200 marketing.
 - **For framework authors**: the four-ingredient recipe (RHT + 2D quant + stochastic rounding + selective hi-precision) becomes the reference template for FP4 training. Watch Megatron-LM, JAX-MaxText, NeMo, and the China-side stacks (Pangu, Qwen) for these landing.
 - **For competitive narrative**: TPU papers ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]], [[2026-01-09-google-tpus-explained-architecture-perfo]]) tout TPU efficiency. NVIDIA's counter is "FP4 doubles your effective throughput on Blackwell, narrowing the gap." The NVFP4 paper is the technical backbone of that counter-claim.
-- **Pairs with**: [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] (Hopper FP8 microbenchmarks — this paper's FP8 baseline implicitly), [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] (cuBLAS FP32/FP64 emulation on Tensor Cores — analogous precision-extension theme, going opposite direction).
 
 ## Entities touched
 
@@ -41,15 +40,6 @@ NVIDIA paper (89-author group led by Felix Abecassis et al., arXiv:2509.25149, v
 ## Topics touched
 
 [[LLM Training Systems]], [[Quantization]], [[Numerical Precision]], [[Pretraining]]
-
-## Open questions
-
-- **PDF was not fetched in the corpus** — this Sources page is built on the abstract alone. The four-ingredient method's details (block size for RHT, exact 2-D quantization layout, selective-high-precision layer choice) are in the PDF. **Worth re-fetching with the PDF path** and updating this entry.
-- 12B is mid-sized; how does NVFP4 scale to 70B or 405B? Outlier behavior in attention QK projections gets worse at scale.
-- 10T tokens is the longest 4-bit horizon claimed. Some frontier models train on 15T+ tokens — does NVFP4 stability hold all the way?
-- **What's the wall-clock training speedup vs FP8 on B200?** The abstract talks about computational throughput in theory; the paper should report real wall-clock numbers.
-- Is the 12B-model + 10T-token checkpoint released? If so, the community can run downstream studies (RLHF, fine-tuning) on the NVFP4-pretrained base.
-- Pairs with the FP4-inference work that's already shipped (TensorRT-LLM, vLLM FP8/INT4 quant paths). Is there a unified NVFP4 training + inference story emerging?
 
 ## Raw source
 
