@@ -109,6 +109,13 @@ export type FetcherReason = "direct" | "domain-override" | "quality-fallback" | 
 export const NON_PROBLEMATIC_FLAGS_SET: ReadonlySet<string> = new Set([
   "intentional-stub",
   "pdf-rendered",
+  "pdf-paper",
+  // `_default-pdf-no-figures-extracted` fires on vector-only PDFs (TikZ/PGF
+  // figures aren't extractable as raster). The paper still has full body
+  // text + the preserved PDF for image-mode viewing — it's not a quality
+  // defect, just a signal that the operator should consult the PDF for
+  // figures rather than expect them inlined.
+  "_default-pdf-no-figures-extracted",
   "structured-summary",
   "v2ex-image-rescued-via-wayback",
   "_default-used-browser-fallback",
@@ -325,7 +332,15 @@ export function classifyQuality(content: string, ctx: QualityContext = {}): Qual
   // lives in the rendered PNGs alongside, not in the markdown body.
   // Skip the size- and structure-based flags in either case.
   const isStub = ctx.extraFlags?.includes("intentional-stub") ?? false;
-  const isImageBearing = ctx.extraFlags?.includes("pdf-rendered") ?? false;
+  // `pdf-rendered` was the legacy page-screenshot output; `pdf-paper` is
+  // the current text-first paper extraction (body via pdftotext + figures
+  // via pdfimages). Both flag the markdown as "intentionally produced by
+  // the PDF pipeline" so the heuristic floors (short-body, no-headings,
+  // etc.) shouldn't fire — the content is shape-appropriate even if it
+  // doesn't match a normal HTML article.
+  const isImageBearing =
+    (ctx.extraFlags?.includes("pdf-rendered") ?? false) ||
+    (ctx.extraFlags?.includes("pdf-paper") ?? false);
   // `structured-summary` signals that the markdown is a deliberate
   // metadata-shape document (commit summary + diff stat, compare-range
   // summary, etc.) where short-body floors don't apply — the value is
