@@ -67,7 +67,7 @@ The "prior overlap can be negative" empirical proof — directly motivates the S
 
 ## Entities touched
 
-[[ByteDance]], [[CUTLASS]], [[Megatron-LM]], [[TransformerEngine]], [[vLLM]], [[NCCL]], [[NVLink]], [[A100]], [[H800]]
+[[ByteDance]], [[CUTLASS]], [[Megatron-LM]], [[Transformer Engine]], [[vLLM]], [[NCCL]], [[NVLink]], [[A100]], [[H800]]
 
 ## Topics touched
 

@@ -577,7 +577,7 @@ export function localNameFor(url: string, index: number): string {
  * partial download wrote 1.1 KB; setting the floor at 512 B + magic-byte
  * check would have rejected that on the spot.
  */
-const MIN_IMAGE_BYTES = 512;
+export const MIN_IMAGE_BYTES = 512;
 
 /**
  * Magic-byte signatures for image formats we expect to see. Validating
@@ -589,7 +589,7 @@ const MIN_IMAGE_BYTES = 512;
  *     wrong-content-type with adequate length).
  *   - Empty/all-zero stubs.
  */
-function looksLikeImage(bytes: Buffer): boolean {
+export function looksLikeImage(bytes: Buffer): boolean {
   if (bytes.length < 4) return false;
   // PNG: 89 50 4E 47
   if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return true;

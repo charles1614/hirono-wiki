@@ -38,7 +38,7 @@ tags: [vllm, education, minimal-impl, readable-code, qwen, inference]
 
 ## Entities touched
 
-[[vLLM]], [[Qwen3]], [[PagedAttention]], [[Torch Compile]], [[CUDA Graph]]
+[[vLLM]], [[Qwen]], [[PagedAttention]], [[Torch Compile]], [[CUDA Graph]]
 
 ## Topics touched
 

@@ -17,29 +17,35 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[vLLM]]** _(4 refs)_ — Open-source LLM inference engine; PagedAttention; continuous batching; the dominant production inference system today.
 - **[[A100]]** _(3 refs)_ — NVIDIA Ampere-architecture datacenter GPU (compute capability 8.0); production workhorse before Hopper.
 - **[[CUTLASS]]** _(3 refs)_ — NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks for cuBLAS + custom kernels.
+- **[[Llama]]** _(3 refs)_ — Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 (lowercase from v3.1); reference benchmark target for inf…
 - **[[TensorRT-LLM]]** _(3 refs)_ — NVIDIA's LLM-specific inference engine; built on TensorRT; competitor to vLLM/SGLang in NVIDIA-stack serving.
 - **[[FlashAttention]]** _(2 refs)_ — The original IO-aware fused attention kernel (Dao et al.); v1/v2/v3; foundation for most modern attention kernel work.
 - **[[H100]]** _(2 refs)_ — NVIDIA Hopper datacenter GPU (compute capability 9.0); the production workhorse before Blackwell.
 - **[[H800]]** _(2 refs)_ — NVIDIA Hopper GPU; export-controlled variant of H100 (cut interconnect bandwidth); widely used in China.
 - **[[Megatron-LM]]** _(2 refs)_ — NVIDIA's original tensor + pipeline + data parallelism training framework; foundational reference for large-model training; now subsumed …
+- **[[Transformer Engine]]** _(2 refs)_ — NVIDIA's library for FP8 LLM training on Hopper+; wraps Linear/MLP layers to use FP8 Tensor Cores; ~2x speedup target.
 - **[[CUDA]]** _(1 refs)_ — NVIDIA's GPU programming platform — language extensions, runtime, toolkit, libraries.
 - **[[DeepSeek]]** _(1 refs)_ — Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
 - **[[FlashMLA]]** _(1 refs)_ — DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~660 TFlops via "seesaw" scheduling.
 - **[[NVFP4]]** _(1 refs)_ — NVIDIA's 4-bit floating-point format introduced with Blackwell; positioned as the next standard low-precision training format after FP8.
-- **[[Transformer Engine]]** _(1 refs)_ — NVIDIA's library for FP8 LLM training on Hopper+; wraps Linear/MLP layers to use FP8 Tensor Cores; ~2x speedup target.
-- **[[Llama]]** _(0 refs)_ — Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 (lowercase from v3.1); reference benchmark target for inf…
 
 ## Seen (1–2 refs)
 
+- **[[AI Hypercomputer]]** _(2 refs)_ — Google's vertically-integrated AI infrastructure architecture (TPU + Jupiter fabric + XLA / JAX / Pathways).
 - **[[Ampere]]** _(2 refs)_ — NVIDIA GPU architecture (compute capability 8.0/8.6), A100 generation.
 - **[[B200]]** _(2 refs)_ — NVIDIA Blackwell datacenter GPU, second-generation tensor-core silicon at the high end.
+- **[[BF16]]** _(2 refs)_ — 16-bit Brain Float numeric format — wide dynamic range, lower precision than FP16. Default training precision on TPU v2+.
+- **[[DeepSeek-R1]]** _(2 refs)_ — DeepSeek reasoning model, late 2024 / early 2025; emphasizes inference-time test/think capability.
+- **[[FP4]]** _(2 refs)_ — 4-bit floating-point format — half the bytes of FP8, doubled compute density on Blackwell Tensor Cores. NVFP4 is NVIDIA's specific encoding.
 - **[[FP8]]** _(2 refs)_ — 8-bit floating-point format; the previous-generation widely-adopted low-precision training format.
 - **[[GB200]]** _(2 refs)_ — NVIDIA Grace-Blackwell superchip (Grace CPU + 2× B200); deployed in GB200 NVL72 racks (72 chips).
+- **[[Gemini]]** _(2 refs)_ — Google DeepMind's frontier-LLM family; runs on Google TPU.
 - **[[Google]]** _(2 refs)_ — Tech company; AI lab (DeepMind); TPU silicon vendor; Pathways runtime; competitor to OpenAI/Anthropic/Meta.
 - **[[Ironwood]]** _(2 refs)_ — Google's seventh-generation TPU (TPU v7), inference-optimized, GA Nov 2025; 4,614 TFLOPS/chip, 192 GB HBM, 9,216-chip pods at 42.5 EFLOPS.
 - **[[MLA]]** _(2 refs)_ — Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in DeepSeek-V2/V3; FlashMLA is its decode kernel.
 - **[[NVLink]]** _(2 refs)_ — NVIDIA's high-bandwidth GPU-to-GPU interconnect; current gen (NVLink 5) ~1.8 TB/s; defines the NVLink domain for inference disaggregation.
 - **[[Pathways]]** _(2 refs)_ — Google's distributed ML runtime; lets one program span tens of thousands of TPU chips; powers Gemini.
+- **[[Qwen]]** _(2 refs)_ — Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacent alternative.
 - **[[SparseCore]]** _(2 refs)_ — Google TPU accelerator for ultra-large embeddings; ranking/recommendation workloads; expanded scope in Ironwood.
 - **[[Tensor Core]]** _(2 refs)_ — NVIDIA's matrix-multiply accelerator unit on Volta+ GPUs; 4 generations (Volta, Turing, Ampere, Hopper); extended in Blackwell.
 - **[[TMA]]** _(2 refs)_ — Tensor Memory Accelerator; Hopper+ instruction for async global↔shared memory copies; used heavily in FlashAttention-3 + FlashMLA.
@@ -47,50 +53,84 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[Trillium]]** _(2 refs)_ — Google's sixth-generation TPU (v6); Ironwood's predecessor.
 - **[[Ada]]** _(1 refs)_ — NVIDIA GPU architecture (compute capability 8.9), powering RTX 40-series consumer cards.
 - **[[AlphaFold]]** _(1 refs)_ — DeepMind's protein-structure-prediction model; Nobel-cited; runs on Google TPU.
+- **[[B300]]** _(1 refs)_ — NVIDIA Blackwell-generation GPU (B300 SKU).
+- **[[bfloat16]]** _(1 refs)_ — Brain Floating Point — see [[BF16]]. (Alias retained for cross-reference convenience.)
 - **[[ByteDance]]** _(1 refs)_ — Chinese tech company; LLM lab (Doubao); large internal training infrastructure; co-authored FLUX kernel-fusion paper with PKU.
+- **[[Compute Sanitizer]]** _(1 refs)_ — NVIDIA's GPU memory-error detection tool, akin to AddressSanitizer for CUDA kernels.
 - **[[cuBLAS]]** _(1 refs)_ — NVIDIA's CUDA BLAS library; matmul + GEMM kernels; tuned per architecture.
+- **[[CUDA Graph]]** _(1 refs)_ — CUDA mechanism for recording and replaying a fixed sequence of kernel launches, eliminating per-launch CPU overhead.
 - **[[CUDA Tile]]** _(1 refs)_ — NVIDIA's tile-based programming model (CUDA 13.1+); cuTile Python DSL + Tile IR; sits above SIMT.
+- **[[CUDA Tile IR]]** _(1 refs)_ — NVIDIA's virtual instruction set for tile-based GPU programming, introduced in CUDA 13.1.
 - **[[cuTile Python]]** _(1 refs)_ — Python DSL for CUDA Tile programming (CUDA 13.1+); kernels compile to Tile IR.
 - **[[DeepFlow]]** _(1 refs)_ — An LLM inference system; named alongside vLLM/SGLang/Mooncake in the Survey of LLM Inference Systems.
+- **[[DeepSeek-MoE]]** _(1 refs)_ — DeepSeek's fine-grained MoE architecture — 256+ small experts per layer, 8+ active per token.
+- **[[Distributed Shared Memory]]** _(1 refs)_ — Hopper-specific feature; SMs in the same thread-block cluster can load/store/atomic each other's shared memory; enables cross-SM cooperat…
 - **[[DPX]]** _(1 refs)_ — Hopper instruction set for dynamic-programming primitives (min/max-of-3 reductions); accelerates Smith-Waterman, Floyd-Warshall, DTW; LLM…
 - **[[EAGLE]]** _(1 refs)_ — Speculative-decoding family (Li et al. 2024); reuses target model's top-layer features for draft prediction; EAGLE-2 adds drafting tree; …
+- **[[EAGLE-2]]** _(1 refs)_ — Second-generation EAGLE speculative-decoding draft model with context-aware dynamic draft trees.
 - **[[EAGLE-3]]** _(1 refs)_ — Third-generation EAGLE speculative decoding; training-time test technique; ~6.5× speedup on HumanEval; integrated in SGLang.
+- **[[El Capitan]]** _(1 refs)_ — World's largest supercomputer at announcement of Ironwood (~1.7 EFLOPS FP64); reference for Google's '24× El Capitan' Ironwood-pod claim.
+- **[[FlashAttention-3]]** _(1 refs)_ — Third-generation FlashAttention with ping-pong scheduling and intra-warpgroup GEMM-softmax pipelining for Hopper.
 - **[[Free-Threaded Python]]** _(1 refs)_ — CPython build (PEP 703) that disables the GIL; experimental in 3.13; production-ready timeline unclear.
 - **[[GIL]]** _(1 refs)_ — Python's Global Interpreter Lock; serializes Python bytecode execution; root cause of subprocess-based parallelism in CPython.
+- **[[GLaM]]** _(1 refs)_ — Google's MoE language model (2021) demonstrating MoE effectiveness at large scale.
+- **[[GPT-OSS]]** _(1 refs)_ — OpenAI's open-weight GPT model family released in 2025; includes GPT-OSS-120B used in TRT-LLM serving guide.
 - **[[GQA]]** _(1 refs)_ — Group Query Attention; multi-head attention variant where K/V are shared across query heads (Llama2/3 style); cheaper KV cache than MHA, …
 - **[[Grafana]]** _(1 refs)_ — Open-source observability dashboard; renders Prometheus metrics + OpenTelemetry data.
+- **[[Graphcore]]** _(1 refs)_ — British AI-accelerator vendor; IPU chip family (Bow, etc.); positioned against NVIDIA + Google but limited adoption.
+- **[[Green Contexts]]** _(1 refs)_ — CUDA mechanism for partitioning GPU SM resources into dedicated contexts — finer-grained spatial allocation than process boundaries.
+- **[[GShard]]** _(1 refs)_ — Google's MoE infrastructure (2020) — scaled models to trillions of parameters using MoE layers.
 - **[[HASS]]** _(1 refs)_ — Speculative-decoding method (Zhang et al. 2024); predicts next feature using current feature sequence; EAGLE family relative.
+- **[[HBM]]** _(1 refs)_ — High Bandwidth Memory — stacked DRAM directly attached to accelerators (TPU v3+, NVIDIA A100+).
+- **[[HKUST]]** _(1 refs)_ — Hong Kong University of Science and Technology (and HKUST-Guangzhou) — author affiliation for the Hopper microbenchmark paper.
+- **[[ICI]]** _(1 refs)_ — Inter-Chip Interconnect — Google TPU's native pod-internal communication fabric.
 - **[[Jaeger]]** _(1 refs)_ — Open-source distributed-tracing system; consumes OpenTelemetry spans; request-centric visualization.
 - **[[JAX]]** _(1 refs)_ — Google's array-programming framework with composable transforms (grad, vmap, jit, pmap); built on XLA; foundation for Pathways + Gemini t…
+- **[[Jupiter]]** _(1 refs)_ — Google's datacenter network fabric used in AI Hypercomputer (100K-chip pods at 13 Pbps bisectional bandwidth).
+- **[[KV Connector]]** _(1 refs)_ — vLLM abstraction layer for plugging in alternate KV-cache transfer backends (NIXL, Mooncake, etc.).
+- **[[KVConnectorStats]]** _(1 refs)_ — vLLM metric-surface abstraction making KV-transfer observability connector-agnostic.
 - **[[Medusa]]** _(1 refs)_ — Speculative-decoding method (Cai et al. 2024); attaches multiple prediction heads to the target model directly, no separate draft model; …
+- **[[Megablocks]]** _(1 refs)_ — Library for token-dropless MoE training that processes all input tokens (no capacity factor).
 - **[[Megatron-Core]]** _(1 refs)_ — NVIDIA's open-source MoE + dense training framework; consolidation of Megatron-LM; supports 5-D hybrid parallelism including MoE Parallel…
 - **[[Meta]]** _(1 refs)_ — Meta Platforms; AI Research; Llama models; Reality Labs; FAIR; PyTorch maintainer.
 - **[[Mixtral]]** _(1 refs)_ — Mistral AI's open-weight MoE model family; 8x7B (47B total) and 8x22B (141B total); reference MoE benchmark target.
+- **[[MLOPart]]** _(1 refs)_ — Memory Locality Optimization Partition — Blackwell feature that presents one underlying GPU as multiple memory-locality-optimized CUDA de…
+- **[[MoE]]** _(1 refs)_ — Mixture-of-Experts; sparse-activation architecture; current frontier-model default (DeepSeek-V3, GPT-OSS, GLM-4.6, Mixtral).
 - **[[Mooncake]]** _(1 refs)_ — Moonshot AI's LLM inference system; KV-cache-centric serving architecture; named in the Survey of LLM Inference Systems.
+- **[[MPS]]** _(1 refs)_ — CUDA Multi-Process Service — daemon for sharing a single GPU across multiple CUDA processes with finer-grained scheduling.
+- **[[NCCL]]** _(1 refs)_ — NVIDIA Collective Communications Library — standard GPU-to-GPU collective primitive implementations (AllReduce, AllGather, ReduceScatter,…
 - **[[NIXL]]** _(1 refs)_ — A KV-cache transfer backend used by vLLM for cross-instance KV migration (PD-disaggregation).
 - **[[Nsight Compute]]** _(1 refs)_ — NVIDIA's kernel-level profiler; SM/warp metrics, source-line attribution; integrated with CUDA toolkit.
+- **[[OCS]]** _(1 refs)_ — Optical Circuit Switch — dynamically reconfigurable optical pod fabric introduced on TPU v4.
+- **[[OpenAI Triton]]** _(1 refs)_ — OpenAI-developed kernel-authoring DSL with compiler-managed Tensor-Core mapping; also OpenAI ships Triton-kernel optimizations for its Mo…
 - **[[OpenTelemetry]]** _(1 refs)_ — Vendor-neutral observability standard; spans/traces/metrics/logs; consumed by Jaeger/Zipkin/Perfetto/Grafana.
+- **[[PagedAttention]]** _(1 refs)_ — vLLM's attention mechanism using paged KV-cache memory management for efficient batched inference.
+- **[[PEP 703]]** _(1 refs)_ — Python Enhancement Proposal making the Global Interpreter Lock (GIL) optional — shipped in CPython 3.13t.
 - **[[Perfetto]]** _(1 refs)_ — Google's tracing visualization tool; thread-centric timeline view; consumes Chrome-Trace + protobuf traces.
 - **[[Prometheus]]** _(1 refs)_ — Open-source metrics system; pull-based scraping; histograms + counters + gauges; dominant ecosystem for app metrics.
+- **[[PyTorch DataLoader]]** _(1 refs)_ — PyTorch's reference data-loading class — process-based workers, copies tensors via shared memory.
 - **[[PyTorch Profiler]]** _(1 refs)_ — PyTorch's built-in performance profiler; traces Python stack + CUDA events; limited under subprocesses.
+- **[[Random Hadamard Transform]]** _(1 refs)_ — Mixing transform applied per-block before quantization to bound outliers and improve low-precision representation accuracy.
 - **[[Reality Labs]]** _(1 refs)_ — Meta's AR/VR/spatial-computing org; uses GPU Efficiency Team; built SPDL for internal training pipelines.
+- **[[RTX PRO 6000]]** _(1 refs)_ — NVIDIA workstation/server Blackwell GPU SKU. Supports cuBLAS FP32 / FP64 Tensor-Core emulation.
 - **[[SPDL]]** _(1 refs)_ — Scalable and Performant Data Loading; Meta Reality Labs' thread-based PyTorch DataLoader replacement.
+- **[[Stochastic Rounding]]** _(1 refs)_ — Rounding mode that preserves expected value across many operations — critical for unbiased gradient updates in low-precision training.
+- **[[Switch Transformer]]** _(1 refs)_ — Google's MoE Transformer (2021) with a streamlined routing mechanism — one of the first scalable token-dropping MoEs.
+- **[[TF32]]** _(1 refs)_ — TensorFloat-32 — Ampere-era Tensor-Core format with FP32 range and reduced mantissa precision.
+- **[[Torch Compile]]** _(1 refs)_ — PyTorch 2.x's compilation path that fuses operators and emits optimized kernels (Inductor backend).
+- **[[Tsinghua]]** _(1 refs)_ — Tsinghua University — author affiliation for the LLM Inference Systems survey.
 - **[[Vicuna]]** _(1 refs)_ — Open-weight chat-fine-tuned LLaMA variant from LMSYS; widely used as speculative-decoding benchmark target.
+- **[[Volta]]** _(1 refs)_ — NVIDIA GPU architecture (2017) — introduced the first Tensor Cores (FP16/FP32 MMA).
 - **[[WGMMA]]** _(1 refs)_ — Hopper+ instruction for async warpgroup-level matrix multiply; cornerstone of FlashAttention-3 + FlashMLA.
 - **[[XLA]]** _(1 refs)_ — Google's accelerated-linear-algebra compiler; targets TPU + GPU; foundation for JAX and TensorFlow execution.
 - **[[Zipkin]]** _(1 refs)_ — Open-source distributed-tracing system (Twitter origin); consumes OpenTelemetry spans; alternative to Jaeger.
-- **[[Distributed Shared Memory]]** _(0 refs)_ — Hopper-specific feature; SMs in the same thread-block cluster can load/store/atomic each other's shared memory; enables cross-SM cooperat…
 - **[[DistServe]]** _(0 refs)_ — Disaggregated-inference framework (USENIX OSDI'24); separates prefill + decode for goodput-optimized LLM serving.
 - **[[Falcon-speculative]]** _(0 refs)_ — Speculative-decoding draft-prediction variant (Gao et al. 2024); predicts next feature with current feature sequence, similar shape to EA…
 - **[[FSDP]]** _(0 refs)_ — PyTorch's Fully-Sharded Data Parallel; replicates+shards model state across DP group; struggles on sparse MoE workloads (<10% MFU).
-- **[[Gemini]]** _(0 refs)_ — Google DeepMind's frontier-LLM family; runs on Google TPU.
 - **[[GPT-3]]** _(0 refs)_ — OpenAI's 175B-parameter LLM (2020); reference architecture for benchmark sizes in many infra papers.
-- **[[GPT-OSS]]** _(0 refs)_ — OpenAI's open-weight GPT model family released in 2025; includes GPT-OSS-120B used in TRT-LLM serving guide.
-- **[[Graphcore]]** _(0 refs)_ — British AI-accelerator vendor; IPU chip family (Bow, etc.); positioned against NVIDIA + Google but limited adoption.
 - **[[H200]]** _(0 refs)_ — NVIDIA Hopper GPU with more HBM than H100; SM-compatible.
 - **[[IFB]]** _(0 refs)_ — In-flight Batching; LLM-serving technique where new requests are added to a running batch as in-flight requests complete; standard in vLL…
 - **[[llm.c]]** _(0 refs)_ — Karpathy's pedagogical LLM training implementation in pure C/CUDA.
-- **[[MoE]]** _(0 refs)_ — Mixture-of-Experts; sparse-activation architecture; current frontier-model default (DeepSeek-V3, GPT-OSS, GLM-4.6, Mixtral).
 - **[[nanoGPT]]** _(0 refs)_ — Karpathy's minimal GPT training implementation; ~300 lines Python; pedagogical reference.
 - **[[Nsight Systems]]** _(0 refs)_ — NVIDIA's system-wide profiler; timeline view across CPU/GPU/network; complementary to Nsight Compute.
 - **[[OpenAI]]** _(0 refs)_ — AI lab; ChatGPT; GPT models; Triton kernel language; recently OpenAI-MoE-kernels-on-Hopper outperform NVIDIA's own.
@@ -98,7 +138,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[picoGPT]]** _(0 refs)_ — Another minimal GPT implementation in the nanoGPT lineage; pedagogical artifact.
 - **[[PTX]]** _(0 refs)_ — NVIDIA's Parallel Thread Execution virtual ISA; intermediate between CUDA C++ and SASS; where most kernel-level optimizations are expressed.
 - **[[PyTorch]]** _(0 refs)_ — Dominant ML framework for research and production; graph compilation via torch.compile; Meta-maintained.
-- **[[Qwen]]** _(0 refs)_ — Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacent alternative.
 - **[[Sarathi-Serve]]** _(0 refs)_ — LLM-serving system (Agrawal et al. 2024); introduced piggybacked context-chunking; OSDI'24 paper widely cited in disaggregation work.
 - **[[TensorFlow]]** _(0 refs)_ — Google's original ML framework (2015); now largely superseded by JAX internally + PyTorch externally but still in maintenance.
 - **[[Tile IR]]** _(0 refs)_ — NVIDIA's new virtual ISA for tile-based GPU programming (CUDA 13.1+); compilation target for cuTile Python.

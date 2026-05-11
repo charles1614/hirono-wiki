@@ -28,7 +28,7 @@
  * Exit 0 if clean, 1 if any issues found.
  */
 
-import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
+import { readFileSync, existsSync, statSync, readdirSync, openSync, readSync, closeSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
@@ -39,6 +39,7 @@ import {
   slugOf,
   walkWikiDocs,
 } from "../link-map.ts";
+import { looksLikeImage, MIN_IMAGE_BYTES } from "../fetch-raw.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 // Wiki root: THIS_FILE is at `tools/bin/lint.ts`, so `dirname/../..`
@@ -54,7 +55,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs";
 
 export interface Issue {
   kind: CheckKind;
@@ -291,6 +292,112 @@ export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
   return issues;
 }
 
+/**
+ * source-image-refs: every `![alt](path)` image reference inside a Source
+ * page must resolve to a real file on disk that is a valid image of a known
+ * format. Closes the gap between fetch-time validation (downloadImage
+ * checks bytes on the way in) and ingest-time discipline (operator-/LLM-
+ * authored Source pages reference those bytes by relative path).
+ *
+ * Three error classes:
+ *   - dangling: file at the resolved path doesn't exist.
+ *   - implausibly-small: file exists but is < MIN_IMAGE_BYTES (truncated
+ *     download stub, tracking pixel, error-page-as-image).
+ *   - wrong-format: file exists and is large enough but bytes don't match
+ *     a known image magic-byte signature (HTML error page saved as .png,
+ *     etc.).
+ *
+ * Validity criteria match `downloadImage` in tools/fetch-raw.ts so the
+ * two layers can't drift. Refs inside fenced code blocks are ignored
+ * (they're documentation examples). Remote http(s) refs are ignored
+ * here — the separate "no remote image refs" rule covers them.
+ */
+export function checkSourceImageRefs(docs: DocMeta[], repoRoot: string): Issue[] {
+  const issues: Issue[] = [];
+  for (const doc of docs.filter((d) => d.bucket === "Sources")) {
+    for (const ref of extractLocalImageRefs(doc.body)) {
+      // Resolve `../../raw/...` relative to the Source's directory.
+      const abs = resolve(repoRoot, dirname(doc.repo_path), ref);
+      let size: number;
+      try {
+        size = statSync(abs).size;
+      } catch {
+        issues.push({
+          kind: "source-image-refs",
+          severity: "error",
+          path: doc.repo_path,
+          detail: `image ref "${ref}" resolves to a missing file`,
+          hint: `expected at ${relpath(abs, repoRoot)}`,
+        });
+        continue;
+      }
+      if (size < MIN_IMAGE_BYTES) {
+        issues.push({
+          kind: "source-image-refs",
+          severity: "error",
+          path: doc.repo_path,
+          detail: `image ref "${ref}" resolves to a ${size}-byte file (below MIN_IMAGE_BYTES=${MIN_IMAGE_BYTES}; likely truncated)`,
+          hint: `hirono raindrop refetch <slug> --force, then re-verify`,
+        });
+        continue;
+      }
+      let head: Buffer;
+      try {
+        const fd = openSync(abs, "r");
+        head = Buffer.alloc(Math.min(size, 256));
+        readSync(fd, head, 0, head.length, 0);
+        closeSync(fd);
+      } catch (e) {
+        issues.push({
+          kind: "source-image-refs",
+          severity: "error",
+          path: doc.repo_path,
+          detail: `image ref "${ref}" could not be read: ${(e as Error).message}`,
+        });
+        continue;
+      }
+      if (!looksLikeImage(head)) {
+        issues.push({
+          kind: "source-image-refs",
+          severity: "error",
+          path: doc.repo_path,
+          detail: `image ref "${ref}" exists (${size} B) but doesn't match any known image format (PNG/JPEG/WebP/SVG/GIF/BMP/TIFF)`,
+          hint: `the file may be an HTML error page or text saved with an image extension; refetch the slug`,
+        });
+      }
+    }
+  }
+  return issues;
+}
+
+/**
+ * Pull every `![alt](path)` reference out of a markdown body, skipping
+ * those inside fenced code blocks and skipping remote `http(s)://` URLs.
+ * Returns the path string verbatim — the caller resolves it.
+ */
+function extractLocalImageRefs(body: string): string[] {
+  const out: string[] = [];
+  let inFence = false;
+  for (const line of body.split("\n")) {
+    if (/^```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    for (const m of line.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+      const path = m[1].trim();
+      if (/^https?:\/\//i.test(path)) continue;  // remote refs are a separate rule
+      if (path.length === 0) continue;
+      out.push(path);
+    }
+  }
+  return out;
+}
+
+function relpath(abs: string, repoRoot: string): string {
+  return abs.startsWith(repoRoot + "/") ? abs.slice(repoRoot.length + 1) : abs;
+}
+
 function yearForSourcePath(repoPath: string): string {
   // "Sources/2026/2026-04-19-foo.md" → "2026"
   const m = repoPath.match(/^Sources\/(\d{4})\//);
@@ -445,7 +552,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -464,6 +571,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("frontmatter"))    issues.push(...checkFrontmatter(docs));
   if (checks.includes("raw-orphan"))     issues.push(...checkRawOrphan(docs, repoRoot));
   if (checks.includes("sources-index"))  issues.push(...checkSourcesIndex(repoRoot));
+  if (checks.includes("source-image-refs")) issues.push(...checkSourceImageRefs(docs, repoRoot));
   return issues;
 }
 

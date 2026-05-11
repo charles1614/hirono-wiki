@@ -273,3 +273,112 @@ test("raw-orphan: Source paired with raw → clean", () => {
     assert.equal(issues.length, 0);
   } finally { rmSync(root, { recursive: true }); }
 });
+
+// ---------------------------------------------------------------------------
+// source-image-refs (pre-scale image-correctness gate)
+// ---------------------------------------------------------------------------
+
+// Minimal PNG bytes: 8-byte signature + IHDR chunk (13 bytes). Header is
+// what `looksLikeImage` checks; padding to 512+ B satisfies MIN_IMAGE_BYTES.
+const PNG_HEADER = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,  // PNG sig
+  0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,  // IHDR chunk length + name
+]);
+function validPngBytes(): Buffer {
+  return Buffer.concat([PNG_HEADER, Buffer.alloc(600, 0)]);  // ≥ 512 B
+}
+
+test("source-image-refs: valid image ref → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-image-ok";
+    writeSource(root, slug,
+      `body with image ref:\n\n![Bar chart of foo](../../raw/raindrop/example.com/${slug}/figure-001.png)`);
+    mkdirSync(join(root, `raw/raindrop/example.com/${slug}`), { recursive: true });
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/content.md`), "raw body");
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/figure-001.png`), validPngBytes());
+    const issues = runLint(root, { checks: ["source-image-refs"] });
+    assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-refs: dangling ref → error", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-image-dangling";
+    writeSource(root, slug,
+      `![dangling](../../raw/raindrop/example.com/${slug}/nope.png)`);
+    mkdirSync(join(root, `raw/raindrop/example.com/${slug}`), { recursive: true });
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/content.md`), "raw body");
+    const issues = runLint(root, { checks: ["source-image-refs"] });
+    assert.ok(issues.some((i) => i.detail.includes("missing file")),
+      `expected dangling error; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-refs: truncated stub (< MIN_IMAGE_BYTES) → error", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-image-truncated";
+    writeSource(root, slug,
+      `![truncated](../../raw/raindrop/example.com/${slug}/figure-001.png)`);
+    mkdirSync(join(root, `raw/raindrop/example.com/${slug}`), { recursive: true });
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/content.md`), "raw body");
+    // 100 bytes — valid PNG header but well below MIN_IMAGE_BYTES (512).
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/figure-001.png`),
+      Buffer.concat([PNG_HEADER, Buffer.alloc(84, 0)]));
+    const issues = runLint(root, { checks: ["source-image-refs"] });
+    assert.ok(issues.some((i) => i.detail.includes("truncated") || i.detail.includes("MIN_IMAGE_BYTES")),
+      `expected truncated error; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-refs: wrong-format bytes (text-as-png) → error", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-image-wrong-format";
+    writeSource(root, slug,
+      `![text masquerading as png](../../raw/raindrop/example.com/${slug}/figure-001.png)`);
+    mkdirSync(join(root, `raw/raindrop/example.com/${slug}`), { recursive: true });
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/content.md`), "raw body");
+    // 600 bytes of "<html>error</html>..." — passes the size check but
+    // fails the magic-byte check. Caught by looksLikeImage.
+    const html = "<html><body>Not Found</body></html>".repeat(20);
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/figure-001.png`), html);
+    const issues = runLint(root, { checks: ["source-image-refs"] });
+    assert.ok(issues.some((i) => i.detail.includes("doesn't match any known image format")),
+      `expected wrong-format error; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-refs: refs inside fenced code blocks are ignored", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-image-fenced";
+    writeSource(root, slug,
+      "code example:\n\n```\n![not a real ref](../../raw/raindrop/example.com/x/nope.png)\n```");
+    mkdirSync(join(root, `raw/raindrop/example.com/${slug}`), { recursive: true });
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/content.md`), "raw body");
+    const issues = runLint(root, { checks: ["source-image-refs"] });
+    assert.equal(issues.length, 0, `fenced refs should be ignored; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-refs: remote http(s) refs are skipped (other rule covers them)", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-image-remote";
+    writeSource(root, slug,
+      `![remote](https://example.com/img.png)`);
+    mkdirSync(join(root, `raw/raindrop/example.com/${slug}`), { recursive: true });
+    writeFileSync(join(root, `raw/raindrop/example.com/${slug}/content.md`), "raw body");
+    const issues = runLint(root, { checks: ["source-image-refs"] });
+    assert.equal(issues.length, 0, `remote refs out of scope; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});

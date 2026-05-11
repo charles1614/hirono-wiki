@@ -66,7 +66,7 @@ The inference recipe in one picture. Anyone implementing EAGLE-3 reads this.
 
 ## Entities touched
 
-[[EAGLE]], [[EAGLE-2]], [[EAGLE-3]], [[HASS]], [[Medusa]], [[SGLang]], [[Vicuna]], [[LLaMA]], [[DeepSeek-R1]], [[Speculative Sampling]]
+[[EAGLE]], [[EAGLE-2]], [[EAGLE-3]], [[HASS]], [[Medusa]], [[SGLang]], [[Vicuna]], [[Llama]], [[DeepSeek-R1]], [[Speculative Sampling]]
 
 ## Topics touched
 

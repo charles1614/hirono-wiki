@@ -57,7 +57,7 @@ The whole paper's contribution in one diagram. Without this, the "decouple atten
 
 ## Entities touched
 
-[[NVIDIA]], [[Megatron-LM]], [[Megatron-Core]], [[Mixture of Experts]], [[Mixtral]], [[Qwen2]], [[DeepSeek-MoE]], [[Switch Transformer]], [[GShard]], [[GLaM]], [[Megablocks]], [[H100]]
+[[NVIDIA]], [[Megatron-LM]], [[Megatron-Core]], [[MoE]], [[Mixtral]], [[Qwen]], [[DeepSeek-MoE]], [[Switch Transformer]], [[GShard]], [[GLaM]], [[Megablocks]], [[H100]]
 
 ## Topics touched
 

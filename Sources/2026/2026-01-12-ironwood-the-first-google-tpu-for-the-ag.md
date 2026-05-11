@@ -61,7 +61,7 @@ The "30× more efficient than v2" claim visualized. This is the chart that ancho
 
 ## Entities touched
 
-[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[Pathways]], [[SparseCore]], [[ICI]], [[HBM]], [[Gemini 2.5]], [[AlphaFold]], [[AI Hypercomputer]], [[El Capitan]]
+[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[Pathways]], [[SparseCore]], [[ICI]], [[HBM]], [[Gemini]], [[AlphaFold]], [[AI Hypercomputer]], [[El Capitan]]
 
 ## Topics touched
 

@@ -64,7 +64,7 @@ IntuitionLabs technical report (Dec 19 2025, revised Apr 17 2026, 16 pp, 35-min 
 
 ## Entities touched
 
-[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[XLA]], [[JAX]], [[Pathways]], [[Jupiter]], [[Gemini 3]], [[Gemini 2.0]], [[AI Hypercomputer]], [[A100]], [[Graphcore IPU]], [[SparseCore]], [[OCS]], [[bfloat16]], [[NVIDIA]]
+[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[XLA]], [[JAX]], [[Pathways]], [[Jupiter]], [[Gemini]], [[Gemini]], [[AI Hypercomputer]], [[A100]], [[Graphcore]], [[SparseCore]], [[OCS]], [[bfloat16]], [[NVIDIA]]
 
 ## Topics touched
 

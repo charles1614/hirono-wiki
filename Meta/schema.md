@@ -200,6 +200,41 @@ Most are chrome (avatars, badges, decorative). Pick 2–6 images per source that
 factual observation. For PDF sources, prefer reading the preserved `<slug>.pdf`
 directly over the per-page PNG renderings — same data, much cheaper.
 
+**The Sources image rule.** A Source-page image earns its place by carrying
+information not already in the body text, references a file in the raw
+archive that exists and is a valid image of its claimed format, and is
+captioned with a factual observation the rest of the wiki can cite. Six
+properties:
+
+1. **Comes from the raw archive.** Path = `../../raw/raindrop/<host>/<slug>/<file>`.
+   Never inline a remote URL. Never copy bytes into `Sources/`.
+2. **File is valid.** Exists on disk, ≥ 512 B, magic bytes match a known
+   image format (PNG / JPEG / WebP / SVG / GIF / BMP / TIFF). Enforced
+   at fetch time by `downloadImage` in `tools/fetch-raw.ts` and at ingest
+   time by the `source-image-refs` lint check.
+3. **Triaged via the three-tier rule.** Every referenced image is either
+   *load-bearing* (full inline + alt text + caption) or *supporting*
+   (bullet only). Decorative images are never referenced.
+4. **Alt text describes what the image SHOWS, not the filename.**
+   `![Bar chart of FP8 perf vs TPU v2](...)` ✓ — `![blog-google-img-002.webp](...)` ✗.
+5. **Caption surfaces the load-bearing claim.** For inline images, one
+   factual sentence below the image. This is content — it cites entities
+   and contributes to the wiki's compounding. Not "see Figure 3."
+6. **Section placement.** Load-bearing images go in `## Visual observations`,
+   not sprinkled into Key claims. Order follows the source's own figure
+   ordering when possible. If a Source has zero load-bearing/supporting
+   images, omit the entire section.
+
+Triage process for an ingestor:
+
+1. List every image in `raw/<host>/<slug>/<slug>-figures/` (or `-images/`,
+   `-slides/`, etc.).
+2. For each, ask: does this carry information the body text doesn't already
+   give? If no → decorative, skip silently.
+3. If yes: does the claim it carries already appear in `## Key claims`? If
+   yes → supporting (bullet only). If no → load-bearing (full inline).
+4. Cap at 2–6 load-bearing per Source. More than that is usually mis-triaged.
+
 **Citation discipline carries over.** A bullet in Visual observations is
 content. If it makes a claim about an Entity, the Entity's Observations block
 gets a corresponding bullet citing this Source. Same compounding rule as Key

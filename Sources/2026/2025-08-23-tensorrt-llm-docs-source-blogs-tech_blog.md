@@ -37,7 +37,7 @@ NVIDIA's official deployment guide for serving **gpt-oss-120b** on [[TensorRT-LL
 
 ## Entities touched
 
-[[TensorRT-LLM]], [[gpt-oss]], [[CUTLASS]], [[OpenAI Triton]], [[Blackwell]], [[Hopper]], [[NVIDIA]]
+[[TensorRT-LLM]], [[GPT-OSS]], [[CUTLASS]], [[OpenAI Triton]], [[Blackwell]], [[Hopper]], [[NVIDIA]]
 
 ## Topics touched
 

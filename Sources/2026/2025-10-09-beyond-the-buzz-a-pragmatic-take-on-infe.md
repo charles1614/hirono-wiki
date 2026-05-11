@@ -66,7 +66,7 @@ This is the system-design crystallization: a disaggregated deployment that *can'
 
 ## Entities touched
 
-[[NVIDIA]], [[DeepSeek-R1]], [[Llama-3.1]], [[Blackwell]], [[FP4]], [[MLA]], [[GQA]], [[NVLink]]
+[[NVIDIA]], [[DeepSeek-R1]], [[Llama]], [[Blackwell]], [[FP4]], [[MLA]], [[GQA]], [[NVLink]]
 
 ## Topics touched
 

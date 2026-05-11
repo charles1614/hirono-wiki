@@ -67,7 +67,7 @@ Concrete proof of the "FP8 LLM speedups are not the 2× peak rates suggest" clai
 
 ## Entities touched
 
-[[H100]], [[A100]], [[Hopper]], [[Ampere]], [[Ada]], [[Volta]], [[Tensor Core]], [[Transformer Engine]], [[TMA]], [[DSM]], [[DPX]], [[FP8]], [[BF16]], [[TF32]], [[LLaMA]], [[FlashAttention]], [[HKUST]]
+[[H100]], [[A100]], [[Hopper]], [[Ampere]], [[Ada]], [[Volta]], [[Tensor Core]], [[Transformer Engine]], [[TMA]], [[Distributed Shared Memory]], [[DPX]], [[FP8]], [[BF16]], [[TF32]], [[Llama]], [[FlashAttention]], [[HKUST]]
 
 ## Topics touched
 
