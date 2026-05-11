@@ -10,7 +10,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs, openBrowserWithRetry } from "../_shared/browser-helpers.ts";
 import { extractJsonFromEvalStdout } from "../_shared/browser-eval-json.ts";
 
 export interface DeepwikiComContent {
@@ -29,11 +29,7 @@ export interface DeepwikiComContent {
 export function extractDeepwikiComContent(url: string): DeepwikiComContent {
   let browserOpened = false;
   try {
-    const openRes = spawnSync(
-      "opencli",
-      ["browser", "open", url],
-      { encoding: "utf8", timeout: browserTimeoutMs("open") },
-    );
+    const openRes = openBrowserWithRetry(url);
     if (openRes.status !== 0) {
       return {
         contentHtml: "", mermaidSources: [], title: "",

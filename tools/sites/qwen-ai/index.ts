@@ -22,7 +22,7 @@ import { JSDOM } from "jsdom";
 
 import { convertGenericHtml } from "../_shared/generic-converter.ts";
 import { applyCommonMarkdownCleanups } from "../_shared/markdown-cleanups.ts";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs, openBrowserWithRetry } from "../_shared/browser-helpers.ts";
 import { makeStub } from "../_shared/stub.ts";
 import { harvestServiceCard } from "../_shared/service-card.ts";
 import { downloadImage } from "../../fetch-raw.ts";
@@ -54,10 +54,7 @@ interface QwenConvertResult {
 function extractQwenAi(url: string): QwenExtraction {
   let opened = false;
   try {
-    const openRes = spawnSync("opencli", ["browser", "open", url], {
-      encoding: "utf8",
-      timeout: browserTimeoutMs("open"),
-    });
+    const openRes = openBrowserWithRetry(url);
     if (openRes.status !== 0) {
       return {
         title: "", description: "", publishedAt: "", articleHtml: "",
@@ -220,10 +217,7 @@ interface QwenResearchExtraction {
 function extractQwenResearchListing(url: string): QwenResearchExtraction {
   let opened = false;
   try {
-    const openRes = spawnSync("opencli", ["browser", "open", url], {
-      encoding: "utf8",
-      timeout: browserTimeoutMs("open"),
-    });
+    const openRes = openBrowserWithRetry(url);
     if (openRes.status !== 0) {
       return { items: [], error: `browser open failed: ${(openRes.stderr || "").slice(0, 200)}` };
     }

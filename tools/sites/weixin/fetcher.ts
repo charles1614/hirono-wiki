@@ -7,7 +7,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs, openBrowserWithRetry } from "../_shared/browser-helpers.ts";
 import { makeError as makeFetchError } from "../../fetch-raw.ts";
 
 export interface WeixinFullContent {
@@ -27,11 +27,7 @@ export interface WeixinFullContent {
 export function extractWeixinFullContent(url: string): WeixinFullContent {
   let browserOpened = false;
   try {
-    const openRes = spawnSync(
-      "opencli",
-      ["browser", "open", url],
-      { encoding: "utf8", timeout: browserTimeoutMs("open") },
-    );
+    const openRes = openBrowserWithRetry(url);
     if (openRes.status !== 0) {
       throw makeFetchError(
         "browser-open-failed",

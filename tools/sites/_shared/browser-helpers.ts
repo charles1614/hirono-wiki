@@ -80,6 +80,44 @@ export function closeBrowser(): void {
 }
 
 /**
+ * `opencli browser open <url>` with self-healing retry. opencli's
+ * automation tab occasionally enters a stuck state after many
+ * back-to-back fetches (observed in bulk fetch-all runs: ~every 100–120
+ * calls the next `open` hangs past its timeout, but a `browser close`
+ * unsticks it). Instead of bubbling that up as an L3 halt that the
+ * operator has to manually recover from, we transparently close + retry
+ * once. The shape mirrors `spawnSync` so callers can swap it in for a
+ * direct `spawnSync("opencli", ["browser", "open", url], ...)`.
+ *
+ * Returns `{ status, stdout, stderr }`. status === 0 on success, on
+ * which callers proceed normally; non-zero means BOTH attempts failed
+ * and the second attempt's stderr is what to report.
+ */
+export function openBrowserWithRetry(
+  url: string,
+  opts: { timeoutMs?: number } = {},
+): { status: number; stdout: string; stderr: string } {
+  const timeout = opts.timeoutMs ?? browserTimeoutMs("open");
+  const attempt = () =>
+    spawnSync("opencli", ["browser", "open", url], { encoding: "utf8", timeout });
+  let res = attempt();
+  if (res.status === 0) {
+    return { status: 0, stdout: res.stdout ?? "", stderr: res.stderr ?? "" };
+  }
+  // First attempt failed (timeout or other) — clear any stuck tab and
+  // retry once. closeBrowser is best-effort; a brief sleep lets the
+  // daemon release the tab lease before we try again.
+  closeBrowser();
+  sleepMs(500);
+  res = attempt();
+  return {
+    status: res.status ?? 1,
+    stdout: res.stdout ?? "",
+    stderr: res.stderr ?? "",
+  };
+}
+
+/**
  * Small blocking sleep (we're serial + deliberate here; no Node
  * event-loop concerns). Spin-wait with `Atomics.wait` to avoid
  * burning CPU.

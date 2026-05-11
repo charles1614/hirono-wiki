@@ -10,7 +10,7 @@
  */
 
 import { execSync, spawnSync } from "node:child_process";
-import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
+import { sleepMs, closeBrowser, browserTimeoutMs, openBrowserWithRetry } from "../_shared/browser-helpers.ts";
 import { extractJsonFromEvalStdout } from "../_shared/browser-eval-json.ts";
 
 export interface EpochAiContent {
@@ -28,10 +28,7 @@ export interface EpochAiContent {
 export function extractEpochAiContent(url: string): EpochAiContent {
   let browserOpened = false;
   try {
-    const openRes = spawnSync(
-      "opencli", ["browser", "open", url],
-      { encoding: "utf8", timeout: browserTimeoutMs("open") },
-    );
+    const openRes = openBrowserWithRetry(url);
     if (openRes.status !== 0) {
       return {
         introHtml: "", title: "", csvUrl: "", csvText: "",
