@@ -6,7 +6,7 @@ raw_source: https://arxiv.org/pdf/2402.13499
 tags: [hopper, h100, ampere, ada, gpu, microbenchmark, tensor-core, fp8, dpx, tma, dsm, hkust]
 ---
 
-# [2026-01-15] Benchmarking and Dissecting the NVIDIA Hopper Architecture
+# [2026-01-15] Benchmarking and Dissecting the NVIDIA Hopper GPU Architecture
 
 ## TL;DR
 
@@ -63,4 +63,4 @@ HKUST + HIT paper (Wenlin Luo et al., arXiv:2402.13499, Feb 2024) — **instruct
 
 ## Raw source
 
-[arxiv.org/abs/2402.13499](https://arxiv.org/abs/2402.13499) — 12-page paper · 525 KB PDF · 9 captioned arxiv-HTML figures (no Marker extraction this round; the pdftotext path produced 1 figure ref in body). HKUST + HKUST(GZ) + HIT(SZ) authors. Read 2026-05-11.
+[arxiv.org/abs/2402.13499](https://arxiv.org/abs/2402.13499) — 12-page paper · 525 KB PDF · 8 figures (Marker-extracted, 73,923 text chars) + 9 captioned arxiv-HTML figures. HKUST + HKUST(GZ) + HIT(SZ) authors. Read 2026-05-11 (the Marker re-extraction completed mid-ingest; original ingest was from pdftotext version, this entry was updated to reflect the better raw — substantive claims unchanged).
