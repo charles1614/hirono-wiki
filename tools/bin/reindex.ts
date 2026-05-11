@@ -134,6 +134,84 @@ export function countSourceCites(docs: DocMeta[]): Map<string, number> {
   return count;
 }
 
+/**
+ * For each Entity slug, return the set of Source slugs that wikilink it.
+ *
+ * Used to surface Entities whose Observations block is empty/placeholder
+ * despite refs > 0 — a structural gap the schema's "every observation cites
+ * its source" rule wants closed. Reindex doesn't auto-write observation text
+ * (we can't synthesize the source's claim about the entity from outside the
+ * source), but we DO surface the gap so the operator / ingest agent knows
+ * what's missing.
+ */
+export function reverseSourceCitations(docs: DocMeta[]): Map<string, Set<string>> {
+  const bucketOfSlug = new Map<string, Bucket>();
+  for (const d of docs) bucketOfSlug.set(d.slug, d.bucket);
+  const out = new Map<string, Set<string>>();  // entitySlug → set of sourceSlugs that cite it
+  for (const doc of docs) {
+    if (doc.bucket !== "Sources") continue;
+    for (const target of doc.wikilinks) {
+      if (target === doc.slug) continue;
+      const targetBucket = bucketOfSlug.get(target);
+      if (targetBucket !== "Entities") continue;
+      if (!out.has(target)) out.set(target, new Set());
+      out.get(target)!.add(doc.slug);
+    }
+  }
+  return out;
+}
+
+interface ObservationGap {
+  slug: string;
+  refs: number;
+  citingSources: string[];   // every Source that wikilinks this entity
+  missingSources: string[];  // citingSources whose slug doesn't appear in the entity's Observations block
+}
+
+/**
+ * For each Entity doc, parse its `## Observations` section and find which
+ * citing-Source slugs are already cited there. Anything missing is a gap.
+ *
+ * Heuristic for "Observations is empty / placeholder": the section body
+ * contains either (a) only the placeholder line "(auto-populated as Sources
+ * cite this entity)" or (b) no `[[<source-slug>]]` references where the
+ * source slug looks like `YYYY-MM-DD-...`.
+ */
+export function computeObservationGaps(
+  docs: DocMeta[],
+  refs: Map<string, number>,
+): ObservationGap[] {
+  const citations = reverseSourceCitations(docs);
+  const gaps: ObservationGap[] = [];
+  for (const doc of docs) {
+    if (doc.bucket !== "Entities") continue;
+    const citing = citations.get(doc.slug);
+    if (!citing || citing.size === 0) continue;
+
+    // Extract the Observations section body.
+    const obsMatch = doc.body.match(/## Observations\b[\s\S]*?(?=\n## |\n#[^\n]|$)/);
+    const obsBody = obsMatch ? obsMatch[0] : "";
+
+    // Find Source slugs (YYYY-MM-DD-prefixed) cited inside Observations.
+    const citedInObs = new Set<string>();
+    for (const m of obsBody.matchAll(/\[\[(\d{4}-\d{2}-\d{2}-[^\]|]+)/g)) {
+      citedInObs.add(m[1].trim());
+    }
+
+    const missing = [...citing].filter((s) => !citedInObs.has(s));
+    if (missing.length === 0) continue;
+    gaps.push({
+      slug: doc.slug,
+      refs: refs.get(doc.slug) ?? 0,
+      citingSources: [...citing].sort(),
+      missingSources: missing.sort(),
+    });
+  }
+  // Highest-refs entities first — biggest debt.
+  gaps.sort((a, b) => b.refs - a.refs);
+  return gaps;
+}
+
 // ---------------------------------------------------------------------------
 // frontmatter mutations (entity + topic)
 // ---------------------------------------------------------------------------
@@ -495,6 +573,34 @@ function main(): void {
   for (const [slug, n] of top) console.log(`  ${String(n).padStart(3)} ${slug}`);
 
   apply(REPO_ROOT, result, dryRun);
+
+  // Surface Entities with refs > 0 but missing Observations citations.
+  // Reindex doesn't auto-write observation text (we can't synthesize what
+  // the source said about the entity); but we DO list the gap so the
+  // operator / ingest agent knows what's pending. This is the
+  // post-batch-close checklist — each line is one piece of LLM work.
+  const paths = walkWikiDocs(REPO_ROOT);
+  const docs = paths.map((p) => parseDoc(REPO_ROOT, p));
+  const gaps = computeObservationGaps(docs, result.refs);
+  if (gaps.length > 0) {
+    const TOP_N = 10;
+    const shown = gaps.slice(0, TOP_N);
+    console.log(`\n[reindex] ${gaps.length} entit${gaps.length === 1 ? "y" : "ies"} with refs > 0 but Observations don't cite all citing Sources:`);
+    for (const g of shown) {
+      console.log(`  ${g.slug.padEnd(28)} refs=${g.refs}  missing ${g.missingSources.length} observation${g.missingSources.length === 1 ? "" : "s"}`);
+      const MAX_SOURCES_SHOWN = 3;
+      for (const s of g.missingSources.slice(0, MAX_SOURCES_SHOWN)) {
+        console.log(`      ← [[${s}]]`);
+      }
+      if (g.missingSources.length > MAX_SOURCES_SHOWN) {
+        console.log(`      ← ...and ${g.missingSources.length - MAX_SOURCES_SHOWN} more`);
+      }
+    }
+    if (gaps.length > TOP_N) {
+      console.log(`  (...${gaps.length - TOP_N} more not shown)`);
+    }
+    console.log(`[reindex] tip: each gap is one piece of LLM work — open the Entity file, view the listed Source(s), append a cited Observation bullet per schema.md §entity-page.`);
+  }
 
   if (dryRun) console.log("[reindex] dry-run — no writes performed");
   else console.log("[reindex] done");

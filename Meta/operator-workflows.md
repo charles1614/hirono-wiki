@@ -711,6 +711,40 @@ Suggested cadence — adjust to your appetite.
 | **As needed** | `raindrop history <slug>` / `raindrop diff <slug>` | Investigating a specific source's evolution. |
 | **Before commits** | `hirono raindrop check` | Coverage gate — fail fast if a new host crossed the > 1 threshold without a dedicated module. |
 
+### Batch-close ritual (run after every ingest batch)
+
+When the LLM finishes writing N new `Sources/YYYY/<slug>.md` pages (whether
+one slug or a 20-slug batch), close the batch with this sequence:
+
+```bash
+# 1. Maintenance — refs / tier / counts / state field
+npx tsx tools/bin/reindex.ts                      # entity refs + tier promotions + Meta/index*.md
+npx tsx tools/bin/build-sources-index.ts          # URL → slug map (used by state derivation)
+npx tsx tools/bin/hirono.ts raindrop reindex-raw  # raw/raindrop/_index.json state field
+
+# 2. Lint — schema compliance + dead wikilinks
+npx tsx tools/bin/lint.ts
+
+# 3. Read the reindex output for Observation gaps. Every line like
+#    "NVIDIA refs=8  missing 8 observations" is one piece of LLM work
+#    waiting in the queue — open the entity, view each missing Source,
+#    append a cited Observation bullet per schema.md §entity-page.
+
+# 4. Schema-audit habit (~5 min, biweekly or after schema-touching commits):
+#    Read Meta/schema.md end-to-end. Any section that no longer matches the
+#    new Source pages you just wrote? Update schema first, regenerate
+#    pages second. Schema drift compounds — catch it while context is fresh.
+
+# 5. Commit per batch (not per slug) so git log shows batch boundaries.
+git add -A
+git commit -m "ingest: <batch description> (N sources)"
+```
+
+The Observation-gap report in step 3 is the **post-batch checklist**.
+Skipping it leaves Entity pages with refs but no cited observations — the
+schema's "every bullet cites its source" rule decays. The gap report
+keeps the debt visible.
+
 ### Continuous integration
 
 The test suite (`cd tools && npm test`) is the green-gate for the

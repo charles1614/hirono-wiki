@@ -299,9 +299,10 @@ HIRONO_BROWSER_OPEN_TIMEOUT_MS=90000 \
   npx tsx tools/bin/hirono.ts raindrop fetch-all --retry-flagged
 
 # 5. After ingest (LLM writes new Sources/ pages):
-npx tsx tools/bin/reindex.ts            # refs + tier promotions + indexes
-npx tsx tools/bin/lint.ts               # schema + dead-link checks
-npx tsx tools/bin/build-sources-index.ts # URL → slug map (for state-derivation)
+npx tsx tools/bin/reindex.ts                     # refs + tier promotions + indexes
+npx tsx tools/bin/lint.ts                        # schema + dead-link checks
+npx tsx tools/bin/build-sources-index.ts         # URL → slug map
+npx tsx tools/bin/hirono.ts raindrop reindex-raw # raw/_index.json (state field)
 
 # 6. Project to Lark Space 2 (read-only mobile view)
 cd tools && npx tsx sync.ts upload-changed

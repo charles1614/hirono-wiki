@@ -163,6 +163,17 @@ async function main(): Promise<void> {
       return;
     }
 
+    if (sub === "reindex-raw") {
+      // Rebuild raw/raindrop/_index.json from on-disk source.json files +
+      // the bookmark cache + the sources-index. Run after manually
+      // touching content.md / source.json, after a fresh-start refetch,
+      // or any time the 3-state classification feels stale. Idempotent.
+      const { rebuildRawIndex } = await import("../fetch-raw.ts");
+      rebuildRawIndex();
+      process.stderr.write("[reindex-raw] raw/raindrop/_index.json rebuilt\n");
+      return;
+    }
+
     // Subcommands that consolidate the raw-archive CLI.
     if (await dispatchRaindropFetchSubcommands(sub, rest)) return;
 
