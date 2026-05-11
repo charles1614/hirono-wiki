@@ -224,31 +224,61 @@ function composePaperContent(opts: PaperOpts): Result {
     try { rmSync(legacyImagesDir, { recursive: true, force: true }); } catch { /* best-effort */ }
   }
 
-  // Extract body text via pdftotext. Default (no -layout, no -raw) mode
-  // does column-aware reading order — 2-column papers come out
-  // column-by-column rather than interleaved line-by-line. -layout was
-  // wrong for 2-column papers (left/right columns collided on every
-  // line; output was unreadable). -nopgbrk drops form-feed page-break
-  // characters.
+  // Primary extractor: Marker (Datalab) when HIRONO_USE_MARKER=1. Marker
+  // is OmniDocBench-grade for scientific papers — handles 2-column
+  // layout, inline LaTeX math, section headings, and figure positioning
+  // dramatically better than pdftotext. The cost: ~13 min/paper on Mac
+  // CPU (much faster on CUDA). Opt-in so bulk fetches stay fast.
+  //
+  // Fallback: pdftotext + cleanPdfText post-processing. Default mode
+  // (no -layout) handles 2-column reading order; the cleanup pass
+  // drops chart-text intrusions, footers, letter-spacing artifacts.
+  // Trades quality for speed: ~1 sec/paper vs Marker's 13 min, but
+  // complex layouts (inline figures, attention-mask diagrams) come
+  // out garbled.
   let bodyText = "";
+  let bodyImages: string[] = [];
   let textExtractFailed = false;
-  try {
-    const raw = execFileSync(
-      "pdftotext",
-      ["-nopgbrk", "-enc", "UTF-8", pdfPath, "-"],
-      { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 },
-    );
-    bodyText = cleanPdfText(raw);
-  } catch (e) {
-    textExtractFailed = true;
-    bodyText = "";
+  let markerUsed = false;
+  let markerSkipReason = "";
+
+  const useMarker = process.env.HIRONO_USE_MARKER === "1";
+  if (useMarker) {
+    const markerResult = tryExtractWithMarker(pdfPath, slugDir, slug, figuresDir);
+    if (markerResult.ok) {
+      bodyText = markerResult.body;
+      bodyImages = markerResult.imageFiles;
+      if (markerResult.title) titleLine = markerResult.title;
+      markerUsed = true;
+    } else {
+      markerSkipReason = markerResult.reason;
+    }
+  } else {
+    markerSkipReason = "HIRONO_USE_MARKER not set";
+  }
+
+  if (!markerUsed) {
+    // Fallback path: pdftotext default mode + cleanPdfText.
+    try {
+      const raw = execFileSync(
+        "pdftotext",
+        ["-nopgbrk", "-enc", "UTF-8", pdfPath, "-"],
+        { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 },
+      );
+      bodyText = cleanPdfText(raw);
+    } catch (e) {
+      textExtractFailed = true;
+      bodyText = "";
+    }
   }
 
   // Title fallback: if PDF info-title is empty (very common for
   // LaTeX-built arxiv PDFs), extract from the body's pre-cleanup raw
   // dump. The raw first non-empty line is usually the paper's actual
-  // title, post letter-spacing normalization.
+  // title, post letter-spacing normalization. Skip when Marker already
+  // produced a title (it parses the H1 directly).
   if (
+    !markerUsed &&
     bodyText.length > 0 &&
     (titleLine === `PDF: ${slug}` || titleLine === slug)
   ) {
@@ -290,8 +320,9 @@ function composePaperContent(opts: PaperOpts): Result {
   // Clean stale pdfimages-extracted figures from prior refetches.
   // We ONLY remove files matching the pdfimages naming convention
   // (`fig-PPP-NNN.{png,jpg,...}`) — other tools (arxiv-fetch-figures
-  // writes `figure-NNN.png` with captions) layer their output into
-  // the same dir and we must not clobber theirs.
+  // writes `figure-NNN.png` with captions, Marker writes
+  // `marker-page-NNN-PPP.{jpeg,png}`) layer their output into the same
+  // dir and we must not clobber theirs.
   if (existsSync(figuresDir)) {
     for (const f of readdirSync(figuresDir)) {
       if (/^fig-\d{3}-\d+\.(png|jpg|jpeg|tiff|gif|webp)$/i.test(f)) {
@@ -301,19 +332,24 @@ function composePaperContent(opts: PaperOpts): Result {
   } else {
     mkdirSync(figuresDir, { recursive: true });
   }
-  // Extract embedded figures via pdfimages. -all keeps original encoding;
-  // -p prefixes filenames with the page number for traceability.
+
+  // When Marker already provided figures, skip pdfimages (Marker is
+  // higher-quality + has proper figure-vs-decoration distinction).
   let figuresExtracted = 0;
-  try {
-    execFileSync(
-      "pdfimages",
-      ["-all", "-p", pdfPath, join(figuresDir, "fig")],
-      { stdio: ["ignore", "ignore", "pipe"] },
-    );
-  } catch {
-    // pdfimages can fail on heavily-vectorised PDFs (TikZ/PGF figures
-    // aren't extractable as raster). Not fatal — the paper still has
-    // its body text + the preserved PDF for vision-mode reading.
+  if (!markerUsed) {
+    // Extract embedded figures via pdfimages. -all keeps original encoding;
+    // -p prefixes filenames with the page number for traceability.
+    try {
+      execFileSync(
+        "pdfimages",
+        ["-all", "-p", pdfPath, join(figuresDir, "fig")],
+        { stdio: ["ignore", "ignore", "pipe"] },
+      );
+    } catch {
+      // pdfimages can fail on heavily-vectorised PDFs (TikZ/PGF figures
+      // aren't extractable as raster). Not fatal — the paper still has
+      // its body text + the preserved PDF for vision-mode reading.
+    }
   }
 
   // Filter to "real" figures: ≥ MIN_FIGURE_BYTES, and only the
@@ -372,7 +408,11 @@ function composePaperContent(opts: PaperOpts): Result {
     lines.push("");
   }
 
-  if (allFigs.length > 0) {
+  // Only emit the "## Extracted figures" appendix on the pdftotext
+  // fallback path. Marker's output already references its own extracted
+  // images inline at the right positions — appending another figures
+  // list would duplicate.
+  if (!markerUsed && allFigs.length > 0) {
     lines.push("---");
     lines.push("");
     lines.push(`## Extracted figures (${allFigs.length})`);
@@ -391,22 +431,29 @@ function composePaperContent(opts: PaperOpts): Result {
   }
 
   const flags: string[] = ["pdf-paper"];
+  if (markerUsed) flags.push("pdf-marker");
   if (textExtractFailed) flags.push("_default-pdf-text-extract-failed");
-  if (allFigs.length === 0) flags.push("_default-pdf-no-figures-extracted");
+  if (!markerUsed && allFigs.length === 0) flags.push("_default-pdf-no-figures-extracted");
+
+  const allImages = markerUsed
+    ? bodyImages.map((f) => `${slug}-figures/${f}`)
+    : allFigs.map((f) => `${slug}-figures/${f.name}`);
 
   return {
     markdown: lines.join("\n"),
     title: titleLine,
-    images: allFigs.map((f) => `${slug}-figures/${f.name}`),
+    images: allImages,
     metadata: {
       source: "_default-pdf",
       title: titleLine,
       shape: "paper",
+      extractor: markerUsed ? "marker" : "pdftotext",
+      marker_skip_reason: markerUsed ? undefined : markerSkipReason || undefined,
       pdf_local_path: `${slug}.pdf`,
       pdf_metadata: meta,
       page_count: pageCount,
       aspect_ratio: Math.round(opts.aspectRatio * 100) / 100,
-      figures_extracted: figuresExtracted,
+      figures_extracted: markerUsed ? bodyImages.length : figuresExtracted,
       pdf_size_bytes: pdfSize,
       body_text_chars: bodyText.length,
     },
@@ -790,4 +837,152 @@ function formatPdfDate(raw: string): string {
 
 function cleanupTempPdf(path: string): void {
   try { unlinkSync(path); } catch { /* best-effort */ }
+}
+
+interface MarkerExtractResult {
+  ok: boolean;
+  body: string;
+  imageFiles: string[];
+  title?: string;
+  reason: string;
+}
+
+/**
+ * Run Marker (Datalab, `pip install marker-pdf`) over the PDF and parse
+ * its output into our `<slug>-figures/` layout. Marker is OmniDocBench-
+ * grade for scientific papers — it produces a publication-quality
+ * markdown with LaTeX inline math, proper section headings, and figures
+ * positioned at their reference points.
+ *
+ * Layout (Marker output):
+ *   <tmpdir>/<basename>/
+ *     <basename>.md             ← markdown body, references _page_*_*.{jpeg,png}
+ *     _page_N_Figure_M.{jpeg,png}
+ *     _page_N_Picture_M.{jpeg,png}
+ *     <basename>_meta.json
+ *
+ * Our integration:
+ *   - run `marker_single <pdf> --output_dir <tmp>`
+ *   - read the .md, rewrite `![](_page_N_*)` → `![](<slug>-figures/marker-page-NNN-PPP.<ext>)`
+ *   - copy image files to <slug>-figures/ with the renamed filenames
+ *   - return body + image list
+ *
+ * Failure modes (return ok:false with a reason; caller falls back to pdftotext):
+ *   - marker binary not on PATH ("marker-not-installed")
+ *   - marker process failed ("marker-failed:<stderr-snippet>")
+ *   - expected .md missing ("marker-output-missing")
+ */
+function tryExtractWithMarker(
+  pdfPath: string,
+  slugDir: string,
+  slug: string,
+  figuresDir: string,
+): MarkerExtractResult {
+  const empty: MarkerExtractResult = { ok: false, body: "", imageFiles: [], reason: "" };
+
+  // Locate marker binary. Check PATH; absent → fall back.
+  const which = spawnSync("which", ["marker_single"], { encoding: "utf8" });
+  if (which.status !== 0 || !which.stdout.trim()) {
+    return { ...empty, reason: "marker-not-installed" };
+  }
+  const markerBin = which.stdout.trim();
+
+  // Run marker into a temp dir; it creates <tmp>/<basename>/ inside.
+  const tmpDir = join(slugDir, ".marker-tmp");
+  if (existsSync(tmpDir)) {
+    try { rmSync(tmpDir, { recursive: true, force: true }); } catch { /* */ }
+  }
+  mkdirSync(tmpDir, { recursive: true });
+
+  const proc = spawnSync(
+    markerBin,
+    [pdfPath, "--output_dir", tmpDir],
+    {
+      encoding: "utf8",
+      stdio: ["ignore", "ignore", "pipe"],
+      // No timeout — Marker on Mac CPU can take 10-20 min per paper.
+      // The fetch pipeline already has its own outer limits via the
+      // operator workflow; we don't add another here.
+    },
+  );
+  if (proc.status !== 0) {
+    try { rmSync(tmpDir, { recursive: true, force: true }); } catch { /* */ }
+    const stderr = (proc.stderr || "").toString().slice(0, 200);
+    return { ...empty, reason: `marker-failed:${stderr}` };
+  }
+
+  // Marker creates <tmpDir>/<basename>/ where basename = PDF stem without ext.
+  const pdfBase = pdfPath.replace(/^.*\//, "").replace(/\.pdf$/i, "");
+  const markerOutDir = join(tmpDir, pdfBase);
+  const markerMdPath = join(markerOutDir, `${pdfBase}.md`);
+  if (!existsSync(markerMdPath)) {
+    try { rmSync(tmpDir, { recursive: true, force: true }); } catch { /* */ }
+    return { ...empty, reason: "marker-output-missing" };
+  }
+
+  let markerMd = readFileSync(markerMdPath, "utf8");
+
+  // Parse title from H1 (first line `# Title`). Marker emits the paper
+  // title as the first H1. We strip it from the body since pdf-render
+  // composes its own H1 from titleLine.
+  let title: string | undefined;
+  const h1Match = markerMd.match(/^#\s+(.+?)\s*$/m);
+  if (h1Match) {
+    title = h1Match[1].replace(/\*\*/g, "").replace(/\s+/g, " ").trim();
+    // Remove ONLY the first H1 line (and any blank line right after).
+    markerMd = markerMd.replace(/^#\s+.+?\s*$\n?(?:\n)?/m, "");
+  }
+
+  // Copy + rename Marker's image files into <slug>-figures/.
+  // Marker emits `_page_N_Figure_M.jpeg`, `_page_N_Picture_M.jpeg`.
+  // Rename to `marker-page-NNN-MMM.<ext>` so they sort by page +
+  // don't collide with our other figure naming conventions (pdfimages
+  // `fig-PPP-NNN.png` / arxiv-fetch-figures `figure-NNN.png`).
+  const imageFiles: string[] = [];
+  // First clean any stale `marker-*` files from prior runs.
+  if (existsSync(figuresDir)) {
+    for (const f of readdirSync(figuresDir)) {
+      if (/^marker-page-\d+-\d+\.(png|jpe?g|webp)$/i.test(f)) {
+        try { unlinkSync(join(figuresDir, f)); } catch { /* */ }
+      }
+    }
+  } else {
+    mkdirSync(figuresDir, { recursive: true });
+  }
+  const refMap = new Map<string, string>();  // original → new filename
+  for (const f of readdirSync(markerOutDir)) {
+    const m = f.match(/^_page_(\d+)_(?:Figure|Picture)_(\d+)\.(png|jpe?g|webp)$/i);
+    if (!m) continue;
+    const page = m[1].padStart(3, "0");
+    const idx = m[2].padStart(3, "0");
+    const ext = m[3].toLowerCase();
+    const newName = `marker-page-${page}-${idx}.${ext}`;
+    const src = join(markerOutDir, f);
+    const dst = join(figuresDir, newName);
+    try {
+      const bytes = readFileSync(src);
+      writeFileSync(dst, bytes);
+      imageFiles.push(newName);
+      refMap.set(f, newName);
+    } catch { /* skip on copy error */ }
+  }
+
+  // Rewrite image refs in the markdown: `![](_page_N_*.jpeg)` → `![](<slug>-figures/marker-page-NNN-MMM.jpeg)`.
+  for (const [orig, renamed] of refMap.entries()) {
+    // Replace the literal filename. Don't anchor — marker may write
+    // refs with optional id/attribute prefixes.
+    const escaped = orig.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    markerMd = markerMd.replace(new RegExp(escaped, "g"), `${slug}-figures/${renamed}`);
+  }
+
+  // Clean up marker's tmp dir.
+  try { rmSync(tmpDir, { recursive: true, force: true }); } catch { /* */ }
+
+  return {
+    ok: true,
+    body: markerMd.trim(),
+    imageFiles,
+    title,
+    reason: "",
+  };
 }

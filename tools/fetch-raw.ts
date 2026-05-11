@@ -110,6 +110,11 @@ export const NON_PROBLEMATIC_FLAGS_SET: ReadonlySet<string> = new Set([
   "intentional-stub",
   "pdf-rendered",
   "pdf-paper",
+  // `pdf-marker` indicates the paper-PDF body was extracted via Marker
+  // (OmniDocBench-grade). Marker output is higher quality than
+  // pdftotext but the flag is informational — both paths produce
+  // shape-appropriate content.md, neither is a quality defect.
+  "pdf-marker",
   // `pdf-slide-deck` is the slide-shape branch of the PDF pipeline: each
   // page renders to PNG and gets inlined as `![Slide N](...)`. The
   // markdown body IS the content (one image per slide, faithful spatial
