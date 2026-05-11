@@ -100,12 +100,46 @@ tags: [optional, tags]
 *Optional. Populate only when images carry information not already in the body text.
 Heuristic: always for xhs / weixin / zhihu-image-heavy hosts; also for any source
 where `body_chars < 2000` AND `image_count >= 3`; also for PDF sources when
-figures change the claims. Skip when images are decorative (logos, banners,
-inline emoji).*
+figures change the claims.*
 
-- **Fig 1** (`<slug>-images/page-001.png`) — one-sentence factual observation.
-  What did the chart show? What is in this table screenshot? Bullets cite back
-  to Entities the same way Key Claims do.
+### Three-tier image rule
+
+Every image in `raw/<host>/<slug>/...` falls into one of three buckets:
+
+| Tier | When | Treatment in Source page |
+|---|---|---|
+| **Load-bearing** | The figure IS the claim — architecture diagrams, headline spec tables, the single chart that drives the paper's main argument | **Inline the image** at its Visual obs bullet, AND keep the textual finding |
+| **Supporting** | Charts whose numbers you already extracted into Key Claims; methodology diagrams; verification-only material | Visual obs **bullet only**, no inline image |
+| **Decorative** | Logos, event banners, avatars, hero images, sidebar graphics | **Skip silently** — don't even mention in Visual obs |
+
+### Path convention
+
+Inline images reference the **raw archive** by relative path; don't copy bytes
+into `Sources/`. From `Sources/YYYY/<slug>.md`, the relative path is:
+
+```
+../../raw/raindrop/<host>/<slug>/<file>
+```
+
+Obsidian + Lark sync (via lark-hirono) both render this. The raw archive
+remains the single canonical location for image bytes.
+
+### Shape (load-bearing image)
+
+```markdown
+**Fig 3 — TPU spec progression** (`../../raw/raindrop/blog.google/<slug>/blog-google-img-003.webp`)
+
+![TPU spec progression](../../raw/raindrop/blog.google/<slug>/blog-google-img-003.webp)
+
+v4 / v5p / Ironwood spec table with absolute numbers. Pod size 4,096 → 8,960 → 9,216;
+HBM 32 GB → 95 GB → 192 GB; TFLOPS/chip 275 → 459 → 4,614.
+```
+
+### Shape (supporting image — bullet only)
+
+```markdown
+- **Fig 13 — Post-init throughput chart** (`../../raw/raindrop/ai.meta.com/<slug>/default-img-013.png`) — SPDL @ 32 workers hits 7,700 FPS vs PyTorch's 6,500 FPS. (Numbers already in Key Claims; image is verification material.)
+```
 
 ## Entities touched
 

@@ -40,9 +40,14 @@ tags: [moe, training, parallelism, megatron, nvidia, mixtral, qwen, h100]
 
 ## Visual observations
 
-- **Fig 1 — Illustration of parallelism mappings with MoE Parallel Folding.** Visual contrast: previous methods place EP-group as sub-group of DP (left/middle) vs Folding's decoupled attention/MoE topology (right). The single most important diagram for understanding what "Folding" actually means architecturally.
-- **Fig 2 — Token dispatcher workflow with TP + EP.** Shows how a 4-GPU MoE layer dispatches tokens across both parallelism dimensions. Useful for understanding why the dispatcher is the load-bearing engineering effort.
-- **Fig 3 — Strong scaling up to 1024 GPUs.** Shows MFU stays high as GPU count scales; competing strategies degrade.
+**Fig 1 — Parallelism mappings with MoE Parallel Folding** (load-bearing — defines the paper's central concept)
+
+![Parallelism mappings — previous methods place EP-group as sub-group of DP (left, middle); Folding decouples attention/MoE topology (right)](../../raw/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-images/page-005.png)
+
+Visual contrast: previous methods place EP-group as sub-group of DP (left/middle) vs Folding's decoupled attention/MoE topology (right). The single most important diagram for understanding what "Folding" actually means architecturally — without it, "decoupled parallelism" is abstract.
+
+- **Fig 2 — Token dispatcher workflow with TP + EP** — How a 4-GPU MoE layer dispatches tokens across both parallelism dimensions. See PDF for exact page. Supporting (engineering complexity context).
+- **Fig 3 — Strong scaling up to 1024 GPUs** — MFU stays high as GPU count scales; competing strategies degrade. See PDF for exact page. Supporting (claim is in Key Claims).
 
 ## Entities touched
 

@@ -22,6 +22,23 @@ tags: [sglang, observability, tracing, opentelemetry, distributed-serving, profi
 - Roadmap context: sub-task of [#8210 — Distributed Serving Enhancement on 2025 H2](https://github.com/sgl-project/sglang/issues/8210), the SGLang team's H2 2025 priority. Tracing positioned as foundational for that whole workstream.
 - Closing note (Nov 3): GitHub bot auto-closed due to inactivity; the *feature* shipped in implementation PRs that the issue refers off to. The discussion thread continues into 2026 with users asking for usage docs.
 
+## Visual observations
+
+**Jaeger view — request-centric (PD-disaggregation, TP=1)** (load-bearing)
+
+![Jaeger request-centric view — sglang request trace showing service & operation hierarchy across PD-disaggregated nodes, with per-segment timing](../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-001.png)
+
+Jaeger view of a single request's lifecycle across PD-disaggregated nodes. Request as top-level entry; threads as second-level; execution segments at third level. **This is the surface that "fine-grained tracing" actually delivers** — without it, the FR sounds abstract. Note the timeline grain (microseconds) and the per-stage breakdown (init, PD-disagg, prefill, decode).
+
+**Perfetto view — thread-centric (PD-disaggregation, TP=1)** (load-bearing)
+
+![Perfetto thread-centric view — sglang threads on rows, request segments on columns, colored bands for prefill / decode / disaggregation stages](../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-003.png)
+
+Perfetto view of the same execution as Jaeger but transposed: threads on rows, request segments on columns, colored bands distinguishing prefill schedule / prefill takeover / decode schedule / MHA. This is the view for "is the resource underutilized?" — gaps in any row are visible idle time.
+
+- **Jaeger non-PD-disagg variant** (`../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-002.png`) — Same Jaeger layout for TP=2 non-disaggregated config. Supporting (variant of Fig 1's shape, no new claim).
+- **Perfetto variant** (`../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-004.png`) — Alternative Perfetto view. Supporting.
+
 ## Entities touched
 
 [[SGLang]], [[OpenTelemetry]], [[PyTorch Profiler]], [[Jaeger]], [[Perfetto]], [[Zipkin]]

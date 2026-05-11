@@ -36,9 +36,20 @@ PyTorch is **~linear in worker count** (3 s per added worker — subprocess spaw
 
 ## Visual observations
 
-- **Fig 13** (`default-img-013.png`) — Post-init throughput, ImageNet, varying workers × batch-size. Confirms the body's "up to 16 workers" hedge: at batch-size 16, SPDL (orange) hits ~7,700 FPS at 32 workers, ~6% **above** PyTorch's ~6,500 FPS — SPDL's GIL constraint *isn't binding* in this regime. Small batches (1, 2) plateau around 1,500–3,500 FPS for both — no clear winner. Refines the body's framing that PyTorch eventually overtakes; on this benchmark SPDL stays competitive even at 32 workers.
-- **Fig 14** (`default-img-014.png`) — End-to-end vit_b_16 on H100 with `torch.compile` + bfloat16. SPDL peaks at ~2,800 FPS @ batch=32 / 16 workers — that's the cited "50,000 images in 18 seconds" (= 2,778 FPS). PyTorch peaks at ~1,250 FPS in the same config → **SPDL is 2.2× faster end-to-end**, a bigger gap than the post-init benchmark showed (Fig 13's tighter ratio is misleading; init time amortizes differently in real training).
-- **Fig 15** (`default-img-015.png`) — Free-Threaded Python with GIL-disabled (orange) vs GIL-enabled (blue), same SPDL pipeline. At batch=16, 32 workers: GIL-off hits ~3,800 FPS, GIL-on ~2,700 FPS → **+40% with GIL disabled** (slightly above the body's "+30%" headline; the highest line confirms the upper bound). At small worker counts (≤8) the GIL doesn't matter — concurrency is too low to contend.
+**Fig 14 — End-to-end vit_b_16 on H100** (load-bearing)
+
+![End-to-end vit_b_16 throughput on H100 — SPDL peaks at 2,800 FPS, PyTorch at 1,250 FPS](../../raw/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-014.png)
+
+End-to-end vit_b_16 on H100 with `torch.compile` + bfloat16. SPDL peaks at ~2,800 FPS @ batch=32 / 16 workers — that's the cited "50,000 images in 18 seconds" (= 2,778 FPS). PyTorch peaks at ~1,250 FPS in the same config → **SPDL is 2.2× faster end-to-end**, a bigger gap than the post-init benchmark showed.
+
+**Fig 15 — Free-Threaded Python GIL on/off** (load-bearing)
+
+![Free-Threaded Python with GIL disabled (orange) vs enabled (blue) — same SPDL pipeline; GIL-off hits 3,800 FPS at 32 workers vs 2,700 FPS GIL-on](../../raw/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-015.png)
+
+At batch=16, 32 workers: GIL-off hits ~3,800 FPS, GIL-on ~2,700 FPS → **+40% with GIL disabled** (slightly above the body's "+30%" headline; the highest line confirms the upper bound). At small worker counts (≤8) the GIL doesn't matter — concurrency is too low to contend.
+
+- **Fig 13 — Post-init throughput** (`../../raw/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-013.png`) — Confirms the body's "up to 16 workers" hedge: at batch-size 16, SPDL (orange) hits ~7,700 FPS at 32 workers, ~6% above PyTorch's ~6,500 FPS — SPDL's GIL constraint isn't binding in this regime. Supporting (the cross-source claim "SPDL is competitive at 32 workers" is already in Key Claims).
+- **Fig 12 — Time-to-first-batch table** (`../../raw/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-012.png`) — Source of truth for the table reproduced in Key Claims. Supporting (numbers already extracted).
 
 ## Entities touched
 

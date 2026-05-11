@@ -52,26 +52,19 @@ flops/chip in one generation gap.
 
 ## Visual observations
 
-- **Fig 1 — TPU spec progression** (`blog-google-img-003.webp`, now 50 KB after
-  CDN-upgrade fix). v4 / v5p / Ironwood spec table with photo headers + absolute
-  numbers reproduced verbatim above. The 275 → 459 → 4,614 TFLOPS/chip progression
-  is the headline takeaway the body buries — body only quotes Ironwood's 4,614.
+**Fig 1 — TPU spec progression** (load-bearing)
 
-- **Fig 2 — Peak FP8 perf/watt across all 6 generations** (`blog-google-img-004.webp`,
-  now 15 KB). Bar chart with explicit ratios (TPU v2 = 1.0 baseline):
-  v2=1.0 → v3=1.8 → v4=4.9 → v5p=5.2 → **Trillium=14.6** → **Ironwood=29.3**.
-  Confirms the body's "2× Trillium" claim exactly (29.3 / 14.6 = 2.01×) and the
-  "~30× TPU v1" claim (off by one — likely 30× vs *first Cloud TPU 2018* which is
-  v2 in this chart). Surfaces a new number: v5p → Ironwood is **5.6×**.
+![TPU spec progression — v4 vs v5p vs Ironwood with photo headers + absolute numbers](../../raw/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-003.webp)
 
-- **Fig 3 — Peak FP8 flops growth chart** (`blog-google-img-002.webp`) —
-  ❌ download failed (the `width-1000` variant returns 403 on Google's CDN; only
-  `width-500` and `width-100` exist for this image). Flagged as
-  `blog-google-image-download-partial`. Recoverable with a targeted refetch
-  using `width-500` instead — added to follow-up.
+v4 / v5p / Ironwood spec table with photo headers + absolute numbers (reproduced as the markdown table above). The **275 → 459 → 4,614 TFLOPS/chip** progression is the headline takeaway the body buries — body only quotes Ironwood's 4,614.
 
-- **Fig 0 — event logo** (`blog-google-img-001.webp`, 6 KB) — Google Cloud Next 25
-  marketing image, decorative; no info content. Skip.
+**Fig 2 — Peak FP8 perf/watt across 6 TPU generations** (load-bearing)
+
+![Peak FP8 perf/watt across 6 TPU generations — v2 (baseline 1.0) through Ironwood (29.3)](../../raw/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-004.webp)
+
+Bar chart with explicit ratios (TPU v2 = 1.0 baseline): v2=1.0 → v3=1.8 → v4=4.9 → v5p=5.2 → **Trillium=14.6** → **Ironwood=29.3**. Confirms the body's "2× Trillium" claim exactly (29.3 / 14.6 = 2.01×) and the "~30× TPU v1" claim (off by one — likely 30× vs *first Cloud TPU 2018* which is v2 in this chart). Surfaces a new number not in the prose: **v5p → Ironwood is 5.6×**.
+
+- **Fig 3 — Peak FP8 flops growth chart** (`blog-google-img-002.webp`) — ❌ download failed (`width-1000` variant returns 403 on Google's CDN; only `width-500` and `width-100` exist). Flagged as `blog-google-image-download-partial`. Recoverable with a targeted refetch.
 
 ## Entities touched
 

@@ -42,10 +42,15 @@ EAGLE-3 paper (arXiv:2503.01840, v3 Apr 2025) — third generation of the EAGLE 
 
 ## Visual observations
 
-- **Fig 1 — Scaling law on MT-bench (LLaMA 3.1 8B).** Two-panel chart: top = speedup ratio vs data-scale (relative to ShareGPT); bottom = accept length vs data-scale. EAGLE-2 flat curve. **EAGLE-3 has positive-slope curves on both** — the increasing-scaling-law claim is literally the slope of this line. This is the most novel-claim image; without it the rest of the paper is "another speculative-decoding variant."
-- **Fig 3 — Training-time test methodology.** Three-panel diagram showing the architectural progression: EAGLE (top, with `l_fea`) → EAGLE-without-feature-pred (middle, fixes scaling but breaks step-2 acceptance) → EAGLE-3 with training-time test (bottom, fixes both). Worth the click if you'll implement or extend.
-- **Fig 4 — Acceptance rate curves** (0-α + 1-α vs data scale). Shows the step-2 acceptance-rate collapse when `l_fea` is removed alone, and recovery with training-time test.
-- **Fig 7 — Token-position acceptance rates.** Shows EAGLE-3 stays higher across longer draft chains (the "error accumulation" failure mode of EAGLE).
+**Fig 1 — Scaling law on MT-bench (LLaMA 3.1 8B)** (load-bearing)
+
+![EAGLE-3 scaling law — top-right of page 1: speedup ratio + accept length both grow with data scale for EAGLE-3, flat for EAGLE-2](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--images/page-001.png)
+
+Page 1 of the paper, with Fig 1 in the top-right and Fig 2 below it. **Fig 1 is the novel-claim chart**: two-panel diagram showing speedup-vs-data-scale (top) and accept-length-vs-data-scale (bottom) for EAGLE-2 (flat) vs EAGLE-3 (positive slope on both). The increasing-scaling-law claim is literally the slope of these lines. Fig 2 below it shows the speedup comparison bar chart across target models (Vicuna 13B / LLaMA 3.1 8B / 3.3 70B / DeepSeek-R1) — confirmation of the table reproduced above.
+
+- **Fig 3 — Training-time test methodology** (`../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--images/page-002.png`) — Three-panel diagram showing the architectural progression: EAGLE (top, with `l_fea`) → EAGLE-without-feature-pred (middle, fixes scaling but breaks step-2 acceptance) → EAGLE-3 with training-time test (bottom, fixes both). Supporting — the textual explanation in Key Claims covers it; image is helpful for implementers.
+- **Fig 4 — Acceptance rate curves** (same page as Fig 3) — 0-α + 1-α vs data scale. Shows the step-2 acceptance-rate collapse when `l_fea` is removed alone, and recovery with training-time test. Supporting.
+- **Fig 7 — Token-position acceptance rates** — EAGLE-3 stays higher across longer draft chains (the "error accumulation" failure mode of EAGLE). Supporting.
 
 ## Entities touched
 

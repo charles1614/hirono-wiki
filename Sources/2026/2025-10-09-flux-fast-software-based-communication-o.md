@@ -39,9 +39,14 @@ tags: [communication-overlap, tensor-parallelism, kernel-fusion, bytedance, mega
 
 ## Visual observations
 
-- **Fig 1 — Non-overlapped TP communication fraction across workloads.** Stacked-bar visualization for GPT-3 175B + Llama-2 70B × {training, prefill, decode-64, decode-512} × {A100 PCIe, A100 NVL, H800 NVL}. **The case for the paper** — shows comm is ~20-40% of runtime on these workloads. Without this chart, the speedup claims sound like edge optimization; with it, comm-overlap is core.
-- **Fig 3 — Prior GEMM-ReduceScatter overlap with 2-way TP.** Illustration of how operation-level overlap works (and where its overhead comes from). Helpful context for why fusion is better than scheduling.
-- **Fig 4 — PyTorch (non-overlap) vs TransformerEngine (prior overlap) efficiency.** Shows TE's overlap efficiency vs PyTorch baseline — establishing what FLUX is improving over.
+**Fig 1 — Non-overlapped TP communication fraction across workloads** (load-bearing — the case for the paper)
+
+![Non-overlapped TP communication fraction — stacked bars for GPT-3 175B + Llama-2 70B × {training, prefill, decode-64, decode-512} × {A100 PCIe, A100 NVL, H800 NVL}; comm is ~20-40% of runtime](../../raw/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-images/page-002.png)
+
+Without this chart, the speedup claims sound like edge optimization; with it, comm-overlap is core to the workload. Hatched portions = non-overlapped comm time; visible fraction varies but consistently 15-40% across all 8 workload × hardware combinations on the chart.
+
+- **Fig 3 — Prior GEMM-ReduceScatter overlap with 2-way TP** — Illustration of how operation-level overlap works (and where its overhead comes from). See PDF for exact page. Supporting (context for why fusion is better than scheduling).
+- **Fig 4 — PyTorch (non-overlap) vs TransformerEngine (prior overlap) efficiency** — Shows TE's overlap efficiency vs PyTorch baseline. See PDF. Supporting.
 
 ## Entities touched
 
