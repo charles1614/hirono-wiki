@@ -70,7 +70,6 @@ The "30× more efficient than v2" claim visualized. This is the chart that ancho
 
 ## Open questions
 
-- The raw fetch is `blog-google-image-download-partial` (4 image refs were declared but downloading them was incomplete). The four figures referenced in the body (`blog-google-img-001..004.webp`) — are they all present locally? Should re-fetch with image rules tightened.
 - Native-FP8 vs emulated-FP8 — what's the practical perf delta on real workloads (e.g. LLaMA 405B inference)? Useful for comparing Ironwood's listed FLOPS to "real workload throughput."
 - Ironwood's claim "24× El Capitan" — the metric is total FLOPS but accelerator-only. El Capitan's 1.7 EFLOPS is FP64. Ironwood's 42.5 EFLOPS is FP8. **Different precisions, not directly comparable** without normalization. Worth flagging.
 - "9,216 chips" — peculiar number. Likely `1024 × 9` or factor of 768. Why this specifically? Bisectional-bandwidth fits at this scale?
@@ -78,4 +77,4 @@ The "30× more efficient than v2" claim visualized. This is the chart that ancho
 
 ## Raw source
 
-[blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/ironwood-tpu-age-of-inference/](https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/ironwood-tpu-age-of-inference/) — ~5 KB body + 4 images. Published Apr 9 2025, updated Apr 23 2025. Read 2026-05-11. (raw flag: `blog-google-image-download-partial`)
+[blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/ironwood-tpu-age-of-inference/](https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/ironwood-tpu-age-of-inference/) — ~5 KB body + 4 images (header + 3 figures). Published Apr 9 2025, updated Apr 23 2025. Initial fetch had `blog-google-image-download-partial` (img-002 truncated to 1.1 KB); refetched 2026-05-11, all 4 images now full-size, flag cleared, status=good.
