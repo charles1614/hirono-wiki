@@ -132,6 +132,22 @@ Frontmatter is **local-only** — the preprocessor strips it on upload and rende
 - `created:` / `updated:` (frontmatter) — when the WIKI page was written / last edited.
 - `YYYY-MM-DD` prefix in `Sources/YYYY/YYYY-MM-DD-<slug>.md` — the SOURCE publication / capture date (per Raindrop bookmark `created` or the article's `<time>` element). A Source filed `2025-08-23-...` but frontmatter `created: 2026-05-11` is consistent — the source was published in 2025, we ingested it into the wiki on 2026-05-11.
 
+**Optional Source field**: `last_reviewed_at: YYYY-MM-DD` records the most recent date the operator manually re-read the raw archive and confirmed the Source summary still reflects current content. If raw content drifts (newer `revisions.jsonl` entry) more than 30 days past `last_reviewed_at`, the `stale-source-review` lint check fires (WARN). Opt-in: Sources without this field are not flagged.
+
+## Wiki scope and curation registry
+
+This wiki is **broad-scope by design** (Karpathy alignment): it absorbs whatever Sources the operator bookmarks, regardless of topic. Coherence emerges from cross-references in the graph, not from architectural partitioning. There is no `domain:` frontmatter field, no per-domain partitioning, no vocabulary scope gate.
+
+Two optional registries support curation:
+
+- **`Meta/entity-aliases.md`** — normalization hints (e.g. `LLaMA → Llama`, `bfloat16 → BF16`) consulted by `hirono auto-detect-entities` to avoid duplicate stubs for spelling variants. NOT a scope gate; absence doesn't block stub creation.
+
+- **`Meta/sources-ingest-skips.md`** — last-resort permanent-exclusion registry. Reserved for spam / duplicate / deprecated / bookmarked-by-mistake URLs. NOT used for "off-topic" content (which the wiki absorbs). Format:
+  ```
+  - <URL or slug> — skip-reason=<spam|duplicate|deprecated|bookmarked-by-mistake|other> · <rationale>
+  ```
+  Operator populates via `hirono raindrop forget <url>` or by hand-editing.
+
 ## Wikilinks
 
 Use `[[Slug]]` syntax, Obsidian-compatible. Resolution is by **slug** (file basename without `.md`), unique across the whole repo.

@@ -11,6 +11,9 @@ Match your intent to the canonical doc; don't re-derive what's already written d
 | **High-level state machine** of the corpus (Raindrop → raw → wiki ingestion; the 3 states + transitions + protections + per-scenario runbooks) | [`Meta/corpus-pipeline.md`](Meta/corpus-pipeline.md) |
 | Run / understand the operator pipeline (`hirono raindrop refresh-cache`, `fetch-all`, `sync`, `status`, daily/weekly cadence) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) |
 | Wiki curation (rename / merge / delete entities; periodic health-check audit; stale-Synthesis regeneration) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §9 Curation |
+| Source curation (delete-source, raindrop forget, skip-list registry) — accident cleanup primitives, NOT default paths (Karpathy: every URL in raw gets ingested; gate is at the bookmark layer) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §10 Source curation |
+| Auto-gen + refine entities (LLM-NER per Source; Synthesis regeneration via Sonnet subagent; refine-all-stale batch mode) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §11 Auto-gen and refine |
+| Drift detection cadence (`hirono health-check --scope drift\|sources`, `hirono raindrop gc`, `dead-link-accepted` pin) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §12 Drift detection |
 | Triage a sub-good site, build a new site adapter, or look up a specific defect pattern (SPA hydration, auth-walled, mermaid splice, etc.) | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) — symptom→cause→remediation index |
 | Architectural overview of the fetcher (site module contract, `_default` catchall, opencli vs legacy) | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
 | Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |

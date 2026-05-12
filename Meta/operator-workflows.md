@@ -905,6 +905,133 @@ to update `Meta/log-YYYY.md` manually.
   Edit the Source body directly; reserve the mutators for corpus-wide
   changes.
 
+## 10. Source curation (Phase B)
+
+The Karpathy-aligned default is to **ingest every URL** in raw/ and let
+auto-detect-entities grow the graph. Source-level cleanup is for the rare
+accident where a bookmark shouldn't have been added.
+
+### 10.1 Delete a single Source (operator decided it was a mistake)
+
+```bash
+hirono delete-source <slug> [--keep-raw] [--reason "..."]
+```
+
+Atomic: deletes `Sources/<year>/<slug>.md` + `raw/raindrop/<host>/<slug>/`
+(unless `--keep-raw`), appends a `refactor | Delete Source` log entry.
+Refuses if any Entity/Topic wikilinks the Source (dangling-ref guard);
+`--force` overrides.
+
+After: `npx tsx tools/bin/build-sources-index.ts` to refresh the URL→slug index.
+
+### 10.2 The skip-list (`Meta/sources-ingest-skips.md`)
+
+Last-resort permanent-exclusion registry. **NOT for off-topic Sources**
+(those get ingested; the wiki absorbs broadly per Karpathy). Use only for:
+- recurring spam URLs
+- known duplicate URLs (one canonical, others to be permanently skipped)
+- explicitly deprecated content the operator doesn't want re-ingested
+- one-off bookmark accidents
+
+Hand-edit, or use `hirono raindrop forget` (next).
+
+### 10.3 `hirono raindrop forget` (composed accident cleanup)
+
+```bash
+hirono raindrop forget <slug-or-url> \
+    --reason "Bookmarked by mistake" \
+    [--skip-reason <spam|duplicate|deprecated|bookmarked-by-mistake|other>]
+```
+
+Composes `delete-source` + skip-list registration in a single command.
+Handles three local-state branches automatically:
+- **source-and-raw** present → delete both, add URL to skip-list
+- **raw-only** (HSBC case: errored at ingest, no Source written) → delete raw + add URL
+- **neither** (URL only in `.wiki-raindrop-cache.json`) → add URL only
+
+Raindrop bookmark stays upstream (we don't have write API); skip-list permanently shields.
+
+To un-skip later: delete the line from `Meta/sources-ingest-skips.md`.
+
+## 11. Auto-gen and refine entities (Phase B)
+
+Karpathy's gist describes ingest as "the LLM reads the source [and]
+updates relevant entity and concept pages across the wiki." Two Phase B
+CLIs codify this as repeatable batch operations.
+
+### 11.1 `hirono auto-detect-entities <slug>`
+
+LLM-NER entity extractor. Three modes:
+
+```bash
+# 1. Generate prompt package for operator to feed Sonnet
+hirono auto-detect-entities 2026-04-03-foo-slug
+# → writes raw/raindrop/<host>/<slug>/<slug>-entities-prompt.md
+
+# 2. Spawn Sonnet subagent in your Claude session with that prompt.
+#    Save the JSON response to:
+#        raw/raindrop/<host>/<slug>/<slug>-entities-response.json
+
+# 3. Dry-run: classify the response against existing entity index + aliases
+hirono auto-detect-entities 2026-04-03-foo-slug --response <path>
+
+# 4. Apply: atomically create _seen/<canonical>.md stubs + log entry
+hirono auto-detect-entities 2026-04-03-foo-slug --response <path> --apply
+```
+
+Wikilink insertion is operator's call (reported, not auto-applied — picking the right insertion point requires judgment).
+
+Aliases live in `Meta/entity-aliases.md` (normalization hints only, NOT a scope gate).
+
+### 11.2 `hirono refine-entity <name>`
+
+LLM-driven Synthesis regenerator. Same three-mode shape:
+
+```bash
+hirono refine-entity MLA                       # → prompt package
+# spawn Sonnet → save response.txt
+hirono refine-entity MLA --response <path>     # → dry-run diff
+hirono refine-entity MLA --response <path> --apply
+```
+
+Apply phase replaces `## Synthesis`, bumps `synthesis_updated_at: <today>`, appends `refactor | Refine [[<name>]] Synthesis` log entry.
+
+### 11.3 `hirono refine-all-stale` (batch)
+
+```bash
+hirono refine-all-stale            # prepare prompts for all stale entities
+hirono refine-all-stale --list     # list-only mode (don't write prompt files)
+```
+
+Runs `lint --check stale-synthesis --json`, calls `refine-entity` in prepare mode for each flagged entity. Operator then orchestrates the per-entity Sonnet calls.
+
+## 12. Drift detection (Phase B)
+
+```bash
+hirono health-check --scope drift     # raw-archive drift audit
+hirono health-check --scope sources   # source-level health audit
+hirono raindrop gc [--keep-last N]    # content-rev*.md cleanup
+```
+
+**`--scope drift`** surfaces:
+1. Raw archives where content_sha changed but Source not re-summarized
+2. Dead URLs (`quality_flags=dead-link`) not yet pinned
+3. Raindrop-deleted URLs (still in raw/, no longer in cache)
+4. HEAD-check stale (last upstream check > 90d)
+5. Sources older than their cited raw archive's latest revision
+
+**`--scope sources`** surfaces:
+1. Sources with 0 outgoing wikilinks
+2. Tag outliers (every tag unique to one Source)
+3. Age-stale Sources (created > 180d ago)
+4. Sources cited only by Topics (no Entity Observations)
+
+**Cadence**: drift audit before each bulk-fetch cycle; sources audit before bulk-refine.
+
+**Pinning dead URLs**: add `pin-kind=dead-link-accepted` to `Meta/sources-health-overrides.md` to mark a dead URL as operator-accepted (sync skips it from retry loops).
+
+**Revision GC**: `hirono raindrop gc --keep-last 3` keeps the most recent 3 revisions; older `content-rev*.md` files are deleted and `revisions.jsonl` is updated with `body_pruned=true` markers.
+
 ---
 
 *See also: `CLAUDE.md` for fix recipes when site modules misbehave; `tools/sites/MIGRATION.md` for adding a new site module; `docs/fetcher-architecture.md` for how routing works.*
