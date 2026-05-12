@@ -195,9 +195,9 @@ test("isFailureKind: validates known + rejects unknown", () => {
   assert.equal(isFailureKind(""), false);
 });
 
-test("ALL_KINDS contains all 15 kinds, no duplicates", () => {
-  assert.equal(ALL_KINDS.length, 15);
-  assert.equal(new Set(ALL_KINDS).size, 15);
+test("ALL_KINDS contains all 16 kinds, no duplicates", () => {
+  assert.equal(ALL_KINDS.length, 16);
+  assert.equal(new Set(ALL_KINDS).size, 16);
 });
 
 // ─────────────────────────── parseOverrides ─────────────────────────

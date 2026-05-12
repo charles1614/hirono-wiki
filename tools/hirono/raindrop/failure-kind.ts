@@ -21,6 +21,7 @@ import { hostOf } from "../../shared/url-helpers.ts";
 
 export type FailureKind =
   | "clean"
+  | "dead-link-accepted"
   | "upstream-deleted"
   | "upstream-paywall"
   | "upstream-auth-gated"
@@ -38,6 +39,7 @@ export type FailureKind =
 
 const KIND_ORDER: FailureKind[] = [
   "clean",
+  "dead-link-accepted",
   "upstream-deleted",
   "upstream-paywall",
   "upstream-auth-gated",
@@ -86,6 +88,8 @@ export interface Classification {
 const ADVICE: Record<FailureKind, string> = {
   "clean":
     "OK — content extracted. Nothing to do.",
+  "dead-link-accepted":
+    "Operator-pinned: upstream is dead, but the local archive is kept for historical value. Sync skips this slug in retry loops.",
   "upstream-deleted":
     "Source page is gone (404 or page-removed marker). Decide whether to keep the local copy or remove the bookmark.",
   "upstream-paywall":

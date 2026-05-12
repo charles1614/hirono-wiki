@@ -674,6 +674,38 @@ test("buildSyncPlan: good slug → skip-good by default", () => {
   }
 });
 
+test("buildSyncPlan: dead-link-accepted pin in health-overrides → skip-decisioned", () => {
+  const t = makeTmpRawTree();
+  try {
+    t.addSource("2026-04-01-dead-pinned", "2026", {
+      origin: "url:dead", origin_url: "https://dead.example.com",
+      fetcher: "opencli", fetcher_reason: "direct",
+      content_sha: "d", content_length: 100, quality_flags: ["dead-link"],
+      quality_status: "flagged", images: [], notes: [],
+    });
+    const decisionsPath = join(t.root, "decisions.md");
+    writeFileSync(decisionsPath, "", "utf8");
+    const healthOverridesPath = join(t.root, "overrides.md");
+    writeFileSync(healthOverridesPath, [
+      "# Overrides",
+      "",
+      "- 2026-04-01-dead-pinned: pin-kind=dead-link-accepted   # kept archive",
+      "",
+    ].join("\n"), "utf8");
+
+    const plan = buildSyncPlan({
+      retryFlagged: true, dryRun: true, reclassify: false,
+      rawRoot: t.root, decisionsPath, ingestBatchPath: join(t.root, "no-batch.json"),
+      healthOverridesPath,
+    });
+    assert.equal(plan.length, 1);
+    assert.equal(plan[0].action, "skip-decisioned");
+    assert.ok(plan[0].reason?.includes("dead-link-accepted"));
+  } finally {
+    t.cleanup();
+  }
+});
+
 test("buildSyncPlan: flagged slug → skip-good by default, fetch with --retry-flagged", () => {
   const t = makeTmpRawTree();
   try {

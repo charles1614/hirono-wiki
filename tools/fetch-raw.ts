@@ -1899,6 +1899,14 @@ export interface SyncOpts {
    * Defaults to `<wiki-root>/.wiki-sources-index.json`.
    */
   sourcesIndexPath?: string;
+  /**
+   * Optional override for `Meta/sources-health-overrides.md` path (test hook).
+   * Defaults to `<wiki-root>/Meta/sources-health-overrides.md`. Slugs pinned
+   * with `pin-kind=dead-link-accepted` are skipped from retry loops — the
+   * operator has explicitly accepted that the upstream is dead and wants
+   * the local archive preserved.
+   */
+  healthOverridesPath?: string;
 }
 
 export interface SyncPlanItem {
@@ -2007,6 +2015,20 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
   const decisions = loadFetchDecisions(opts.decisionsPath ?? DECISIONS_PATH);
   const rawRoot = opts.rawRoot ?? RAW_DIR;
 
+  // Load health-overrides to find `pin-kind=dead-link-accepted` slugs
+  // — operator-accepted dead URLs that should be skipped from retry loops.
+  const healthOverridesPath = opts.healthOverridesPath ?? join(REPO_ROOT, "Meta", "sources-health-overrides.md");
+  const deadAcceptedSlugs = new Set<string>();
+  if (existsSync(healthOverridesPath)) {
+    try {
+      const content = readFileSync(healthOverridesPath, "utf8");
+      for (const line of content.split("\n")) {
+        const m = line.match(/^\s*-\s+([A-Za-z0-9_-][A-Za-z0-9._-]*)\s*:\s*pin-kind\s*=\s*dead-link-accepted\b/);
+        if (m) deadAcceptedSlugs.add(m[1]);
+      }
+    } catch { /* tolerate parse errors */ }
+  }
+
   if (opts.reclassify) {
     for (const info of listRawSlugs(rawRoot)) {
       if (info.hasContent) reclassifyRawSlug(info.slug);
@@ -2078,6 +2100,15 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
         slug: info.slug,
         action: "skip-decisioned",
         reason: `accepted-as-is: ${decisions.get(info.slug)}`,
+      });
+      continue;
+    }
+
+    if (deadAcceptedSlugs.has(info.slug)) {
+      plan.push({
+        slug: info.slug,
+        action: "skip-decisioned",
+        reason: `pin-kind=dead-link-accepted (Meta/sources-health-overrides.md): operator keeps local archive, no sync retries`,
       });
       continue;
     }
