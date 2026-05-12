@@ -185,9 +185,20 @@ tags: [at, least, one, tag]
     posts where prose paraphrases each diagram)
   - `all panels decorative (logos, badges, photos)` (github READMEs with chrome
     only; non-technical xhs)
+  - `all images text-only (typed content extracted into body)` (xhs hand-typed
+    summary cards; PDF cover + TOC pages; any "screenshot of paragraphs"
+    pattern where the image IS just typed text rendered as raster)
   - `figures inline-captioned in raw, no standalone images` (papers where Marker
     already captioned figures in prose)
   - `source has no images` (text-only blog posts / API JSON / pure prose)
+
+**"Load-bearing image" requires BOTH conditions**: (a) the content is load-bearing
+AND (b) the IMAGE FORM adds value beyond what the extracted text gives.
+Comparison panels with spatial layout, color-coded quote boxes, tabular data,
+charts, diagrams, dashboards, matrices, slide-deck schematic layouts all count.
+**Pure-text screenshots do NOT count** — typing the same content into the body
+strictly dominates referencing the image (better readability, searchable, no
+OCR-trust caveat). Use the text-only rationale phrase above.
 
 Sources with image refs MUST also pair each image with a one-sentence factual
 caption — see "Shape (load-bearing image)" below.
