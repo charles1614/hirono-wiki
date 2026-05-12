@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-11
 type: source
-raw_source: https://github.com/vllm-project/vllm/pull/26811
+source_url: https://github.com/vllm-project/vllm/pull/26811
 tags: [observability, kv-cache, inference, tooling]
 ---
 

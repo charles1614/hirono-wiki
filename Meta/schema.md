@@ -31,10 +31,10 @@ type: source | entity | topic | meta
 ---
 ```
 
-**Sources** additionally require `raw_source:` and `tags:`:
+**Sources** additionally require `source_url:` and `tags:`:
 
 ```yaml
-raw_source: https://example.com/article            # or lark://docx/...
+source_url: https://example.com/article            # or lark://docx/...
 tags: [training, moe, scaling-law]                  # ≥1 tag from CANONICAL_TAGS, lint-enforced
 ```
 
@@ -155,7 +155,7 @@ Body template:
 created: 2026-04-19
 updated: 2026-04-19
 type: source
-raw_source: <URL>
+source_url: <URL>
 tags: [at, least, one, tag]
 ---
 
@@ -311,7 +311,7 @@ Claims.
 
 **Each Source is paired with a raw archive on disk.** Path mapping is
 mechanical: `Sources/YYYY/<slug>.md` ↔ `raw/raindrop/<host>/<slug>/`,
-where `<host>` is the hostname from the Source's `raw_source:`
+where `<host>` is the hostname from the Source's `source_url:`
 frontmatter URL. `content.md` is the full original body; sibling files
 include `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (image
 directory), `source.json` (fetch metadata + quality flags), and
@@ -445,8 +445,8 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 
 ## Raw source conventions
 
-- **Raindrop**: `raw_source: https://raindrop.io/bookmark/<id>` or the underlying URL. Prefer the underlying URL for humans; include the Raindrop ID in a body line.
-- **Lark Space 1**: `raw_source: lark://wiki/<space_id>/<node_token>` (custom scheme for unambiguous reference).
+- **Raindrop**: `source_url: https://raindrop.io/bookmark/<id>` or the underlying URL. Prefer the underlying URL for humans; include the Raindrop ID in a body line.
+- **Lark Space 1**: `source_url: lark://wiki/<space_id>/<node_token>` (custom scheme for unambiguous reference).
 - **Arbitrary URL**: the URL itself.
 
 URL normalization for dedup (see `tools/bin/build-sources-index.ts`): lowercase host, strip tracking params (`utm_*`, `ref`, `fbclid`), strip trailing slash.

@@ -14,7 +14,7 @@
  *     "<normalized_url>": {
  *       "slug": "<source slug>",
  *       "repo_path": "Sources/2026/2026-04-19-foo.md",
- *       "raw_source": "<original raw_source value from frontmatter>",
+ *       "source_url": "<original source_url value from frontmatter>",
  *       "ingested_at": "<frontmatter created date>"
  *     },
  *     ...
@@ -40,7 +40,7 @@ const INDEX_PATH = join(REPO_ROOT, ".wiki-sources-index.json");
 export interface SourceIndexEntry {
   slug: string;
   repo_path: string;
-  raw_source: string;
+  source_url: string;
   ingested_at: string;
 }
 
@@ -138,7 +138,7 @@ export function buildIndex(repoRoot: string): SourceIndex {
     if (bucketOf(p) !== "Sources") continue;
     const raw = readFileSync(join(repoRoot, p), "utf8");
     const { data } = matter(raw);
-    const rawSource = String(data.raw_source ?? "").trim();
+    const rawSource = String(data.source_url ?? "").trim();
     if (!rawSource) continue;
     const norm = normalizeUrl(rawSource);
     if (!norm) continue;
@@ -150,7 +150,7 @@ export function buildIndex(repoRoot: string): SourceIndex {
     out[norm] = {
       slug: slugOf(p),
       repo_path: p,
-      raw_source: rawSource,
+      source_url: rawSource,
       ingested_at: formatDate(data.created),
     };
   }

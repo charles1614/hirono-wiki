@@ -32,7 +32,7 @@ test("readSourceIndexStrict: parses valid index", () => {
       "https://example.com/a": {
         slug: "2026-04-19-a",
         repo_path: "Sources/2026/2026-04-19-a.md",
-        raw_source: "https://example.com/a",
+        source_url: "https://example.com/a",
         ingested_at: "2026-04-19",
       },
     }));
@@ -113,8 +113,8 @@ test("writeSourceIndex: creates .bak of prior version", () => {
   const dir = mkdtempSync(join(tmpdir(), "srcidx-"));
   try {
     const path = join(dir, "idx.json");
-    const v1 = { "url-1": { slug: "s1", repo_path: "x/s1.md", raw_source: "url-1", ingested_at: "2026-01-01" } };
-    const v2 = { "url-2": { slug: "s2", repo_path: "x/s2.md", raw_source: "url-2", ingested_at: "2026-02-01" } };
+    const v1 = { "url-1": { slug: "s1", repo_path: "x/s1.md", source_url: "url-1", ingested_at: "2026-01-01" } };
+    const v2 = { "url-2": { slug: "s2", repo_path: "x/s2.md", source_url: "url-2", ingested_at: "2026-02-01" } };
     writeSourceIndex(path, v1);
     assert.equal(existsSync(`${path}.bak`), false, "first write: no bak (nothing to back up)");
 
@@ -145,7 +145,7 @@ function makeMinimalRepo(): string {
     "type: source",
     "created: 2026-04-19",
     "updated: 2026-04-19",
-    "raw_source: https://example.com/a",
+    "source_url: https://example.com/a",
     "---",
     "# A",
   ].join("\n"));
@@ -169,7 +169,7 @@ test("lint sources-index: parseable + consistent -> clean", () => {
       "https://example.com/a": {
         slug: "2026-04-19-a",
         repo_path: "Sources/2026/2026-04-19-a.md",
-        raw_source: "https://example.com/a",
+        source_url: "https://example.com/a",
         ingested_at: "2026-04-19",
       },
     }));
@@ -200,7 +200,7 @@ test("lint sources-index: stale repo_path -> warn issue", () => {
       "https://example.com/gone": {
         slug: "2026-04-19-gone",
         repo_path: "Sources/2026/2026-04-19-gone.md",
-        raw_source: "https://example.com/gone",
+        source_url: "https://example.com/gone",
         ingested_at: "2026-04-19",
       },
     }));

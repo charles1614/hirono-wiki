@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-11
 type: source
-raw_source: https://github.com/sgl-project/sglang/issues/8965
+source_url: https://github.com/sgl-project/sglang/issues/8965
 tags: [observability, inference, tooling]
 ---
 

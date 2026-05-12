@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-11
 type: source
-raw_source: https://github.com/GeeeekExplorer/nano-vllm
+source_url: https://github.com/GeeeekExplorer/nano-vllm
 tags: [inference, minimal-impl, tooling]
 ---
 

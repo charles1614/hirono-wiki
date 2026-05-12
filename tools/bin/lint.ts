@@ -668,7 +668,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
   const required: Record<Bucket, string[]> = {
     Meta:     ["type", "created", "updated"],
-    Sources:  ["type", "created", "updated", "raw_source", "tags"],
+    Sources:  ["type", "created", "updated", "source_url", "tags"],
     Entities: ["type", "created", "updated", "refs", "tier"],
     Topics:   ["type", "created", "updated", "source_count"],
   };

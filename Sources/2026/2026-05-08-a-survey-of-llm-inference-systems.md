@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-11
 type: source
-raw_source: https://arxiv.org/abs/2506.21901
+source_url: https://arxiv.org/abs/2506.21901
 tags: [inference, survey, kv-cache, disaggregation, scheduling, quantization]
 ---
 

@@ -58,7 +58,7 @@ test("plan: dedups against .wiki-sources-index.json by normalized URL", () => {
   const s = sandbox();
   try {
     writeFileSync(s.paths.sourcesIndex, JSON.stringify({
-      "https://example.com/already": { slug: "already", repo_path: "Sources/2026/already.md", raw_source: "https://example.com/already", ingested_at: "2026-04-20" },
+      "https://example.com/already": { slug: "already", repo_path: "Sources/2026/already.md", source_url: "https://example.com/already", ingested_at: "2026-04-20" },
     }));
     const file = s.candidatesFile([
       // trailing slash + tracking params → normalizes to the already-ingested URL

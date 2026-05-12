@@ -363,7 +363,7 @@ Sources are summaries — TL;DR + Key claims + a few Visual obs. If a question r
 Sources/YYYY/<slug>.md  ↔  raw/raindrop/<host>/<slug>/content.md
 ```
 
-where `<host>` is the hostname from the Source's `raw_source:` URL and `<slug>` is the Source's filename. Sibling files in the same raw dir: `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (figures), `source.json` (fetch metadata + quality flags), `revisions.jsonl` (audit trail).
+where `<host>` is the hostname from the Source's `source_url:` URL and `<slug>` is the Source's filename. Sibling files in the same raw dir: `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (figures), `source.json` (fetch metadata + quality flags), `revisions.jsonl` (audit trail).
 
 **Trust the snapshot — don't fetch from the URL.** `content.md` is the curated extraction (Marker / browser-eval / site-adapter cleanup); re-fetching at query time bypasses that. If a snapshot needs refreshing, run `hirono raindrop refetch <slug>` — a deliberate state change, not a silent query-time side effect.
 

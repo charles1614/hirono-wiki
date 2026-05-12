@@ -16,7 +16,7 @@ function bucketStubs(root: string): void {
   mkdirSync(join(root, "Topics"));
 }
 
-function writeSource(root: string, slug: string, body: string, fm = "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [inference]"): void {
+function writeSource(root: string, slug: string, body: string, fm = "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\ntags: [inference]"): void {
   writeFileSync(
     join(root, `Sources/2026/${slug}.md`),
     `---\n${fm}\n---\n\n${body}\n`,
@@ -146,13 +146,13 @@ test("frontmatter: missing required field flagged", () => {
   const root = tmp();
   try {
     bucketStubs(root);
-    // Missing raw_source (required for Sources)
+    // Missing source_url (required for Sources)
     writeFileSync(
       join(root, "Sources/2026/s1.md"),
       `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\n---\n\nbody\n`,
     );
     const issues = runLint(root, { checks: ["frontmatter"] });
-    assert.ok(issues.some((i) => i.detail.includes("raw_source")));
+    assert.ok(issues.some((i) => i.detail.includes("source_url")));
   } finally { rmSync(root, { recursive: true }); }
 });
 
@@ -164,14 +164,14 @@ test("frontmatter: Sources without tags is flagged (pre-scale lockdown)", () => 
     // schema lockdown. Missing `tags` key:
     writeFileSync(
       join(root, "Sources/2026/s1.md"),
-      `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\n---\n\nbody\n`,
+      `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\n---\n\nbody\n`,
     );
     const issues1 = runLint(root, { checks: ["frontmatter"] });
     assert.ok(issues1.some((i) => i.detail.includes("tags")), `missing tags should flag; got ${JSON.stringify(issues1)}`);
     // Empty list also rejected — the spirit of the check is "≥1 tag":
     writeFileSync(
       join(root, "Sources/2026/s1.md"),
-      `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: []\n---\n\nbody\n`,
+      `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\ntags: []\n---\n\nbody\n`,
     );
     const issues2 = runLint(root, { checks: ["frontmatter"] });
     assert.ok(issues2.some((i) => i.detail.includes("tags") && i.detail.includes("non-empty")), `empty tags should flag; got ${JSON.stringify(issues2)}`);
@@ -452,7 +452,7 @@ test("tag-vocabulary: novel tag in Source → WARN with all novel tags listed", 
     writeSource(
       root, "2026-04-20-tagged",
       "body",
-      "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [inference, moe, nvidia, blackwell, made-up]",
+      "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\ntags: [inference, moe, nvidia, blackwell, made-up]",
     );
     mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-tagged"), { recursive: true });
     writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-tagged/content.md"), "raw");
@@ -523,7 +523,7 @@ test("tag-vocabulary: all-canonical Source → clean", () => {
     writeSource(
       root, "2026-04-20-clean",
       "body",
-      "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [inference, moe, parallelism, paper]",
+      "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\ntags: [inference, moe, parallelism, paper]",
     );
     mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-clean"), { recursive: true });
     writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-clean/content.md"), "raw");

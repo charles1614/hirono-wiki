@@ -275,13 +275,13 @@ test("buildStatusRows: joins cache + index + raw correctly", () => {
     "https://blog.example.com/post1": {
       slug: "2026-05-08-blog-post1",
       repo_path: "Sources/2026/2026-05-08-blog-post1.md",
-      raw_source: "https://blog.example.com/post1",
+      source_url: "https://blog.example.com/post1",
       ingested_at: "2026-05-08",
     },
     "https://x.com/user/status/123": {
       slug: "x-status-123",
       repo_path: "Sources/2026/x-status-123.md",
-      raw_source: "https://x.com/user/status/123",
+      source_url: "https://x.com/user/status/123",
       ingested_at: "2026-05-08",
     },
   }));

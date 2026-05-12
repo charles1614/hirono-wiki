@@ -114,7 +114,7 @@ jq '[.slugs[].state] | group_by(.) | map({state: .[0], count: length})' raw/rain
                 ▼
    ┌──────────────────────────────────┐
    │  Sources/<year>/<slug>.md        │  the wiki page
-   │    raw_source: <url>             │
+   │    source_url: <url>             │
    │    …LLM-written summary…         │
    └────────────┬─────────────────────┘
                 │ npx tsx tools/bin/build-sources-index.ts
@@ -242,7 +242,7 @@ A `Sources/<year>/<slug>.md` page has:
 created: 2026-05-10
 updated: 2026-05-10
 type: source
-raw_source: https://newsletter.semianalysis.com/p/aws-trainium3-...
+source_url: https://newsletter.semianalysis.com/p/aws-trainium3-...
 tags: [trainium, aws, accelerator, tco]
 highlights: true
 ---
@@ -252,7 +252,7 @@ highlights: true
 …body summary…
 ```
 
-The `raw_source` field is what `build-sources-index.ts` keys the
+The `source_url` field is what `build-sources-index.ts` keys the
 URL → slug map by. It MUST be the same URL the raw archive was
 fetched against (or a share-aggregator wrapper that unwraps to the
 same target — P-32 unwrap is symmetric).

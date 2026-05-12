@@ -1946,7 +1946,7 @@ export function loadIngestedUrlSet(path?: string): Set<string> {
     return new Set();
   }
   // Widen with share-aggregator unwrap (P-32): if a Sources/ page's
-  // frontmatter `raw_source` points at a wrapper URL, the slug's
+  // frontmatter `source_url` points at a wrapper URL, the slug's
   // origin_url is the UNWRAPPED form. Add both keys to the set so a
   // lookup by either form matches.
   const out = new Set<string>();

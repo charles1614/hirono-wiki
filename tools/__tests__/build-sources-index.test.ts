@@ -39,7 +39,7 @@ test("normalizeUrl: empty / malformed input", () => {
   assert.equal(normalizeUrl("not-a-url"), "not-a-url");
 });
 
-test("buildIndex: extracts raw_source from each Source page", () => {
+test("buildIndex: extracts source_url from each Source page", () => {
   const root = mkdtempSync(join(tmpdir(), "src-idx-"));
   try {
     mkdirSync(join(root, "Sources/2026"), { recursive: true });
@@ -52,7 +52,7 @@ test("buildIndex: extracts raw_source from each Source page", () => {
       `---
 type: source
 created: 2026-04-19
-raw_source: https://example.com/foo
+source_url: https://example.com/foo
 ---
 
 # foo
@@ -63,7 +63,7 @@ raw_source: https://example.com/foo
       `---
 type: source
 created: 2026-04-20
-raw_source: https://Example.com/bar/?utm_source=x
+source_url: https://Example.com/bar/?utm_source=x
 ---
 
 # bar
@@ -92,7 +92,7 @@ type: entity
   }
 });
 
-test("buildIndex: skips sources with empty raw_source", () => {
+test("buildIndex: skips sources with empty source_url", () => {
   const root = mkdtempSync(join(tmpdir(), "src-idx-empty-"));
   try {
     mkdirSync(join(root, "Sources/2026"), { recursive: true });

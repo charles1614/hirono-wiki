@@ -376,7 +376,7 @@ function renderSourcesIndex(docs: DocMeta[]): string {
     const entries = byYear.get(year)!.sort((a, b) => b.slug.localeCompare(a.slug));
     for (const d of entries) {
       const title = humanTitle(firstH1(d.body) || d.slug);
-      const raw = String(d.frontmatter.raw_source ?? "");
+      const raw = String(d.frontmatter.source_url ?? "");
       const host = rawSourceHost(raw);
       lines.push(`- [[${d.slug}]] — ${title} _(${host})_`);
     }

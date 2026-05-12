@@ -55,7 +55,7 @@ interface RaindropBookmark {
 interface SourcesIndexEntry {
   slug: string;
   repo_path: string;
-  raw_source: string;
+  source_url: string;
   ingested_at?: string;
 }
 

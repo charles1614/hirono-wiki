@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-11
 type: source
-raw_source: https://arxiv.org/pdf/2503.01840
+source_url: https://arxiv.org/pdf/2503.01840
 tags: [speculative-decoding, inference, scaling-law, paper]
 ---
 

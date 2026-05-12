@@ -287,7 +287,7 @@ test("reindex does not mutate YYYY-MM-DD dates into ISO timestamps (regression)"
 type: source
 created: 2026-04-19
 updated: 2026-04-19
-raw_source: https://x/${i}
+source_url: https://x/${i}
 tags: [t]
 ---
 
