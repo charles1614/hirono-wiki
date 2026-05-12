@@ -161,7 +161,7 @@ export function reverseSourceCitations(docs: DocMeta[]): Map<string, Set<string>
   return out;
 }
 
-interface ObservationGap {
+export interface ObservationGap {
   slug: string;
   refs: number;
   citingSources: string[];   // every Source that wikilinks this entity

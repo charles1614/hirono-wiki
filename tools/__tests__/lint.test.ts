@@ -382,3 +382,60 @@ test("source-image-refs: remote http(s) refs are skipped (other rule covers them
     assert.equal(issues.length, 0, `remote refs out of scope; got ${JSON.stringify(issues)}`);
   } finally { rmSync(root, { recursive: true }); }
 });
+
+// ---------------------------------------------------------------------------
+// observation-gaps (LLM-editorial-debt surfacer)
+// ---------------------------------------------------------------------------
+
+test("observation-gaps: active-tier entity missing Observations from citing Source → WARN", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    // A Source that wikilinks to [[Foo]].
+    writeSource(root, "2026-04-20-a", "Citing [[Foo]] inline.");
+    mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-a"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-a/content.md"), "raw");
+    // Active-tier entity with EMPTY Observations.
+    writeEntity(root, "Foo", "Body.\n\n## Observations\n\n- (auto-populated as Sources cite this entity)\n", "active", 1);
+    const issues = runLint(root, { checks: ["observation-gaps"] });
+    assert.ok(
+      issues.some((i) => i.kind === "observation-gaps" && i.severity === "warn" && i.path === "Entities/Foo.md"),
+      `expected observation-gaps WARN on Foo; got ${JSON.stringify(issues)}`,
+    );
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("observation-gaps: seen-tier entity is NOT warned (scaffolding tier)", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeSource(root, "2026-04-20-a", "Citing [[Foo]].");
+    mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-a"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-a/content.md"), "raw");
+    // Seen-tier entity with no Observations — accepted as scaffolding.
+    writeEntity(root, "Foo", "Body.\n", "seen", 1);
+    const issues = runLint(root, { checks: ["observation-gaps"] });
+    assert.equal(
+      issues.length, 0,
+      `seen-tier entities are scaffolding; should not warn. Got ${JSON.stringify(issues)}`,
+    );
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("observation-gaps: active-tier entity with all citing Sources cited → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeSource(root, "2026-04-20-a", "Citing [[Foo]].");
+    mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-a"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-a/content.md"), "raw");
+    // Active-tier entity with Observation citing the Source — should pass.
+    writeEntity(
+      root, "Foo",
+      "Body.\n\n## Observations\n\n- Foo is referenced by — [[2026-04-20-a]]\n",
+      "active", 1,
+    );
+    const issues = runLint(root, { checks: ["observation-gaps"] });
+    assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});

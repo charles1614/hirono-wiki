@@ -40,6 +40,7 @@ import {
   walkWikiDocs,
 } from "../link-map.ts";
 import { looksLikeImage, MIN_IMAGE_BYTES } from "../fetch-raw.ts";
+import { computeObservationGaps, countRefs } from "./reindex.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 // Wiki root: THIS_FILE is at `tools/bin/lint.ts`, so `dirname/../..`
@@ -55,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "observation-gaps";
 
 export interface Issue {
   kind: CheckKind;
@@ -398,6 +399,57 @@ function relpath(abs: string, repoRoot: string): string {
   return abs.startsWith(repoRoot + "/") ? abs.slice(repoRoot.length + 1) : abs;
 }
 
+/**
+ * observation-gaps: surface the LLM-editorial debt that reindex.ts's
+ * verbose output prints but doesn't enforce.
+ *
+ * For each ACTIVE-tier Entity (in `Entities/`, not `Entities/_seen/`)
+ * whose `## Observations` section doesn't cite all of the Sources that
+ * wikilink to it, emit a WARN naming the missing citing Source(s).
+ * The LLM is expected to append one cited bullet per citing Source on
+ * the next ingest pass.
+ *
+ * Why active-tier only: seen-tier entities (refs ≤ 2) are scaffolding
+ * by design; warning on them would flood lint with ~80+ items that
+ * compound naturally as more Sources accumulate. Active-tier (refs ≥ 3,
+ * the load-bearing nodes of the graph) is where dead-end observation
+ * sections hurt — clicking a `[[NVIDIA]]` wikilink and reaching a page
+ * with no cited claims is the failure mode this check prevents.
+ *
+ * Reuses `computeObservationGaps` from reindex.ts so the gap-detection
+ * logic stays single-sourced. The check is a thin filter over its
+ * output: tier === "active" + missingSources.length > 0 → WARN.
+ */
+export function checkObservationGaps(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+  const refs = countRefs(docs);
+  const gaps = computeObservationGaps(docs, refs);
+  for (const gap of gaps) {
+    // Find the entity doc to check its tier. Active-tier entities live
+    // in `Entities/<Name>.md`; seen-tier in `Entities/_seen/<Name>.md`.
+    const entityDoc = docs.find(
+      (d) => d.bucket === "Entities" && d.slug === gap.slug,
+    );
+    if (!entityDoc) continue;
+    const inSeen = entityDoc.repo_path.includes("/_seen/");
+    if (inSeen) continue;  // scaffolding tier; not an enforced gap
+    issues.push({
+      kind: "observation-gaps",
+      severity: "warn",
+      path: entityDoc.repo_path,
+      detail:
+        `active-tier entity has refs=${gap.refs} but ## Observations is missing ${gap.missingSources.length} cited bullet(s) ` +
+        `from: ${gap.missingSources.slice(0, 3).map((s) => `[[${s}]]`).join(", ")}` +
+        (gap.missingSources.length > 3 ? `, +${gap.missingSources.length - 3} more` : ""),
+      hint:
+        `LLM-editorial backfill: read each citing Source and append a cited ` +
+        `Observation bullet to ${entityDoc.repo_path}. See README §Mode 2 ` +
+        `("What 'touches' means") for the workflow.`,
+    });
+  }
+  return issues;
+}
+
 function yearForSourcePath(repoPath: string): string {
   // "Sources/2026/2026-04-19-foo.md" → "2026"
   const m = repoPath.match(/^Sources\/(\d{4})\//);
@@ -552,7 +604,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "observation-gaps"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -572,6 +624,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("raw-orphan"))     issues.push(...checkRawOrphan(docs, repoRoot));
   if (checks.includes("sources-index"))  issues.push(...checkSourcesIndex(repoRoot));
   if (checks.includes("source-image-refs")) issues.push(...checkSourceImageRefs(docs, repoRoot));
+  if (checks.includes("observation-gaps")) issues.push(...checkObservationGaps(docs));
   return issues;
 }
 
