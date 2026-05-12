@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-05-12
 type: entity
-refs: 4
+refs: 5
 tier: active
 ---
 
@@ -20,3 +20,4 @@ Open-source LLM inference system (Tencent + LMSYS-affiliated contributors). 2025
 - Referenced as part of the inference-stack landscape Flux benchmarks against (Flux compares directly against vLLM; SGLang is in the broader competitive frame). — [[2025-10-09-flux-fast-software-based-communication-o]]
 - Ships **production-grade EAGLE-3 integration**: 40% throughput improvement at batch size 64. The number directly refutes the assumption that speculative sampling reduces throughput at large batch — and is the headline application-level proof point for the EAGLE-3 scaling-law paper. — [[2025-10-09-eagle-3-scalingupinference-acceleration-]]
 - Covered as a named LLM-inference system in Pan & Li's "A Survey of LLM Inference Systems" (arXiv:2506.21901, June 2025) alongside vLLM, Mooncake, and DeepFlow under a cs.DB framing. — [[2026-05-08-a-survey-of-llm-inference-systems]]
+- **H20-96G DeepSeek production stack**: Ant Group's January 2026 meetup talk maps slide-level optimizations to upstream SGLang PRs — `#10568` TP scattered prefill, `#10953` MHA one-shot under chunked prefix, `#10567` FusedMoE TMA down-proj, `#16723` SwapAB, `#9660` SBO, `#11398/#11434` EAGLE spec-overlap + CUDA-graphed draft post-processing. Demonstrates a methodological pattern worth noting: **MoE tuning uses real-traffic `topk_ids`** rather than synthetic, and **EPLB uses co-activation matrices** rather than random init. — [[2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系]]
