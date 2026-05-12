@@ -365,11 +365,9 @@ Sources/YYYY/<slug>.md  ↔  raw/raindrop/<host>/<slug>/content.md
 
 where `<host>` is the hostname from the Source's `raw_source:` URL and `<slug>` is the Source's filename. Sibling files in the same raw dir: `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (figures), `source.json` (fetch metadata + quality flags), `revisions.jsonl` (audit trail).
 
-**Trust the snapshot — don't fetch from the URL.** `content.md` is the curated extraction (Marker for PDFs, browser-eval for SPAs, site-adapter cleanup for HTML). Re-fetching at query time bypasses that pipeline and reintroduces the drift the raw-archive design prevents. If a snapshot genuinely needs refreshing, the explicit op is `npx tsx tools/bin/hirono.ts raindrop refetch <slug>` — a deliberate state change, not a silent query-time side effect.
+**Trust the snapshot — don't fetch from the URL.** `content.md` is the curated extraction (Marker / browser-eval / site-adapter cleanup); re-fetching at query time bypasses that. If a snapshot needs refreshing, run `hirono raindrop refetch <slug>` — a deliberate state change, not a silent query-time side effect.
 
-Cite the answer back to `[[Sources/<slug>]]` — the Source is the canonical citation node in the graph; raw is where the receipts live.
-
-**This rule lives here only.** The path mapping is documented in `Meta/schema.md` for reference, but never appears in Source body text — Obsidian and Lark can't follow filesystem paths, only Claude Code can.
+Cite the answer back to `[[Sources/<slug>]]` — Source is the canonical citation node; raw is the receipt store. The path mapping lives here + in `Meta/schema.md` only; never in Source body (Obsidian / Lark can't follow filesystem paths).
 
 ## Auto-capturing learnings (no reminder needed)
 
