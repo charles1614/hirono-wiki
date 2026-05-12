@@ -359,16 +359,30 @@ Claims.
 **Each Source is paired with a raw archive on disk.** Path mapping is
 mechanical: `Sources/YYYY/<slug>.md` ↔ `raw/raindrop/<host>/<slug>/`,
 where `<host>` is the hostname from the Source's `source_url:`
-frontmatter URL. `content.md` is the full original body; sibling files
-include `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (image
-directory), `source.json` (fetch metadata + quality flags), and
-`revisions.jsonl` (append-only audit). The raw archive is gitignored +
-immutable from the wiki's perspective; it's evidence storage that
-Sources summarize. Lint's `raw-orphan` check enforces both directions
-of the pairing. Claude Code reads `content.md` directly when query-time
-depth fallback is needed (per `CLAUDE.md` §9). **This path lives in
-`CLAUDE.md` and this paragraph only** — never in Source body text,
-because Obsidian and Lark can't follow filesystem paths.
+frontmatter URL. Sibling files in the slug dir:
+
+- `content.md` — the curated original body (canonical drill-down target).
+- `<slug>.pdf` — preserved PDF when the source is a PDF.
+- `<slug>-figures/` — Marker's PDF figure output (per-page JPEGs +
+  figure-NNN.png named extractions). The `source-image-count` lint
+  check recurses one level into this subdir, so PDF figures count
+  toward the trigger signals.
+- `<slug>-images-extract.md` — **Sonnet-multimodal verbatim extract**
+  of image-borne content (panels, slide screenshots, hand-built
+  summary cards), written at ingest time when `shouldExtractImages`
+  triggers. Read alongside `content.md` for image-heavy Sources at
+  query time; the body has prose, the extract has the citation
+  receipts. See `CLAUDE.md` §9 → "Image-heavy Source workflow".
+- `source.json` — fetch metadata + quality flags.
+- `revisions.jsonl` — append-only audit; one row per fetch.
+
+The raw archive is gitignored + immutable from the wiki's perspective —
+it's evidence storage that Sources summarize. Lint's `raw-orphan` check
+enforces both directions of the pairing. Claude Code reads `content.md`
++ `<slug>-images-extract.md` directly when query-time depth fallback is
+needed (per `CLAUDE.md` §9). **This path lives in `CLAUDE.md` and this
+paragraph only** — never in Source body text, because Obsidian and Lark
+can't follow filesystem paths.
 
 **Open questions don't live at the Source level.** Karpathy's pattern treats
 unresolved questions as a lint-time / cross-cutting concern, and per-Source

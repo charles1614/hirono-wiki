@@ -29,15 +29,19 @@ NVIDIA's CUDA 13.1 release post (Dec 4 2025) frames itself as **"the largest and
 
 ## Visual observations
 
-**Nsight Compute 2025.4 Tile-kernel profiling output** (load-bearing for the developer tooling claim)
+**Nsight Compute Tile Statistics — Details view** (`../../raw/raindrop/developer.nvidia.com/2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro/developer-nvidia-img-001.webp`)
 
-![Nsight Compute graphical profiler output showing the new Tile Statistics section: Tile dimensions, utilization of important pipelines, mapping back to high-level cuTile kernel source — visualizes how CUDA Tile kernels are profiled differently from SIMT kernels](../../raw/raindrop/developer.nvidia.com/2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro/developer-nvidia-img-002.png)
+![Nsight Compute report Details panel showing Tile Statistics section: Launch Execution Model = Tile, thread-blocks-launched 256, block-size 128, Tile Mapping callout, Tensor Memory Accelerator Unused warning, Tile Launch Configuration table (X/Y/Z), GPU Resource Usage table with TMA byte counts](../../raw/raindrop/developer.nvidia.com/2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro/developer-nvidia-img-001.webp)
 
-The concrete UX for Tile-kernel optimization. Without this, "Nsight supports Tile profiling" is abstract; with it, you see the new Tile Statistics section that authors will actually use.
+The new Tile-kernel profiling surface — shows specific Tile metadata (mapping, TMA utilization, launch config) that doesn't exist for SIMT kernels. Load-bearing because the GPU-resource-usage tables visualize quantitative Tile-kernel data that prose can't tabulate as compactly.
 
-- **`developer-nvidia-img-001.webp` / `*-003.webp` / `*-004.webp` / `*-005.webp`** (supporting): decorative diagrams illustrating CUDA Tile concepts. The Nsight screenshot above carries the load-bearing content.
+**Nsight Compute Tile Statistics — Summary callouts** (`../../raw/raindrop/developer.nvidia.com/2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro/developer-nvidia-img-002.png`)
 
-*No load-bearing images — only the Nsight screenshot above qualifies; the remaining 4 are decorative concept-illustration diagrams.*
+![Companion Nsight Compute summary screenshot highlighting the Tile Statistics section's chart-rule callouts: utilization of important pipelines, mapping back to high-level cuTile kernel source](../../raw/raindrop/developer.nvidia.com/2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro/developer-nvidia-img-002.png)
+
+The companion summary screenshot — pairs with img-001 to show Nsight's two complementary Tile views (Details table + Summary chart-rules). Together they're the concrete UX the post's "Tile profiling" claim depends on.
+
+- **`developer-nvidia-img-003.webp` / `*-004.webp` / `*-005.webp`** (supporting, not inlined): decorative concept-illustration diagrams. The two Nsight screenshots above carry the load-bearing tooling claim.
 
 ## Entities touched
 

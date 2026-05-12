@@ -407,18 +407,48 @@ function relpath(abs: string, repoRoot: string): string {
  * second consumer (e.g. an image-extraction CLI) lands. Pure filesystem read;
  * no host-specific logic; new hosts inherit the rule by default.
  */
+/**
+ * Collect image files in `slugDir`, recursing one level into `*-figures/`
+ * (Marker's PDF figure output dir) and `*-images/`. Two-level scan is enough
+ * for the conventions we use; deeper nesting is out of scope.
+ */
+function collectImageFiles(slugDir: string): { rel: string; abs: string; size: number }[] {
+  const out: { rel: string; abs: string; size: number }[] = [];
+  const IMG_RE = /\.(png|jpe?g|webp|gif|bmp|tiff?|svg)$/i;
+  if (!existsSync(slugDir)) return out;
+  let entries: string[];
+  try { entries = readdirSync(slugDir); } catch { return out; }
+  for (const name of entries) {
+    const abs = join(slugDir, name);
+    let st;
+    try { st = statSync(abs); } catch { continue; }
+    if (st.isFile() && IMG_RE.test(name)) {
+      out.push({ rel: name, abs, size: st.size });
+    } else if (st.isDirectory() && /(^|-)(figures|images|slides)\/?$/.test(name)) {
+      let subEntries: string[] = [];
+      try { subEntries = readdirSync(abs); } catch { continue; }
+      for (const sub of subEntries) {
+        const subAbs = join(abs, sub);
+        try {
+          const subSt = statSync(subAbs);
+          if (subSt.isFile() && IMG_RE.test(sub)) {
+            out.push({ rel: join(name, sub), abs: subAbs, size: subSt.size });
+          }
+        } catch { /* skip */ }
+      }
+    }
+  }
+  return out;
+}
+
 export function shouldExtractImages(slugDir: string, bodyChars: number): { trigger: boolean; reasons: string[] } {
   const reasons: string[] = [];
-  if (!existsSync(slugDir)) return { trigger: false, reasons };
-  let entries: string[];
-  try { entries = readdirSync(slugDir); } catch { return { trigger: false, reasons }; }
-  const imgFiles = entries.filter((f) => /\.(png|jpe?g|webp|gif|bmp|tiff?|svg)$/i.test(f));
-  const svgPresent = imgFiles.some((f) => /\.svg$/i.test(f));
+  const imgFiles = collectImageFiles(slugDir);
+  if (imgFiles.length === 0 && !existsSync(slugDir)) return { trigger: false, reasons };
+  const svgPresent = imgFiles.some((f) => /\.svg$/i.test(f.rel));
   const imgCount = imgFiles.length;
   let maxSize = 0;
-  for (const f of imgFiles) {
-    try { maxSize = Math.max(maxSize, statSync(join(slugDir, f)).size); } catch { /* skip */ }
-  }
+  for (const f of imgFiles) maxSize = Math.max(maxSize, f.size);
   if (svgPresent) reasons.push("SVG present");
   if (maxSize >= 100 * 1024) reasons.push(`image ≥ 100 KB (max ${Math.round(maxSize / 1024)} KB)`);
   if (imgCount >= 3) reasons.push(`${imgCount} images (≥ 3)`);
@@ -427,7 +457,29 @@ export function shouldExtractImages(slugDir: string, bodyChars: number): { trigg
   return { trigger: reasons.length > 0, reasons };
 }
 
-const NO_LOADBEARING_RATIONALE_RE = /No load-bearing images\s*[—–-]/i;
+/**
+ * Canonical "no load-bearing images" rationale phrases — each Source either
+ * uses one of these verbatim OR includes 2-5 image refs. Tightened from a
+ * permissive regex to prevent drift via ad-hoc reasons that bypass review.
+ *
+ * Synced with the schema's `## Visual observations` rule. Adding a new
+ * canonical phrase: update BOTH the schema rule AND this list.
+ */
+const CANONICAL_RATIONALE_PHRASES: readonly string[] = [
+  "all panels redundant with body text",
+  "all panels decorative (logos, badges, photos)",
+  "all images text-only (typed content extracted into body)",
+  "figures inline-captioned in raw, no standalone images",
+  "source has no images",
+];
+function hasCanonicalRationale(body: string): boolean {
+  for (const phrase of CANONICAL_RATIONALE_PHRASES) {
+    // Match the canonical phrase verbatim in the body. Tolerant of optional
+    // surrounding italics * and trailing period; not tolerant of paraphrase.
+    if (body.includes(phrase)) return true;
+  }
+  return false;
+}
 
 /**
  * source-image-count: when a Source's raw archive shows load-bearing-image
@@ -472,13 +524,11 @@ export function checkSourceImageCount(docs: DocMeta[], repoRoot: string): Issue[
     try { bodyChars = statSync(contentMd).size; } catch { /* slug has no content.md; raw-orphan handles */ }
     const { trigger, reasons } = shouldExtractImages(slugDir, bodyChars);
     if (!trigger) continue;
-    // Count image files available in raw archive (excludes content.md / source.json / etc.).
-    let imgCount = 0;
-    try {
-      imgCount = readdirSync(slugDir).filter((f) => /\.(png|jpe?g|webp|gif|bmp|tiff?|svg)$/i.test(f)).length;
-    } catch { /* leave imgCount = 0 */ }
+    // Count image files available in raw archive — recurses one level into
+    // `*-figures/` / `*-images/` / `*-slides/` subdirs (Marker PDF output, etc.).
+    const imgCount = collectImageFiles(slugDir).length;
     const refCount = extractLocalImageRefs(doc.body).length;
-    const hasRationale = NO_LOADBEARING_RATIONALE_RE.test(doc.body);
+    const hasRationale = hasCanonicalRationale(doc.body);
     // Required refs cap: "2-5 images" only applies when raw has ≥ 2 images to pick from.
     // If raw has only 1 image, 1 ref is the max possible; 0 refs still needs a rationale.
     const requiredMinRefs = Math.min(2, imgCount);

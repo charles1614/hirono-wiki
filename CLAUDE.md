@@ -356,17 +356,15 @@ Top-level entry points; click through to [`docs/code-map.md`](docs/code-map.md) 
 
 ## 9. Q&A depth fallback
 
-Sources are summaries — TL;DR + Key claims + a few Visual obs. If a question requires detail the Source doesn't carry (exact algorithm steps, specific table rows, full prose, code, full caption text), read the corresponding raw-archive snapshot directly via the Read tool. Path mapping is mechanical:
+Sources are summaries. When a question needs detail the Source doesn't carry (algorithm steps, specific table rows, full prose, code, caption text), read the raw archive directly via the Read tool. Path mapping: `Sources/YYYY/<slug>.md ↔ raw/raindrop/<host>/<slug>/content.md`, where `<host>` comes from the Source's `source_url:` frontmatter. Siblings: `<slug>.pdf`, `<slug>-figures/`, `<slug>-images-extract.md` (Sonnet multimodal extract — read alongside `content.md` for image-heavy Sources), `source.json`, `revisions.jsonl`.
 
-```
-Sources/YYYY/<slug>.md  ↔  raw/raindrop/<host>/<slug>/content.md
-```
+**Trust the snapshot — don't fetch from the URL.** `content.md` is curated (Marker / browser-eval / site-adapter cleanup); query-time refetch bypasses that. Stale snapshot → `hirono raindrop refetch <slug>` (deliberate state change). Cite answers as `[[Sources/<slug>]]` — Source is the canonical citation node; raw is the receipt store. Path mapping lives here + Meta/schema.md only; never in Source body (Obsidian / Lark can't follow filesystem paths).
 
-where `<host>` is the hostname from the Source's `source_url:` URL and `<slug>` is the Source's filename. Sibling files in the same raw dir: `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (figures), `source.json` (fetch metadata + quality flags), `revisions.jsonl` (audit trail).
+### Image-heavy Source workflow
 
-**Trust the snapshot — don't fetch from the URL.** `content.md` is the curated extraction (Marker / browser-eval / site-adapter cleanup); re-fetching at query time bypasses that. If a snapshot needs refreshing, run `hirono raindrop refetch <slug>` — a deliberate state change, not a silent query-time side effect.
+When `shouldExtractImages` triggers (same 5 signals the `source-image-count` lint uses): **Sonnet subagent** extracts verbatim → cache at `<slug>-images-extract.md`. **Opus inline-verifies** any number / §-ref / parameter before citing — Sonnet blends adjacent numbers. **Never Haiku** for dense Chinese text (1568 px cap drops specifics + hallucinates). Prompt + caveat details: memory `feedback_image_extraction_hybrid.md` + `feedback_haiku_image_resolution.md`.
 
-Cite the answer back to `[[Sources/<slug>]]` — Source is the canonical citation node; raw is the receipt store. The path mapping lives here + in `Meta/schema.md` only; never in Source body (Obsidian / Lark can't follow filesystem paths).
+**Image-ref rule (strict)**: 2-5 `![]()` refs only for **genuinely visual** images (diagrams, charts, heatmaps, schematics, dashboards, photos). Text-in-spatial-layout → use a canonical rationale phrase from Meta/schema.md's documented list — the lint enforces canonical-only via exact-string match; paraphrasing breaks the gate.
 
 ## Auto-capturing learnings (no reminder needed)
 
@@ -418,10 +416,10 @@ If the lesson straddles two files (a pattern + a TODO for its automation), write
 
 ### Recent self-trigger examples (proof the loop fires)
 
-- After manually converting one slug whose body-selector cascade missed substantive content, captured as **P-37** in patterns + an automation TODO in `post-fetch-todo.md` §2 — triggered without reminder, by recognizing the cascade limitation would generalize.
-- After picking `mupdf` npm over poppler/pymupdf via a benchmark, captured the comparison + decision in **P-36**'s "Engine choice" callout — future sessions won't re-run the same benchmark.
-- After a `**[label]**` markdown mistake the user pointed out, captured the per-element turndown rule INSIDE P-37's recipe (where future button-conversion attempts will read it) rather than as a separate AP-NN — the mistake was scoped to one script, so reading-context placement was right.
-- After running multiple Phase 2 iterations, captured each pattern + cross-link + sibling-pattern callouts so future iterations could navigate the playbook by symptom rather than re-deriving.
+- P-37 (body-selector cascade missing content) captured after one manual slug fix, with paired automation TODO in `post-fetch-todo.md` §2.
+- P-36 mupdf-vs-poppler benchmark captured so future sessions skip the re-run.
+- `**[label]**` markdown mistake captured INSIDE P-37's recipe (reading-context placement) rather than a separate AP-NN — mistake was scoped to one script.
+- Phase-2 pattern-discovery iterations: each pattern got cross-links + sibling-pattern callouts, so the playbook is symptom-navigable.
 
 ## Keeping this file fresh
 
