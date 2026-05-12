@@ -27,16 +27,13 @@ This debunks the common "disagg is bandwidth-bound" worry. The remaining KV-tran
 
 **The Pan+Li survey** ([[2026-05-08-a-survey-of-llm-inference-systems]]) treats memory management — **paged memory, eviction + offloading, quantization, cache persistence** — as one of the four major axes of the LLM inference design space (alongside operators-and-algorithms, model-optimization-and-execution, and system-composition). The survey's database-systems framing is most natural here: paged KV is the analogue of buffer-pool management; eviction policies are the analogue of LRU/MRU/clock; cache persistence is the analogue of warm-restart from disk.
 
+
+## Open threads
+
+
 ## Sources drawn on
 
 - [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] — analytical KV-bandwidth equations + the "datacenter bandwidth is sufficient" finding.
 - [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] — vLLM NIXL/KVConnectorStats observability for the KV-transfer data plane.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li survey treating memory management as a first-class design axis with database-systems framing.
 
-## Open threads
-
-- (to be filled in)
-
-## Sources drawn on
-
-- (auto-populated by reindex)

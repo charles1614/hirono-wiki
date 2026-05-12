@@ -23,19 +23,15 @@ Performance, power, and dollar-cost tradeoffs across AI accelerator vendors and 
 
 The Gemini-3-entirely-on-TPU existence proof is currently the strongest single data point for TPU's competitive position. Whether that generalizes to other frontier labs depends on (a) the NVFP4 throughput-doubling holding at 70B+ scale and (b) operator willingness to commit to TPU's compiler/runtime stack vs the CUDA ecosystem.
 
+
+## Open threads
+
+- TPU v4 vs A100 perf-at-power numbers (1.2-1.7× at 53-77% power) date from 2023. Does the gap hold against H100 / B200? H100 is significantly faster than A100 per chip. — [[2026-01-09-google-tpus-explained-architecture-perfo]]
+- Power as competitive moat: does Ironwood + AI Hypercomputer become a structural advantage vs Nvidia, or does Nvidia + grid-power-PPA close the gap? — [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]
+
 ## Sources drawn on
 
 - [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]] — concrete Blackwell deployment numbers (1.5M tps on GB200 NVL72); the dollar-per-token denominators for any TCO comparison.
 - [[2026-01-09-google-tpus-explained-architecture-perfo]] — IntuitionLabs cross-gen analysis with the 1.2-1.7× perf at 53-77% power claim and the Gemini-3-on-TPU existence-proof framing.
 - [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] — Google's primary-source Ironwood announcement; the 30× perf/W vs v2 + 2× vs Trillium positioning is canonical here.
 
-## Open threads
-
-- (to be filled in)
-- TPU v4 vs A100 perf-at-power numbers (1.2-1.7× at 53-77% power) date from 2023. Does the gap hold against H100 / B200? H100 is significantly faster than A100 per chip. — [[2026-01-09-google-tpus-explained-architecture-perfo]]
-- Power as competitive moat: does Ironwood + AI Hypercomputer become a structural advantage vs Nvidia, or does Nvidia + grid-power-PPA close the gap? — [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]
-
-
-## Sources drawn on
-
-- (auto-populated by reindex)

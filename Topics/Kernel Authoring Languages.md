@@ -17,7 +17,6 @@ source_count: 1
 
 ## Open threads
 
-- (to be filled in)
 - cuTile Python vs Triton: what's the actual boundary? Both target above-SIMT with Python frontends + compiler-managed tensor-core mapping. Worth a careful comparison. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
 - CUDA Tile C++ landing: when? Production stacks (vLLM, TRTLLM) won't move until C++ ships; the Python-only-today positioning suggests this is the larger drop. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
 

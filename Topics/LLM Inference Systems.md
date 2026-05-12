@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-05-12
 type: topic
-source_count: 10
+source_count: 11
 ---
 
 # LLM Inference Systems
@@ -33,6 +33,12 @@ End-to-end systems for serving large language models — from request scheduling
 
 The survey's **cs.DB framing** (treating LLM inference as a database-systems problem — caching, eviction, query planning) is a useful lens that hasn't yet propagated through the practitioner stacks; classical DB techniques (cost-based query optimization, MVCC, semi-join reduction) are under-applied.
 
+
+## Open threads
+
+- Pan + Li survey orders compositions single-replica → multi-replica → disaggregated → serverless, treating serverless as most-composed. Is serverless instead orthogonal — any of the prior three could be serverlessified? — [[2026-05-08-a-survey-of-llm-inference-systems]]
+- TensorRT-LLM's `stream_interval = 10` detokenization-overhead workaround — is this a general continuous-batching problem (cf. SGLang's tracing FR) or TRTLLM tokenizer-path specific? — [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]
+
 ## Sources drawn on
 
 - [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]] — NVIDIA's two-mode gpt-oss-120b deployment recipe (low-latency vs max-throughput on Blackwell).
@@ -46,13 +52,3 @@ The survey's **cs.DB framing** (treating LLM inference as a database-systems pro
 - [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] — Google's inference-first TPU.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li cs.DB-framed survey; the three-primitive lens.
 
-## Open threads
-
-- (to be filled in)
-- Pan + Li survey orders compositions single-replica → multi-replica → disaggregated → serverless, treating serverless as most-composed. Is serverless instead orthogonal — any of the prior three could be serverlessified? — [[2026-05-08-a-survey-of-llm-inference-systems]]
-- TensorRT-LLM's `stream_interval = 10` detokenization-overhead workaround — is this a general continuous-batching problem (cf. SGLang's tracing FR) or TRTLLM tokenizer-path specific? — [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]
-
-
-## Sources drawn on
-
-- (auto-populated by reindex)

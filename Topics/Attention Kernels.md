@@ -25,21 +25,17 @@ GPU kernels implementing the attention operator at production-grade efficiency �
 
 **Inspirations + lineage**: FlashMLA explicitly credits FlashAttention (online softmax + accumulation), Flash-Decoding (split-K), and CUTLASS (tile-scheduling primitives). The pattern is **algorithmic recombination + architectural-constraint-driven scheduling**, not first-principles redesign.
 
+
+## Open threads
+
+- TE limitations as of the Feb-2024 HKUST paper (Softmax / GeLU not FP8-quantized, DotProductAttention bypasses FP8 TC) — do they still hold in 2025/2026 TransformerEngine versions? FP8 LLM stacks have matured substantially since. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
+- Why does DeepSeek not TP decode? FlashMLA asserts this as fact without justification; decode-side TP is a common KV-bandwidth optimization. There's an architectural / serving-economics reason worth understanding. — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
+- FlashMLA's seesaw schedule is designed for 2 warpgroups + Hopper register budget. Does it generalize to 4 warpgroups on Blackwell (larger register file + different WGMMA shape)? — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
+- MLA piggyback overhead mitigation (cache up-projected KV from earlier chunks, per the NVIDIA Beyond-the-Buzz paper) — is this in any OSS serving stack yet? FlashMLA is the obvious candidate. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
+
 ## Sources drawn on
 
 - [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] — surfaces the MLA piggyback overhead in disagg-prefill chunking; relevant for the kernel-stack interaction.
 - [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] — HKUST Hopper microbenchmark; canonical FP8 / TE-limit reference and TMA/DSM/DPX instruction-level numbers.
 - [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] — FlashMLA seesaw schedule deep-dive; the load-bearing kernel-design case study for MLA on H800.
 
-## Open threads
-
-- (to be filled in)
-- TE limitations as of the Feb-2024 HKUST paper (Softmax / GeLU not FP8-quantized, DotProductAttention bypasses FP8 TC) — do they still hold in 2025/2026 TransformerEngine versions? FP8 LLM stacks have matured substantially since. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
-- Why does DeepSeek not TP decode? FlashMLA asserts this as fact without justification; decode-side TP is a common KV-bandwidth optimization. There's an architectural / serving-economics reason worth understanding. — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
-- FlashMLA's seesaw schedule is designed for 2 warpgroups + Hopper register budget. Does it generalize to 4 warpgroups on Blackwell (larger register file + different WGMMA shape)? — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
-- MLA piggyback overhead mitigation (cache up-projected KV from earlier chunks, per the NVIDIA Beyond-the-Buzz paper) — is this in any OSS serving stack yet? FlashMLA is the obvious candidate. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
-
-
-## Sources drawn on
-
-- (auto-populated by reindex)

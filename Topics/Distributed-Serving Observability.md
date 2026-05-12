@@ -17,7 +17,6 @@ source_count: 2
 
 ## Open threads
 
-- (to be filled in)
 - Tracing-first (SGLang/OpenTelemetry spans) vs metrics-first (vLLM/Prometheus): convergence opportunity (one instrumentation emits both?) or two ecosystems specializing? Same observability need, different shapes today. — [[2025-11-17-feature-sglang-tracing-fine-grained-trac]] [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]]
 - Continuous-batching context misalignment is a real cross-cutting problem (SGLang had to patch OTel's single-context limitation). Does this pattern generalize to any batched-async server, or specific to LLM-decoding? — [[2025-11-17-feature-sglang-tracing-fine-grained-trac]]
 - KVConnectorStats abstraction's full surface — what's planned beyond NIXL's current metrics? Queue depths, retransmit counts, fabric-level errors? — [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]]

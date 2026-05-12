@@ -17,7 +17,6 @@ source_count: 2
 
 ## Open threads
 
-- (to be filled in)
 
 ## Sources drawn on
 

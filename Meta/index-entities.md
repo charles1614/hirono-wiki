@@ -25,10 +25,10 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[H100]]** _(2 refs)_ — NVIDIA Hopper datacenter GPU (compute capability 9.0); the production workhorse before Blackwell.
 - **[[H800]]** _(2 refs)_ — NVIDIA Hopper GPU; export-controlled variant of H100 (cut interconnect bandwidth); widely used in China.
 - **[[Megatron-LM]]** _(2 refs)_ — NVIDIA's original tensor + pipeline + data parallelism training framework; foundational reference for large-model training; now subsumed …
+- **[[NVFP4]]** _(2 refs)_ — NVIDIA's 4-bit floating-point format introduced with Blackwell; positioned as the next standard low-precision training format after FP8.
 - **[[Transformer Engine]]** _(2 refs)_ — NVIDIA's library for FP8 LLM training on Hopper+; wraps Linear/MLP layers to use FP8 Tensor Cores; ~2x speedup target.
 - **[[CUDA]]** _(1 refs)_ — NVIDIA's GPU programming platform — language extensions, runtime, toolkit, libraries.
 - **[[DeepSeek]]** _(1 refs)_ — Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
-- **[[NVFP4]]** _(1 refs)_ — NVIDIA's 4-bit floating-point format introduced with Blackwell; positioned as the next standard low-precision training format after FP8.
 
 ## Seen (1–2 refs)
 
@@ -43,6 +43,7 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[Gemini]]** _(2 refs)_ — Google DeepMind's frontier-LLM family; runs on Google TPU.
 - **[[Google]]** _(2 refs)_ — Tech company; AI lab (DeepMind); TPU silicon vendor; Pathways runtime; competitor to OpenAI/Anthropic/Meta.
 - **[[Ironwood]]** _(2 refs)_ — Google's seventh-generation TPU (TPU v7), inference-optimized, GA Nov 2025; 4,614 TFLOPS/chip, 192 GB HBM, 9,216-chip pods at 42.5 EFLOPS.
+- **[[MoE]]** _(2 refs)_ — Mixture-of-Experts; sparse-activation architecture; current frontier-model default (DeepSeek-V3, GPT-OSS, GLM-4.6, Mixtral).
 - **[[NVLink]]** _(2 refs)_ — NVIDIA's high-bandwidth GPU-to-GPU interconnect; current gen (NVLink 5) ~1.8 TB/s; defines the NVLink domain for inference disaggregation.
 - **[[Pathways]]** _(2 refs)_ — Google's distributed ML runtime; lets one program span tens of thousands of TPU chips; powers Gemini.
 - **[[Qwen]]** _(2 refs)_ — Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacent alternative.
@@ -95,7 +96,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[Meta]]** _(1 refs)_ — Meta Platforms; AI Research; Llama models; Reality Labs; FAIR; PyTorch maintainer.
 - **[[Mixtral]]** _(1 refs)_ — Mistral AI's open-weight MoE model family; 8x7B (47B total) and 8x22B (141B total); reference MoE benchmark target.
 - **[[MLOPart]]** _(1 refs)_ — Memory Locality Optimization Partition — Blackwell feature that presents one underlying GPU as multiple memory-locality-optimized CUDA de…
-- **[[MoE]]** _(1 refs)_ — Mixture-of-Experts; sparse-activation architecture; current frontier-model default (DeepSeek-V3, GPT-OSS, GLM-4.6, Mixtral).
 - **[[Mooncake]]** _(1 refs)_ — Moonshot AI's LLM inference system; KV-cache-centric serving architecture; named in the Survey of LLM Inference Systems.
 - **[[MPS]]** _(1 refs)_ — CUDA Multi-Process Service — daemon for sharing a single GPU across multiple CUDA processes with finer-grained scheduling.
 - **[[NCCL]]** _(1 refs)_ — NVIDIA Collective Communications Library — standard GPU-to-GPU collective primitive implementations (AllReduce, AllGather, ReduceScatter,…

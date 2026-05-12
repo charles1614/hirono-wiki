@@ -17,7 +17,6 @@ source_count: 2
 
 ## Open threads
 
-- (to be filled in)
 - TPU v7 'inference-first' framing — what's actually different architecturally vs v6e Trillium? Smaller training-only dataflow units? Different array dimensions? More HBM per chip at the expense of compute density? — [[2026-01-09-google-tpus-explained-architecture-perfo]] [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]
 
 

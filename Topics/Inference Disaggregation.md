@@ -31,6 +31,11 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 
 **Observability for disagg** is splitting into two stacks: SGLang ([[2025-11-17-feature-sglang-tracing-fine-grained-trac]]) goes OpenTelemetry-spans-first with PD-disaggregation as a first-class case (mini-LB, prefill, decode all traced); vLLM ([[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]]) goes Prometheus-metrics-first. The Pan+Li survey ([[2026-05-08-a-survey-of-llm-inference-systems]]) treats disaggregation as a first-class architecture in the system-composition taxonomy.
 
+
+## Open threads
+
+- Are simulator-based design-space-exploration numbers translatable to dollars/W for capacity planning? Beyond-the-Buzz reports normalized Pareto frontiers; the missing translation is the cost-engineering step. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]
+
 ## Sources drawn on
 
 - [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] — the foundational 100k-design-point NVIDIA disagg study; CPP + dynamic rate matching + KV bandwidth analysis.
@@ -38,12 +43,3 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 - [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] — vLLM NIXL/KVConnectorStats observability for PD-disagg data plane.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li survey treating disaggregation as a first-class composition tier.
 
-## Open threads
-
-- (to be filled in)
-- Are simulator-based design-space-exploration numbers translatable to dollars/W for capacity planning? Beyond-the-Buzz reports normalized Pareto frontiers; the missing translation is the cost-engineering step. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]
-
-
-## Sources drawn on
-
-- (auto-populated by reindex)

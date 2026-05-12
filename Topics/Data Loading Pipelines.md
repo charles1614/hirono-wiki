@@ -17,7 +17,6 @@ source_count: 1
 
 ## Open threads
 
-- (to be filled in)
 - SPDL vs NVIDIA DALI head-to-head: DALI is C++-based GPU-side decoding (very different architecture, same goal of saturating GPUs). The SPDL post doesn't compare; concrete benchmarks would clarify when to pick each. — [[2026-01-20-introducing-spdl-faster-ai-model-trainin]]
 
 

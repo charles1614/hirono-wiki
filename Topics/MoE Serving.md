@@ -30,6 +30,14 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - AlltoAll comm-overlap: Flux's fused-kernel approach vs per-EP-instance pipelining (DeepSeek-V3 style) — uncompared head-to-head.
 - Fine-grained MoE (256+ experts, 8+ active per token, à la DeepSeek-MoE) stresses the EP/AllToAll path harder than Mixtral's 8 experts. Does MoE Parallel Folding extract similar gains at that fine-grain?
 
+
+## Open threads
+
+- How do TensorRT-LLM's gpt-oss-120b numbers scale to other MoE shapes (DeepSeek-V3, Mixtral 8×22B)? Config knobs are model-agnostic; ceilings may not be. — [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]
+- AlltoAll for MoE: how does Flux's fused-kernel approach compare against per-EP-instance pipelining patterns used in modern MoE serving (e.g., DeepSeek-V3)? — [[2025-10-09-flux-fast-software-based-communication-o]]
+- MoE Parallel Folding supports both token-dropping and token-dropless training; which is recommended for which scenario? The paper presents both as supported without comparing quality vs throughput tradeoffs. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+- Does MoE Parallel Folding extract similar gains on fine-grained MoE (256+ experts, 8+ active à la DeepSeek-MoE) as on Mixtral's 8 experts? Fine-grained MoE stresses the EP/AllToAll path harder. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+
 ## Sources drawn on
 
 - [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]] — production gpt-oss-120b MoE-serving recipe on Blackwell (CUTLASS-vs-TRTLLM-vs-TRITON backend tradeoffs).
@@ -37,15 +45,3 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - [[2025-10-28-moeparallel-folding-heterogeneous-parall]] — Megatron-Core's MoE Parallel Folding; the 5-D hybrid parallelism mapping that decouples attention from MoE.
 - [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] — FlashMLA decode kernel; the MoE-MLA serving substrate for DeepSeek-class models.
 
-## Open threads
-
-- (to be filled in)
-- How do TensorRT-LLM's gpt-oss-120b numbers scale to other MoE shapes (DeepSeek-V3, Mixtral 8×22B)? Config knobs are model-agnostic; ceilings may not be. — [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]
-- AlltoAll for MoE: how does Flux's fused-kernel approach compare against per-EP-instance pipelining patterns used in modern MoE serving (e.g., DeepSeek-V3)? — [[2025-10-09-flux-fast-software-based-communication-o]]
-- MoE Parallel Folding supports both token-dropping and token-dropless training; which is recommended for which scenario? The paper presents both as supported without comparing quality vs throughput tradeoffs. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
-- Does MoE Parallel Folding extract similar gains on fine-grained MoE (256+ experts, 8+ active à la DeepSeek-MoE) as on Mixtral's 8 experts? Fine-grained MoE stresses the EP/AllToAll path harder. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
-
-
-## Sources drawn on
-
-- (auto-populated by reindex)
