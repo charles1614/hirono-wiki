@@ -116,7 +116,7 @@ ${kindLine}
 
 ## Observations
 
-- _(append cited bullets here as Sources reference this entity — one atomic claim per bullet, cited with [[Sources/<slug>]])_
+- _(append cited bullets here as Sources reference this entity — one atomic claim per bullet, trailed with a Source wikilink)_
 `;
 }
 
