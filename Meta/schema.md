@@ -171,12 +171,26 @@ tags: [at, least, one, tag]
 - Claim two.
 - Claim three.
 
-## Visual observations  ← optional
+## Visual observations  ← mandatory
 
-*Optional. Populate only when images carry information not already in the body text.
-Heuristic: always for xhs / weixin / zhihu-image-heavy hosts; also for any source
-where `body_chars < 2000` AND `image_count >= 3`; also for PDF sources when
-figures change the claims.*
+**Mandatory section** on every Source. Two valid shapes:
+
+- **2–5 in-body `![]()` image refs** (load-bearing, see three-tier rule below)
+  pointing at files in the paired raw archive. Required when raw has load-bearing
+  images — enforced by the `source-image-count` lint check via the 5-signal
+  trigger (SVG present, image ≥ 100 KB, image_count ≥ 3, thin-body, image-dense).
+- **A single canonical rationale line** when raw has no load-bearing images, of
+  the form `*No load-bearing images — <reason>.*`. Canonical reasons:
+  - `all panels redundant with body text` (xhs comment-screenshots; weixin tech
+    posts where prose paraphrases each diagram)
+  - `all panels decorative (logos, badges, photos)` (github READMEs with chrome
+    only; non-technical xhs)
+  - `figures inline-captioned in raw, no standalone images` (papers where Marker
+    already captioned figures in prose)
+  - `source has no images` (text-only blog posts / API JSON / pure prose)
+
+Sources with image refs MUST also pair each image with a one-sentence factual
+caption — see "Shape (load-bearing image)" below.
 
 ### Three-tier image rule
 
@@ -264,7 +278,7 @@ tables are text and integrate into Key Claims naturally; only their inline-
 reproduction needs a discipline rule.
 
 **Selective image-reading.** Don't enumerate every image in `raw/<slug>/`.
-Most are chrome (avatars, badges, decorative). Pick 2–6 images per source that
+Most are chrome (avatars, badges, decorative). Pick 2–5 images per source that
 *change the claims* and put each in `## Visual observations` with a one-sentence
 factual observation. For PDF sources, prefer reading the preserved `<slug>.pdf`
 directly over the per-page PNG renderings — same data, much cheaper.
@@ -291,8 +305,10 @@ properties:
    and contributes to the wiki's compounding. Not "see Figure 3."
 6. **Section placement.** Load-bearing images go in `## Visual observations`,
    not sprinkled into Key claims. Order follows the source's own figure
-   ordering when possible. If a Source has zero load-bearing/supporting
-   images, omit the entire section.
+   ordering when possible. **Section is mandatory** — if a Source has zero
+   load-bearing/supporting images, include the section with ONE canonical
+   `*No load-bearing images — <reason>.*` rationale line (see "Visual
+   observations" §above). The `source-image-count` lint check enforces this.
 
 Triage process for an ingestor:
 
@@ -302,7 +318,8 @@ Triage process for an ingestor:
    give? If no → decorative, skip silently.
 3. If yes: does the claim it carries already appear in `## Key claims`? If
    yes → supporting (bullet only). If no → load-bearing (full inline).
-4. Cap at 2–6 load-bearing per Source. More than that is usually mis-triaged.
+4. Cap at 2–5 load-bearing per Source. More than that is usually mis-triaged
+   and gets a `source-image-count` WARN.
 
 **Citation discipline carries over.** A bullet in Visual observations is
 content. If it makes a claim about an Entity, the Entity's Observations block

@@ -384,6 +384,100 @@ test("source-image-refs: remote http(s) refs are skipped (other rule covers them
 });
 
 // ---------------------------------------------------------------------------
+// source-image-count (quantity + justification — sibling of source-image-refs)
+// ---------------------------------------------------------------------------
+
+/** Build a slug's raw archive dir with N panel-sized images + a content.md.
+ *  Each image is `imgSize` bytes (default 120 KB to trigger SIGNAL B). */
+function buildRawArchive(root: string, slug: string, opts: { images: number; imgSize?: number; bodySize?: number; svg?: boolean }): void {
+  const dir = join(root, `raw/raindrop/example.com/${slug}`);
+  mkdirSync(dir, { recursive: true });
+  const size = opts.imgSize ?? 120 * 1024;
+  const bodyBytes = opts.bodySize ?? 800;
+  writeFileSync(join(dir, "content.md"), "x".repeat(bodyBytes));
+  for (let i = 1; i <= opts.images; i++) {
+    const fname = `panel_${String(i).padStart(2, "0")}.jpg`;
+    writeFileSync(join(dir, fname), Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(size - 4, 0)]));
+  }
+  if (opts.svg) writeFileSync(join(dir, "diagram.svg"), "<svg></svg>");
+}
+
+test("source-image-count: 3 image refs + raw has 5 panel images → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-ok-3refs";
+    const body = [
+      "body intro",
+      `![panel 1](../../raw/raindrop/example.com/${slug}/panel_01.jpg)`,
+      `![panel 2](../../raw/raindrop/example.com/${slug}/panel_02.jpg)`,
+      `![panel 3](../../raw/raindrop/example.com/${slug}/panel_03.jpg)`,
+    ].join("\n\n");
+    writeSource(root, slug, body);
+    buildRawArchive(root, slug, { images: 5 });
+    const issues = runLint(root, { checks: ["source-image-count"] });
+    assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-count: 0 refs + raw has 1 small image (signals don't fire) → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-thin-no-trigger";
+    writeSource(root, slug, "body that's plenty long; image is decorative thumbnail; ".repeat(20));
+    // Single tiny image (50 KB → below 100 KB SIGNAL B threshold) AND only 1 image
+    // (below SIGNAL C threshold of 3) AND body is plenty long (above SIGNAL D, E).
+    buildRawArchive(root, slug, { images: 1, imgSize: 50 * 1024, bodySize: 2000 });
+    const issues = runLint(root, { checks: ["source-image-count"] });
+    assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-count: 0 refs + raw has 5 panel images + no rationale → WARN", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-lazy-zero";
+    writeSource(root, slug, "Source body with no image refs at all.\n\n## Visual observations\n\n5 panels but I forgot to reference them.");
+    buildRawArchive(root, slug, { images: 5 });
+    const issues = runLint(root, { checks: ["source-image-count"] });
+    const warn = issues.find((i) => i.kind === "source-image-count" && i.severity === "warn");
+    assert.ok(warn, `expected source-image-count WARN; got ${JSON.stringify(issues)}`);
+    assert.ok(warn!.detail.includes("references 0 image"), `detail should name 0 ref count: ${warn!.detail}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-count: 0 refs + 5 panel images + canonical rationale line → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-justified-zero";
+    writeSource(root, slug,
+      "Source body.\n\n## Visual observations\n\n*No load-bearing images — all panels redundant with body text.*\n");
+    buildRawArchive(root, slug, { images: 5 });
+    const issues = runLint(root, { checks: ["source-image-count"] });
+    assert.equal(issues.length, 0, `expected clean (rationale opts out); got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("source-image-count: 8 image refs (over cap of 5) + signals fire → WARN", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    const slug = "2026-04-20-over-cap";
+    const refs = Array.from({ length: 8 }, (_, i) =>
+      `![panel ${i + 1}](../../raw/raindrop/example.com/${slug}/panel_${String(i + 1).padStart(2, "0")}.jpg)`);
+    writeSource(root, slug, "body\n\n" + refs.join("\n\n"));
+    buildRawArchive(root, slug, { images: 8 });
+    const issues = runLint(root, { checks: ["source-image-count"] });
+    const warn = issues.find((i) => i.kind === "source-image-count" && i.severity === "warn");
+    assert.ok(warn, `expected over-cap WARN; got ${JSON.stringify(issues)}`);
+    assert.ok(warn!.detail.includes("cap is 5"), `detail should mention cap: ${warn!.detail}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+// ---------------------------------------------------------------------------
 // observation-gaps (LLM-editorial-debt surfacer)
 // ---------------------------------------------------------------------------
 

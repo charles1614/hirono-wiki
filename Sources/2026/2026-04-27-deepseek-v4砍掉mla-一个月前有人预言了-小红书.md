@@ -39,11 +39,27 @@ Luo claim: "Chat 与 Agent 不是对立的，而是同一套基础设施在不�
 
 ## Visual observations
 
-8 hand-designed image panels (`69ef4f40000000003501c7b0_01.jpg` through `_08.jpg`), each ~160-200 KB, gold-and-black design language with consistent three-section layout:
-- Image 1: cover slide announcing "她比技术报告早说了一个月" + the framing stats ("时间差 ≥ 30 天 · 对比维度 7 个核心命题")
-- Images 2-8: numbered 01-07, one panel per technical dimension. Each panel has a **Luo Fuli quote in red/white** at top, a **boxed V4 §-citation in darker contrast** in the middle, and an **analyst observation block** at bottom.
+8 hand-designed image panels (`69ef4f40000000003501c7b0_01.jpg` through `_08.jpg`), each ~58–200 KB, gold-and-black design with consistent three-section layout: a Luo Fuli quote at top, a boxed V4 §-citation in the middle, and an analyst observation block at the bottom. Three load-bearing panels referenced below; the remaining five are supporting (their specifics are already extracted into Key claims).
 
-The image-extraction effort here was load-bearing for the wiki — the prose body of the post is a 50-line caption that summarizes the dimensions in one sentence each; **all specific numbers, §-references, and direct V4 quotes live in the images**. (Note: This Source was used as the pre-flight test case for the bulk-ingest image-extraction workflow. The 7 specifics above were captured by an Opus pass over the images during the ingest; a Haiku pass over the same images at 1568 px input cap silently dropped 4 of the 7 specifics and hallucinated one number — see memory `feedback_haiku_image_resolution.md`.)
+**Cover — the 30-day prediction-gap framing** (`../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_01.jpg`)
+
+![V4 prediction cover slide announcing the 30-day time-gap and 7-dimension comparison](../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_01.jpg)
+
+The framing: time-gap ≥ 30 天 between Luo's 2026-03 interview and DeepSeek V4's 2026-04-24 tech report; 7 core technical propositions used as the comparison axes.
+
+**Panel 01 — Long Context KV/FLOPs economics** (`../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_02.jpg`)
+
+![V4 §3.6.2 receipt: DeepSeek-V4-Pro requires only 27% of single-token inference FLOPs and 10% of KV cache compared with DeepSeek-V3.2 at 1M-token context](../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_02.jpg)
+
+Verbatim V4 §3.6.2 panel: V4-Pro needs **27% of single-token inference FLOPs AND 10% of KV cache** vs V3.2 at 1M-token context. The two numbers are deliberately separate qualifiers — not one combined "27% of KV" claim (a misread Sonnet's extraction made during pre-flight, see Raw source notes below).
+
+**Panel 04 — On-disk KV cache mechanism** (`../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_05.jpg`)
+
+![V4 §3.6.2 / §3.3.2 panel: on-disk KV cache storage mechanism — store all compressed KV entries on local SSD to eliminate repeated prefilling for shared-prefix requests](../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_05.jpg)
+
+The on-disk KV mechanism is the architectural commitment driving the Agent-era economics — instead of holding 1M-token KV cache in GPU memory, V4 stores compressed KV entries on local SSD and reuses them across requests with shared prefixes.
+
+**Supporting panels** (not inlined): Panel 02 (MLA retirement → MHA + GQA framing), Panel 03 (Hybrid Attention composition with window=128), Panel 05 (MTP design), Panel 06 (Post-train : Pre-train = 1:7), Panel 07 (Chat vs Agent fusion + Interleaved Thinking §5.5.1). Each is paraphrased into the matching Key claim above.
 
 ## What this changes
 

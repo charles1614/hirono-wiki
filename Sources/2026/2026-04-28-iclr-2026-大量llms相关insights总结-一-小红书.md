@@ -42,7 +42,19 @@ An xhs (Xiaohongshu) post by **幸运降临中** dated 2026-04-28, summarizing *
 
 ## Visual observations
 
-7 hand-built summary cards (`69ed78f3000000001a034eed_01.jpg` through `_07.jpg`, 84–198 KB each, plain-text design). Total ~3000 Chinese chars across the cards; the xhs body is just teaser + tag-list. Cards 1–3 cover Insights 1–4, Cards 4–5 cover Insights 5–7, Cards 6–7 cover Insights 8–10. Three section headings break the flow. No charts, photos, or figures — pure text cards.
+7 hand-built summary cards (`69ed78f3000000001a034eed_01.jpg` through `_07.jpg`, 84–198 KB each, plain-text design). Total ~3000 Chinese chars across the cards; the xhs body is just teaser + tag-list. Two load-bearing covers below; the remaining 5 cards are supporting and their content is already extracted into Key claims.
+
+**Card 01 — Title + Section 1 (model structure)** (`../../raw/raindrop/www.xiaohongshu.com/2026-04-28-iclr-2026-大量llms相关insights总结-一-小红书/69ed78f3000000001a034eed_01.jpg`)
+
+![Title card "ICLR 2026 LLMs Insights" + first section's heading "一、模型结构、压缩与内部表征" with Insight 1 (Layer Pruning) starting](../../raw/raindrop/www.xiaohongshu.com/2026-04-28-iclr-2026-大量llms相关insights总结-一-小红书/69ed78f3000000001a034eed_01.jpg)
+
+Title card sets the framing: 全文2986字 / 阅读需6分钟 across 3 grouped sections — model structure & compression (Insights 1-3), inference-time search & multi-agent (Insights 4-6), RL post-training & embodied AI (Insights 7-10).
+
+**Card 05 — Section 2/3 transition (Multi-Agent + RL transfer)** (`../../raw/raindrop/www.xiaohongshu.com/2026-04-28-iclr-2026-大量llms相关insights总结-一-小红书/69ed78f3000000001a034eed_05.jpg`)
+
+![Card containing Insight 6 (Multi-Agent Design — jointly optimize prompts + topologies) and the section-3 boundary into Insight 7 (RL post-training domain transfer)](../../raw/raindrop/www.xiaohongshu.com/2026-04-28-iclr-2026-大量llms相关insights总结-一-小红书/69ed78f3000000001a034eed_05.jpg)
+
+The two most-cited practitioner findings sit at this section boundary: Multi-Agent Design's "jointly optimize prompts and topologies" recipe, and the RL-transfer corrective that RL gains don't auto-generalize across domains without structural similarity.
 
 ## What this changes
 

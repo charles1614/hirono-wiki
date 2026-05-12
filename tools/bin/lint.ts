@@ -56,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps";
 
 export interface Issue {
   kind: CheckKind;
@@ -400,6 +400,103 @@ function relpath(abs: string, repoRoot: string): string {
 }
 
 /**
+ * Host-agnostic 5-signal trigger for "does this slug's raw archive contain
+ * load-bearing images that the Source body should reference?"
+ *
+ * Used by `checkSourceImageCount` below. May graduate to a shared helper if a
+ * second consumer (e.g. an image-extraction CLI) lands. Pure filesystem read;
+ * no host-specific logic; new hosts inherit the rule by default.
+ */
+export function shouldExtractImages(slugDir: string, bodyChars: number): { trigger: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+  if (!existsSync(slugDir)) return { trigger: false, reasons };
+  let entries: string[];
+  try { entries = readdirSync(slugDir); } catch { return { trigger: false, reasons }; }
+  const imgFiles = entries.filter((f) => /\.(png|jpe?g|webp|gif|bmp|tiff?|svg)$/i.test(f));
+  const svgPresent = imgFiles.some((f) => /\.svg$/i.test(f));
+  const imgCount = imgFiles.length;
+  let maxSize = 0;
+  for (const f of imgFiles) {
+    try { maxSize = Math.max(maxSize, statSync(join(slugDir, f)).size); } catch { /* skip */ }
+  }
+  if (svgPresent) reasons.push("SVG present");
+  if (maxSize >= 100 * 1024) reasons.push(`image ≥ 100 KB (max ${Math.round(maxSize / 1024)} KB)`);
+  if (imgCount >= 3) reasons.push(`${imgCount} images (≥ 3)`);
+  if (bodyChars > 0 && bodyChars < 500 && imgCount >= 1) reasons.push(`thin body (${bodyChars} chars) with ${imgCount} image(s)`);
+  if (imgCount > 0 && bodyChars > 0 && bodyChars / imgCount < 200) reasons.push(`image-dense (${Math.round(bodyChars / imgCount)} chars/image)`);
+  return { trigger: reasons.length > 0, reasons };
+}
+
+const NO_LOADBEARING_RATIONALE_RE = /No load-bearing images\s*[—–-]/i;
+
+/**
+ * source-image-count: when a Source's raw archive shows load-bearing-image
+ * signals (via `shouldExtractImages`), the Source body must EITHER include
+ * 2–5 in-body `![]()` refs OR explicitly document why zero with a canonical
+ * rationale line matching `*No load-bearing images — <reason>.*`.
+ *
+ * Sibling of `checkSourceImageRefs` (which validates file integrity); this
+ * check enforces the schema's quantity + justification rule. Surfaces the
+ * "lazy zero-image Source" failure mode that the schema's previous "omit the
+ * section if zero" guidance silently enabled.
+ *
+ * Severity: warn (not error) — to allow incremental retroactive cleanup
+ * without blocking commits.
+ */
+export function checkSourceImageCount(docs: DocMeta[], repoRoot: string): Issue[] {
+  const issues: Issue[] = [];
+  const sources = docs.filter((d) => d.bucket === "Sources");
+
+  // Build slug → slugDir map (same shape as checkRawOrphan).
+  const rawRoot = join(repoRoot, "raw", "raindrop");
+  const rawSlugs = new Map<string, string>();
+  if (existsSync(rawRoot)) {
+    for (const host of readdirSync(rawRoot)) {
+      const hostDir = join(rawRoot, host);
+      let st;
+      try { st = statSync(hostDir); } catch { continue; }
+      if (!st.isDirectory()) continue;
+      for (const slug of readdirSync(hostDir)) {
+        const slugDir = join(hostDir, slug);
+        try { if (!statSync(slugDir).isDirectory()) continue; } catch { continue; }
+        rawSlugs.set(slug, slugDir);
+      }
+    }
+  }
+
+  for (const doc of sources) {
+    const slugDir = rawSlugs.get(doc.slug);
+    if (!slugDir) continue; // raw-orphan covers this case
+    const contentMd = join(slugDir, "content.md");
+    let bodyChars = 0;
+    try { bodyChars = statSync(contentMd).size; } catch { /* slug has no content.md; raw-orphan handles */ }
+    const { trigger, reasons } = shouldExtractImages(slugDir, bodyChars);
+    if (!trigger) continue;
+    const refCount = extractLocalImageRefs(doc.body).length;
+    const hasRationale = NO_LOADBEARING_RATIONALE_RE.test(doc.body);
+    if (refCount < 2 && !hasRationale) {
+      issues.push({
+        kind: "source-image-count",
+        severity: "warn",
+        path: doc.repo_path,
+        detail: `raw archive shows load-bearing-image signals (${reasons.join("; ")}) but Source references ${refCount} image(s) and has no rationale line`,
+        hint: `Add 2-5 ![](../../raw/...) refs to ## Visual observations, OR add a "*No load-bearing images — <reason>.*" line per Meta/schema.md`,
+      });
+    } else if (refCount > 5) {
+      issues.push({
+        kind: "source-image-count",
+        severity: "warn",
+        path: doc.repo_path,
+        detail: `Source references ${refCount} images (cap is 5); demote some to supporting bullets per Meta/schema.md image rule`,
+        hint: `Visual observations should keep image refs to 2-5 load-bearing panels`,
+      });
+    }
+  }
+
+  return issues;
+}
+
+/**
  * observation-gaps: surface the LLM-editorial debt that reindex.ts's
  * verbose output prints but doesn't enforce.
  *
@@ -722,7 +819,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "observation-gaps", "tag-vocabulary", "topic-content-gaps"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -742,6 +839,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("raw-orphan"))     issues.push(...checkRawOrphan(docs, repoRoot));
   if (checks.includes("sources-index"))  issues.push(...checkSourcesIndex(repoRoot));
   if (checks.includes("source-image-refs")) issues.push(...checkSourceImageRefs(docs, repoRoot));
+  if (checks.includes("source-image-count")) issues.push(...checkSourceImageCount(docs, repoRoot));
   if (checks.includes("observation-gaps")) issues.push(...checkObservationGaps(docs));
   if (checks.includes("tag-vocabulary")) issues.push(...checkTagVocabulary(docs));
   if (checks.includes("topic-content-gaps")) issues.push(...checkTopicContentGaps(docs));

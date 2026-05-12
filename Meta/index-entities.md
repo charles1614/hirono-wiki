@@ -20,12 +20,12 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[A100]]** _(3 refs)_ — NVIDIA Ampere-architecture datacenter GPU (compute capability 8.0); production workhorse before Hopper.
 - **[[CUTLASS]]** _(3 refs)_ — NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks for cuBLAS + custom kernels.
 - **[[Llama]]** _(3 refs)_ — Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 (lowercase from v3.1); reference benchmark target for inf…
+- **[[Megatron-LM]]** _(3 refs)_ — NVIDIA's original tensor + pipeline + data parallelism training framework; foundational reference for large-model training; now subsumed …
 - **[[TensorRT-LLM]]** _(3 refs)_ — NVIDIA's LLM-specific inference engine; built on TensorRT; competitor to vLLM/SGLang in NVIDIA-stack serving.
 - **[[DeepSeek]]** _(2 refs)_ — Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
 - **[[FlashAttention]]** _(2 refs)_ — The original IO-aware fused attention kernel (Dao et al.); v1/v2/v3; foundation for most modern attention kernel work.
 - **[[H100]]** _(2 refs)_ — NVIDIA Hopper datacenter GPU (compute capability 9.0); the production workhorse before Blackwell.
 - **[[H800]]** _(2 refs)_ — NVIDIA Hopper GPU; export-controlled variant of H100 (cut interconnect bandwidth); widely used in China.
-- **[[Megatron-LM]]** _(2 refs)_ — NVIDIA's original tensor + pipeline + data parallelism training framework; foundational reference for large-model training; now subsumed …
 - **[[NVFP4]]** _(2 refs)_ — NVIDIA's 4-bit floating-point format introduced with Blackwell; positioned as the next standard low-precision training format after FP8.
 - **[[Transformer Engine]]** _(2 refs)_ — NVIDIA's library for FP8 LLM training on Hopper+; wraps Linear/MLP layers to use FP8 Tensor Cores; ~2x speedup target.
 - **[[CUDA]]** _(1 refs)_ — NVIDIA's GPU programming platform — language extensions, runtime, toolkit, libraries.
