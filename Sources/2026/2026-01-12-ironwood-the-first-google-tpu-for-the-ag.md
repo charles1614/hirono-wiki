@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/ironwood-tpu-age-of-inference/
-tags: [tpu, ironwood, google, inference, ai-hypercomputer, pathways, sparsecore]
+tags: [tpu, inference, announcement]
 ---
 
 # [2026-01-12] Ironwood — The First Google TPU for the Age of Inference

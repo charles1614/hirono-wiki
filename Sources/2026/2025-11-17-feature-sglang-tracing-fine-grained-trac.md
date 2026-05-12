@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://github.com/sgl-project/sglang/issues/8965
-tags: [sglang, observability, tracing, opentelemetry, distributed-serving, profiling]
+tags: [observability, inference, tooling]
 ---
 
 # [2025-11-17] [Feature] SGLang Tracing — Fine-Grained Tracking for Request Latency

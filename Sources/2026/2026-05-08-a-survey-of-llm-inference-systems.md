@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://arxiv.org/abs/2506.21901
-tags: [survey, llm-inference, vllm, sglang, mooncake, deepflow, scheduling, kv-cache, quantization, disaggregation]
+tags: [inference, survey, kv-cache, disaggregation, scheduling, quantization]
 ---
 
 # [2026-05-08] A Survey of LLM Inference Systems

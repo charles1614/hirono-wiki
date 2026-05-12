@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://arxiv.org/pdf/2503.01840
-tags: [speculative-decoding, inference, eagle, sglang, llm, scaling-law]
+tags: [speculative-decoding, inference, scaling-law, paper]
 ---
 
 # [2025-10-09] EAGLE-3: Scaling up Inference Acceleration via Training-Time Test

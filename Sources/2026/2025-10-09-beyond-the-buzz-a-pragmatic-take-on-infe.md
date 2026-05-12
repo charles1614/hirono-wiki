@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://arxiv.org/pdf/2506.05508
-tags: [inference, disaggregation, prefill-decode, pareto, simulation, nvidia, deepseek, llama, blackwell]
+tags: [inference, disaggregation, parallelism, paper]
 ---
 
 # [2025-10-09] Beyond the Buzz: A Pragmatic Take on Inference Disaggregation

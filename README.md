@@ -298,6 +298,9 @@ raw/raindrop/_index.json:
 ## Quickstart for an operator
 
 ```bash
+# 0. One-time: install the pre-commit hook (refuses commits with lint errors)
+git config core.hooksPath .githooks
+
 # 1. Refresh bookmark cache from Raindrop API
 npx tsx tools/bin/hirono.ts raindrop refresh-cache
 

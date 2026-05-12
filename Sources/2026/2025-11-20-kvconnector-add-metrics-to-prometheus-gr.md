@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://github.com/vllm-project/vllm/pull/26811
-tags: [vllm, observability, prometheus, kv-cache, nixl, kv-connector, monitoring]
+tags: [observability, kv-cache, inference, tooling]
 ---
 
 # [2025-11-20] [KVConnector] Add Metrics to Prometheus-Grafana Dashboard

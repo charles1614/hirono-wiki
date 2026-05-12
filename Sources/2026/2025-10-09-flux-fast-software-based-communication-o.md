@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://arxiv.org/pdf/2406.06858
-tags: [tensor-parallelism, comm-overlap, kernel-fusion, cutlass, bytedance, training, inference, gpu]
+tags: [comm-overlap, parallelism, training, inference, gpu, paper]
 ---
 
 # [2025-10-09] FLUX: Fast Software-Based Communication Overlap on GPUs Through Kernel Fusion

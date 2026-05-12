@@ -16,7 +16,7 @@ function bucketStubs(root: string): void {
   mkdirSync(join(root, "Topics"));
 }
 
-function writeSource(root: string, slug: string, body: string, fm = "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [test]"): void {
+function writeSource(root: string, slug: string, body: string, fm = "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [inference]"): void {
   writeFileSync(
     join(root, `Sources/2026/${slug}.md`),
     `---\n${fm}\n---\n\n${body}\n`,
@@ -436,6 +436,49 @@ test("observation-gaps: active-tier entity with all citing Sources cited → cle
       "active", 1,
     );
     const issues = runLint(root, { checks: ["observation-gaps"] });
+    assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+// ---------------------------------------------------------------------------
+// tag-vocabulary (controlled vocabulary for Sources tags)
+// ---------------------------------------------------------------------------
+
+test("tag-vocabulary: novel tag in Source → WARN with all novel tags listed", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    // "inference" + "moe" are canonical; "nvidia" + "blackwell" + "made-up" are not.
+    writeSource(
+      root, "2026-04-20-tagged",
+      "body",
+      "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [inference, moe, nvidia, blackwell, made-up]",
+    );
+    mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-tagged"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-tagged/content.md"), "raw");
+    const issues = runLint(root, { checks: ["tag-vocabulary"] });
+    const tagWarn = issues.find((i) => i.kind === "tag-vocabulary" && i.severity === "warn");
+    assert.ok(tagWarn, `expected tag-vocabulary WARN; got ${JSON.stringify(issues)}`);
+    assert.ok(tagWarn!.detail.includes("nvidia"), `expected 'nvidia' in detail; got ${tagWarn!.detail}`);
+    assert.ok(tagWarn!.detail.includes("blackwell"), `expected 'blackwell' in detail; got ${tagWarn!.detail}`);
+    assert.ok(tagWarn!.detail.includes("made-up"), `expected 'made-up' in detail; got ${tagWarn!.detail}`);
+    // Canonical tags should NOT be listed.
+    assert.ok(!tagWarn!.detail.includes('"inference"'), `'inference' is canonical — should not warn`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("tag-vocabulary: all-canonical Source → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeSource(
+      root, "2026-04-20-clean",
+      "body",
+      "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nraw_source: https://x\ntags: [inference, moe, parallelism, paper]",
+    );
+    mkdirSync(join(root, "raw/raindrop/example.com/2026-04-20-clean"), { recursive: true });
+    writeFileSync(join(root, "raw/raindrop/example.com/2026-04-20-clean/content.md"), "raw");
+    const issues = runLint(root, { checks: ["tag-vocabulary"] });
     assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
   } finally { rmSync(root, { recursive: true }); }
 });

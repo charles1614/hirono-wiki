@@ -56,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "observation-gaps";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "observation-gaps" | "tag-vocabulary";
 
 export interface Issue {
   kind: CheckKind;
@@ -457,6 +457,70 @@ function yearForSourcePath(repoPath: string): string {
 }
 
 /**
+ * Canonical tag vocabulary for Sources `tags:` frontmatter. Five axes;
+ * Sources should pick 2–5 tags from the relevant axes. Documented in
+ * `Meta/schema.md` under "Canonical tag vocabulary"; this set is the
+ * single source of truth (the doc references this list, not vice versa).
+ *
+ * Don't tag proper nouns (NVIDIA, vLLM, Mixtral, Llama, etc.) — those go
+ * in `## Entities touched` / `## Topics touched`.
+ *
+ * Extending: novel tag ideas should be added here in the same commit that
+ * uses them in a Source, otherwise this check WARNs.
+ */
+export const CANONICAL_TAGS: ReadonlySet<string> = new Set([
+  // Workload (1–2 per Source)
+  "pretraining", "training", "post-training", "inference", "evaluation",
+  // Subdomain (1–3 per Source)
+  "attention-kernels", "comm-overlap", "data-loading", "disaggregation",
+  "kv-cache", "moe", "observability", "parallelism", "quantization",
+  "scaling-law", "scheduling", "speculative-decoding", "low-precision",
+  // Hardware (0–1 per Source)
+  "gpu", "tpu", "accelerator-design",
+  // Source shape (0–1 per Source)
+  "paper", "survey", "microbenchmark", "benchmark", "announcement",
+  "tooling", "minimal-impl",
+  // Special (0–1 per Source)
+  "long-context", "production-deployment",
+]);
+
+/**
+ * tag-vocabulary: warn on tags not in CANONICAL_TAGS.
+ *
+ * The lint-required `tags:` check elsewhere already errors on missing /
+ * empty tags. This check is the next layer: gates against tag drift at
+ * scale (`inference` vs `llm-inference` vs `inference-systems`) by
+ * enforcing a controlled vocabulary. Severity is WARN, not ERROR — a
+ * novel tag isn't broken, but it's a signal worth surfacing for either
+ * (a) renaming to a canonical tag, or (b) extending the vocabulary.
+ *
+ * Per-Source warnings batch the novel tags into one issue per Source to
+ * avoid flooding output.
+ */
+export function checkTagVocabulary(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+  for (const doc of docs.filter((d) => d.bucket === "Sources")) {
+    const tags = doc.frontmatter.tags;
+    if (!Array.isArray(tags)) continue;  // other check enforces presence
+    const novel = tags.filter((t): t is string =>
+      typeof t === "string" && !CANONICAL_TAGS.has(t),
+    );
+    if (novel.length === 0) continue;
+    issues.push({
+      kind: "tag-vocabulary",
+      severity: "warn",
+      path: doc.repo_path,
+      detail: `tags not in canonical vocabulary: ${novel.map((t) => `"${t}"`).join(", ")}`,
+      hint:
+        `Either rewrite to a canonical tag (see Meta/schema.md "Canonical tag vocabulary") ` +
+        `or extend tools/bin/lint.ts CANONICAL_TAGS + the schema doc in the same commit. ` +
+        `Tip: proper nouns (companies / products / models / SKUs) belong in ## Entities touched, not in tags.`,
+    });
+  }
+  return issues;
+}
+
+/**
  * sources-index: assert that .wiki-sources-index.json is (a) parseable and
  * (b) every entry's repo_path still points at a real Sources/*.md file.
  *
@@ -604,7 +668,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "observation-gaps"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "observation-gaps", "tag-vocabulary"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -625,6 +689,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("sources-index"))  issues.push(...checkSourcesIndex(repoRoot));
   if (checks.includes("source-image-refs")) issues.push(...checkSourceImageRefs(docs, repoRoot));
   if (checks.includes("observation-gaps")) issues.push(...checkObservationGaps(docs));
+  if (checks.includes("tag-vocabulary")) issues.push(...checkTagVocabulary(docs));
   return issues;
 }
 

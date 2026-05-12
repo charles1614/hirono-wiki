@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#
+# Pre-commit gate: refuse the commit if `lint.ts` reports any errors.
+#
+# Lint catches the mistakes that drift across the corpus when the
+# operator forgets to run checks before committing — schema-violating
+# frontmatter, dead wikilinks, missing Observations on active-tier
+# entities, broken image refs, stale sources-index entries.
+#
+# Install:
+#   git config core.hooksPath .githooks
+# After installation, every `git commit` runs this script.
+#
+# Bypass (for genuinely emergent fixes only, not silent drift):
+#   git commit --no-verify
+#
+# Cost: ~1-2 seconds per commit (lint is fast on a corpus of <1000 pages).
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Skip when no staged changes touch content the lint cares about.
+# (Avoids running lint on commits that only touch raw/ or .gitignore.)
+if ! git diff --cached --name-only | grep -qE '^(Sources/|Entities/|Topics/|Meta/|tools/|CLAUDE\.md|README\.md|docs/)'; then
+  exit 0
+fi
+
+# Run lint. Capture so we can show the operator only the failure summary
+# if everything's clean, or the full output on failure.
+LINT_OUTPUT=$(mktemp)
+if ! npx tsx tools/bin/lint.ts >"$LINT_OUTPUT" 2>&1; then
+  cat "$LINT_OUTPUT"
+  rm -f "$LINT_OUTPUT"
+  echo
+  echo "[pre-commit] lint.ts exited non-zero. Fix the errors above or pass --no-verify to bypass."
+  exit 1
+fi
+
+# Lint succeeded. Surface the bottom-line counts as confirmation.
+tail -1 "$LINT_OUTPUT"
+rm -f "$LINT_OUTPUT"
+exit 0

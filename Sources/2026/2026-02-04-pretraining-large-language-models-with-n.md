@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://arxiv.org/abs/2509.25149
-tags: [nvfp4, fp4, pretraining, quantization, nvidia, training, 12b, long-horizon]
+tags: [pretraining, low-precision, quantization, paper]
 ---
 
 # [2026-02-04] Pretraining Large Language Models with NVFP4

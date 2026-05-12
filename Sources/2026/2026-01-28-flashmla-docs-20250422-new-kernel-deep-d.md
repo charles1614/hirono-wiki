@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://github.com/deepseek-ai/FlashMLA/blob/main/docs/20250422-new-kernel-deep-dive.md
-tags: [flashmla, mla, deepseek, flash-attention, hopper, h800, wgmma, tma, kernel-design, decoding]
+tags: [attention-kernels, inference, gpu]
 ---
 
 # [2026-01-28] FlashMLA — A Deep-Dive Into the New Flash MLA Kernel

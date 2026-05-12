@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://arxiv.org/pdf/2504.14960
-tags: [moe, parallelism, megatron, training, mixtral, qwen, nvidia, mfu]
+tags: [moe, parallelism, training, paper]
 ---
 
 # [2025-10-28] MoE Parallel Folding: Heterogeneous Parallelism Mappings for Efficient Large-Scale MoE Model Training

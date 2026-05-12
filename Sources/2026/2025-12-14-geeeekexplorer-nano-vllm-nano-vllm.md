@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://github.com/GeeeekExplorer/nano-vllm
-tags: [vllm, education, minimal-impl, readable-code, qwen, inference]
+tags: [inference, minimal-impl, tooling]
 ---
 
 # [2025-12-14] Nano-vLLM — A Lightweight vLLM Implementation Built From Scratch

@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://ai.meta.com/blog/spdl-faster-ai-model-training-with-thread-based-data-loading-reality-labs/
-tags: [meta, reality-labs, data-loading, training, python, gil, threading, free-threaded-python]
+tags: [data-loading, training, tooling]
 ---
 
 # [2026-01-20] Introducing SPDL — Faster AI Model Training With Thread-Based Data Loading

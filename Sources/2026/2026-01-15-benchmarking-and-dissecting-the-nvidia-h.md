@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://arxiv.org/pdf/2402.13499
-tags: [hopper, h100, ampere, ada, gpu, microbenchmark, tensor-core, fp8, dpx, tma, dsm, hkust]
+tags: [gpu, microbenchmark, paper, low-precision]
 ---
 
 # [2026-01-15] Benchmarking and Dissecting the NVIDIA Hopper GPU Architecture

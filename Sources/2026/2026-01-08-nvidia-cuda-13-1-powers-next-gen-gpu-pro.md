@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://developer.nvidia.com/blog/nvidia-cuda-13-1-powers-next-gen-gpu-programming-with-nvidia-cuda-tile-and-performance-gains
-tags: [cuda, cuda-tile, blackwell, hopper, ampere, mps, green-contexts, cutile, nvidia]
+tags: [gpu, tooling, announcement]
 ---
 
 # [2026-01-08] NVIDIA CUDA 13.1 — CUDA Tile Programming Model + Platform Updates

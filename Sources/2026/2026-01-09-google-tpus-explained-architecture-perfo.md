@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-11
 type: source
 raw_source: https://intuitionlabs.ai/pdfs/google-tpus-explained-architecture-performance-for-gemini-3.pdf
-tags: [tpu, google, gemini, ironwood, trillium, xla, jax, ai-hypercomputer, accelerator-economics]
+tags: [tpu, accelerator-design, survey]
 ---
 
 # [2026-01-09] Google TPUs Explained — Architecture & Performance for Gemini 3
@@ -64,7 +64,7 @@ IntuitionLabs technical report (Dec 19 2025, revised Apr 17 2026, 16 pp, 35-min 
 
 ## Entities touched
 
-[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[XLA]], [[JAX]], [[Pathways]], [[Jupiter]], [[Gemini]], [[Gemini]], [[AI Hypercomputer]], [[A100]], [[Graphcore]], [[SparseCore]], [[OCS]], [[bfloat16]], [[NVIDIA]]
+[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[XLA]], [[JAX]], [[Pathways]], [[Jupiter]], [[Gemini]], [[AI Hypercomputer]], [[A100]], [[Graphcore]], [[SparseCore]], [[OCS]], [[bfloat16]], [[NVIDIA]]
 
 ## Topics touched
 

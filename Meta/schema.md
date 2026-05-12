@@ -35,12 +35,81 @@ type: source | entity | topic | meta
 
 ```yaml
 raw_source: https://example.com/article            # or lark://docx/...
-tags: [rl, infra]                                   # ≥1 tag, lint-enforced
+tags: [training, moe, scaling-law]                  # ≥1 tag from CANONICAL_TAGS, lint-enforced
 ```
 
 `tags:` is checked by `tools/bin/lint.ts` — Sources without at least one
-tag fail lint. No controlled vocabulary at present (revisit at 100+ sources);
-domain-descriptive kebab-case is the convention.
+tag fail lint as ERROR; tags not in the canonical vocabulary (below) emit
+a WARN. The vocabulary exists to prevent tag drift at scale (`inference`
+vs `llm-inference` vs `inference-systems`) and to keep `tags:` complementary
+to — not duplicative of — `## Entities touched` / `## Topics touched`.
+
+**Don't tag proper nouns** (companies, products, models, hardware SKUs).
+Those go in `## Entities touched` as wikilinks; the entity page is the
+canonical home. Tags are categorical only.
+
+#### Canonical tag vocabulary
+
+Five axes, ~30 tags total. Pick 2–5 per Source from the relevant axes.
+
+**Workload** (1–2 per Source):
+
+| Tag | When |
+|---|---|
+| `pretraining` | Initial large-scale foundation-model training |
+| `training` | Generic training-side concern (when not specifically pretraining) |
+| `post-training` | RLHF, SFT, distillation, fine-tuning |
+| `inference` | Serving, decoding, batching, KV management |
+| `evaluation` | Benchmarks, leaderboards, eval methodology |
+
+**Subdomain** (1–3 per Source — most descriptive):
+
+| Tag | When |
+|---|---|
+| `attention-kernels` | Attention-kernel design, kernel optimizations |
+| `comm-overlap` | Communication-computation overlap, kernel-fusion comm |
+| `data-loading` | Data pipelines, dataloaders, GPU-feed throughput |
+| `disaggregation` | Prefill/decode disaggregation; pool-of-pools serving |
+| `kv-cache` | KV cache management, paging, eviction, offloading, transfer |
+| `moe` | Mixture of Experts (routing, EP, dispatch, drop-vs-dropless) |
+| `observability` | Tracing, metrics, profiling, monitoring |
+| `parallelism` | TP/PP/DP/EP/CP/SP, hybrid, mappings |
+| `quantization` | Lower-precision representations; quant-aware training/inference |
+| `scaling-law` | Empirical scale–performance relationships |
+| `scheduling` | Request scheduling, batching, ordering |
+| `speculative-decoding` | Draft models, acceptance, tree drafts |
+| `low-precision` | FP8 / FP4 / BF16 / NVFP4 (covers all narrow-precision tags) |
+
+**Hardware** (0–1 per Source):
+
+| Tag | When |
+|---|---|
+| `gpu` | GPU-specific findings (Hopper/Blackwell/Ada/Ampere) |
+| `tpu` | TPU-specific findings |
+| `accelerator-design` | Cross-vendor architectural / silicon-design framing |
+
+**Source shape** (0–1 per Source):
+
+| Tag | When |
+|---|---|
+| `paper` | Peer-reviewed or arXiv academic paper |
+| `survey` | Survey / systematization-of-knowledge paper |
+| `microbenchmark` | Instruction-level / kernel-level measurement studies |
+| `benchmark` | System-level performance measurement |
+| `announcement` | Product / model / chip launch posts |
+| `tooling` | Library, framework, CLI, dev-tool release |
+| `minimal-impl` | Pedagogical re-implementation, "vLLM-from-scratch"-style |
+
+**Special** (0–1 per Source):
+
+| Tag | When |
+|---|---|
+| `long-context` | 64K+ token sequence emphasis |
+| `production-deployment` | Operator-recipe-shaped content (deployment configs, runbooks) |
+
+A novel tag idea? Add it to this list in the same commit that introduces
+it — otherwise lint will WARN. Prefer extending the vocabulary over
+maintaining drift across many Sources.
 
 **Entities** additionally track reference count (auto-maintained by `tools/bin/reindex.ts`):
 
