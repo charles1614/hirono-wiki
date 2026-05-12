@@ -471,6 +471,7 @@ const CANONICAL_RATIONALE_PHRASES: readonly string[] = [
   "all images text-only (typed content extracted into body)",
   "figures inline-captioned in raw, no standalone images",
   "source has no images",
+  "other images decorative",
 ];
 function hasCanonicalRationale(body: string): boolean {
   for (const phrase of CANONICAL_RATIONALE_PHRASES) {

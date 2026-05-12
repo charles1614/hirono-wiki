@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-12
 type: entity
-refs: 6
+refs: 7
 tier: active
 ---
 
@@ -22,3 +22,4 @@ Open-source LLM inference system (Tencent + LMSYS-affiliated contributors). 2025
 - Covered as a named LLM-inference system in Pan & Li's "A Survey of LLM Inference Systems" (arXiv:2506.21901, June 2025) alongside vLLM, Mooncake, and DeepFlow under a cs.DB framing. — [[2026-05-08-a-survey-of-llm-inference-systems]]
 - **H20-96G DeepSeek production stack**: Ant Group's January 2026 meetup talk maps slide-level optimizations to upstream SGLang PRs — `#10568` TP scattered prefill, `#10953` MHA one-shot under chunked prefix, `#10567` FusedMoE TMA down-proj, `#16723` SwapAB, `#9660` SBO, `#11398/#11434` EAGLE spec-overlap + CUDA-graphed draft post-processing. Demonstrates a methodological pattern worth noting: **MoE tuning uses real-traffic `topk_ids`** rather than synthetic, and **EPLB uses co-activation matrices** rather than random init. — [[2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系]]
 - **Claude-Code SKILL ecosystem** (in-tree at `sglang/.claude/skills/` + external at `BBuf/AI-Infra-Auto-Driven-SKILLS`): 4 SKILLs for auto-driven development — remote-machine connection, CUDA crash debug (PR #20910, staged kernel-API logging at levels 1/3/5/10), auto-driven benchmark (PR #21736, YAML-driven server-flag search + SLA + resume), Torch profiler analysis (unified entry). Methodological theme: high-experience operator work becomes agent-executable SKILLs. — [[2026-04-01-面向-sglang-的自动驾驶开发-远程连接-cuda-crash-排查-自动b]]
+- **Daily-PR velocity tripled** mid-2025 → early-2026: 14-day moving average climbed from ~20-25 PRs/day (April-July 2025) to ~55-60 PRs/day by March 2026, with peak day 91 PRs (2026-01-05). Codex-generated chart, hand-verified. Combined with vLLM, the two-framework total averages ~130-150 PRs/day (peak 193 on 2026-03-04). Attributed to agent-amplified development (Claude Code + Codex). — [[2026-03-31-ygzr-xhumemrmzipbfsw]]

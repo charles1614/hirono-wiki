@@ -191,6 +191,11 @@ tags: [at, least, one, tag]
   - `figures inline-captioned in raw, no standalone images` (papers where Marker
     already captioned figures in prose)
   - `source has no images` (text-only blog posts / API JSON / pure prose)
+- **Mixed case** (1+ load-bearing image refs AND some decorative images in
+  raw): use the load-bearing refs as usual, AND include a single inline phrase
+  `*Other images decorative — <brief category list>.*` to opt out of the lint
+  check's 2-minimum requirement. Applies when total `img_count >= 2` but only
+  1 of them is genuinely load-bearing.
 
 **"Load-bearing image" requires BOTH conditions**: (a) the content is load-bearing
 AND (b) the IMAGE FORM carries information that **resists text expression**.
