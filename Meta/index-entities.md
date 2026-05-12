@@ -124,8 +124,24 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[WGMMA]]** _(1 refs)_ — Hopper+ instruction for async warpgroup-level matrix multiply; cornerstone of FlashAttention-3 + FlashMLA.
 - **[[XLA]]** _(1 refs)_ — Google's accelerated-linear-algebra compiler; targets TPU + GPU; foundation for JAX and TensorFlow execution.
 - **[[Zipkin]]** _(1 refs)_ — Open-source distributed-tracing system (Twitter origin); consumes OpenTelemetry spans; alternative to Jaeger.
+- **[[Compression Sparse Attention]]** _(0 refs)_ — CSA attention variant introduced in DeepSeek V4-Pro replacing MLA, paired with Highly Compressed Attention (HCA).
+- **[[Gemma]]** _(0 refs)_ — Google DeepMind's Gemma 3/4 model family (dense, 270M to 31B) included in Raschka's architecture gallery.
+- **[[GLM-4.5]]** _(0 refs)_ — Zhipu AI's GLM series MoE model (355B and Air 106B variants), with GLM-5 at 744B and GLM-5.1 as frontier entries.
+- **[[Granite]]** _(0 refs)_ — IBM Research's Granite 4.1 30B late-2025 MoE model, newly catalogued in Raschka's gallery.
+- **[[Highly Compressed Attention]]** _(0 refs)_ — HCA attention variant introduced in DeepSeek V4-Pro alongside CSA as a hybrid replacement for MLA.
+- **[[Kimi K2]]** _(0 refs)_ — Moonshot AI's 1T-parameter open-weights MoE model, the first 1T open-weights model, with K2.5 and K2.6 successors.
+- **[[Llama 4 Maverick]]** _(0 refs)_ — Meta's Llama 4 Maverick 400B MoE model, representing Meta's 2025 frontier MoE entry in the gallery.
+- **[[MiniMax M2]]** _(0 refs)_ — MiniMax's MoE model series (M2, M2.5, M2.7 at 230B) featuring hybrid attention patterns in the gallery.
+- **[[Mistral Small]]** _(0 refs)_ — Mistral AI's Mistral Small 3.1 24B and 3.4 119B dense models catalogued in the gallery.
+- **[[Moonshot AI]]** _(0 refs)_ — Chinese AI lab that developed the Kimi K2 / K2.5 / K2.6 1T open-weights MoE model family.
+- **[[OLMo]]** _(0 refs)_ — Allen AI's OLMo 2/3 open-weights dense models (7B/32B) included in Raschka's gallery as reference entries.
 - **[[OpenAI]]** _(0 refs)_ — AI lab; ChatGPT; GPT models; Triton kernel language; recently OpenAI-MoE-kernels-on-Hopper outperform NVIDIA's own.
 - **[[Pallas]]** _(0 refs)_ — Google's kernel-authoring DSL for TPU/GPU, built on JAX; analogous to Triton + CUDA Tile.
+- **[[Phi-4]]** _(0 refs)_ — Microsoft's Phi-4 14B dense model catalogued in Raschka's LLM Architecture Gallery.
 - **[[PyTorch]]** _(0 refs)_ — Dominant ML framework for research and production; graph compilation via torch.compile; Meta-maintained.
+- **[[RoPE]]** _(0 refs)_ — Rotary Position Embedding, the dominant positional encoding scheme across most 2025-2026 gallery entries.
+- **[[Sebastian Raschka]]** _(0 refs)_ — ML educator and researcher who maintains the LLM Architecture Gallery, a live-updated visual catalog of LLM architectures.
+- **[[Tencent Hy3]]** _(0 refs)_ — Tencent's Hy3-preview 295B-A21B MoE model catalogued as a 2026-frontier entry in Raschka's gallery.
 - **[[Triton]]** _(0 refs)_ — OpenAI's GPU-kernel DSL; competitor to CUDA Tile + Pallas; widely adopted across vLLM/SGLang for custom kernels.
+- **[[xLSTM]]** _(0 refs)_ — Extended LSTM architecture (7B) that is the only non-transformer family in Raschka's gallery as of 2026-05.
 
