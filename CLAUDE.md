@@ -355,6 +355,22 @@ Top-level entry points; click through to [`docs/code-map.md`](docs/code-map.md) 
 - **`tools/opencli/`** — in-repo home of project-local opencli adapters (`clis/<site>/`, `host-counts.json` graduation snapshot).
 - **`tools/__tests__/`** — coverage gate, per-host snapshots, converter fixtures, post-process fixtures, structural rules, `approve.ts` capture command. See `docs/code-map.md` for the per-file purpose.
 
+## 9. Q&A depth fallback
+
+Sources are summaries — TL;DR + Key claims + a few Visual obs. If a question requires detail the Source doesn't carry (exact algorithm steps, specific table rows, full prose, code, full caption text), read the corresponding raw-archive snapshot directly via the Read tool. Path mapping is mechanical:
+
+```
+Sources/YYYY/<slug>.md  ↔  raw/raindrop/<host>/<slug>/content.md
+```
+
+where `<host>` is the hostname from the Source's `raw_source:` URL and `<slug>` is the Source's filename. Sibling files in the same raw dir: `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (figures), `source.json` (fetch metadata + quality flags), `revisions.jsonl` (audit trail).
+
+**Trust the snapshot — don't fetch from the URL.** `content.md` is the curated extraction (Marker for PDFs, browser-eval for SPAs, site-adapter cleanup for HTML). Re-fetching at query time bypasses that pipeline and reintroduces the drift the raw-archive design prevents. If a snapshot genuinely needs refreshing, the explicit op is `npx tsx tools/bin/hirono.ts raindrop refetch <slug>` — a deliberate state change, not a silent query-time side effect.
+
+Cite the answer back to `[[Sources/<slug>]]` — the Source is the canonical citation node in the graph; raw is where the receipts live.
+
+**This rule lives here only.** The path mapping is documented in `Meta/schema.md` for reference, but never appears in Source body text — Obsidian and Lark can't follow filesystem paths, only Claude Code can.
+
 ## Auto-capturing learnings (no reminder needed)
 
 When a unit of work finishes — a bug fix, a pattern recognized, a tool quirk discovered, a design choice made after benchmarking — pause and ask: **"would a future session reading this avoid the trap or shorten the path?"** If yes, capture immediately. Don't wait for the user to remind you. The user's prompt to "remember this" is the failure mode this section exists to prevent.

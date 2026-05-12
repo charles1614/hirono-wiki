@@ -162,6 +162,8 @@ Two flavors:
 
 **Cross-source synthesis** — answer doesn't exist yet. Claude reads, synthesizes, then **files the answer back as a new `Topics/<question-shaped-name>.md`** and appends a `query | <question>` entry to `Meta/log-2026.md`. This is Karpathy's "compounding artifact" move — the answer becomes part of the wiki, not a disposable chat message. Future questions about the same area start from this synthesis.
 
+**When the Source summary isn't deep enough**, the LLM consults the raw-archive snapshot directly (the locally-cached `content.md` — not the live URL; the snapshot is the curated extraction with Marker / browser-eval / site-adapter cleanup already applied). Sources are deliberately concise (TL;DR + Key claims + a few Visual obs); raw has the original article body, the full author list, every paragraph of prose, every code block. The path mapping between a Source slug and its raw archive is mechanical — Claude Code knows the convention from `CLAUDE.md` (the operator never has to derive paths by hand). Raw is read-only consultation — the wiki layer isn't edited in response — but the LLM's answer in chat can cite raw-derived detail with `[[Sources/<slug>]]`. The Source remains the canonical citation node in the graph; raw is the receipt store.
+
 ### "I just opened the repo; what do I click?"
 
 ```

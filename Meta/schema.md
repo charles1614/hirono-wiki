@@ -309,6 +309,20 @@ content. If it makes a claim about an Entity, the Entity's Observations block
 gets a corresponding bullet citing this Source. Same compounding rule as Key
 Claims.
 
+**Each Source is paired with a raw archive on disk.** Path mapping is
+mechanical: `Sources/YYYY/<slug>.md` ↔ `raw/raindrop/<host>/<slug>/`,
+where `<host>` is the hostname from the Source's `raw_source:`
+frontmatter URL. `content.md` is the full original body; sibling files
+include `<slug>.pdf` (preserved PDFs), `<slug>-figures/` (image
+directory), `source.json` (fetch metadata + quality flags), and
+`revisions.jsonl` (append-only audit). The raw archive is gitignored +
+immutable from the wiki's perspective; it's evidence storage that
+Sources summarize. Lint's `raw-orphan` check enforces both directions
+of the pairing. Claude Code reads `content.md` directly when query-time
+depth fallback is needed (per `CLAUDE.md` §9). **This path lives in
+`CLAUDE.md` and this paragraph only** — never in Source body text,
+because Obsidian and Lark can't follow filesystem paths.
+
 **Open questions don't live at the Source level.** Karpathy's pattern treats
 unresolved questions as a lint-time / cross-cutting concern, and per-Source
 sections don't compound — they're locked to a single page future-you won't
