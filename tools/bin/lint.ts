@@ -56,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps" | "stale-synthesis";
 
 export interface Issue {
   kind: CheckKind;
@@ -695,6 +695,66 @@ export function checkTopicContentGaps(docs: DocMeta[]): Issue[] {
 }
 
 /**
+ * stale-synthesis: warn when an active-tier Entity's `synthesis_updated_at`
+ * is older than the newest `updated:` of any Source that wikilinks to it.
+ *
+ * Catches the "Synthesis paragraph asserts X, but a later Source contradicts
+ * it" pattern that mechanical checks otherwise miss. The MLA case (Synthesis
+ * said 'MLA is its decode kernel' while Observations documented 'Retired in
+ * DeepSeek V4') is the canonical motivating example.
+ *
+ * Requires the entity to have a `synthesis_updated_at:` frontmatter field.
+ * Entities without it fall back to `updated:`. Stub-Synthesis entities
+ * (caught by other rules) are not flagged here.
+ *
+ * Severity: warn — operator regenerates Synthesis in-session.
+ */
+export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+  const SYNTHESIS_STUB_RE = /^\s*(\*Regenerated from Observations|\*Stub|\*Synthesis pending|\(to be filled in\))/im;
+
+  // Source slug → updated date
+  const sourceUpdated = new Map<string, string>();
+  for (const d of docs) {
+    if (d.bucket !== "Sources") continue;
+    const u = String(d.frontmatter.updated ?? "");
+    if (u) sourceUpdated.set(d.slug, u);
+  }
+
+  for (const d of docs) {
+    if (d.bucket !== "Entities") continue;
+    if (d.repo_path.includes("/_seen/")) continue; // active-tier only
+    // Skip if Synthesis is stub-only (other lint rules catch those)
+    const synthMatch = d.body.match(/^## Synthesis\s*$([\s\S]*?)(?=^## |\Z)/m);
+    if (!synthMatch || SYNTHESIS_STUB_RE.test(synthMatch[1])) continue;
+
+    const synthDate = String(d.frontmatter.synthesis_updated_at ?? d.frontmatter.updated ?? "");
+    if (!synthDate) continue;
+
+    // Find Sources that wikilink to this Entity; check newest `updated:` among them
+    let newest: { slug: string; updated: string } | null = null;
+    for (const other of docs) {
+      if (other.bucket !== "Sources") continue;
+      if (!other.wikilinks.has(d.slug)) continue;
+      const su = sourceUpdated.get(other.slug);
+      if (!su) continue;
+      if (!newest || su > newest.updated) newest = { slug: other.slug, updated: su };
+    }
+
+    if (newest && newest.updated > synthDate) {
+      issues.push({
+        kind: "stale-synthesis",
+        severity: "warn",
+        path: d.repo_path,
+        detail: `synthesis_updated_at=${synthDate} is older than newest citing Source updated=${newest.updated} ([[${newest.slug}]])`,
+        hint: `Re-read citing Sources, rewrite ## Synthesis to reflect current state, bump synthesis_updated_at to today.`,
+      });
+    }
+  }
+  return issues;
+}
+
+/**
  * tag-vocabulary: warn on tags not in CANONICAL_TAGS.
  *
  * The lint-required `tags:` check elsewhere already errors on missing /
@@ -878,7 +938,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps", "stale-synthesis"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -902,6 +962,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("observation-gaps")) issues.push(...checkObservationGaps(docs));
   if (checks.includes("tag-vocabulary")) issues.push(...checkTagVocabulary(docs));
   if (checks.includes("topic-content-gaps")) issues.push(...checkTopicContentGaps(docs));
+  if (checks.includes("stale-synthesis")) issues.push(...checkStaleSynthesis(docs));
   return issues;
 }
 

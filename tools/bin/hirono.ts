@@ -63,6 +63,10 @@ Top-level:
   new-entity <Name> [--kind "<desc>"]     scaffold Entities/_seen/<Name>.md
   new-topic  <Name> [--what "<def>"]      scaffold Topics/<Name>.md
   rename-entity <Old> <New> [--reason]    atomic rename + wikilink rewrite
+  merge-entities <Src> --into <Tgt>       atomic entity merge (obs + links)
+  merge-topics   <Src> --into <Tgt>       atomic topic merge
+  bulk-delete-orphans [--confirm|--all-zero]   list/delete _seen/ refs=0 entities
+  health-check [--scope <s>]              read-only LLM-judgment audit
 
 Wiki ingest + maintenance live in separate binaries (intentional layering):
   tools/bin/ingest_batch.ts  plan / next / start / mark-done / list
@@ -208,6 +212,30 @@ async function main(): Promise<void> {
 
   if (family === "rename-entity") {
     const { main } = await import("../hirono/rename-entity.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "merge-entities") {
+    const { main } = await import("../hirono/merge-entities.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "merge-topics") {
+    const { main } = await import("../hirono/merge-topics.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "bulk-delete-orphans") {
+    const { main } = await import("../hirono/bulk-delete-orphans.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "health-check") {
+    const { main } = await import("../hirono/health-check.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }

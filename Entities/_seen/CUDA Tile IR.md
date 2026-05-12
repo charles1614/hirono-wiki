@@ -13,3 +13,8 @@ NVIDIA's virtual instruction set for tile-based GPU programming, introduced in C
 ## Observations
 
 - _(stub — populate as sources reference this entity. Reindex will count refs and may promote to active tier at ≥3.)_
+
+<!-- merged from `Tile IR` on 2026-05-12 -->
+
+- (auto-populated as Sources cite this entity)
+

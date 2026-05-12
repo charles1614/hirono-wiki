@@ -66,7 +66,7 @@ For Google's own visual artifacts (FP8-perf bar chart, TPU spec card, perf/W bar
 
 ## Entities touched
 
-[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[XLA]], [[JAX]], [[Pathways]], [[Jupiter]], [[Gemini]], [[AI Hypercomputer]], [[A100]], [[Graphcore]], [[SparseCore]], [[OCS]], [[bfloat16]], [[NVIDIA]]
+[[Google]], [[TPU]], [[Ironwood]], [[Trillium]], [[XLA]], [[JAX]], [[Pathways]], [[Jupiter]], [[Gemini]], [[AI Hypercomputer]], [[A100]], [[Graphcore]], [[SparseCore]], [[OCS]], [[BF16]], [[NVIDIA]]
 
 ## Topics touched
 

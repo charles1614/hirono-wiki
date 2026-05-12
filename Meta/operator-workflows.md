@@ -839,4 +839,72 @@ removed. Every subcommand now lives under `hirono raindrop`:
 
 ---
 
+## 9. Curation workflow
+
+The wiki accumulates curation debt as Sources are ingested — duplicate
+Entities created at different times under slightly different names, Topics
+whose names diverge, `_seen/` stubs that never accumulate refs, Synthesis
+paragraphs whose claims are contradicted by newer Sources. Mechanical lint
+(`reindex.ts` + `lint.ts`) catches structural issues; the curation layer
+addresses semantic / LLM-judgment ones.
+
+### 9.1 Cadence
+
+| When | What | How long |
+|---|---|---|
+| Every ingest batch | `hirono health-check` — quick read-only audit | < 5 sec |
+| Every ~25 sources / monthly | `hirono health-check --scope all` + apply structural fixes (rename / merge / delete) | 15-30 min |
+| Quarterly | Ask Claude in-session to walk the Stale Synthesis + Observation-Synthesis contradiction lists and rewrite affected `## Synthesis` blocks | 1-2 hr |
+
+### 9.2 The four mutator commands
+
+```
+hirono rename-entity <Old> <New> [--reason "..."]
+  Atomic rename: moves Entities/[_seen/]<Old>.md → <New>.md, rewrites
+  every [[Old]] (and [[Old|alias]]) corpus-wide, appends a refactor log entry.
+
+hirono merge-entities <Src> --into <Tgt> [--reason "..."]
+  Atomic entity merge: concatenates Observations with merge-marker comment,
+  marks Synthesis stale (TODO comment for LLM regeneration), rewrites
+  wikilinks, deletes source.
+
+hirono merge-topics <Src> --into <Tgt> [--reason "..."]
+  Same shape for Topics; per-section concatenation.
+
+hirono bulk-delete-orphans [--confirm <slugs>] [--all-zero] [--dry-run]
+  Lists (default) or deletes _seen/ entities at refs=0. Only deletes from
+  _seen/ — never active entities, never Topics, never Sources.
+```
+
+All mutators are **atomic** (two-phase commit via `.curation-staging/`)
+and **emit a refactor log entry** so the operator never has to remember
+to update `Meta/log-YYYY.md` manually.
+
+### 9.3 The four-step pattern
+
+1. **Audit**: `hirono health-check` — read-only report.
+2. **Review**: read the report. Decide which orphans to delete, which
+   duplicate-pair candidates are real merges (vs intentional SKU
+   distinctions), which Synthesis blocks need regeneration.
+3. **Mutate**: run the matching CLI for each structural item.
+4. **Regenerate**: ask Claude in-session to rewrite stale-Synthesis blocks
+   identified by the report. Bump `synthesis_updated_at:` on each touched
+   entity.
+5. (Always) Run `npx tsx tools/bin/reindex.ts` to refresh indexes after
+   any mutation; verify lint clean.
+
+### 9.4 What NOT to use these for
+
+- **Don't auto-delete active-tier entities.** Even if refs drop to 0,
+  active entities stay sticky (per the Karpathy invariant). Demotion is
+  manual + logged.
+- **Don't merge SKU distinctions.** The B200 / B300 / H100 / H200 separation
+  is a feature, not duplication. The health-check's duplicate-pair
+  heuristic flags some false positives there; operator ignores them.
+- **Don't use rename/merge to fix a typo in a single Source's wikilink.**
+  Edit the Source body directly; reserve the mutators for corpus-wide
+  changes.
+
+---
+
 *See also: `CLAUDE.md` for fix recipes when site modules misbehave; `tools/sites/MIGRATION.md` for adding a new site module; `docs/fetcher-architecture.md` for how routing works.*

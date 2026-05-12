@@ -146,7 +146,7 @@ test("mergeObservationBlocks: appends source bullets with HTML merge comment", (
   const merged = mergeObservationBlocks(target, source, "Source", "2026-05-12");
   assert.ok(merged.includes("target bullet 1"), "preserves target bullets");
   assert.ok(merged.includes("source bullet"), "appends source bullets");
-  assert.ok(merged.includes("<!-- merged from [[Source]] on 2026-05-12 -->"), "marker comment present");
+  assert.ok(merged.includes("<!-- merged from `Source` on 2026-05-12 -->"), "marker comment present");
 });
 
 test("mergeObservationBlocks: handles Observations as last section", () => {

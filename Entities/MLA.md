@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
 updated: 2026-05-12
+synthesis_updated_at: 2026-05-12
 type: entity
 refs: 5
 tier: active
@@ -12,7 +13,9 @@ Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in Deep
 
 ## Synthesis
 
-DeepSeek's KV-compression attention variant — characterized in the corpus across two distinct lenses: **(1) inference systems** (Beyond-the-Buzz NVIDIA paper) flags MLA-specific piggyback overhead — prefill chunking causes redundant down/up-projection per chunk; the proposed mitigation is to cache up-projected KV from earlier chunks; **(2) kernel-level** ([[FlashMLA]] deep-dive) shows MLA decoding is compute-bound on H800 because DeepSeek doesn't TP-decode, keeping `h_q = 128`. The seesaw kernel schedule is forced by the resulting 64×512 output matrix consuming half the SM register file.
+DeepSeek's KV-compression attention variant, **load-bearing through V3/V3.2 (2024-2026), retired in V4 (2026-04-24)**. Two corpus lenses characterize the V3-era design point: **(1) inference systems** ([[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]) flags MLA-specific piggyback overhead — prefill chunking causes redundant down/up-projection per chunk; the proposed mitigation is to cache up-projected KV from earlier chunks; **(2) kernel-level** ([[FlashMLA]] deep-dive) shows MLA decoding is compute-bound on H800 because DeepSeek doesn't TP-decode, keeping `h_q = 128`. The seesaw kernel schedule is forced by the resulting 64×512 output matrix consuming half the SM register file.
+
+**V4 retirement (2026-04-24).** MLA's inventor (DeepSeek) walked away from per-token KV compression in favor of **Compression Sparse Attention + on-disk KV cache storage**. V4-Pro / V4-Flash architectures render with CSA + HCA composition, not MLA. The claimed economics (panel-extracted, pending V4-paper-direct verification): V4-Pro at **27% of single-token inference FLOPs and 10% of KV cache compared with DeepSeek-V3.2** at 1M-token context. Bigger pattern: the field is shifting attention compression from "compress each token's KV" toward "compress which tokens participate at all" — sequence-dimension compression supplanting per-token compression. Implications: [[FlashMLA]]'s kernel design point (optimizing the per-token-KV decode pathway) is relativized; the analogous CSA-decode kernel doesn't yet have a published implementation in the corpus.
 
 ## Observations
 

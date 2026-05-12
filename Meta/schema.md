@@ -420,6 +420,7 @@ updated: 2026-04-19
 type: entity
 refs: 3
 tier: active
+synthesis_updated_at: 2026-05-12   # active-tier only; bumped whenever ## Synthesis is rewritten
 ---
 
 # Name
@@ -438,6 +439,14 @@ One-line kind: "GPU-era training framework by NVIDIA", "LLM research lab", etc.
 ```
 
 **Key rule**: Observations are **append-only** and every bullet cites its source. The Synthesis is regenerated from Observations; it is derived data. This makes contradictions visible (they appear as conflicting Observations) and keeps all claims attributable.
+
+**`synthesis_updated_at:`** (active-tier entities only) — date the `## Synthesis` paragraph was last rewritten. The `stale-synthesis` lint check compares this against the `updated:` of every Source that wikilinks to the entity; if any Source is newer than the Synthesis, the LLM should regenerate the paragraph. `_seen/` stubs are exempt (their Synthesis is auto-regen-from-Observations boilerplate).
+
+**Merge convention**: when two entities are merged via `hirono merge-entities` (or two Topics via `merge-topics`):
+- Observations are concatenated; the source entity's bullets land after a `<!-- merged from [[<src-slug>]] on YYYY-MM-DD -->` HTML comment marking the merge origin.
+- If either side had a non-stub Synthesis, the surviving entity's Synthesis gets a `<!-- TODO: re-regenerate Synthesis from merged Observations -->` marker. The LLM regenerates it in-session afterward and bumps `synthesis_updated_at:`.
+- All `[[OldSlug]]` references across the corpus are rewritten to `[[NewSlug]]` atomically.
+- A `refactor | Merge [[X]] → [[Y]]` entry is auto-appended to `Meta/log-YYYY.md`.
 
 ## Topic page structure
 

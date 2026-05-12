@@ -166,7 +166,7 @@ export function mergeObservationBlocks(
   const sourceObs = extractObsBullets(sourceBody, sourceMatch.index!);
   if (!sourceObs) return targetBody;
 
-  const mergeComment = `<!-- merged from [[${sourceSlug}]] on ${dateISO} -->`;
+  const mergeComment = `<!-- merged from \`${sourceSlug}\` on ${dateISO} -->`;
   const appendedBlock = `\n\n${mergeComment}\n\n${sourceObs}\n`;
 
   if (!targetMatch) {
