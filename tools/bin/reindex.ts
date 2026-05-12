@@ -219,14 +219,20 @@ export function computeObservationGaps(
 const today = () => new Date().toISOString().slice(0, 10);
 
 /**
- * Normalize frontmatter for re-serialization. YAML parses unquoted dates
- * (`2026-05-12`) as JavaScript `Date` objects; `matter.stringify` then
- * renders them as full ISO timestamps (`2026-05-12T00:00:00.000Z`),
- * mutating the on-disk format even when the field isn't being changed.
+ * Normalize frontmatter for re-serialization. Two YAML/gray-matter quirks
+ * mutate the on-disk date format even when the value isn't changing:
  *
- * Fix: coerce `created:` and `updated:` Date values back to YYYY-MM-DD
- * strings before stringify. Other Date-typed fields (currently none in
- * the schema) would survive unchanged.
+ *   1. YAML parses unquoted `2026-05-12` as a JavaScript `Date`; `matter
+ *      .stringify` then renders it as `2026-05-12T00:00:00.000Z`.
+ *   2. If we pre-stringify the date to `"2026-05-12"`, gray-matter's
+ *      js-yaml dump wraps it as `'2026-05-12'` (quoted) because the
+ *      string looks like a date and YAML 1.1 spec round-trip rules
+ *      mandate quoting to disambiguate.
+ *
+ * Fix in two parts: (a) `normalizeDateFields` coerces Date / ISO-string
+ * values back to YYYY-MM-DD strings before stringify; (b) `unquoteDateLines`
+ * post-processes the serialized output to strip the surrounding quotes
+ * on `created:` / `updated:` lines, restoring the unquoted on-disk shape.
  *
  * Per `Meta/schema.md` decision D7 (date format normalization).
  */
@@ -242,6 +248,19 @@ function normalizeDateFields(fm: Record<string, unknown>): Record<string, unknow
     }
   }
   return out;
+}
+
+/**
+ * Strip the YAML-mandated single quotes from `created:` / `updated:` date
+ * lines. Applied after `matter.stringify` because gray-matter / js-yaml
+ * always quotes string-typed dates per YAML 1.1 round-trip rules. Leaves
+ * non-date string values alone (the regex anchors on YYYY-MM-DD shape).
+ */
+function unquoteDateLines(text: string): string {
+  return text.replace(
+    /^(created|updated):\s*'(\d{4}-\d{2}-\d{2})'\s*$/gm,
+    "$1: $2",
+  );
 }
 
 interface Pending {
@@ -270,7 +289,7 @@ function planEntityUpdate(doc: DocMeta, refs: number): Pending | null {
   const newFm: Record<string, unknown> = { ...fm, refs };
   if (willPromote) newFm.tier = "active";
   newFm.updated = today();
-  const newContent = matter.stringify(doc.body, normalizeDateFields(newFm));
+  const newContent = unquoteDateLines(matter.stringify(doc.body, normalizeDateFields(newFm)));
 
   const reasonParts: string[] = [];
   if (refsChanged) reasonParts.push(`refs ${currentRefs ?? "?"} → ${refs}`);
@@ -295,7 +314,7 @@ function planTopicUpdate(doc: DocMeta, sourceCount: number): Pending | null {
   return {
     oldPath: doc.repo_path,
     newPath: doc.repo_path,
-    newContent: matter.stringify(doc.body, normalizeDateFields(newFm)),
+    newContent: unquoteDateLines(matter.stringify(doc.body, normalizeDateFields(newFm))),
     reason: `source_count ${current ?? "?"} → ${sourceCount}`,
   };
 }

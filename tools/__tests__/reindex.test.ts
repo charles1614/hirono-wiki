@@ -261,3 +261,91 @@ Body.
     rmSync(root, { recursive: true });
   }
 });
+
+test("reindex does not mutate YYYY-MM-DD dates into ISO timestamps (regression)", () => {
+  // Schema decision D7: dates in frontmatter must stay YYYY-MM-DD across
+  // reindex passes. matter.stringify previously rendered YAML-parsed Date
+  // objects as full ISO timestamps (2026-05-12T00:00:00.000Z), silently
+  // mutating the on-disk format. normalizeDateFields() fixes this.
+  const root = mkdtempSync(join(tmpdir(), "reindex-dates-"));
+  try {
+    mkdirSync(join(root, "Meta"));
+    mkdirSync(join(root, "Sources/2026"), { recursive: true });
+    mkdirSync(join(root, "Entities/_seen"), { recursive: true });
+    mkdirSync(join(root, "Topics"));
+
+    writeFileSync(join(root, "Meta/index.md"), "");
+    writeFileSync(join(root, "Meta/index-sources.md"), "");
+    writeFileSync(join(root, "Meta/index-entities.md"), "");
+    writeFileSync(join(root, "Meta/index-topics.md"), "");
+
+    // Three Sources to cross the promotion threshold (refs ≥ 3 → active).
+    for (let i = 1; i <= 3; i++) {
+      writeFileSync(
+        join(root, `Sources/2026/s${i}.md`),
+        `---
+type: source
+created: 2026-04-19
+updated: 2026-04-19
+raw_source: https://x/${i}
+tags: [t]
+---
+
+# s${i}
+
+See [[E]] and [[T]].
+`,
+      );
+    }
+    writeFileSync(
+      join(root, "Entities/_seen/E.md"),
+      `---
+type: entity
+created: 2026-04-19
+updated: 2026-04-19
+refs: 0
+tier: seen
+---
+
+# E
+
+Body.
+`,
+    );
+    writeFileSync(
+      join(root, "Topics/T.md"),
+      `---
+type: topic
+created: 2026-04-19
+updated: 2026-04-19
+source_count: 0
+---
+
+# T
+
+Body.
+`,
+    );
+
+    // First pass — promotes E to active, updates source_count on T,
+    // and bumps `updated:` on both. The fix being tested: those `updated:`
+    // dates should serialize as YYYY-MM-DD, not ISO timestamps.
+    const r = computeReindex(root);
+    for (const p of r.pending) writeFileSync(join(root, p.newPath), p.newContent);
+
+    // Every written frontmatter block must use YYYY-MM-DD for created/updated.
+    for (const p of r.pending) {
+      const text = p.newContent;
+      const fm = text.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
+      assert.ok(
+        !/^(created|updated):\s*'?\d{4}-\d{2}-\d{2}T/m.test(fm),
+        `${p.newPath}: frontmatter has ISO-datetime instead of YYYY-MM-DD:\n${fm}`,
+      );
+      // And both dates must be present + valid YYYY-MM-DD shape.
+      assert.match(fm, /^updated:\s*\d{4}-\d{2}-\d{2}\s*$/m,
+        `${p.newPath}: missing or malformed updated date:\n${fm}`);
+    }
+  } finally {
+    rmSync(root, { recursive: true });
+  }
+});
