@@ -7,7 +7,9 @@ import {
   applyAtomically,
   appendLogEntry,
   cleanupStaging,
+  loadEntityAliases,
   mergeObservationBlocks,
+  normalizeEntityName,
   reverseCitationIndex,
   rewriteWikilinksInBody,
 } from "../curation.ts";
@@ -247,4 +249,96 @@ test("appendLogEntry: bootstraps a new log file if missing", () => {
     assert.ok(content.includes("First entry"));
     assert.ok(content.includes("Initial body."));
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+// ---------------------------------------------------------------------------
+// loadEntityAliases + normalizeEntityName
+// ---------------------------------------------------------------------------
+
+test("loadEntityAliases: returns empty map when file missing", () => {
+  const root = makeRepo();
+  try {
+    const aliases = loadEntityAliases(root);
+    assert.equal(aliases.size, 0);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("loadEntityAliases: parses entries under ## Aliases with → arrow", () => {
+  const root = makeRepo();
+  try {
+    writeFile(root, "Meta/entity-aliases.md", [
+      "---", "type: meta", "---", "",
+      "# Aliases doc", "",
+      "## Aliases", "",
+      "- LLaMA → Llama",
+      "- bfloat16 → BF16",
+      "- Tile IR → CUDA Tile IR",
+      "",
+    ].join("\n"));
+    const aliases = loadEntityAliases(root);
+    assert.equal(aliases.get("LLaMA"), "Llama");
+    assert.equal(aliases.get("bfloat16"), "BF16");
+    assert.equal(aliases.get("Tile IR"), "CUDA Tile IR");
+    assert.equal(aliases.size, 3);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("loadEntityAliases: also accepts -> ASCII arrow", () => {
+  const root = makeRepo();
+  try {
+    writeFile(root, "Meta/entity-aliases.md", [
+      "## Aliases", "",
+      "- VLLM -> vLLM",
+      "",
+    ].join("\n"));
+    const aliases = loadEntityAliases(root);
+    assert.equal(aliases.get("VLLM"), "vLLM");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("loadEntityAliases: ignores lines outside ## Aliases section", () => {
+  const root = makeRepo();
+  try {
+    writeFile(root, "Meta/entity-aliases.md", [
+      "## Notes", "",
+      "- Foo → Bar",  // should NOT be parsed
+      "",
+      "## Aliases", "",
+      "- Real → Variant",
+      "",
+      "## Other", "",
+      "- Excluded → AlsoExcluded",  // should NOT be parsed
+      "",
+    ].join("\n"));
+    const aliases = loadEntityAliases(root);
+    assert.equal(aliases.size, 1);
+    assert.equal(aliases.get("Real"), "Variant");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("loadEntityAliases: skips identity mappings (variant == canonical)", () => {
+  const root = makeRepo();
+  try {
+    writeFile(root, "Meta/entity-aliases.md", [
+      "## Aliases", "",
+      "- Llama → Llama",  // identity - skip
+      "- LLaMA → Llama",
+      "",
+    ].join("\n"));
+    const aliases = loadEntityAliases(root);
+    assert.equal(aliases.size, 1);
+    assert.equal(aliases.get("LLaMA"), "Llama");
+    assert.equal(aliases.has("Llama"), false);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("normalizeEntityName: maps variant to canonical", () => {
+  const aliases = new Map([["LLaMA", "Llama"], ["VLLM", "vLLM"]]);
+  assert.equal(normalizeEntityName("LLaMA", aliases), "Llama");
+  assert.equal(normalizeEntityName("VLLM", aliases), "vLLM");
+});
+
+test("normalizeEntityName: returns name unchanged when no alias", () => {
+  const aliases = new Map([["LLaMA", "Llama"]]);
+  assert.equal(normalizeEntityName("FlashAttention", aliases), "FlashAttention");
 });

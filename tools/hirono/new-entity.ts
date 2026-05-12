@@ -94,7 +94,7 @@ function validateName(name: string): void {
 
 const TODAY = (): string => new Date().toISOString().slice(0, 10);
 
-function renderEntityStub(name: string, kind: string): string {
+export function renderEntityStub(name: string, kind: string): string {
   const kindLine = kind.trim().length > 0
     ? kind.trim()
     : "_(one-line kind: what is this thing — replace with prose)_";

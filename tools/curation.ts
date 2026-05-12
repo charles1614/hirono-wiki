@@ -318,6 +318,50 @@ export function cleanupStaging(repoRoot: string, opId: string): void {
 }
 
 // ---------------------------------------------------------------------------
+// entity aliases
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse `Meta/entity-aliases.md` into a Map<variant, canonical>.
+ *
+ * Each line under `## Aliases` matching `- <variant> → <canonical>` becomes
+ * one entry. The arrow can be `→` (U+2192) or `->`. Match against incoming
+ * candidate names case-sensitively — operator-curated variants typically
+ * encode case differences too.
+ *
+ * Returns an empty map if the file doesn't exist. Not a scope gate; auto-
+ * detect-entities calls this to merge spelling variants before stub-creation.
+ */
+export function loadEntityAliases(repoRoot: string): Map<string, string> {
+  const path = join(repoRoot, "Meta", "entity-aliases.md");
+  let content: string;
+  try { content = readFileSync(path, "utf8"); } catch { return new Map(); }
+
+  const out = new Map<string, string>();
+  const lines = content.split("\n");
+  let inAliases = false;
+  for (const line of lines) {
+    if (/^## Aliases\s*$/.test(line)) { inAliases = true; continue; }
+    if (/^##\s/.test(line)) { inAliases = false; continue; }
+    if (!inAliases) continue;
+    const m = line.match(/^-\s+(.+?)\s+(?:→|->)\s+(.+?)\s*$/);
+    if (!m) continue;
+    const variant = m[1].trim();
+    const canonical = m[2].trim();
+    if (variant && canonical && variant !== canonical) out.set(variant, canonical);
+  }
+  return out;
+}
+
+/**
+ * Apply alias normalization: if `name` matches a variant key, return its
+ * canonical form; otherwise return `name` unchanged.
+ */
+export function normalizeEntityName(name: string, aliases: Map<string, string>): string {
+  return aliases.get(name) ?? name;
+}
+
+// ---------------------------------------------------------------------------
 // log-entry appending
 // ---------------------------------------------------------------------------
 

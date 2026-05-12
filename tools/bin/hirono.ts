@@ -67,6 +67,8 @@ Top-level:
   merge-topics   <Src> --into <Tgt>       atomic topic merge
   bulk-delete-orphans [--confirm|--all-zero]   list/delete _seen/ refs=0 entities
   health-check [--scope <s>]              read-only LLM-judgment audit
+  auto-detect-entities <slug> [--response <p>] [--apply]
+                                          LLM-NER entity extractor for a Source
 
 Wiki ingest + maintenance live in separate binaries (intentional layering):
   tools/bin/ingest_batch.ts  plan / next / start / mark-done / list
@@ -236,6 +238,12 @@ async function main(): Promise<void> {
 
   if (family === "health-check") {
     const { main } = await import("../hirono/health-check.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "auto-detect-entities") {
+    const { main } = await import("../hirono/auto-detect-entities.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }
