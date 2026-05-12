@@ -56,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps" | "stale-synthesis";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps" | "stale-synthesis" | "stale-source-review";
 
 export interface Issue {
   kind: CheckKind;
@@ -755,6 +755,69 @@ export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
 }
 
 /**
+ * stale-source-review: warn when a Source's `last_reviewed_at` frontmatter
+ * is much older than the latest raw archive revision date.
+ *
+ * Operator sets `last_reviewed_at: YYYY-MM-DD` when they re-read the raw
+ * archive and confirm the summary is still current. If raw content drifts
+ * later (newer revisions.jsonl entry), the lint flags the Source as
+ * needing re-review.
+ *
+ * The check is opt-in by frontmatter: Sources without `last_reviewed_at`
+ * are not flagged. Severity: warn. Hint suggests `hirono health-check
+ * --scope drift` for the full audit picture.
+ *
+ * Threshold: 30 days. last_reviewed_at < (latest_revision_date - 30d) → flag.
+ */
+export function checkStaleSourceReview(docs: DocMeta[], repoRoot: string): Issue[] {
+  const issues: Issue[] = [];
+  const THRESHOLD_DAYS = 30;
+  for (const d of docs) {
+    if (d.bucket !== "Sources") continue;
+    const lastReviewed = String(d.frontmatter.last_reviewed_at ?? "");
+    if (!lastReviewed) continue;  // opt-in
+    // Find the raw archive: raw/raindrop/<host>/<slug>/revisions.jsonl
+    const rawRoot = `${repoRoot}/raw/raindrop`;
+    let latestFetchedAt = "";
+    try {
+      const fs = require("node:fs") as typeof import("node:fs");
+      const path = require("node:path") as typeof import("node:path");
+      if (!fs.existsSync(rawRoot)) continue;
+      for (const host of fs.readdirSync(rawRoot)) {
+        const revPath = path.join(rawRoot, host, d.slug, "revisions.jsonl");
+        if (!fs.existsSync(revPath)) continue;
+        for (const line of fs.readFileSync(revPath, "utf8").split("\n")) {
+          if (!line.trim()) continue;
+          try {
+            const obj = JSON.parse(line);
+            if (typeof obj.fetched_at === "string" && obj.fetched_at > latestFetchedAt) {
+              latestFetchedAt = obj.fetched_at;
+            }
+          } catch { /* skip malformed */ }
+        }
+        break;  // found raw archive; no other host should match
+      }
+    } catch { continue; }
+    if (!latestFetchedAt) continue;
+    const lastFetchDate = latestFetchedAt.slice(0, 10);
+    const reviewedTs = Date.parse(lastReviewed);
+    const fetchedTs = Date.parse(lastFetchDate);
+    if (!isFinite(reviewedTs) || !isFinite(fetchedTs)) continue;
+    const diffDays = Math.floor((fetchedTs - reviewedTs) / (24 * 3600 * 1000));
+    if (diffDays > THRESHOLD_DAYS) {
+      issues.push({
+        kind: "stale-source-review",
+        severity: "warn",
+        path: d.repo_path,
+        detail: `last_reviewed_at=${lastReviewed} is ${diffDays}d older than latest raw fetch (${lastFetchDate})`,
+        hint: `Re-read the raw archive, verify summary still reflects current content, bump last_reviewed_at to today.`,
+      });
+    }
+  }
+  return issues;
+}
+
+/**
  * tag-vocabulary: warn on tags not in CANONICAL_TAGS.
  *
  * The lint-required `tags:` check elsewhere already errors on missing /
@@ -938,7 +1001,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps", "stale-synthesis"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps", "stale-synthesis", "stale-source-review"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -963,6 +1026,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("tag-vocabulary")) issues.push(...checkTagVocabulary(docs));
   if (checks.includes("topic-content-gaps")) issues.push(...checkTopicContentGaps(docs));
   if (checks.includes("stale-synthesis")) issues.push(...checkStaleSynthesis(docs));
+  if (checks.includes("stale-source-review")) issues.push(...checkStaleSourceReview(docs, repoRoot));
   return issues;
 }
 

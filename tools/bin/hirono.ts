@@ -52,6 +52,8 @@ Raindrop fetch pipeline (raw export):
                                           flags: --from <rev|date> --to <rev|date>
                                                  --summary --no-color
   raindrop ingest-candidates              emit good ∧ not-yet-ingested slugs as JSON
+  raindrop forget <slug-or-url> [...]     cleanup primitive: delete local + add to skip-list
+  raindrop gc [--keep-last N] [...]       GC old content-rev*.md files from raw archives
                                           for piping into \`ingest_batch plan\`
                                           flags: --limit N --host <h> --md
   raindrop fetch-all                      bulk fetch one copy of every unique URL
@@ -177,6 +179,18 @@ async function main(): Promise<void> {
       return;
     }
 
+    if (sub === "forget") {
+      const { main } = await import("../hirono/raindrop/forget.ts");
+      main(rest);
+      return;
+    }
+
+    if (sub === "gc") {
+      const { main } = await import("../hirono/raindrop/gc.ts");
+      main(rest);
+      return;
+    }
+
     if (sub === "reindex-raw") {
       // Rebuild raw/raindrop/_index.json from on-disk source.json files +
       // the bookmark cache + the sources-index. Run after manually
@@ -194,7 +208,7 @@ async function main(): Promise<void> {
     console.error(`unknown raindrop subcommand: ${sub}`);
     console.error(
       `valid: check, refresh-cache, new, fetch, refetch, sync, verify,\n` +
-      `       status, history, diff, ingest-candidates, fetch-all, store, fetch-lark, export`,
+      `       status, history, diff, ingest-candidates, forget, gc, fetch-all, store, fetch-lark, export`,
     );
     process.exit(2);
   }
