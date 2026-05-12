@@ -22,6 +22,7 @@ dist/
 .wiki-raindrop-cache.json
 .wiki-mention-map.json
 batch-*-candidates.json
+.curation-staging/
 
 # Backup files (any *.bak alongside an already-ignored state file)
 *.bak

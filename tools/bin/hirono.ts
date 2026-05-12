@@ -62,6 +62,7 @@ Top-level:
   doctor                                  environment + adapter health check
   new-entity <Name> [--kind "<desc>"]     scaffold Entities/_seen/<Name>.md
   new-topic  <Name> [--what "<def>"]      scaffold Topics/<Name>.md
+  rename-entity <Old> <New> [--reason]    atomic rename + wikilink rewrite
 
 Wiki ingest + maintenance live in separate binaries (intentional layering):
   tools/bin/ingest_batch.ts  plan / next / start / mark-done / list
@@ -201,6 +202,12 @@ async function main(): Promise<void> {
 
   if (family === "new-topic") {
     const { main } = await import("../hirono/new-topic.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "rename-entity") {
+    const { main } = await import("../hirono/rename-entity.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }
