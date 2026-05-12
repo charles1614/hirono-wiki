@@ -10,39 +10,54 @@ tags: [attention-kernels, kv-cache, long-context]
 
 ## TL;DR
 
-An xhs (Xiaohongshu) post by **ViantoZzz** dated 2026-04-27, drawing a tight time-correlation between two events: in early April 2026, researcher **Luo Fuli (罗福莉)** gave a 3.5-hour interview with **Zhang Xiaojun (张小珺)** asserting "MLA has no space left to develop; the field is over-trusting MLA"; ~two weeks later, DeepSeek shipped V4's tech report — [[MLA]] is gone, with no explanation. The author hand-mapped 7 of Luo's interview claims against V4's actual design choices and reports a high hit rate. The post argues the more important signal isn't "prediction verified" but rather: **the field is shifting attention compression's axis from per-token KV compression to compressing which tokens participate at all** — driven by the Agent-era reality that contexts are now framework-injected (millions of tokens) rather than human-typed.
+An xhs (Xiaohongshu) post by **ViantoZzz** (2026-04-27) drawing a tight time-correlation between two events: in March 2026, researcher **Luo Fuli (罗福莉)** gave an interview with **Zhang Xiaojun (张小珺)** asserting "[[MLA]] has no space left to develop; the field is over-trusting MLA"; on 2026-04-24, **DeepSeek shipped V4's tech report — MLA is gone**, with no explanation. The author hand-built 8 image panels mapping Luo's interview claims against V4's actual design choices on 7 technical dimensions, citing specific V4 §-references and quantitative receipts. The post's *prose body* is a thin caption-and-framing layer (~50 lines); the *substance lives in the images*. The author's argument is that the predictions hit because both Luo and the V4 design team start from the same first principle — **long-context efficiency dominates the architecture decision tree**. The bigger signal: the field is shifting attention compression from "compress each token's KV" toward "compress which tokens participate at all."
 
 ## Key claims
 
-**Seven predictions, all reported as hit by V4** (per the author's hand-comparison):
+Each of the 7 numbered comparison panels in the image gallery follows the same layout: **Luo quote (2026-03 interview)** → **matching V4 tech-report §-citation** → **analyst note**. Specifics extracted from the panels:
 
-1. **Long-context efficiency is the first principle** — V4 confirmed ✓
-2. **The MLA era is over** — V4 removed MLA ✓
-3. **Hybrid attention is the right direction** — V4 adopted ✓
-4. **KV cache decides Agent economics** — V4 design centers on this ✓
-5. **Architecture must leave compute headroom for MTP** (multi-token prediction) ✓
-6. **Post-train compute will catch up to pre-train compute** ✓
-7. **Models must be designed for Agent, not Chat** ✓
+**1. Long Context — KV cache efficiency (panel 01, V4 §3.6.2).**
+Luo claim: long-context KV cache economics are the load-bearing constraint at 1M-token scale. V4 receipt: **DeepSeek-V4-Pro requires only 27% of single-token inference FLOPs and 10% of KV cache compared with DeepSeek-V3.2** at the 1M-token context setting. The mechanism named in the panel: **Compression Sparse Attention** (CSA), first appearance in a DeepSeek architecture; also references MLP Router + Token Scaling as adjacent V4 innovations.
 
-The author's claim is interpretive — there's no formal verification step, and Luo's interview is in conversational Chinese, so "hit" is a judgment call rather than a numeric match.
+**2. MLA retirement (panel 02, attention architecture).**
+Luo claim: "MLA 没有任何可发挥的空间... 大家太相信 MLA 了." V4 receipt: **MLA is removed**; V4 returns to MHA + GQA primitives, with sparse + sliding mechanisms layered on top. The analyst note frames this as the architectural lineage MHA → QKV-aligned → GQA → MLA reaching a dead end at MLA — V4's choice is rollback-and-rebuild, not incremental.
 
-**The structural argument is sharper than the prediction-tracking narrative.** When MLA's *inventor* (DeepSeek themselves) walks away from per-token KV compression in favor of **sequence-dimension compression** (i.e. selecting which tokens enter attention at all), it signals a category shift, not an incremental optimization. The author frames it as "from 'how to make each token's KV more compact' to 'how to make fewer tokens participate.'"
+**3. Hybrid Attention (panel 03, attention composition).**
+Luo claim: hybrid combinations of MHA / GQA / Sliding Window Attention are the right next direction. V4 receipt: V4 composes **MHA globally + GQA grouped + Sliding Window locally** with Sparse Attention + Flash Attention optimizations on top. The panel cites V4 §2.3 and §5.4 for the hybrid-composition specifics.
 
-**The Agent-era hypothesis.** When context is framework-injected at million-token scale (RAG retrievals, tool-use traces, memory replay) rather than human-typed at hundreds-of-tokens scale, the architectural assumptions of the Chat era no longer hold. **CSA + HCA** (Content Sparse Attention + Hierarchical Compressed Attention, V4's mechanisms per the author) reportedly compress a 1M-token context's KV cache to ~5 GB — opening the door to 10M and 100M context plausibly. The forward question the author flags: at those scales, will attention even look like attention?
+**4. On-disk KV Cache (panel 04, V4 §3.6.2 + V4 §3.3.2).**
+Luo claim: in Agent and multi-step reasoning workflows, KV cache efficacy directly governs throughput + latency. V4 receipt verbatim from the image: "**We leverage an on-disk KV cache storage mechanism to eliminate repeated prefill for shared-prefix requests** ... simply store all of the compressed KV values on a local SSD." The analyst frames this as V4 making the engineering choice to push KV cache to SSD storage explicitly for high-concurrency Agent workloads — trading SSD-bandwidth for GPU-memory pressure.
+
+**5. MTP — Multi-Token Prediction (panel 05, V4 §3.3.3 / Multi-Token Progression).**
+Luo claim: the architecture must leave compute headroom for MTP at inference time. V4 receipt: V4 carries over MTP from V3.1 — "DeepSeek-V4 series also use MTP modules and objectives. These are aligned to multi-token prediction training strategies for DeepSeek-V3.1." The implementation depth and the relationship to V4's Speculative Decoding path is in the same panel.
+
+**6. Post-train compute parity (panel 06, V4 §3.5 Post-Training).**
+Luo claim: Post-train compute will catch up to (or pass) pre-train compute. V4 receipt: the V4 post-training framework explicitly does **Scaling RL Framework for Million-Token Instruction-for-Agentic-AI**, evaluated across hundreds of sandbox-level instruction-tuning sets. The panel doesn't quote the exact compute-ratio but frames the design as treating post-train as a co-equal scaling axis to pre-train.
+
+**7. Chat vs Agent (panel 07, V4 design philosophy).**
+Luo claim: "Chat 与 Agent 不是对立的，而是同一套基础设施在不同场景下的映射." V4 receipt verbatim: "The agentic pattern that scales through complex agentic workflows to maximize cross-domain task diversity ... establishes useful constraints for enabling future research with long-horizon tasks." The analyst's framing: V4 chooses *fusion not separation* — one model serves Chat and Agent via unified Context handling / Attention mechanism / Token Scaling, rather than forking the architecture.
 
 ## Visual observations
 
-8 hand-made comparison-chart images (see raw archive `69ef4f40000000003501c7b0_01.jpg` through `_08.jpg`). The author claims the images contain a side-by-side table mapping each of Luo's 7 quoted claims against the matching V4 design choice. **Not OCR'd into this Source** — the substantive prediction-vs-outcome mapping is summarized in the text body above; the images are corroborating receipts. Authority on the technical claims should defer to V4's tech report directly, not this xhs author's interpretation layer.
+8 hand-designed image panels (`69ef4f40000000003501c7b0_01.jpg` through `_08.jpg`), each ~160-200 KB, gold-and-black design language with consistent three-section layout:
+- Image 1: cover slide announcing "她比技术报告早说了一个月" + the framing stats ("时间差 ≥ 30 天 · 对比维度 7 个核心命题")
+- Images 2-8: numbered 01-07, one panel per technical dimension. Each panel has a **Luo Fuli quote in red/white** at top, a **boxed V4 §-citation in darker contrast** in the middle, and an **analyst observation block** at bottom.
+
+The image-extraction effort here was load-bearing for the wiki — the prose body of the post is a 50-line caption that summarizes the dimensions in one sentence each; **all specific numbers, §-references, and direct V4 quotes live in the images**. (Note: This Source was used as the pre-flight test case for the bulk-ingest image-extraction workflow. The 7 specifics above were captured by an Opus pass over the images during the ingest; a Haiku pass over the same images at 1568 px input cap silently dropped 4 of the 7 specifics and hallucinated one number — see memory `feedback_haiku_image_resolution.md`.)
 
 ## What this changes
 
-A **quotable second-source confirmation** of a hypothesis already floating in the corpus from [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] and [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] — that MLA's economics get squeezed at the million-token-context frontier. But the *opinion piece* nature is important: this is a curated narrative connecting two real events ([[DeepSeek]] V4's release + Luo's interview), not a technical decomposition. Treat as **signal, not citation** for architectural claims. The CSA + HCA scheme should be verified against DeepSeek's actual V4 tech report when it's ingested into the wiki.
+A **second-source confirmation** of a hypothesis already floating in the corpus from [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] and [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] — that [[MLA]] economics get squeezed at the million-token-context frontier. With one important caveat: this is an *interpretation piece*, not the V4 tech report directly. The §-citations are extracted from the panel images; the actual V4 paper should be the primary citation once it lands in the corpus. **Treat the specific §-numbers as receipts to verify against V4's paper, not as primary evidence.**
 
-Open thread for [[Attention Kernels]]: if sequence-dimension compression supplants per-token KV compression as the field's dominant compression axis, FlashMLA's design point (which optimizes the per-token-KV decode kernel) gets relativized. What does the analogous kernel for CSA+HCA look like?
+Updates [[Attention Kernels]] with a forward question: if sequence-dimension compression (CSA + on-disk KV) supplants per-token KV compression as the dominant axis, [[FlashMLA]]'s design point (optimizing the per-token-KV decode kernel) gets relativized. What does the analogous kernel for CSA + on-disk KV look like? Does it stay GPU-resident or include an SSD-bandwidth-aware scheduling layer?
+
+Updates [[DeepSeek]] entity with the V4 architectural pivot — MLA's inventor walking away from MLA is itself the story, regardless of whether the specific 27% / 10% / 1:7 numbers survive verification.
 
 ## Raw source
 
 > Platform: Xiaohongshu (xhs) · 作者: ViantoZzz · 互动: 485 likes · 608 collects · 17 comments
-> Quoted interview: Luo Fuli (罗福莉) × Zhang Xiaojun (张小珺), early April 2026 · 3.5 hours
-> Source identifiers (raw): `69ef4f40000000003501c7b0` (xhs note ID); 8 images preserved as `<note_id>_01..08.jpg`
+> Quoted interview: Luo Fuli (罗福莉) × Zhang Xiaojun (张小珺), early March 2026
+> V4 tech report release: 2026-04-24
+> Source identifiers (raw): `69ef4f40000000003501c7b0` (xhs note ID); 8 image panels preserved as `<note_id>_01..08.jpg` (~160-200 KB each, gold-on-black design)
+> Image extraction: Opus-eye pass during pre-flight (see image-extract sibling `<slug>-images-extract.md` for Haiku's first-pass structural skeleton — kept for audit; numerical specifics in the Source body are the Opus reading)
 > Related corpus: [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]], [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]

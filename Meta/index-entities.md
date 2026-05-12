@@ -14,11 +14,11 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[Hopper]]** _(5 refs)_ — NVIDIA's 2022 GPU architecture; H100/H200/H800/GH200; introduced WGMMA, TMA, FP8.
 - **[[SGLang]]** _(5 refs)_ — Open-source LLM inference system; built on top of model-serving infrastructure; Tencent + LMSYS contributors prominent.
 - **[[Blackwell]]** _(4 refs)_ — NVIDIA's 2024 GPU architecture; B100/B200/B300/GB200; first NVFP4 native silicon.
+- **[[FlashMLA]]** _(4 refs)_ — DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~660 TFlops via "seesaw" scheduling.
 - **[[MLA]]** _(4 refs)_ — Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in DeepSeek-V2/V3; FlashMLA is its decode kernel.
 - **[[vLLM]]** _(4 refs)_ — Open-source LLM inference engine; PagedAttention; continuous batching; the dominant production inference system today.
 - **[[A100]]** _(3 refs)_ — NVIDIA Ampere-architecture datacenter GPU (compute capability 8.0); production workhorse before Hopper.
 - **[[CUTLASS]]** _(3 refs)_ — NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks for cuBLAS + custom kernels.
-- **[[FlashMLA]]** _(3 refs)_ — DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~660 TFlops via "seesaw" scheduling.
 - **[[Llama]]** _(3 refs)_ — Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 (lowercase from v3.1); reference benchmark target for inf…
 - **[[TensorRT-LLM]]** _(3 refs)_ — NVIDIA's LLM-specific inference engine; built on TensorRT; competitor to vLLM/SGLang in NVIDIA-stack serving.
 - **[[DeepSeek]]** _(2 refs)_ — Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
