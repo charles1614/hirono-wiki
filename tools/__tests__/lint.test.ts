@@ -467,6 +467,55 @@ test("tag-vocabulary: novel tag in Source → WARN with all novel tags listed", 
   } finally { rmSync(root, { recursive: true }); }
 });
 
+// ---------------------------------------------------------------------------
+// topic-content-gaps (Topic-side editorial-debt surfacer)
+// ---------------------------------------------------------------------------
+
+test("topic-content-gaps: load-bearing Topic with stub What+Current understanding → WARN", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeTopic(
+      root, "Foo",
+      "## What\n\n*Stub topic — to be expanded from sources.*\n\n## Current understanding\n\n*Synthesis pending. See Sources drawn on below.*\n",
+      3,
+    );
+    const issues = runLint(root, { checks: ["topic-content-gaps"] });
+    assert.ok(
+      issues.some((i) => i.kind === "topic-content-gaps" && i.path === "Topics/Foo.md"),
+      `expected topic-content-gaps WARN; got ${JSON.stringify(issues)}`,
+    );
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("topic-content-gaps: source_count < 3 → silent (low-traffic Topic acceptable as scaffolding)", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeTopic(
+      root, "Foo",
+      "## What\n\n*Stub topic — to be expanded from sources.*\n\n## Current understanding\n\n*Synthesis pending.*\n",
+      1,  // below threshold
+    );
+    const issues = runLint(root, { checks: ["topic-content-gaps"] });
+    assert.equal(issues.length, 0, `expected silent for low-traffic; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
+test("topic-content-gaps: load-bearing Topic with substantive What+Current understanding → clean", () => {
+  const root = tmp();
+  try {
+    bucketStubs(root);
+    writeTopic(
+      root, "Foo",
+      "## What\n\nGenuine definition spanning a real paragraph of substance about the topic Foo and its scope.\n\n## Current understanding\n\nSynthesis paragraph that draws on multiple sources and articulates the current state of knowledge.\n",
+      5,
+    );
+    const issues = runLint(root, { checks: ["topic-content-gaps"] });
+    assert.equal(issues.length, 0, `expected clean; got ${JSON.stringify(issues)}`);
+  } finally { rmSync(root, { recursive: true }); }
+});
+
 test("tag-vocabulary: all-canonical Source → clean", () => {
   const root = tmp();
   try {

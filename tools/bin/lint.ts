@@ -56,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "observation-gaps" | "tag-vocabulary";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps";
 
 export interface Issue {
   kind: CheckKind;
@@ -485,6 +485,60 @@ export const CANONICAL_TAGS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * topic-content-gaps: warn when a Topic with source_count ≥ 3 still has
+ * placeholder `## What` and `## Current understanding` bodies. Mirrors
+ * the entity-side `observation-gaps` check — surfaces editorial debt on
+ * the load-bearing Topic pages (where dead-end-stub clicks hurt) while
+ * leaving low-traffic Topics (source_count < 3) silent.
+ *
+ * Detection: a section is "stub" if its body matches one of the
+ * placeholder patterns we use when scaffolding Topic pages (`*Stub topic
+ * — ...*`, `*Synthesis pending. See Sources drawn on below.*`, `*(stub
+ * — ...*`, or empty). Both `## What` AND `## Current understanding` must
+ * be stub for the WARN to fire — that distinguishes "scaffolding-only
+ * page" from "definition-only page" (the latter is acceptable for a
+ * Topic still accumulating Sources).
+ */
+export function checkTopicContentGaps(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+  const STUB_PATTERNS = [
+    /\*?stub /i,
+    /\*?to be expanded/i,
+    /\*?synthesis pending/i,
+    /\*?\(stub /i,
+    /\*?populate as sources accumulate/i,
+  ];
+  const isStub = (body: string): boolean => {
+    const trimmed = body.trim();
+    if (trimmed.length === 0) return true;
+    return STUB_PATTERNS.some((re) => re.test(trimmed));
+  };
+  for (const doc of docs.filter((d) => d.bucket === "Topics")) {
+    const sourceCount = doc.frontmatter.source_count;
+    if (typeof sourceCount !== "number" || sourceCount < 3) continue;
+    const whatMatch = doc.body.match(/^## What\n\n(.*?)(?=\n## |\Z)/ms);
+    const cuMatch = doc.body.match(/^## Current understanding\n\n(.*?)(?=\n## |\Z)/ms);
+    const whatBody = whatMatch ? whatMatch[1] : "";
+    const cuBody = cuMatch ? cuMatch[1] : "";
+    if (isStub(whatBody) && isStub(cuBody)) {
+      issues.push({
+        kind: "topic-content-gaps",
+        severity: "warn",
+        path: doc.repo_path,
+        detail:
+          `Topic has source_count=${sourceCount} but ## What and ## Current understanding ` +
+          `are both placeholders — load-bearing Topic pages need synthesis.`,
+        hint:
+          `LLM-editorial backfill: read each citing Source (grep the Topic name across ` +
+          `Sources/2026/*.md) and write a synthesis paragraph in ## Current understanding. ` +
+          `See Meta/schema.md §Topic-page structure.`,
+      });
+    }
+  }
+  return issues;
+}
+
+/**
  * tag-vocabulary: warn on tags not in CANONICAL_TAGS.
  *
  * The lint-required `tags:` check elsewhere already errors on missing /
@@ -668,7 +722,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "observation-gaps", "tag-vocabulary"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "observation-gaps", "tag-vocabulary", "topic-content-gaps"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -690,6 +744,7 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("source-image-refs")) issues.push(...checkSourceImageRefs(docs, repoRoot));
   if (checks.includes("observation-gaps")) issues.push(...checkObservationGaps(docs));
   if (checks.includes("tag-vocabulary")) issues.push(...checkTagVocabulary(docs));
+  if (checks.includes("topic-content-gaps")) issues.push(...checkTopicContentGaps(docs));
   return issues;
 }
 
