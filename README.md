@@ -136,6 +136,15 @@ Three substeps; the wiki layer is the *last* step, not the first.
 
 Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation with the agent.
 
+**What "touches" means** — entity and topic updates split across two layers, and confusing them is the most common newcomer error:
+
+| Layer | Who writes it | What it produces |
+|---|---|---|
+| **Editorial** (content) | The LLM, during ingest | `## Observations` bullets on each touched Entity (one atomic claim per citing Source, with `[[Sources/<slug>]]` citation); `## Synthesis` paragraph regenerated when evidence reshapes the picture; `## Current understanding` revised on touched Topics. |
+| **Mechanical** (metadata) | `reindex.ts`, after editorial | `refs:` counts; `source_count`; tier promotion (`_seen/` → active at ≥3 refs; **no auto-demotion**); `Meta/index*.md` regeneration; `updated:` timestamps. |
+
+**Observations are not auto-populated.** `reindex.ts` counts incoming wikilinks but doesn't write content. If an Entity has a non-zero `refs:` but an empty `## Observations`, the LLM hasn't yet folded that citing Source's lens into the entity — `reindex.ts` prints a `missing N observations` worklist per entity, naming which Sources still need a cited bullet. That report is the queue for the next ingest pass.
+
 ### Mode 3 — Ask a question ("how does X relate to Y?")
 
 Two flavors:
