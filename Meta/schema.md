@@ -193,12 +193,31 @@ tags: [at, least, one, tag]
   - `source has no images` (text-only blog posts / API JSON / pure prose)
 
 **"Load-bearing image" requires BOTH conditions**: (a) the content is load-bearing
-AND (b) the IMAGE FORM adds value beyond what the extracted text gives.
-Comparison panels with spatial layout, color-coded quote boxes, tabular data,
-charts, diagrams, dashboards, matrices, slide-deck schematic layouts all count.
-**Pure-text screenshots do NOT count** — typing the same content into the body
-strictly dominates referencing the image (better readability, searchable, no
-OCR-trust caveat). Use the text-only rationale phrase above.
+AND (b) the IMAGE FORM carries information that **resists text expression**.
+Litmus test: can the image's content be fully conveyed in markdown prose,
+tables, and code blocks? If yes → it's text-only, use the rationale line.
+If no (the image has visual relationships that text loses) → it qualifies.
+
+**Qualifies (genuinely visual)**:
+- Architecture / system-flow diagrams (boxes + arrows + spatial topology)
+- Experiment-result charts (bar, line, scatter — quantitative data viz)
+- Data visualizations: heatmaps, matrices, gradients, density plots
+- Schematic diagrams contrasting two states (before-vs-after, scattered-vs-grouped)
+- Screenshots of UIs / dashboards whose visual artifacts (gauges, color-coded panels) carry meaning beyond the labels
+- Photographs of physical objects
+
+**Does NOT qualify (text-only, use rationale)**:
+- Comparison tables — even with color-coded cells and spatial layout, the
+  content is text + numbers and renders identically as markdown.
+- Quote panels / slide-deck text pages — even with sectioned layout, the
+  content is just typed text.
+- Code screenshots — wrap the code in a fenced block in the body instead.
+- Tag clouds, lists, bullet points laid out as image.
+- Slide-deck title cards with typeset text.
+
+When in doubt, ask: "if I retype the visible content into markdown, do I
+lose anything?" If no → text-only. If yes (lose a chart shape, a network
+topology, a contrast that visual layout makes obvious) → load-bearing.
 
 Sources with image refs MUST also pair each image with a one-sentence factual
 caption — see "Shape (load-bearing image)" below.

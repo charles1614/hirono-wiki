@@ -37,27 +37,21 @@ A code-grounded recap by **GiantPandaLLM** of Ant Group's January 2026 SGLang Me
 
 ## Visual observations
 
-~30 slide screenshots (`weixin-img-001.png` through `weixin-img-030.png`); the article's prose paraphrases each slide, so most are supporting (not load-bearing) for the wiki's purposes. Three load-bearing slides referenced below, each tied to a section that's a load-bearing claim above.
+~30 slide screenshots (`weixin-img-001.png` through `weixin-img-030.png`). Most are text content (slide-deck title pages, launch-flag listings, PR diff hunks, comparison tables) — those don't need referencing because the prose already paraphrases them. **Two slides contain genuine schematic diagrams** with spatial relationships that resist text expression — referenced below.
 
-**0x1 — H20-96G hardware constraints** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-004.png`)
+**0x7 — Expert Affinity EPLB (placement schematic)** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png`)
 
-![H20-96G vs H800-80G hardware comparison table: FP8/BF16 compute ~15%, VRAM 96 vs 80 GB, HBM bandwidth 4000 vs 3352 GB/s, NVLink 900 vs 400 GB/s, RDMA half](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-004.png)
+![Two side-by-side schematic diagrams contrasting Original EPLB (scattered co-activated experts across nodes, increased cross-node communication) vs Expert Affinity EPLB (top-k expert-pair co-activations placed on the same node)](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png)
 
-The "lopsided H20" comparison table — establishes the foundational constraint vector that drives every downstream optimization choice in the talk: compute-weak but bandwidth-strong + intra-node-strong + inter-node-weak, so split prefill from decode and avoid cross-node traffic where possible.
+The schematic shows expert-to-node placement as boxes-on-nodes — load-bearing because the spatial layout (which experts sit on which node) is exactly what the optimization moves. Text alone would lose the visual "scatter vs co-locate" contrast that makes the optimization legible.
 
-**0x7 — Expert Affinity EPLB co-activation** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png`)
+**0xA — DeepXTrace observability (system flow)** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png`)
 
-![EPLB co-activation matrix slide: expert-pair co-firing frequencies under real DeepSeek-R1 traffic, grouped onto nodes to minimize cross-node AlltoAll](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png)
+![System flow diagram: Node 0 / Node 1 expert boxes → Rank 0 metrics collection (database icon) → anomaly detection box → root cause analysis (warning triangle) → Web UI visualization with slow-rank table](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png)
 
-Real-traffic expert placement is the load-bearing methodological habit: co-activation matrices from production logs, not random init or synthetic load. Frequently-co-firing experts get placed on the same node, measurably reducing the H20's RDMA short pole.
+The pipeline architecture from per-node metrics to slow-rank visualization. Load-bearing because the components-and-arrows diagram describes a system topology (data flow + processing stages) that prose flattens into a list and loses.
 
-**0xA — DeepXTrace observability** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png`)
-
-![DeepXTrace per-rank timing dashboard: identifies slow ranks in hierarchical dispatch, critical for debugging EPLB load-balance regressions](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png)
-
-The slow-rank-finder companion to EPLB. Without per-rank visibility you can't tell whether a load-imbalance regression came from a sticky expert, a network blip, or upstream traffic shift. DeepXTrace is a separate Ant repo (not yet in SGLang upstream).
-
-**Supporting slides** (not inlined): launch-flag listings (sections 0x2 / 0x3), per-PR diff hunks (0x3.1–0x3.3, 0x4, 0x6), Simple Eagle config (0x9), Decode evaluation tables (0xB), and the V3.2 DSA architectural diagrams (0xC). Each is paraphrased into the matching Key claim above; image-fidelity is sufficient to verify the PR numbers + launch flags if needed.
+**Supporting slides not inlined**: the H20-vs-H800 hardware comparison table (weixin-img-004) IS text-only (specs + percentages in a tabular layout) — the spec numbers are extracted into Key claims, so the image adds no value beyond text. Same for launch-flag listings (0x2 / 0x3), per-PR diff hunks (0x3.1-0x3.3, 0x4, 0x6), Simple Eagle config (0x9), Decode evaluation tables (0xB). All paraphrased in prose.
 
 ## What this changes
 

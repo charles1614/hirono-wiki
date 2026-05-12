@@ -9,7 +9,7 @@ tags: [attention-kernels, kv-cache, long-context]
 # [2026-04-27] DeepSeek V4 砍掉 MLA — 一个月前有人预言了
 
 ## TL;DR
-
+the
 An xhs (Xiaohongshu) post by **ViantoZzz** (2026-04-27) drawing a tight time-correlation between two events: in March 2026, researcher **Luo Fuli (罗福莉)** gave an interview with **Zhang Xiaojun (张小珺)** asserting "[[MLA]] has no space left to develop; the field is over-trusting MLA"; on 2026-04-24, **DeepSeek shipped V4's tech report — MLA is gone**, with no explanation. The author hand-built 8 image panels mapping Luo's interview claims against V4's actual design choices on 7 technical dimensions, citing specific V4 §-references and quantitative receipts. The post's *prose body* is a thin caption-and-framing layer (~50 lines); the *substance lives in the images*. The author's argument is that the predictions hit because both Luo and the V4 design team start from the same first principle — **long-context efficiency dominates the architecture decision tree**. The bigger signal: the field is shifting attention compression from "compress each token's KV" toward "compress which tokens participate at all."
 
 ## Key claims
@@ -39,27 +39,9 @@ Luo claim: "Chat 与 Agent 不是对立的，而是同一套基础设施在不�
 
 ## Visual observations
 
-8 hand-designed image panels (`69ef4f40000000003501c7b0_01.jpg` through `_08.jpg`), each ~58–200 KB, gold-and-black design with consistent three-section layout: a Luo Fuli quote at top, a boxed V4 §-citation in the middle, and an analyst observation block at the bottom. Three load-bearing panels referenced below; the remaining five are supporting (their specifics are already extracted into Key claims).
+*No load-bearing images — all images text-only (typed content extracted into body).*
 
-**Cover — the 30-day prediction-gap framing** (`../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_01.jpg`)
-
-![V4 prediction cover slide announcing the 30-day time-gap and 7-dimension comparison](../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_01.jpg)
-
-The framing: time-gap ≥ 30 天 between Luo's 2026-03 interview and DeepSeek V4's 2026-04-24 tech report; 7 core technical propositions used as the comparison axes.
-
-**Panel 01 — Long Context KV/FLOPs economics** (`../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_02.jpg`)
-
-![V4 §3.6.2 receipt: DeepSeek-V4-Pro requires only 27% of single-token inference FLOPs and 10% of KV cache compared with DeepSeek-V3.2 at 1M-token context](../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_02.jpg)
-
-Verbatim V4 §3.6.2 panel: V4-Pro needs **27% of single-token inference FLOPs AND 10% of KV cache** vs V3.2 at 1M-token context. The two numbers are deliberately separate qualifiers — not one combined "27% of KV" claim (a misread Sonnet's extraction made during pre-flight, see Raw source notes below).
-
-**Panel 04 — On-disk KV cache mechanism** (`../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_05.jpg`)
-
-![V4 §3.6.2 / §3.3.2 panel: on-disk KV cache storage mechanism — store all compressed KV entries on local SSD to eliminate repeated prefilling for shared-prefix requests](../../raw/raindrop/xhslink.com/2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书/69ef4f40000000003501c7b0_05.jpg)
-
-The on-disk KV mechanism is the architectural commitment driving the Agent-era economics — instead of holding 1M-token KV cache in GPU memory, V4 stores compressed KV entries on local SSD and reuses them across requests with shared prefixes.
-
-**Supporting panels** (not inlined): Panel 02 (MLA retirement → MHA + GQA framing), Panel 03 (Hybrid Attention composition with window=128), Panel 05 (MTP design), Panel 06 (Post-train : Pre-train = 1:7), Panel 07 (Chat vs Agent fusion + Interleaved Thinking §5.5.1). Each is paraphrased into the matching Key claim above.
+8 hand-designed panels (`69ef4f40000000003501c7b0_01.jpg` through `_08.jpg`, 58-200 KB each, gold-and-black design) follow a consistent three-section layout: Luo Fuli quote at top, boxed V4 §-citation in the middle, analyst observation block at bottom. Despite the spatial layout and color-coded boxes, the content is **100% typed text** — no architecture diagrams, no experiment-result charts, no data visualizations that resist text expression. Every quote, §-citation, and analyst paragraph is already extracted verbatim into the Key claims above. Referencing the images would just show the same text in raster form (worse readability, no search).
 
 ## What this changes
 
