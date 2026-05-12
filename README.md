@@ -145,6 +145,15 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 
 **Observations are not auto-populated.** `reindex.ts` counts incoming wikilinks but doesn't write content. If an Entity has a non-zero `refs:` but an empty `## Observations`, the LLM hasn't yet folded that citing Source's lens into the entity — `reindex.ts` prints a `missing N observations` worklist per entity, naming which Sources still need a cited bullet. That report is the queue for the next ingest pass.
 
+**Creating a new Entity or Topic** the Source references is the LLM's job. Two CLI helpers reduce friction — both produce schema-conformant stubs the LLM just fills in:
+
+```bash
+npx tsx tools/bin/hirono.ts new-entity "FlashMLA"      --kind "DeepSeek's MLA decoding kernel"
+npx tsx tools/bin/hirono.ts new-topic  "Inference Disaggregation"  --what "Splitting prefill vs decode pools"
+```
+
+New entities scaffold to `Entities/_seen/<Name>.md` (seen tier; reindex promotes at refs ≥ 3). New topics scaffold to `Topics/<Name>.md` with the four-section template. Both refuse to overwrite existing files and validate name characters.
+
 ### Mode 3 — Ask a question ("how does X relate to Y?")
 
 Two flavors:
