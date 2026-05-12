@@ -91,7 +91,9 @@ Open Meta/index.md  ─►  catalog overview, total counts
                                             ├── TL;DR
                                             ├── Key claims
                                             ├── Visual observations + inlined figures
-                                            └── Open questions
+                                            ├── What this changes (optional)
+                                            ├── Entities / Topics touched
+                                            └── Raw source
 ```
 
 Concrete entry points right now:
@@ -242,6 +244,8 @@ Full design + per-scenario runbooks: [`Meta/corpus-pipeline.md`](Meta/corpus-pip
 | Debug a sub-good site, add a new host adapter, look up a defect pattern | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) |
 | Understand the fetcher architecture | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
 | Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
+| Fix recipes — full regex bodies for every documented-symptom-to-commit fix | [`Meta/fix-recipes.md`](Meta/fix-recipes.md) |
+| Per-file / per-export code pointers for the fetch / lint / ingest toolchain | [`docs/code-map.md`](docs/code-map.md) |
 | Wiki page conventions (frontmatter, page types, tier rules, image rules) | [`Meta/schema.md`](Meta/schema.md) |
 | Pending punch-list after the most recent bulk fetch | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
 | Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
@@ -254,7 +258,7 @@ This is the question that confuses newcomers most. Every `.md` file in this repo
 
 | Bucket | Path | `type:` frontmatter | What lives here | Who writes it |
 |---|---|---|---|---|
-| **Sources** | `Sources/YYYY/` | `source` | One file per **ingested source** (a Raindrop URL, a Lark wiki node, a paper). Summary in the §schema template shape: TL;DR + Key claims + Visual observations + Entities/Topics touched + Open questions. | LLM, reading raw `content.md` |
+| **Sources** | `Sources/YYYY/` | `source` | One file per **ingested source** (a Raindrop URL, a Lark wiki node, a paper). Summary in the §schema template shape: TL;DR + Key claims + Visual observations + What this changes (optional) + Entities/Topics touched + Raw source. (Cross-source research questions live in `Topics/<X>.md ## Open threads`, not per-Source.) | LLM, reading raw `content.md` |
 | **Entities** | `Entities/<Name>.md` (active) or `Entities/_seen/<Name>.md` (seen) | `entity` | One file per **distinct thing the corpus references** — a person, project, model, framework, paper, hardware. Has an Observations log (append-only, each bullet cited to a Source) and a Synthesis section (regenerated from Observations). Auto-tier-promoted from `_seen` → active at **≥3 incoming refs**. | LLM ingest pass + reindex (refs / tier auto-maintained) |
 | **Topics** | `Topics/<Topic Name>.md` | `topic` | One file per **synthesis or cross-cutting theme** — "Inference Disaggregation", "Kernel Authoring Languages", "MoE Serving". Filed either from a query (`query \| <question>`) or noticed as a recurring cluster during ingest. Has `source_count` tracking how many Sources cite it. | LLM, on query OR during ingest when a Source touches a theme |
 | **Meta** | `Meta/*.md` (+ `Meta/_archive/`, `Meta/references/`) | `meta` | **Governance + catalogs + logs** — schema, indexes (auto-regen), the year's log, linting notes, the pipeline docs. Not content; it's *how the rest is organized*. | Human + LLM, append-only for logs |
