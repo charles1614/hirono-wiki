@@ -47,10 +47,13 @@ breakdown of each file.
 - **`tools/shared/`** — infrastructure utilities (not site- or hirono-specific):
   - `atomic-write.ts` — atomic file writes
   - `browser-lock.ts` — machine-wide opencli concurrency lock
-- **`tools/hirono/`** — `hirono` CLI for raindrop-driven bulk fetching:
+  - `revisions.ts` — `revisions.jsonl` append-only audit-trail helpers
+  - `url-helpers.ts` — URL normalization + share-aggregator unwrap (`share.google?link=`, etc.)
+- **`tools/hirono/`** — `hirono` CLI for raindrop-driven bulk fetching + wiki authoring helpers:
   - `doctor.ts` — environment health check
   - `adapter-paths.ts` — opencli `~/.opencli/clis/` symlink helpers (used only by doctor)
-  - `raindrop/` — `check`, `export`, `fetch-all`, `refresh-cache` subcommands
+  - `new-entity.ts` / `new-topic.ts` — schema-conformant stub creators (`hirono new-entity`, `hirono new-topic`)
+  - `raindrop/` — subcommand modules: `check`, `diff`, `export`, `failure-kind`, `fetch-all`, `history`, `ingest-candidates`, `new-bookmarks`, `refresh-cache`, `status`. See `tools/bin/hirono.ts` for the dispatch table.
 - **`tools/opencli/`** — in-repo home of project-local opencli adapters:
   - `clis/<site>/<name>.js` — adapter source (git-tracked); empty until a site needs one
   - `sites/<site>/` — accumulated recon notes per site

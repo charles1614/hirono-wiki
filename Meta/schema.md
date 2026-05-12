@@ -1,6 +1,6 @@
 ---
 created: 2026-04-19
-updated: 2026-04-21
+updated: 2026-05-12
 type: meta
 ---
 
@@ -453,7 +453,7 @@ URL normalization for dedup (see `tools/bin/build-sources-index.ts`): lowercase 
 
 ## Raw-source archive layer
 
-Per [[Karpathy]]'s invariant ("raw sources are immutable — the source of truth"), every `Sources/<slug>.md` summary has a paired local archive containing the full content we summarized from. This is what lets us re-ingest when conventions evolve and survives URL rot / provider disappearance.
+Per Karpathy's invariant ("raw sources are immutable — the source of truth", see `Meta/references/karpathy-llm-wiki-gist.md`), every `Sources/<slug>.md` summary has a paired local archive containing the full content we summarized from. This is what lets us re-ingest when conventions evolve and survives URL rot / provider disappearance.
 
 ### Structure (one dir per source)
 

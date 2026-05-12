@@ -230,38 +230,23 @@ If your site isn't in the test-hooks registry yet, write `tools/sites/<X>/test-h
 
 Run `npm test` 3 times back-to-back. Test count must be identical and `fail = 0` every time. If it varies, you have a path-resolution bug (`fileURLToPath(import.meta.url)`, not cwd-relative literals — see commit `4ca244e`).
 
-## 8. Retire legacy code in the SAME commit
+## 8. Verify routing + retire any custom opencli adapter
 
-When the new site module ships, the old code paths it replaces become dead code:
+The legacy `fetch-raw.ts` adapter dispatch + per-host `post-process.ts` pipeline were retired in commits `dfb584f` / `2bc6dc1`. The remaining concerns when shipping a new module:
 
-- Adapter case in `fetch-raw.ts` for the host
-- Site-specific post-processor in `tools/hirono/shared/post-process.ts` (e.g., `githubStripUIChrome` retired in 46c7be0)
-- Custom opencli adapter under `tools/opencli/clis/` if the host had one
+- **Router order**: confirm your module is registered in `tools/sites/index.ts` **before** `_default` (which has `match: () => true`). Verify with a one-liner:
 
-Delete them in the same commit as the migration. Carrying them as "just in case" is technical debt that grows.
+  ```bash
+  npx tsx -e 'import { routeSite } from "./tools/sites/index.ts"; console.log(routeSite("<your URL>").name)'
+  ```
 
-### CRITICAL: post-processor retirement is not optional
+  Should print your module name, not `_default`.
 
-**This is the failure mode that bit substack and arxiv migrations.** When a host gains a site module, every post-processor with `match: h === "<host>"` MUST be either retired or scoped to non-migrated URL paths. Otherwise the snapshot pipeline will run them on the new clean output and mangle it — `arxivStructureImprove` aggressively re-formatted my new clean abstract output into an 8-line skeleton (lost the abstract body entirely) before it was scoped.
+- **Custom opencli adapter under `tools/opencli/clis/<host>/`** (if the host had one): delete in the same commit. The site module owns the full pipeline; an opencli adapter would be dead code carrying retired conversion logic.
 
-Audit checklist before committing the migration:
+- **Cross-cutting cleanup**: the host-agnostic `applyPostCleanups` in `tools/sites/_shared/post-cleanup.ts` runs on every Result. It is designed to be idempotent across hosts. If your new module's output is mangled by one of those 8 cleanups, that's a bug in the cleanup, not a retirement task — fix it in `_shared/`, not by routing around it.
 
-```bash
-# Find all post-processors that match the migrated host:
-grep -nE 'match:.*=== "<host>"|match:.*"<host>"' tools/hirono/shared/post-process.ts
-```
-
-For each match, choose:
-
-| Situation | Action |
-|---|---|
-| The site module covers ALL paths on the host | Retire: `match: () => false` (with a comment dating the retirement and pointing at the site module) |
-| The site module covers a path prefix (e.g. arxiv `/abs/`, sebastianraschka-gallery `/llm-architecture-gallery/`) | Scope: `match: (u, h) => h === "<host>" && !/\/<migrated-prefix>\//.test(u)` |
-| The post-processor is a cross-host generic (e.g. `enforceSingleH1`) | Leave — these are designed to be idempotent across all hosts |
-
-Verify after retirement: capture a snapshot via `approve.ts`, then `diff` the snapshot against the corresponding fixture. They should be byte-identical except for §2 frontmatter wrap and image-ref rewrites. If the snapshot is shorter or structurally different, a post-processor is still firing on the new output.
-
-**Why the test suite doesn't catch this automatically:** the `converter-fixtures.test.ts` byte-equal test only checks the converter's pure output, NOT the post-processor pipeline. The `per-host-snapshot.test.ts` checks the snapshot's invariants (count-based) and structural rules — but those pass on partial output (8 lines is still a valid h1=1, frontmatter-present markdown). The bug surfaces only when you eye-read the snapshot or diff against the fixture. Make the diff part of your migration verification.
+Verify after migration: capture a snapshot via `approve.ts`, then eye-read the output. The fixture-vs-snapshot diff is no longer informative (both run the same pipeline now), so the load-bearing check is just "does the snapshot read well end-to-end."
 
 ## 9. Commit shape
 
@@ -313,7 +298,7 @@ The factory:
 
 Use the factory unless the host needs custom DOM walking, multi-source fetching (API + DOM), or non-trivial metadata reconstruction. Reference: `tools/sites/aleksagordic/`, `tools/sites/lmsys/`, `tools/sites/sohu/`. Even for hosts that do need custom logic (`tools/sites/sebastianraschka-gallery/`), keep them as full modules — don't shoe-horn into the factory.
 
-After scaffolding via the factory, the rest of the workflow (§5 iterate, §6 user approval, §7 fixture/snapshot capture, §8 retire legacy) is identical.
+After scaffolding via the factory, the rest of the workflow (§5 iterate, §6 user approval, §7 fixture/snapshot capture, §8 verify routing) is identical.
 
 ## Quick reference: anti-patterns to refuse
 

@@ -95,8 +95,8 @@ flowchart TB
     Bucket -->|"A: API"| FetchAPI["curl + JSON<br/>(github)"]
     Bucket -->|"B: Raw MD"| FetchRaw["curl raw URL<br/>(huggingface/blog)"]
     Bucket -->|"C: Stable HTML"| FetchHTML["curl + JSDOM<br/>(article-site factory<br/>+ catch-all _default)"]
-    Bucket -->|"D: SPA"| FetchBrowser["opencli<br/>browser open + eval<br/>→ outerHTML<br/>(xhs, weixin, zhihu)"]
-    Bucket -->|"Stub-only"| FetchStub["templated stub<br/>(feishu, x-twitter,<br/>reddit, qwen-ai)"]
+    Bucket -->|"D: SPA"| FetchBrowser["opencli<br/>browser open + eval<br/>→ outerHTML<br/>(xhs, weixin, zhihu,<br/>reddit web-components)"]
+    Bucket -->|"Stub-only"| FetchStub["templated stub<br/>(feishu, x-twitter,<br/>qwen-ai)"]
 
     FetchAPI --> Conv["per-host converter.ts<br/>pure function:<br/>raw → §2 markdown"]
     FetchRaw --> Conv

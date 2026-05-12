@@ -1,6 +1,6 @@
 ---
 created: 2026-05-08
-updated: 2026-05-09
+updated: 2026-05-12
 type: meta
 ---
 
@@ -140,48 +140,13 @@ Items closed by shipped commits, kept here for the audit trail.
 - [x] **`harvestServiceCard` spread to `_default` + `qwen-ai` stubs** — commit `b8d456c`; enriches stub bodies with og:* descriptions.
 - [x] **Marker-flag classifier fix** — commit `d2ec8ed`; `_default-used-browser-fallback`-only slugs no longer mis-classify as app-only (16 slugs reclassified, +5 to clean net).
 - [x] **`hirono raindrop sync --exclude-host` flag** — commit `575115e` (preventive infra for future bulk fetches when Charles's Chrome auth has expired for specific hosts).
+- [x] **Downgrade protection in `fetchUrlAndStore`** — shipped as `isFetchRegression()` in `tools/fetch-raw.ts:823` + append-only revisioning (`content-rev<N>.md` instead of overwrite) in `writeRawArchive`. When the previous rev had real content (no stub flag, length > 0) and the new rev is a stub OR <30% of the previous length, the new write is rejected and the previous content is preserved. Covers the original wangzhiyu/zenfeed/51cto oscillation cases plus general browser-non-determinism.
 
 ---
 
 ## 2. Tool-side issues — pending (ranked by leverage)
 
 Surface in CLAUDE.md §4 fix recipes when implemented.
-
-- [ ] **(High)** **Downgrade protection in `fetchUrlAndStore`.** Bug
-  observed when bg-syncing flagged slugs whose extraction depends on
-  browser-eval (notion.site, zenfeed.xyz, 51cto.com, etc.): the
-  browser path is non-deterministic. A re-fetch can produce a much
-  smaller body than the previous fetch (1 char vs 9674 chars in one
-  case). The current write path overwrites `content.md` + `source.json`
-  unconditionally, destroying the previously-good content. The
-  revisions.jsonl manifest preserves the SHA + length history but
-  NOT the per-rev body, so once overwritten the previous content is
-  lost.
-
-  Concrete corpus example: `wangzhiyu.notion.site/` revisions.jsonl
-  shows 4 oscillations between 9674 chars (browser succeeded) and
-  ~600-800 chars (browser stub). Same pattern on `zenfeed.xyz/`
-  (19499 → 16801 → 714 chars across 3 revs) and
-  `www.51cto.com/aigc/3474.html` (26712 → 543 chars). Manual retry
-  during this audit recovered wangzhiyu + zenfeed; 51cto is currently
-  stuck at the smaller body.
-
-  Fix shape (substantive — defer to Charles):
-  1. Before overwriting `content.md`, archive the current body at
-     `<slugDir>/_history/<rev>-<sha>.md` (or similar). Costs disk but
-     gives true point-in-time recovery.
-  2. After completing a fetch, compare the new result against the
-     previous rev. When the previous rev was substantially better
-     (≥3× content_length, no `intentional-stub` flag) AND the new
-     rev is a stub (`intentional-stub` + `*-fetch-failed` flags),
-     keep the previous content. Add a `downgrade-protected` marker
-     flag to source.json so the operator can audit.
-
-  Risk of fix: a slug whose URL went LEGITIMATELY bad upstream
-  (deleted, truly dead) would be falsely "preserved" — but that's a
-  known limitation of any heuristic, and the marker-flag-based
-  detection (`upstream-deleted` etc.) handles the genuinely-deleted
-  case independently.
 
 - [ ] **(Low)** **Orphan-slug pruning needs an unwrap-aware CLI command.**
   The current orphan list (slugs in `raw/raindrop/<host>/<slug>/` but
@@ -234,7 +199,7 @@ Surface in CLAUDE.md §4 fix recipes when implemented.
   at < 200 chars. Manual conversion proven on
   `1cb887bb.pinit.eth.limo` (sample at
   `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`).
-  Automation: extend `tools/sites/_default/index.ts` BODY_SELECTORS
+  Automation: extend `tools/sites/_default/index.ts` `SELECTORS.bodySelectors`
   cascade with `<body>` as a final fallback, fire only when no
   narrower selector matched AND text-after-(`<style>`/`<script>`
   /`<noscript>`)-strip exceeds ~300 chars. See P-37 for the full

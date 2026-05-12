@@ -166,8 +166,8 @@ Architecture doc: [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md)
 | **REST / GraphQL API** that returns structured data | `curl` or `fetch` directly; convert JSON → markdown ourselves | github (issue/PR/discussion/release APIs) |
 | **Raw markdown** in a public repo or CDN | `curl raw URL`; pass through with image localization | huggingface /blog (`raw.githubusercontent.com/huggingface/blog`) |
 | **Server-rendered HTML with stable selectors** | plain `curl` + JSDOM + per-host rules — usually via the article-site factory | aleksagordic, lmsys, qwenlm.github.io, arxiv abstracts, sebastianraschka, anthropic |
-| **JS-rendered SPA / auth-gated** | `opencli browser open` + `browser eval` to extract `outerHTML`; then own the conversion | xhs, weixin, zhihu |
-| **No usable content** | emit `intentional-stub` deterministically from the URL | feishu, x.com, reddit, qwen.ai |
+| **JS-rendered SPA / auth-gated** | `opencli browser open` + `browser eval` to extract `outerHTML`; then own the conversion | xhs, weixin, zhihu, reddit (web-components) |
+| **No usable content** | emit `intentional-stub` deterministically from the URL | feishu, x.com, qwen.ai |
 
 When adding a new host module, defects belong in the site's own `converter.ts` (DOM-level, before turndown), NOT in cross-cutting cleanup. The cross-cutting pipeline only does 8 universal fixes (color tags, single-H1, relative-URL resolution, etc.) — anything host-specific is the host module's responsibility.
 
@@ -333,7 +333,6 @@ Re-fetches every snapshot URL (read from the `source_url` field in the sidecar) 
 | `no-headings-in-body` | ≥ 2KB body with zero `#{1,6}` headings — likely sidebar, not article |
 | `loading-skeleton` | `Loading…` / `加载中` / `Please wait` in a < 2KB body |
 | `images-declared-but-none-downloaded` | Markdown has images but disk is empty (silent adapter failure) |
-| `adapter-output-partial` | Adapter harvest had rename/stat errors |
 | `xhs-download-silent-fail` | xhs adapter exited 0 but saved no images |
 | `weixin-image-download-partial` | Layer-4 weixin pipeline: at least one image URL failed to curl-download |
 | `auto-skipped-hf-space` | L2 pre-fetch skip |
