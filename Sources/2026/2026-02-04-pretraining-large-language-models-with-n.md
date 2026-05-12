@@ -30,7 +30,7 @@ NVIDIA paper (89-author group led by Felix Abecassis et al., arXiv:2509.25149, v
 
 *No load-bearing images — figures inline-captioned in raw, no standalone images.*
 
-arxiv abstract page; raw archive holds the text body only. The paper PDF itself was not pulled into the raw archive at fetch time (corpus convention is to ingest from the arxiv abstract URL, not the PDF, unless the PDF is explicitly fetched). The substantive figures (FP4 quality-vs-FP8 curves, 10T-token loss trajectory, outlier-bound RHT illustrations) live in the PDF and are not currently in `raw/`. If those figures become load-bearing for wiki-level synthesis later, re-fetch the PDF as a separate Source.
+PDF not in raw — re-fetch `arxiv.org/pdf/2509.25149` if FP4 quality-vs-FP8 curves / loss trajectory / RHT illustrations become load-bearing.
 
 ## What this changes
 

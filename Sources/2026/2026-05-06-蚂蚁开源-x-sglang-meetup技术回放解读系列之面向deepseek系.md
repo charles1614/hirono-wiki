@@ -37,21 +37,17 @@ A code-grounded recap by **GiantPandaLLM** of Ant Group's January 2026 SGLang Me
 
 ## Visual observations
 
-~30 slide screenshots (`weixin-img-001.png` through `weixin-img-030.png`). Most are text content (slide-deck title pages, launch-flag listings, PR diff hunks, comparison tables) — those don't need referencing because the prose already paraphrases them. **Two slides contain genuine schematic diagrams** with spatial relationships that resist text expression — referenced below.
+**0x7 — Expert Affinity EPLB placement schematic** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png`)
 
-**0x7 — Expert Affinity EPLB (placement schematic)** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png`)
+![Two side-by-side schematics contrasting Original EPLB (scattered co-activated experts across nodes → increased cross-node communication) vs Expert Affinity EPLB (top-k co-activated expert-pairs placed on same node)](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png)
 
-![Two side-by-side schematic diagrams contrasting Original EPLB (scattered co-activated experts across nodes, increased cross-node communication) vs Expert Affinity EPLB (top-k expert-pair co-activations placed on the same node)](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png)
+Expert-to-node placement as boxes-on-nodes; the spatial layout IS the optimization.
 
-The schematic shows expert-to-node placement as boxes-on-nodes — load-bearing because the spatial layout (which experts sit on which node) is exactly what the optimization moves. Text alone would lose the visual "scatter vs co-locate" contrast that makes the optimization legible.
+**0xA — DeepXTrace observability system-flow** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png`)
 
-**0xA — DeepXTrace observability (system flow)** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png`)
+![System flow: Node 0 / Node 1 expert boxes → Rank 0 metrics collection → anomaly detection → root cause analysis → Web UI slow-rank visualization](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png)
 
-![System flow diagram: Node 0 / Node 1 expert boxes → Rank 0 metrics collection (database icon) → anomaly detection box → root cause analysis (warning triangle) → Web UI visualization with slow-rank table](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png)
-
-The pipeline architecture from per-node metrics to slow-rank visualization. Load-bearing because the components-and-arrows diagram describes a system topology (data flow + processing stages) that prose flattens into a list and loses.
-
-**Supporting slides not inlined**: the H20-vs-H800 hardware comparison table (weixin-img-004) IS text-only (specs + percentages in a tabular layout) — the spec numbers are extracted into Key claims, so the image adds no value beyond text. Same for launch-flag listings (0x2 / 0x3), per-PR diff hunks (0x3.1-0x3.3, 0x4, 0x6), Simple Eagle config (0x9), Decode evaluation tables (0xB). All paraphrased in prose.
+Per-node metrics → slow-rank pipeline architecture. Remaining ~28 slides (H20-vs-H800 table at weixin-img-004, launch-flag listings, PR diff hunks, Simple Eagle config, decode-eval tables, V3.2 DSA diagrams) are text-in-layout and already paraphrased in Key claims.
 
 ## What this changes
 

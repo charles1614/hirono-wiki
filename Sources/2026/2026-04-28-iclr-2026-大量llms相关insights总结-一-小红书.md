@@ -44,7 +44,7 @@ An xhs (Xiaohongshu) post by **幸运降临中** dated 2026-04-28, summarizing *
 
 *No load-bearing images — all images text-only (typed content extracted into body).*
 
-7 hand-built summary cards (`69ed78f3000000001a034eed_01.jpg` through `_07.jpg`, 84-198 KB each) are pure typed-Chinese text on plain backgrounds. No charts, photos, diagrams, or tables — the cards are literally a long-form prose article broken across 7 image slides for the xhs rendering format. ~3000 Chinese chars total, all extracted into Key claims above. Referencing the image files would just show the same text in raster form (worse readability, no search). The image-extract sibling `<slug>-images-extract.md` preserves the verbatim card content for re-synthesis if needed.
+Verbatim card content preserved at `<slug>-images-extract.md` for re-synthesis.
 
 ## What this changes
 

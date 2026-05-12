@@ -11,9 +11,9 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 ## Active (≥3 refs)
 
 - **[[NVIDIA]]** _(6 refs)_ — Dominant ML accelerator vendor; CUDA platform owner; GPU architectures: Ampere → Ada → Hopper → Blackwell.
+- **[[SGLang]]** _(6 refs)_ — Open-source LLM inference system; built on top of model-serving infrastructure; Tencent + LMSYS contributors prominent.
 - **[[FlashMLA]]** _(5 refs)_ — DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~660 TFlops via "seesaw" scheduling.
 - **[[Hopper]]** _(5 refs)_ — NVIDIA's 2022 GPU architecture; H100/H200/H800/GH200; introduced WGMMA, TMA, FP8.
-- **[[SGLang]]** _(5 refs)_ — Open-source LLM inference system; built on top of model-serving infrastructure; Tencent + LMSYS contributors prominent.
 - **[[Blackwell]]** _(4 refs)_ — NVIDIA's 2024 GPU architecture; B100/B200/B300/GB200; first NVFP4 native silicon.
 - **[[MLA]]** _(4 refs)_ — Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in DeepSeek-V2/V3; FlashMLA is its decode kernel.
 - **[[vLLM]]** _(4 refs)_ — Open-source LLM inference engine; PagedAttention; continuous batching; the dominant production inference system today.

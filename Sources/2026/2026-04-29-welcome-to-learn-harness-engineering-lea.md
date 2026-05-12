@@ -24,7 +24,7 @@ Landing page for a self-paced course on **harness engineering for AI coding agen
 
 *No load-bearing images — source has no images.*
 
-Index/landing page only; no charts, screenshots, or technical diagrams in this entry. Page is a curriculum table-of-contents with internal links to lectures, projects, and templates. The "core mechanism of a harness" subsection promises a workflow diagram in-text but only the heading rendered in this snapshot (the diagram lives one level deeper, in a specific lecture).
+Workflow diagram referenced in the "core mechanism of a harness" subsection lives in a deeper lecture page, not in this index snapshot.
 
 ## What this changes
 

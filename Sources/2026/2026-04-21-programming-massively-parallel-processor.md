@@ -36,7 +36,7 @@ The textbook tradition: 4-part structure (Fundamental Concepts → Parallel Patt
 
 *No load-bearing images — source has no images.*
 
-This is an Elsevier shop product page — no figures, charts, or screenshots are captured in `content.md` (only structured product metadata: TOC, author bios, ISBN). The textbook itself contains figures + diagrams, but they're not in `raw/`.
+Textbook figures + diagrams exist in the book itself but were not pulled into `raw/` (Elsevier shop product page only).
 
 ## What this changes
 

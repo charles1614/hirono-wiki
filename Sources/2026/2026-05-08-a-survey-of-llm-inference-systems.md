@@ -35,7 +35,7 @@ Survey paper (James Pan + Guoliang Li, arXiv:2506.21901 v1, Jun 27 2025, 25pp) �
 
 *No load-bearing images — figures inline-captioned in raw, no standalone images.*
 
-arxiv abstract; the survey's PDF (with taxonomy diagrams + technique-comparison tables) was not pulled into the raw archive at fetch time. For full-figure access, re-fetch from `arxiv.org/pdf/2506.21901` as a separate ingest pass.
+PDF (with taxonomy diagrams + technique-comparison tables) not in raw — re-fetch `arxiv.org/pdf/2506.21901` if those become load-bearing.
 
 ## What this changes
 

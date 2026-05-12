@@ -25,8 +25,6 @@ A short x.com (Twitter) post by **Garry Tan** (YC president) announcing **GBrain
 
 *No load-bearing images — source has no images.*
 
-x.com thread; the x-twitter adapter pulled the OP + 7 reply tweets as text. No charts, diagrams, or screenshots in the captured content.
-
 ## What this changes
 
 A **signal Source** for the "agent-as-primary-file-interface" framing, attributed to a high-visibility person (Garry Tan / YC). Not a technical citation — adoption metrics or implementation depth aren't here — but worth keeping as a marker of where Y-Combinator-adjacent operators are heading. If GBrain becomes a corpus-recall reference implementation, the wiki should re-fetch the actual repo as a separate Source.

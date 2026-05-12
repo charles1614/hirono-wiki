@@ -40,8 +40,6 @@ tags: [inference, minimal-impl, tooling]
 
 *No load-bearing images — all panels decorative (logos, badges, photos).*
 
-2 images in raw: a "GitHub Trending #2 Repository of the Day" badge SVG and the repo logo PNG. Both are decorative; the README has no architecture diagrams, charts, or technical figures.
-
 ## Entities touched
 
 [[vLLM]], [[Qwen]], [[PagedAttention]], [[Torch Compile]], [[CUDA Graph]]

@@ -33,8 +33,6 @@ NVIDIA's official deployment guide for serving **gpt-oss-120b** on [[TensorRT-LL
 
 *No load-bearing images — source has no images.*
 
-This is a github docs markdown page (`docs/source/blogs/tech_blog/blog9_...md`) — pure text content. No figures, charts, or screenshots; YAML configs and tabular benchmark numbers are inlined in the prose and already extracted into Key claims.
-
 ## What this changes
 
 - For someone evaluating Blackwell economics: the **20k tps/gpu × 72 GPUs ≈ 1.5M tps/system** is the headline GB200 NVL72 inference number for a frontier MoE OSS model. Concrete benchmark to cite when comparing accelerator-class economics (cf. [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] for H100 baseline).
