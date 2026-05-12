@@ -18,7 +18,7 @@
  * for structural items + asks Claude in-session for the judgment items.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
@@ -28,7 +28,7 @@ import { extractWikilinks } from "../bin/reindex.ts";
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..");
 
-type Scope = "all" | "orphans" | "stale" | "duplicates" | "topic-collisions" | "contradictions";
+type Scope = "all" | "orphans" | "stale" | "duplicates" | "topic-collisions" | "contradictions" | "drift" | "sources";
 
 interface ParsedArgs {
   scope: Scope;
@@ -43,7 +43,7 @@ Read-only audit of LLM-judgment curation debt. Emits markdown report.
 
 Flags:
   --scope <s>            One of: all (default) | orphans | stale | duplicates |
-                         topic-collisions | contradictions
+                         topic-collisions | contradictions | drift | sources
   --write-report <path>  Write the report to <path>. Default: stdout.
   --json                 Emit JSON instead of markdown.
 
@@ -57,6 +57,11 @@ Audits (per scope):
                        \`merge-topics\` to fix.
   contradictions       Active-entity Synthesis-vs-Observations contradictions.
                        Operator regenerates Synthesis.
+  drift                Raw-archive content-SHA drift, dead URLs not yet
+                       pinned, Raindrop-deleted URLs, age-stale upstreams,
+                       Sources older than their cited raw archive.
+  sources              0-wikilink Sources, tag-outliers, age-stale Sources
+                       (no recent revision), Sources cited only by Topics.
 
 Examples:
   hirono health-check
@@ -74,7 +79,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     if (a === "--scope") {
       i++;
       const v = (argv[i] ?? "all").trim();
-      if (!["all", "orphans", "stale", "duplicates", "topic-collisions", "contradictions"].includes(v)) {
+      if (!["all", "orphans", "stale", "duplicates", "topic-collisions", "contradictions", "drift", "sources"].includes(v)) {
         console.error(`unknown scope: ${v}`); usage();
       }
       scope = v as Scope;
@@ -279,6 +284,258 @@ function auditContradictions(docs: Doc[]): ContradictionItem[] {
 }
 
 // ---------------------------------------------------------------------------
+// Drift + sources audits (Phase B.3)
+// ---------------------------------------------------------------------------
+
+interface ShaDriftItem { slug: string; rawDir: string; oldSha: string; newSha: string; sourceUpdated: string; latestRevAt: string }
+interface DeadUrlItem { slug: string; rawDir: string; reason: string }
+interface RaindropDeletedItem { slug: string; rawDir: string; url: string }
+interface HeadStaleItem { slug: string; rawDir: string; lastCheckedAt: string; ageDays: number }
+interface SourceOlderThanRawItem { slug: string; sourcePath: string; sourceUpdated: string; rawDir: string; rawUpdated: string }
+interface ZeroWikilinkSourceItem { slug: string; sourcePath: string }
+interface TagOutlierSourceItem { slug: string; sourcePath: string; tags: string[] }
+interface AgeStaleSourceItem { slug: string; sourcePath: string; created: string; ageDays: number }
+interface TopicOnlyCitedItem { slug: string; sourcePath: string; topicCiters: string[] }
+
+interface DriftAudit {
+  shaDrift: ShaDriftItem[];
+  deadUrls: DeadUrlItem[];
+  raindropDeleted: RaindropDeletedItem[];
+  headStale: HeadStaleItem[];
+  sourceOlderThanRaw: SourceOlderThanRawItem[];
+}
+
+interface SourcesAudit {
+  zeroWikilink: ZeroWikilinkSourceItem[];
+  tagOutliers: TagOutlierSourceItem[];
+  ageStale: AgeStaleSourceItem[];
+  topicOnlyCited: TopicOnlyCitedItem[];
+}
+
+/** Parse a revisions.jsonl into rows. */
+function readRevisions(rawDir: string): Array<{ rev: number; content_sha: string; fetched_at: string; body_pruned?: boolean }> {
+  const path = join(rawDir, "revisions.jsonl");
+  if (!existsSync(path)) return [];
+  const out: Array<{ rev: number; content_sha: string; fetched_at: string; body_pruned?: boolean }> = [];
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    if (!line.trim()) continue;
+    try { out.push(JSON.parse(line)); } catch { /* skip malformed */ }
+  }
+  return out.sort((a, b) => a.rev - b.rev);
+}
+
+/** Read source.json for a raw archive. */
+function readSourceJson(rawDir: string): Record<string, unknown> | null {
+  const path = join(rawDir, "source.json");
+  if (!existsSync(path)) return null;
+  try { return JSON.parse(readFileSync(path, "utf8")); } catch { return null; }
+}
+
+/** Iterate all raw archive directories: yields { rawDir (abs), slug, host }. */
+function* walkRawArchives(repoRoot: string): Generator<{ rawDir: string; slug: string; host: string }> {
+  const rawRoot = join(repoRoot, "raw", "raindrop");
+  if (!existsSync(rawRoot)) return;
+  for (const host of readdirSync(rawRoot)) {
+    if (host.startsWith(".") || host.startsWith("_")) continue;
+    const hostDir = join(rawRoot, host);
+    let entries: string[];
+    try { entries = readdirSync(hostDir); } catch { continue; }
+    for (const slug of entries) {
+      const rawDir = join(hostDir, slug);
+      try { if (!statSync(rawDir).isDirectory()) continue; } catch { continue; }
+      yield { rawDir, slug, host };
+    }
+  }
+}
+
+/** Load Raindrop URL cache: returns the set of currently-bookmarked URLs (lowercased). */
+function loadRaindropUrlCache(repoRoot: string): Set<string> {
+  const path = join(repoRoot, ".wiki-raindrop-cache.json");
+  if (!existsSync(path)) return new Set();
+  try {
+    const data = JSON.parse(readFileSync(path, "utf8")) as { items?: Array<{ link?: string }> };
+    const out = new Set<string>();
+    for (const it of data.items ?? []) {
+      if (it.link) out.add(it.link.toLowerCase().trim());
+    }
+    return out;
+  } catch { return new Set(); }
+}
+
+/** Load sources-health-overrides.md and return pinned URLs by pin-kind. */
+function loadHealthOverrides(repoRoot: string): Map<string, string[]> {
+  const path = join(repoRoot, "Meta", "sources-health-overrides.md");
+  if (!existsSync(path)) return new Map();
+  const out = new Map<string, string[]>();
+  let content: string;
+  try { content = readFileSync(path, "utf8"); } catch { return new Map(); }
+  for (const line of content.split("\n")) {
+    const m = line.match(/^-\s+`([^`]+)`.*?pin-kind=([a-z-]+)/i);
+    if (!m) continue;
+    const slug = m[1].trim();
+    const kind = m[2].trim();
+    if (!out.has(kind)) out.set(kind, []);
+    out.get(kind)!.push(slug);
+  }
+  return out;
+}
+
+function ageDaysFrom(isoDate: string): number {
+  const t = Date.parse(isoDate);
+  if (isNaN(t)) return Number.POSITIVE_INFINITY;
+  return Math.floor((Date.now() - t) / (24 * 3600 * 1000));
+}
+
+function auditDrift(repoRoot: string, docs: Doc[], opts: { maxAgeDays?: number } = {}): DriftAudit {
+  const maxAgeDays = opts.maxAgeDays ?? 90;
+  const shaDrift: ShaDriftItem[] = [];
+  const deadUrls: DeadUrlItem[] = [];
+  const raindropDeleted: RaindropDeletedItem[] = [];
+  const headStale: HeadStaleItem[] = [];
+  const sourceOlderThanRaw: SourceOlderThanRawItem[] = [];
+
+  const raindropCache = loadRaindropUrlCache(repoRoot);
+  const overrides = loadHealthOverrides(repoRoot);
+  const deadLinkPinned = new Set(overrides.get("dead-link-accepted") ?? []);
+
+  // Index Sources by slug (the slug of a Source matches the raw-archive slug)
+  const sourceBySlug = new Map<string, Doc>();
+  for (const d of docs) {
+    if (!d.path.startsWith("Sources/")) continue;
+    sourceBySlug.set(d.slug, d);
+  }
+
+  for (const { rawDir, slug, host } of walkRawArchives(repoRoot)) {
+    const sourceJson = readSourceJson(rawDir);
+    const revs = readRevisions(rawDir);
+    const sourceDoc = sourceBySlug.get(slug);
+    const sourceUpdated = sourceDoc ? String(sourceDoc.frontmatter.updated ?? "") : "";
+    const sourceCreated = sourceDoc ? String(sourceDoc.frontmatter.created ?? "") : "";
+
+    // 1. SHA drift: content_sha changed across consecutive revs, but Source updated < newest rev fetched_at
+    if (revs.length >= 2 && sourceUpdated) {
+      for (let i = 1; i < revs.length; i++) {
+        const prev = revs[i - 1];
+        const curr = revs[i];
+        if (prev.body_pruned || curr.body_pruned) continue;
+        if (!prev.content_sha || !curr.content_sha) continue;
+        if (prev.content_sha === curr.content_sha) continue;
+        // drift detected; flag if Source updated < curr fetched_at
+        if (sourceUpdated < curr.fetched_at.slice(0, 10)) {
+          shaDrift.push({
+            slug, rawDir: rawDir.slice(repoRoot.length + 1),
+            oldSha: prev.content_sha.slice(0, 12), newSha: curr.content_sha.slice(0, 12),
+            sourceUpdated, latestRevAt: curr.fetched_at,
+          });
+          break;  // one entry per slug is enough
+        }
+      }
+    }
+
+    // 2. Dead URLs not yet pinned
+    const quality = sourceJson?.quality_flags as string[] | undefined;
+    if (quality && quality.includes("dead-link") && !deadLinkPinned.has(slug)) {
+      deadUrls.push({ slug, rawDir: rawDir.slice(repoRoot.length + 1), reason: "dead-link flag, no pin" });
+    }
+
+    // 3. Raindrop-deleted URLs
+    const url = String(sourceJson?.url ?? "").toLowerCase().trim();
+    if (url && raindropCache.size > 0 && !raindropCache.has(url)) {
+      raindropDeleted.push({ slug, rawDir: rawDir.slice(repoRoot.length + 1), url });
+    }
+
+    // 4. HEAD-check stale: upstream.last_checked_at much older than max
+    const lastChecked = String(((sourceJson?.upstream as Record<string, unknown> | undefined)?.last_checked_at) ?? "");
+    if (lastChecked && sourceCreated) {
+      const sourceAge = ageDaysFrom(sourceCreated);
+      const checkAge = ageDaysFrom(lastChecked);
+      if (sourceAge > maxAgeDays && checkAge > maxAgeDays) {
+        headStale.push({ slug, rawDir: rawDir.slice(repoRoot.length + 1), lastCheckedAt: lastChecked, ageDays: checkAge });
+      }
+    }
+
+    // 5. Source older than its cited raw archive (latest revision)
+    if (revs.length > 0 && sourceUpdated) {
+      const latestRev = revs[revs.length - 1];
+      if (latestRev.fetched_at && sourceUpdated < latestRev.fetched_at.slice(0, 10) && !sourceOlderThanRaw.some(s => s.slug === slug)) {
+        // Only flag if SHA actually changed since the Source was updated (the SHA drift check above)
+        // — otherwise this fires for every fetch even when content is identical, which is noise.
+        const lastBeforeUpdate = revs.findLast(r => r.fetched_at.slice(0, 10) <= sourceUpdated);
+        if (lastBeforeUpdate && lastBeforeUpdate.content_sha !== latestRev.content_sha) {
+          sourceOlderThanRaw.push({
+            slug, sourcePath: sourceDoc!.path, sourceUpdated,
+            rawDir: rawDir.slice(repoRoot.length + 1), rawUpdated: latestRev.fetched_at,
+          });
+        }
+      }
+    }
+  }
+
+  return { shaDrift, deadUrls, raindropDeleted, headStale, sourceOlderThanRaw };
+}
+
+function auditSources(docs: Doc[]): SourcesAudit {
+  const zeroWikilink: ZeroWikilinkSourceItem[] = [];
+  const tagOutliers: TagOutlierSourceItem[] = [];
+  const ageStale: AgeStaleSourceItem[] = [];
+  const topicOnlyCited: TopicOnlyCitedItem[] = [];
+
+  // Gather Source docs + their tag sets
+  const sources = docs.filter(d => d.path.startsWith("Sources/"));
+  const sourceBySlug = new Map<string, Doc>();
+  for (const s of sources) sourceBySlug.set(s.slug, s);
+
+  // Build tag → count
+  const tagCount = new Map<string, number>();
+  for (const s of sources) {
+    const tags = Array.isArray(s.frontmatter.tags) ? (s.frontmatter.tags as string[]) : [];
+    for (const t of tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+  }
+
+  for (const s of sources) {
+    // 0-wikilink
+    if (s.wikilinks.size === 0) {
+      zeroWikilink.push({ slug: s.slug, sourcePath: s.path });
+    }
+    // Tag outliers: every tag appears only once (in this Source)
+    const tags = Array.isArray(s.frontmatter.tags) ? (s.frontmatter.tags as string[]) : [];
+    if (tags.length > 0 && tags.every(t => (tagCount.get(t) ?? 0) === 1)) {
+      tagOutliers.push({ slug: s.slug, sourcePath: s.path, tags });
+    }
+    // Age-stale: created > 180 days ago
+    const created = String(s.frontmatter.created ?? "");
+    if (created) {
+      const age = ageDaysFrom(created);
+      if (age > 180) ageStale.push({ slug: s.slug, sourcePath: s.path, created, ageDays: age });
+    }
+  }
+
+  // Topic-only-cited: Source is wikilinked by a Topic but not by any Entity Observation
+  const entitiesCitingSource = new Map<string, Set<string>>();   // source slug → entity slugs
+  const topicsCitingSource = new Map<string, Set<string>>();
+  for (const d of docs) {
+    const isEntity = d.path.startsWith("Entities/");
+    const isTopic = d.path.startsWith("Topics/");
+    if (!isEntity && !isTopic) continue;
+    for (const link of d.wikilinks) {
+      if (!sourceBySlug.has(link)) continue;
+      const map = isEntity ? entitiesCitingSource : topicsCitingSource;
+      if (!map.has(link)) map.set(link, new Set());
+      map.get(link)!.add(d.slug);
+    }
+  }
+  for (const s of sources) {
+    const topics = topicsCitingSource.get(s.slug);
+    const entities = entitiesCitingSource.get(s.slug);
+    if (topics && topics.size > 0 && (!entities || entities.size === 0)) {
+      topicOnlyCited.push({ slug: s.slug, sourcePath: s.path, topicCiters: Array.from(topics).sort() });
+    }
+  }
+
+  return { zeroWikilink, tagOutliers, ageStale, topicOnlyCited };
+}
+
+// ---------------------------------------------------------------------------
 // Report rendering
 // ---------------------------------------------------------------------------
 
@@ -288,6 +545,8 @@ function renderMarkdown(scope: Scope, audit: {
   duplicates: DuplicateItem[];
   collisions: CollisionItem[];
   contradictions: ContradictionItem[];
+  drift?: DriftAudit;
+  sourcesAudit?: SourcesAudit;
 }): string {
   const date = new Date().toISOString().slice(0, 10);
   const lines: string[] = [`# Wiki health-check report — ${date}`, ""];
@@ -363,6 +622,90 @@ function renderMarkdown(scope: Scope, audit: {
     }
   }
 
+  if (scope === "drift" && audit.drift) {
+    const d = audit.drift;
+    lines.push(`## Raw-archive content-SHA drift (Source needs re-summarization): ${d.shaDrift.length}`, "");
+    if (d.shaDrift.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of d.shaDrift) {
+        lines.push(`- \`${i.slug}\` — old SHA \`${i.oldSha}\` → new \`${i.newSha}\` (latest fetch ${i.latestRevAt}, Source updated ${i.sourceUpdated})`);
+        lines.push(`  - action: re-read raw, update \`Sources/.../${i.slug}.md\` body + bump \`updated:\`.`);
+      }
+      lines.push("");
+    }
+
+    lines.push(`## Dead URLs not yet pinned: ${d.deadUrls.length}`, "");
+    if (d.deadUrls.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of d.deadUrls) lines.push(`- \`${i.slug}\` (${i.rawDir}) — ${i.reason}`);
+      lines.push("");
+      lines.push("If you want to keep the Source despite a dead upstream, pin in `Meta/sources-health-overrides.md` with `pin-kind=dead-link-accepted`.", "");
+    }
+
+    lines.push(`## Raindrop-deleted URLs (still in raw/, no longer in raindrop): ${d.raindropDeleted.length}`, "");
+    if (d.raindropDeleted.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of d.raindropDeleted) lines.push(`- \`${i.slug}\` — ${i.url}`);
+      lines.push("");
+      lines.push("Action: keep (if still valuable) or `hirono raindrop forget <slug>` to remove + skip-list.", "");
+    }
+
+    lines.push(`## HEAD-check stale (last upstream check older than 90d): ${d.headStale.length}`, "");
+    if (d.headStale.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of d.headStale) lines.push(`- \`${i.slug}\` — last checked ${i.lastCheckedAt} (${i.ageDays}d ago)`);
+      lines.push("");
+      lines.push("Action: `hirono raindrop sync --check-stale` to re-HEAD this batch.", "");
+    }
+
+    lines.push(`## Source older than its cited raw archive (content changed since Source was written): ${d.sourceOlderThanRaw.length}`, "");
+    if (d.sourceOlderThanRaw.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of d.sourceOlderThanRaw) {
+        lines.push(`- \`${i.slug}\` — Source updated ${i.sourceUpdated}, raw latest fetch ${i.rawUpdated}`);
+        lines.push(`  - action: re-read raw, update Source body.`);
+      }
+      lines.push("");
+    }
+  }
+
+  if (scope === "sources" && audit.sourcesAudit) {
+    const a = audit.sourcesAudit;
+    lines.push(`## Sources with 0 outgoing wikilinks: ${a.zeroWikilink.length}`, "");
+    if (a.zeroWikilink.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of a.zeroWikilink) lines.push(`- \`${i.slug}\` (${i.sourcePath}) — add Entity/Topic wikilinks during re-read.`);
+      lines.push("");
+    }
+
+    lines.push(`## Tag outliers (every tag unique to this Source): ${a.tagOutliers.length}`, "");
+    if (a.tagOutliers.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of a.tagOutliers) lines.push(`- \`${i.slug}\` — tags: ${i.tags.map(t => `\`${t}\``).join(", ")}`);
+      lines.push("");
+      lines.push("Action: review tags; either align to canonical vocabulary or accept as new vocabulary entry.", "");
+    }
+
+    lines.push(`## Age-stale Sources (created > 180d ago, candidate for re-read): ${a.ageStale.length}`, "");
+    if (a.ageStale.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of a.ageStale.slice(0, 20)) lines.push(`- \`${i.slug}\` — created ${i.created} (${i.ageDays}d ago)`);
+      if (a.ageStale.length > 20) lines.push(`  - …and ${a.ageStale.length - 20} more.`);
+      lines.push("");
+    }
+
+    lines.push(`## Sources cited only by Topics (no Entity Observations): ${a.topicOnlyCited.length}`, "");
+    if (a.topicOnlyCited.length === 0) lines.push("Clean.", "");
+    else {
+      for (const i of a.topicOnlyCited.slice(0, 20)) {
+        lines.push(`- \`${i.slug}\` — cited by Topics: ${i.topicCiters.map(t => `[[${t}]]`).join(", ")}`);
+      }
+      if (a.topicOnlyCited.length > 20) lines.push(`  - …and ${a.topicOnlyCited.length - 20} more.`);
+      lines.push("");
+      lines.push("Action: run `hirono auto-detect-entities <slug>` to pull entity references into the graph.", "");
+    }
+  }
+
   lines.push("---", "", `Generated by \`hirono health-check\`. Pure read-only — no files were modified.`);
   return lines.join("\n") + "\n";
 }
@@ -373,12 +716,18 @@ export function main(argv: string[]): void {
   const docs = loadDocs(repoRoot);
   const refs = computeRefs(docs);
 
+  // Default scopes (no drift/sources unless explicitly requested — those are expensive raw-archive scans)
+  const includeDrift = args.scope === "drift";
+  const includeSources = args.scope === "sources";
+
   const audit = {
-    orphans: auditOrphans(docs, refs),
-    stale: auditStaleSynthesis(docs),
-    duplicates: auditDuplicateEntities(docs, refs),
-    collisions: auditTopicCollisions(docs),
-    contradictions: auditContradictions(docs),
+    orphans: includeDrift || includeSources ? [] : auditOrphans(docs, refs),
+    stale: includeDrift || includeSources ? [] : auditStaleSynthesis(docs),
+    duplicates: includeDrift || includeSources ? [] : auditDuplicateEntities(docs, refs),
+    collisions: includeDrift || includeSources ? [] : auditTopicCollisions(docs),
+    contradictions: includeDrift || includeSources ? [] : auditContradictions(docs),
+    drift: includeDrift ? auditDrift(repoRoot, docs) : undefined,
+    sourcesAudit: includeSources ? auditSources(docs) : undefined,
   };
 
   let output: string;
@@ -389,7 +738,7 @@ export function main(argv: string[]): void {
   }
 
   if (args.writeReport) {
-    require("node:fs").writeFileSync(args.writeReport, output, "utf8");
+    writeFileSync(args.writeReport, output, "utf8");
     console.log(`✓ wrote report to ${args.writeReport}`);
   } else {
     process.stdout.write(output);
