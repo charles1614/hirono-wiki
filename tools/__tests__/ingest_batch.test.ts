@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -16,12 +16,15 @@ import {
 } from "../bin/ingest_batch.ts";
 
 function sandbox(opts: { withRawIndex?: boolean } = {}): {
-  paths: Paths; cleanup: () => void; candidatesFile: (c: unknown) => string; rawIndexFile: (entries: Record<string, unknown>) => void;
+  paths: Paths; cleanup: () => void; candidatesFile: (c: unknown) => string;
+  rawIndexFile: (entries: Record<string, unknown>) => void;
+  writeSkipsFile: (content: string) => void;
 } {
   const dir = mkdtempSync(join(tmpdir(), "ib-"));
   const paths: Paths = {
     state: join(dir, ".wiki-batch-state.json"),
     sourcesIndex: join(dir, ".wiki-sources-index.json"),
+    repoRoot: dir,
   };
   if (opts.withRawIndex) paths.rawIndex = join(dir, "_index.json");
   return {
@@ -34,6 +37,11 @@ function sandbox(opts: { withRawIndex?: boolean } = {}): {
     },
     rawIndexFile(entries) {
       writeFileSync(paths.rawIndex!, JSON.stringify({ version: 1, updated_at: "2026-05-09T00:00:00Z", slugs: entries }));
+    },
+    writeSkipsFile(content) {
+      const metaDir = join(dir, "Meta");
+      mkdirSync(metaDir, { recursive: true });
+      writeFileSync(join(metaDir, "sources-ingest-skips.md"), content);
     },
   };
 }
@@ -51,6 +59,26 @@ test("plan: adds new candidates as pending", () => {
     assert.equal(r.totalPending, 2);
     const next = cmdNext(5, s.paths);
     assert.deepEqual(next.map((e) => e.id).sort(), ["a", "b"]);
+  } finally { s.cleanup(); }
+});
+
+test("plan: skip-list excludes URLs in sources-ingest-skips.md", () => {
+  const s = sandbox();
+  try {
+    s.writeSkipsFile([
+      "## Entries",
+      "",
+      "- https://spam.example.com/bad — skip-reason=spam · noise URL",
+      "",
+    ].join("\n"));
+    const file = s.candidatesFile([
+      { id: "ok", url: "https://example.com/ok" },
+      { id: "blocked", url: "https://spam.example.com/bad" },
+    ]);
+    const r = cmdPlan(file, s.paths);
+    assert.equal(r.added, 1, "only ok candidate added");
+    assert.equal(r.skippedBySkipList, 1, "spam URL skipped by list");
+    assert.equal(r.totalPending, 1);
   } finally { s.cleanup(); }
 });
 

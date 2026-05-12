@@ -72,6 +72,8 @@ Top-level:
   refine-entity <name> [--response <p>] [--apply]
                                           regenerate ## Synthesis via Sonnet subagent
   refine-all-stale [--list]               batch-prepare refine prompts for stale Syntheses
+  delete-source <slug> [--keep-raw] [--force] [--reason]
+                                          atomic Source + raw archive removal (cleanup primitive)
 
 Wiki ingest + maintenance live in separate binaries (intentional layering):
   tools/bin/ingest_batch.ts  plan / next / start / mark-done / list
@@ -259,6 +261,12 @@ async function main(): Promise<void> {
 
   if (family === "refine-all-stale") {
     const { main } = await import("../hirono/refine-all-stale.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "delete-source") {
+    const { main } = await import("../hirono/delete-source.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }

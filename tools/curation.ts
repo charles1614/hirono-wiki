@@ -318,6 +318,60 @@ export function cleanupStaging(repoRoot: string, opId: string): void {
 }
 
 // ---------------------------------------------------------------------------
+// ingest skip-list
+// ---------------------------------------------------------------------------
+
+export interface SkipEntry {
+  /** The URL or slug pattern that should be skipped. */
+  key: string;
+  /** Skip reason code: spam | duplicate | deprecated | bookmarked-by-mistake | other. */
+  reason: string;
+  /** Free-text rationale appended after the reason. */
+  rationale: string;
+}
+
+/**
+ * Parse `Meta/sources-ingest-skips.md` into a list of skip entries.
+ *
+ * Format (one entry per line, under any `## ` heading):
+ *   - <URL or slug> — skip-reason=<spam|duplicate|deprecated|bookmarked-by-mistake|other> · <free text>
+ *
+ * The arrow is an em-dash (`—`, U+2014); ASCII `--` is also accepted.
+ *
+ * Returns an empty list if the file doesn't exist. Operators populate
+ * via `hirono raindrop forget <url>` or by hand-editing.
+ *
+ * **This is the last-resort skip mechanism, NOT the default for off-topic
+ * content.** Karpathy's wiki ingests every URL in raw/; the curation gate
+ * is at the Raindrop-bookmark layer. Skip-list is reserved for known-spam,
+ * permanently-deprecated, or duplicate-URL situations.
+ */
+export function loadIngestSkips(repoRoot: string): SkipEntry[] {
+  const path = join(repoRoot, "Meta", "sources-ingest-skips.md");
+  let content: string;
+  try { content = readFileSync(path, "utf8"); } catch { return []; }
+  const out: SkipEntry[] = [];
+  for (const line of content.split("\n")) {
+    const m = line.match(/^-\s+(.+?)\s+(?:—|--)\s+skip-reason=([a-z-]+)(?:\s+·\s+(.*))?$/);
+    if (!m) continue;
+    out.push({ key: m[1].trim(), reason: m[2].trim(), rationale: (m[3] ?? "").trim() });
+  }
+  return out;
+}
+
+/** Return true if the URL or slug matches any skip-list entry. */
+export function isInSkipList(urlOrSlug: string, entries: SkipEntry[]): SkipEntry | null {
+  const normalized = urlOrSlug.toLowerCase().trim();
+  for (const e of entries) {
+    const k = e.key.toLowerCase().trim();
+    if (k === normalized) return e;
+    // Trailing-slash insensitive
+    if (k.replace(/\/$/, "") === normalized.replace(/\/$/, "")) return e;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // entity aliases
 // ---------------------------------------------------------------------------
 

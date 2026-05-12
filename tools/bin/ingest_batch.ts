@@ -58,6 +58,7 @@ import { normalizeUrl, readSourceIndexStrict, type SourceIndex } from "./build-s
 import { writeFileAtomic } from "../shared/atomic-write.ts";
 import { unwrapShareUrl } from "../sites/_shared/url-unwrap.ts";
 import type { RawIndexEntry } from "../fetch-raw.ts";
+import { loadIngestSkips, isInSkipList, type SkipEntry } from "../curation.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 // Wiki root: THIS_FILE is at `tools/bin/ingest_batch.ts`, so
@@ -79,12 +80,18 @@ export interface Paths {
    * undefined and use a temp dir without an index file.
    */
   rawIndex?: string;
+  /**
+   * Repo root for resolving `Meta/sources-ingest-skips.md`. Optional;
+   * defaults to the wiki root computed from this file's location.
+   */
+  repoRoot?: string;
 }
 
 const defaultPaths: Paths = {
   state: DEFAULT_STATE_PATH,
   sourcesIndex: DEFAULT_SOURCES_INDEX_PATH,
   rawIndex: DEFAULT_RAW_INDEX_PATH,
+  repoRoot: REPO_ROOT,
 };
 
 // ---------------------------------------------------------------------------
@@ -196,6 +203,11 @@ export interface PlanResult {
    * the raw extraction first (or override) before these can be ingested.
    */
   skippedFlagged: number;
+  /**
+   * Candidates rejected because their URL is in
+   * `Meta/sources-ingest-skips.md`. Operator-permanent exclusion.
+   */
+  skippedBySkipList: number;
   totalPending: number;
 }
 
@@ -245,9 +257,13 @@ export function cmdPlan(
   }
 
   const result: PlanResult = {
-    added: 0, dedupedByUrl: 0, dedupedById: 0, skippedDone: 0, skippedFlagged: 0, totalPending: 0,
+    added: 0, dedupedByUrl: 0, dedupedById: 0, skippedDone: 0, skippedFlagged: 0,
+    skippedBySkipList: 0, totalPending: 0,
   };
   const now = new Date().toISOString();
+
+  // Skip-list: load once. Operator-curated permanent-exclusion list.
+  const skipEntries = paths.repoRoot ? loadIngestSkips(paths.repoRoot) : [];
 
   for (const c of candidates) {
     if (!c.id || !c.url) {
@@ -267,6 +283,18 @@ export function cmdPlan(
       }
       result.dedupedById++;
       continue;
+    }
+    // Skip-list gate: operator-permanent exclusion via Meta/sources-ingest-skips.md.
+    if (skipEntries.length > 0) {
+      const matched = isInSkipList(c.url, skipEntries) ?? isInSkipList(c.id, skipEntries);
+      if (matched) {
+        console.warn(
+          `[plan] skip ${c.id}: in sources-ingest-skips.md ` +
+          `(reason=${matched.reason}${matched.rationale ? ` · ${matched.rationale}` : ""})`,
+        );
+        result.skippedBySkipList++;
+        continue;
+      }
     }
     // Quality gate: refuse non-good raw slugs unless --allow-flagged.
     // A missing entry (URL not in `_index.json`) means the slug hasn't
@@ -412,6 +440,9 @@ function main(): void {
         `skipped ${r.dedupedByUrl} already-ingested, ${r.dedupedById} already-in-batch, ${r.skippedDone} already-done` +
         (r.skippedFlagged > 0
           ? `, ${r.skippedFlagged} flagged (use --allow-flagged to override)`
+          : "") +
+        (r.skippedBySkipList > 0
+          ? `, ${r.skippedBySkipList} in skip-list`
           : ""),
       );
       break;

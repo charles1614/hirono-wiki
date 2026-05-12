@@ -7,7 +7,9 @@ import {
   applyAtomically,
   appendLogEntry,
   cleanupStaging,
+  isInSkipList,
   loadEntityAliases,
+  loadIngestSkips,
   mergeObservationBlocks,
   normalizeEntityName,
   reverseCitationIndex,
@@ -341,4 +343,68 @@ test("normalizeEntityName: maps variant to canonical", () => {
 test("normalizeEntityName: returns name unchanged when no alias", () => {
   const aliases = new Map([["LLaMA", "Llama"]]);
   assert.equal(normalizeEntityName("FlashAttention", aliases), "FlashAttention");
+});
+
+// ---------------------------------------------------------------------------
+// loadIngestSkips + isInSkipList
+// ---------------------------------------------------------------------------
+
+test("loadIngestSkips: returns empty list when file missing", () => {
+  const root = makeRepo();
+  try {
+    assert.equal(loadIngestSkips(root).length, 0);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("loadIngestSkips: parses em-dash entries with skip-reason", () => {
+  const root = makeRepo();
+  try {
+    writeFile(root, "Meta/sources-ingest-skips.md", [
+      "# Skips",
+      "",
+      "## Entries",
+      "",
+      "- https://spam.example.com/a — skip-reason=spam · recurring spam",
+      "- https://b.example.com — skip-reason=duplicate · canonical at https://c.example.com",
+      "- 2026-04-23-hsbc-slug — skip-reason=bookmarked-by-mistake · off-topic banking",
+      "",
+    ].join("\n"));
+    const skips = loadIngestSkips(root);
+    assert.equal(skips.length, 3);
+    assert.equal(skips[0].reason, "spam");
+    assert.equal(skips[0].rationale, "recurring spam");
+    assert.equal(skips[1].reason, "duplicate");
+    assert.equal(skips[2].key, "2026-04-23-hsbc-slug");
+    assert.equal(skips[2].reason, "bookmarked-by-mistake");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("loadIngestSkips: accepts ASCII -- arrow", () => {
+  const root = makeRepo();
+  try {
+    writeFile(root, "Meta/sources-ingest-skips.md", [
+      "## Entries", "",
+      "- https://x.example.com -- skip-reason=spam · whatever",
+      "",
+    ].join("\n"));
+    const skips = loadIngestSkips(root);
+    assert.equal(skips.length, 1);
+    assert.equal(skips[0].key, "https://x.example.com");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("isInSkipList: exact match", () => {
+  const skips = [
+    { key: "https://spam.example.com", reason: "spam", rationale: "" },
+    { key: "2026-04-23-foo", reason: "bookmarked-by-mistake", rationale: "" },
+  ];
+  assert.equal(isInSkipList("https://spam.example.com", skips)?.reason, "spam");
+  assert.equal(isInSkipList("2026-04-23-foo", skips)?.reason, "bookmarked-by-mistake");
+  assert.equal(isInSkipList("https://ok.example.com", skips), null);
+});
+
+test("isInSkipList: case-insensitive + trailing-slash tolerant", () => {
+  const skips = [{ key: "https://spam.example.com/", reason: "spam", rationale: "" }];
+  assert.equal(isInSkipList("HTTPS://SPAM.example.com", skips)?.reason, "spam");
+  assert.equal(isInSkipList("https://spam.example.com", skips)?.reason, "spam");
 });
