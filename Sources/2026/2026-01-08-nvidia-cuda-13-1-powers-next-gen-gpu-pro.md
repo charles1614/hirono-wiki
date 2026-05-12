@@ -37,6 +37,8 @@ The concrete UX for Tile-kernel optimization. Without this, "Nsight supports Til
 
 - **`developer-nvidia-img-001.webp` / `*-003.webp` / `*-004.webp` / `*-005.webp`** (supporting): decorative diagrams illustrating CUDA Tile concepts. The Nsight screenshot above carries the load-bearing content.
 
+*No load-bearing images — only the Nsight screenshot above qualifies; the remaining 4 are decorative concept-illustration diagrams.*
+
 ## Entities touched
 
 [[CUDA]], [[CUDA Tile]], [[cuTile Python]], [[CUDA Tile IR]], [[Nsight Compute]], [[Compute Sanitizer]], [[Green Contexts]], [[MLOPart]], [[MPS]], [[cuBLAS]], [[Ampere]], [[Hopper]], [[Blackwell]], [[B200]], [[B300]], [[GB200]], [[RTX PRO 6000]], [[NVIDIA]]

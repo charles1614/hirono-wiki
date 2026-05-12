@@ -472,15 +472,23 @@ export function checkSourceImageCount(docs: DocMeta[], repoRoot: string): Issue[
     try { bodyChars = statSync(contentMd).size; } catch { /* slug has no content.md; raw-orphan handles */ }
     const { trigger, reasons } = shouldExtractImages(slugDir, bodyChars);
     if (!trigger) continue;
+    // Count image files available in raw archive (excludes content.md / source.json / etc.).
+    let imgCount = 0;
+    try {
+      imgCount = readdirSync(slugDir).filter((f) => /\.(png|jpe?g|webp|gif|bmp|tiff?|svg)$/i.test(f)).length;
+    } catch { /* leave imgCount = 0 */ }
     const refCount = extractLocalImageRefs(doc.body).length;
     const hasRationale = NO_LOADBEARING_RATIONALE_RE.test(doc.body);
-    if (refCount < 2 && !hasRationale) {
+    // Required refs cap: "2-5 images" only applies when raw has ≥ 2 images to pick from.
+    // If raw has only 1 image, 1 ref is the max possible; 0 refs still needs a rationale.
+    const requiredMinRefs = Math.min(2, imgCount);
+    if (refCount < requiredMinRefs && !hasRationale) {
       issues.push({
         kind: "source-image-count",
         severity: "warn",
         path: doc.repo_path,
-        detail: `raw archive shows load-bearing-image signals (${reasons.join("; ")}) but Source references ${refCount} image(s) and has no rationale line`,
-        hint: `Add 2-5 ![](../../raw/...) refs to ## Visual observations, OR add a "*No load-bearing images — <reason>.*" line per Meta/schema.md`,
+        detail: `raw archive shows load-bearing-image signals (${reasons.join("; ")}; img_count=${imgCount}) but Source references ${refCount} image(s) and has no rationale line`,
+        hint: `Add ${requiredMinRefs === 1 ? "1" : "2-5"} ![](../../raw/...) refs to ## Visual observations, OR add a "*No load-bearing images — <reason>.*" line per Meta/schema.md`,
       });
     } else if (refCount > 5) {
       issues.push({

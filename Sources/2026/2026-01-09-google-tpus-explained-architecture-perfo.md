@@ -54,7 +54,9 @@ IntuitionLabs technical report (Dec 19 2025, revised Apr 17 2026, 16 pp, 35-min 
 
 ## Visual observations
 
-*Source PDF has no load-bearing figures.* Marker extracted 14 tiny (138×38 px / 1.8 KB) JPEGs that are decorative — IntuitionLabs's logo/branding repeated per page, not actual figures. The report's substance lives entirely in the cross-generation Table 1 (TPU generations summary) and Table 2 (performance comparisons) — both transcribed into the Key Claims above. For the corresponding visual artifacts published by Google directly (FP8-perf bar chart, side-by-side TPU spec card, perf/W bar chart), see [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]].
+*No load-bearing images — all panels decorative (logos, badges, photos).*
+
+Marker extracted 14 tiny (138×38 px / 1.8 KB) JPEGs from the PDF — IntuitionLabs's per-page logo/branding strip repeated 14 times, not actual figures. The report's substance lives entirely in the cross-generation Table 1 (TPU generations summary) and Table 2 (performance comparisons) — both transcribed into the Key claims above. For the corresponding visual artifacts published by Google directly (FP8-perf bar chart, side-by-side TPU spec card, perf/W bar chart), see [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]].
 
 ## What this changes
 

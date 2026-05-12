@@ -36,6 +36,12 @@ tags: [inference, minimal-impl, tooling]
 - **Installation**: pip-installable directly from the GitHub repo (`pip install git+https://github.com/GeeeekExplorer/nano-vllm.git`). No PyPI publication, no Docker.
 - **The benchmark caveat**: 0.6B model on a laptop GPU is a narrow regime. Production vLLM's optimizations (chunked prefill, speculative decoding, scheduler refinements, NIXL connector, etc.) are designed for 70B+ on H100/B200 clusters where the throughput-vs-latency tradeoff space is much richer. Nano-vLLM doesn't claim to win there — it claims to *teach* the core, and to be unexpectedly close in throughput at small scale.
 
+## Visual observations
+
+*No load-bearing images — all panels decorative (logos, badges, photos).*
+
+2 images in raw: a "GitHub Trending #2 Repository of the Day" badge SVG and the repo logo PNG. Both are decorative; the README has no architecture diagrams, charts, or technical figures.
+
 ## Entities touched
 
 [[vLLM]], [[Qwen]], [[PagedAttention]], [[Torch Compile]], [[CUDA Graph]]

@@ -29,6 +29,12 @@ NVIDIA's official deployment guide for serving **gpt-oss-120b** on [[TensorRT-LL
 - **trtllm-bench → trtllm-serve translation** is mechanical: benchmark commands map 1:1 to serve commands (same `--tp`, `--ep`, `--max_batch_size`, `--config`).
 - **Operator gotchas** the post calls out: OOM → reduce `--max_batch_size` / `--max_num_tokens` / `--kv_cache_free_gpu_memory_fraction` (default 0.9); per-iteration debug via `print_iter_log: true` in extra-LLM-API YAML; container startup failure → check NVIDIA Container Toolkit; port 8000 conflicts → `--port` override.
 
+## Visual observations
+
+*No load-bearing images — source has no images.*
+
+This is a github docs markdown page (`docs/source/blogs/tech_blog/blog9_...md`) — pure text content. No figures, charts, or screenshots; YAML configs and tabular benchmark numbers are inlined in the prose and already extracted into Key claims.
+
 ## What this changes
 
 - For someone evaluating Blackwell economics: the **20k tps/gpu × 72 GPUs ≈ 1.5M tps/system** is the headline GB200 NVL72 inference number for a frontier MoE OSS model. Concrete benchmark to cite when comparing accelerator-class economics (cf. [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] for H100 baseline).

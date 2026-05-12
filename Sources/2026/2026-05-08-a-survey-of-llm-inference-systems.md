@@ -31,6 +31,12 @@ Survey paper (James Pan + Guoliang Li, arXiv:2506.21901 v1, Jun 27 2025, 25pp) �
 - **Serverless on shared hardware** is covered separately — recognizing that serverless inference (per-request billing on shared accelerators) is a distinct design point from dedicated single/multi-replica deployments.
 - **Open challenges** discussed at end of survey (not detailed in abstract; would be the most valuable section to read in full).
 
+## Visual observations
+
+*No load-bearing images — figures inline-captioned in raw, no standalone images.*
+
+arxiv abstract; the survey's PDF (with taxonomy diagrams + technique-comparison tables) was not pulled into the raw archive at fetch time. For full-figure access, re-fetch from `arxiv.org/pdf/2506.21901` as a separate ingest pass.
+
 ## What this changes
 
 - **As a reference**: when discussing a new inference technique, having a single citation that covers the landscape (rather than 30+ paper-by-paper refs) is invaluable. This survey takes that role for 2025.
