@@ -69,6 +69,9 @@ Top-level:
   health-check [--scope <s>]              read-only LLM-judgment audit
   auto-detect-entities <slug> [--response <p>] [--apply]
                                           LLM-NER entity extractor for a Source
+  refine-entity <name> [--response <p>] [--apply]
+                                          regenerate ## Synthesis via Sonnet subagent
+  refine-all-stale [--list]               batch-prepare refine prompts for stale Syntheses
 
 Wiki ingest + maintenance live in separate binaries (intentional layering):
   tools/bin/ingest_batch.ts  plan / next / start / mark-done / list
@@ -244,6 +247,18 @@ async function main(): Promise<void> {
 
   if (family === "auto-detect-entities") {
     const { main } = await import("../hirono/auto-detect-entities.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "refine-entity") {
+    const { main } = await import("../hirono/refine-entity.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "refine-all-stale") {
+    const { main } = await import("../hirono/refine-all-stale.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }
