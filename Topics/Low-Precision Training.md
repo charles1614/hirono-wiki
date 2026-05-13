@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: topic
 source_count: 3
 ---
@@ -13,28 +14,17 @@ Pretraining and continued-pretraining of foundation models in narrow numeric for
 
 ## Current understanding
 
-**The headline result**: NVFP4 ([[2026-02-04-pretraining-large-language-models-with-n]], 89-author NVIDIA paper Sep 2025 / v2 Mar 2026) demonstrates **the first publicly documented 12B-parameter LLM pretrained on 10 trillion tokens in 4-bit precision matching FP8 quality**. This is the longest 4-bit pretraining run ever published and the existence proof that justifies Blackwell's native FP4 silicon investment.
+The frontier of low-precision training has moved decisively from FP8 to **FP4** as the 2025–2026 research target. The headline existence proof is NVIDIA's 89-author paper [[2026-02-04-pretraining-large-language-models-with-n]]: a 12B-parameter LLM trained on 10 trillion tokens in **NVFP4** matches FP8 training loss and downstream accuracy — the longest 4-bit pretraining run publicly documented and the technical backbone for Blackwell's native FP4 silicon investment.
 
-**The four-ingredient recipe** for stable FP4 training:
+**Stable FP4 training requires four co-design ingredients**, all of which are absent in naive quantization: (1) **Random Hadamard transforms (RHT)** applied per-block to suppress heavy-tail outliers before block-scale quantization; (2) a **2-D quantization scheme** that keeps forward and backward representations consistent (matmul transposes break naive FP4 schemes on the backward path); (3) **stochastic rounding** for gradient updates to preserve unbiased expected values across millions of steps (deterministic rounding accumulates boundary bias); and (4) **selective high-precision retention** of stability-critical operators — embedding, layer-norm, and final softmax in FP8 or BF16. The stability problem is qualitatively harder than inference-only quantization: the loss-landscape traversal itself happens in the narrow format, so gradient corruption or outlier blow-up directly degrades convergence.
 
-1. **Random Hadamard transforms (RHT)** applied per-block to bound outliers. The Hadamard matrix mixes block elements so heavy-tail mass spreads, making block-scale FP4 quantization accurate.
-2. **2-D quantization scheme** for forward/backward consistency. Prior FP4 schemes worked forward-only because matmul transposes change the scale structure on the backward path.
-3. **Stochastic rounding** for gradient updates — preserves expected value across millions of steps. Deterministic rounding biases gradients near the quantization boundary; bias accumulates.
-4. **Selective high-precision layers** — strategic FP8/BF16 retention for the stability-critical operators (embedding, layer-norm, final softmax).
+**FP8 → FP4 is the standard tensor-core density doubling step**, mirroring the earlier FP16 → FP8 transition on Hopper. The HKUST microbenchmark study [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] documents that Hopper's FP8 was already the qualitative LLM-training jump over prior precisions — but also exposes that the **Transformer Engine FP8 path is not end-to-end**: `te.Linear` is fully FP8-quantized, but Softmax and GeLU remain BF16 (data-format-conversion overhead), and `te.DotProductAttention` bypasses FP8 Tensor Cores entirely via FlashAttention. The practical headline is that 2× FP8-vs-FP16 speedups are achievable only on linear-dominated workloads, not generically across a Transformer layer. Whether 2025/2026 Transformer Engine versions have closed these gaps is an open question.
 
-**FP8 → FP4 is the standard density doubling on Tensor-Core hardware**. Hopper's FP8 ([[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] HKUST microbench) is the qualitative LLM-acceleration jump from prior Tensor-Core precisions (FP16 → BF16/TF32 → FP8). Blackwell's FP4 ([[NVFP4]] specifically; distinct from generic E2M1 because of NVIDIA's block-scale + scale-factor encoding) is the next doubling. **Native FP8 on Ironwood** ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) closes the TPU side: TPU v4/v5p emulated FP8; Ironwood is native.
+On the **TPU side**, Google's Ironwood ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) establishes that FP8 is now native on v7 — v4 and v5p emulated FP8 at a performance tax. The significance for this topic: Ironwood's native FP8 closes the TPU-side gap just as Blackwell introduces native FP4. Google's positioning (perf/watt via vertical-stack integration) contrasts with NVIDIA's throughput-density story (FP4 doubles effective Blackwell throughput at FP8-quality), but both chip families are converging on narrower formats as the primary lever for training and inference economics.
 
-**The competitive framing**:
-- Google's positioning ([[Accelerator Economics]] Topic): perf-per-watt via vertical-stack integration; Ironwood as the inference-first chip.
-- NVIDIA's counter: NVFP4 doubles effective Blackwell throughput at FP8-equivalent quality. The 89-author paper is the technical backbone of the cap-ex argument.
+**Where sources agree**: block-scale quantization + RHT + stochastic rounding is the emerging recipe for sub-FP8 training stability; hardware-native support for the target precision is load-bearing (software emulation incurs a real tax, as HKUST quantifies for TE FP8); and the transition from FP8 to FP4 in hardware mirrors the prior FP16 → FP8 arc.
 
-**HKUST microbenchmark caveats** on FP8 in practice ([[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]): Transformer Engine's FP8 path is **not end-to-end** — `te.Linear` is fully FP8-quantized but Softmax/GeLU stay BF16 (data-format-conversion overhead), and `te.DotProductAttention` bypasses FP8 TC entirely. The headline 2× FP8-vs-FP16 speedup is achievable only on linear-dominated workloads. Whether these limits still hold in 2025/2026 TE versions is an open thread.
-
-**Open threads** (active across this Topic):
-- NVFP4 stability at 70B/405B model scale and >10T-token horizons — outlier behavior in attention QK projections gets worse at scale; published validation is at 12B / 10T.
-- Wall-clock NVFP4 training speedup vs FP8 on B200 — paper reports theoretical throughput; real wall-clock is the load-bearing number for cap-ex planning.
-- Unified NVFP4 training + inference story emerging? FP4 inference already shipped in TRTLLM and vLLM FP8/INT4 paths; pretraining-with-quality-parity is the qualitatively bigger claim.
-
+**Where the record is incomplete**: the NVFP4 result is validated at 12B / 10T only — outlier behavior in attention QK projections worsens at scale, and the paper's stability claims have not been reproduced at 70B or 405B parameters. Wall-clock training speedup of NVFP4 vs FP8 on B200 hardware is unreported (the paper quantifies theoretical throughput); that number is the load-bearing input for cap-ex planning. The TE limitations documented by HKUST may have been partially addressed in more recent TE releases, but no corpus source confirms this.
 
 ## Open threads
 

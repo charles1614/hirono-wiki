@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: topic
 source_count: 1
 ---
@@ -13,7 +14,19 @@ source_count: 1
 
 ## Current understanding
 
-*Synthesis pending. See Sources drawn on below.*
+Large-scale LLM training distributes work across thousands of GPUs using a combination of parallelism axes: **Tensor Parallelism (TP)** splits individual weight matrices across devices, **Pipeline Parallelism (PP)** stages model layers across device groups, **Data Parallelism (DP)** replicates the model and shards the data batch, **Context Parallelism (CP)** shards the sequence dimension for long-context training, and **Expert Parallelism (EP)** distributes MoE expert weights across devices. A 5-D hybrid parallel configuration combines all five: `TP × EP × CP × DP × PP`.
+
+The central design question is how to assign each axis to each layer type. The naive approach uses a single uniform parallelism mapping for the entire model — every layer, whether attention or MoE FFN, is placed into the same group structure. This is suboptimal because attention and MoE layers have fundamentally different compute and communication profiles: attention is whole-sequence dense and benefits from TP and CP, while MoE is per-token sparse and benefits most from EP (which routes tokens to the relevant expert shards) rather than ETP (Expert Tensor Parallelism, which shards each expert's weights and incurs high AllReduce cost). [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+
+The classical constraint compounded the problem: prior frameworks nested the EP group as a sub-group of DP, so `max(EP) ≤ DP`. This ceiling limits expert parallelism at exactly the scale where more EP would be most valuable — when training large MoE models across 512+ GPUs with many experts. [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+
+**MoE Parallel Folding** (NVIDIA / Megatron-Core, arXiv:2504.14960) removes both constraints. The construction defines two independent 4-D parallelism groups per model: an attention group (`TP × CP × DP × PP`) and a MoE group (`TP × EP × DP × PP`, where TP here is ETP and DP here is EDP). The only invariant is that PP group shape must match between the two — everything else is decoupled. This allows the attention layers to be assigned full TP+CP while the MoE layers use EP instead of ETP, replacing expensive AllReduce with cheaper AllToAll, and fitting intra-layer communication within high-bandwidth intra-node networks (NVLink) rather than crossing slower inter-node links. [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+
+The systems load-bearing component is a **flexible token-level dispatcher** that handles both token-dropping (Switch Transformer-style, with capacity factor `CF · L / E`) and token-dropless (Megablocks-style) routing under arbitrary parallelism combinations. Token count per rank varies dynamically with routing decisions, so the dispatcher must support dynamic tensor shapes — a non-trivial requirement when the parallelism mapping is heterogeneous. The EP communication flow is three-stage: AllToAll dispatch → expert FFN computation (no communication) → inverse permutation restore. [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+
+Results on H100: **49.3% MFU on Mixtral 8×22B** and **39.0% MFU on Qwen2-57B-A14B** at up to 1,024 GPUs and 128K sequence length, with loss curves matching vanilla Megatron-Core throughout training (quality is preserved). The technique ships in [NVIDIA/Megatron-LM](https://github.com/NVIDIA/Megatron-LM) (Megatron-Core), making it an immediately adoptable production recipe rather than a theoretical result. [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+
+The generalizable principle beyond MoE: **heterogeneous parallelism mappings between layer types** is the right design primitive for any architecture with structurally dissimilar layers — multimodal models, MoD-MoE hybrids, speech-language systems. The EP-degree ceiling (`max(EP) ≤ DP`) was a real-world constraint that MoE Parallel Folding removes; teams sizing TP/EP/DP allocations at 512+ GPU scale no longer need to budget EP within the DP limit.
 
 ## Open threads
 

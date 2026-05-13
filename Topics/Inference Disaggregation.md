@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: topic
 source_count: 7
 ---
@@ -13,24 +14,19 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 
 ## Current understanding
 
-**Disaggregation is NOT a universal speedup** ([[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]], the 100k-design-point NVIDIA study). The wins are concentrated in:
+**Disaggregation is not a universal speedup** — this is the sharpest consensus across the corpus. The NVIDIA systematic study ([[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]) simulated hundreds of thousands of design points and found the wins are concentrated: **prefill-heavy traffic** (ISL >> OSL) and **larger models** (>10B parameters) benefit substantially; small-model, decode-heavy, or relaxed-latency-only workloads see little advantage over well-tuned piggybacked co-located serving (continuous batching + context chunking). The Pan+Li survey ([[2026-05-08-a-survey-of-llm-inference-systems]]) treats disaggregated inference as a first-class architecture in the system-composition taxonomy alongside single-replica, multi-replica, and serverless — confirming it's no longer a research curiosity.
 
-- **Prefill-heavy traffic** (ISL >> OSL) — when decode-optimized mappings would otherwise tank prefill throughput.
-- **Larger models** (>10B params) — more GPUs → richer parallelism search space → more value in choosing distinct prefill vs decode mappings.
-- **Larger NVLink domains** — bigger intra-node fabric widens the EP/TP options for the decode pool.
+**The architectural premise** is that prefill (context processing, FTL-governed: math-heavy, bursty) and decode (generation, TTL-governed: bandwidth-heavy, steady) have fundamentally different resource profiles. Co-locating them forces a single GPU mapping to optimize both simultaneously. Disaggregation lets each pool choose its own parallelism strategy — prefill pools can optimize tensor/expert parallelism for throughput-under-latency; decode pools can pursue aggressive TP freed from the prefill balancing constraint (Llama-3.1-70B's decode TP scales from 2× to 64× as TTL tightens).
 
-**Where it doesn't help much**: small models, generation-heavy traffic, relaxed-latency-only deployments. Piggybacked co-located serving (in-flight batching + context chunking) is competitive there.
+**The load-bearing system primitive is dynamic rate matching** — the Ctx:Gen GPU ratio. A fixed ratio is Pareto-suboptimal across latency regimes: a 3.5 ratio wins at relaxed latency but degrades sharply as TTL tightens; a 0.5 ratio is the inverse. Any production disaggregated deployment must adapt this ratio at runtime. This is [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]'s most actionable finding — a disaggregated system that pins its Ctx:Gen split statically is leaving substantial performance on the table.
 
-**The load-bearing system primitive** is **dynamic rate matching** — the Ctx:Gen GPU ratio. A static ratio is Pareto-suboptimal across latency regimes (Beyond-the-Buzz's Fig 10: ratio=3.5 wins at relaxed latency but tanks at tight; ratio=0.5 is the inverse). Any production disagg system must adapt the ratio at runtime.
+**KV cache transfer bandwidth is not the bottleneck.** The analytical math in the NVIDIA paper (egress and ingress equations as functions of ISL, OSL, FTL, TTL) shows existing provisioned datacenter bandwidth is sufficient across realistic SLAs. Egress bandwidth requirements actually drop as ISL grows (because FTL scales superlinearly via attention's quadratic cost while KV size scales linearly). The "disagg is bandwidth-bound" hypothesis is debunked.
 
-**KV-cache transfer bandwidth is NOT the bottleneck**. The analytical math (egress / ingress equations) shows existing provisioned datacenter bandwidth is sufficient across realistic SLAs. The "disagg is bandwidth-bound" hypothesis is debunked. The remaining transfer concerns are observability ([[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] surfaces NIXL KV-transfer metrics to Prometheus via the generalized `KVConnectorStats` abstraction — without that visibility, PD-disagg deployments operate with a data-plane blind spot).
+**Chunked Pipeline Parallelism (CPP)** is the prefill-side technique for hitting FTL SLAs without forcing wide tensor parallelism: split input sequences into chunks, process each using prior-chunk KV (but not prior outputs), and overlap layer-N of new chunks with layer-(N+1) of old chunks via PP. Effective on DeepSeek-R1 at ISL=256K on 64 GPUs (EP × PP = 64). One MLA-specific complication: prefill chunking with multi-latent attention causes redundant down/up-projection per chunk — proposed mitigation is caching up-projected KV from earlier chunks.
 
-**Chunked Pipeline Parallelism (CPP)** is the prefill-side trick — split input sequences into chunks, process each using prior-chunk KV but not prior outputs, overlap layer-N of new chunks with layer-(N+1) of old chunks. Reduces FTL without forcing wide TP. Demonstrated effective on DeepSeek-R1 at ISL=256K on 64 GPUs (EP × PP = 64).
+**Observability for disaggregated deployments is now a distinct engineering concern**, and the two major frameworks are taking different shapes. SGLang ([[2025-11-17-feature-sglang-tracing-fine-grained-trac]]) goes **OpenTelemetry-spans-first** — PD-disaggregation (mini-LB, prefill nodes, decode nodes) is a first-class case in the tracing design, with Jaeger/Zipkin for request-centric views and Perfetto for thread-centric views; a notable implementation challenge was adapting OTel's single-context model to continuous batching's multi-request interleaving. vLLM ([[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]]) goes **Prometheus-metrics-first** — PR #26811 exposed KV-transfer metrics (sizes, durations, counts) via a generalized `KVConnectorStats` abstraction, so NIXL and future KV backends plug into the same dashboard story. Before this, PD-disagg vLLM deployments had no visibility into the data-plane KV transfer path.
 
-**MLA-specific overhead** in piggybacked co-located serving: prefill chunking causes redundant down/up-projection of multi-latent attention per chunk. Proposed mitigation: cache up-projected KV from earlier chunks. ([[Attention Kernels]] cross-reference: FlashMLA's seesaw schedule addresses the kernel-level half; the cache mitigation is the framework-level half.)
-
-**Observability for disagg** is splitting into two stacks: SGLang ([[2025-11-17-feature-sglang-tracing-fine-grained-trac]]) goes OpenTelemetry-spans-first with PD-disaggregation as a first-class case (mini-LB, prefill, decode all traced); vLLM ([[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]]) goes Prometheus-metrics-first. The Pan+Li survey ([[2026-05-08-a-survey-of-llm-inference-systems]]) treats disaggregation as a first-class architecture in the system-composition taxonomy.
-
+**Architecture sensitivity is non-trivial**: the boundary where disaggregation wins moves with attention mechanism (MLA vs GQA) and model shape. The NVIDIA study's Fig 6 shows disagg wins are different for DeepSeek-R1 vs Llama-3.1-70B even at the same interactivity targets. Larger NVLink domains also improve the outcome — bigger intra-node fabric widens the EP/TP options for the decode pool. This makes disaggregation a decision that must be evaluated per-model-per-traffic-shape, not a blanket infrastructure choice.
 
 ## Open threads
 

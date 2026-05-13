@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: topic
 source_count: 1
 ---
@@ -13,7 +14,17 @@ source_count: 1
 
 ## Current understanding
 
-*Synthesis pending. See Sources drawn on below.*
+Data loading pipelines are the infrastructure layer between raw storage and GPU memory during model training. They sit upstream of compute and are frequently the silent throughput bottleneck at large GPU counts — a point made directly in [[2026-01-20-introducing-spdl-faster-ai-model-trainin]].
+
+**The three-stage model** is the load-bearing primitive. Every data loading pipeline passes through: (1) **data acquisition** (network/storage fetch — bandwidth-bound), (2) **preprocessing** (decode, augment, transform — CPU-bound), and (3) **GPU transfer** (memory-bus-bound). These stages have different bottleneck profiles and therefore require independent concurrency tuning. The core failure mode of naive pipelines is treating all three stages as one, forcing them to share a single concurrency setting that cannot be optimal for all three.
+
+**The subprocess-vs-thread architectural split** is the defining design choice. PyTorch DataLoader's process-based model carries six structural costs: multiple-gigabyte memory overhead per worker (fresh Python interpreter + reloaded deps + dataset copies), double-copy of every batch tensor through shared memory, inability to write directly to the main process's GPU memory, spawn-cost on every worker start, profiler blindness to worker call stacks, and near-zero per-stage tuning knobs. The subprocess model exists because CPython's GIL prevents true thread-level parallelism — but this assumption is increasingly obsolete. Many critical libraries (NumPy, PyTorch ops, image decoders) already release the GIL during their computationally heavy C-extension work, making threading effective today on the hot path.
+
+**SPDL** ([[2026-01-20-introducing-spdl-faster-ai-model-trainin]]) is the concrete instantiation of the threading alternative from Meta Reality Labs. It achieves **2-3× higher throughput than PyTorch DataLoader** on regular CPython (GIL on) and an additional +30% with Free-Threaded Python (GIL disabled, PEP 703 / CPython 3.13t). The design principles rule out DSLs and Dataset-class encapsulation in favor of explicit per-stage concurrency control and async-native composition.
+
+**Free-Threaded Python is the medium-term forcing function.** SPDL's +30% headroom from GIL removal is a forward-looking signal: training stacks that adopt FT Python early gain an additional lever without changing the pipeline architecture. This makes threading-based dataloaders the structural bet for the next generation of training infrastructure, independent of SPDL specifically.
+
+The current corpus has one source on this topic. The three-stage model and the subprocess-vs-thread tradeoff are well-documented; what is not yet covered includes disk-format considerations (WebDataset / MosaicML StreamingDataset / TFDS sharding strategies), multi-modal heterogeneous batching pipelines, and the interaction between data loading and distributed-training communication overlap.
 
 ## Open threads
 

@@ -73,6 +73,8 @@ Top-level:
                                           LLM-NER entity extractor for a Source
   refine-entity <name> [--response <p>] [--apply]
                                           regenerate ## Synthesis via Sonnet subagent
+  refine-topic <name>  [--response <p>] [--apply]
+                                          regenerate ## Current understanding via Sonnet subagent
   refine-all-stale [--list]               batch-prepare refine prompts for stale Syntheses
   delete-source <slug> [--keep-raw] [--force] [--reason]
                                           atomic Source + raw archive removal (cleanup primitive)
@@ -269,6 +271,12 @@ async function main(): Promise<void> {
 
   if (family === "refine-entity") {
     const { main } = await import("../hirono/refine-entity.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "refine-topic") {
+    const { main } = await import("../hirono/refine-topic.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }

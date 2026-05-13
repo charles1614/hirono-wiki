@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: topic
 source_count: 6
 ---
@@ -13,20 +14,17 @@ The accumulated key/value tensors that attention reuses across decoding steps �
 
 ## Current understanding
 
-**KV-cache transfer bandwidth is NOT the disaggregation bottleneck** ([[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]). The analytical egress/ingress equations (NVIDIA's Beyond-the-Buzz paper, §5.1) show provisioned datacenter bandwidth is sufficient across realistic SLAs:
+KV cache management sits at the intersection of memory architecture and serving throughput: the accumulated key/value tensors from attention are small per-request but become the binding constraint on both GPU memory capacity and inter-stage bandwidth at high concurrency. The goal of the field is to make that constraint tractable — through paging, eviction, offloading, quantization, and cache persistence — while keeping per-token latency bounded.
 
-- Egress (prefill side): drops as ISL grows — FTL scales superlinearly via attention's quadratic cost, while KV size scales linearly.
-- Ingress (decode side): inversely proportional to OSL; tightening TTL adds more decode GPUs, lowering per-GPU bandwidth.
-- KV-cache duplication only counts GPUs that actually shard KV (TP > N_kvheads replicates rather than shards).
+**The "KV transfer is a bandwidth bottleneck" hypothesis has been closed.** [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] (NVIDIA, arXiv:2506.05508) provides the analytical proof: egress bandwidth from the prefill side *drops* as input sequence length (ISL) grows, because first-token latency (FTL) scales superlinearly via attention's quadratic cost while KV size scales only linearly. Ingress bandwidth on the decode side is inversely proportional to output sequence length (OSL). Across realistic SLAs and ISL/OSL ranges, provisioned datacenter bandwidth is sufficient. The implication: practitioners building disaggregated serving stacks should stop treating bandwidth as the primary design constraint for KV transfer.
 
-This debunks the common "disagg is bandwidth-bound" worry. The remaining KV-transfer concerns are **observability**, not bandwidth.
+**Parallelism choice interacts non-trivially with KV footprint.** When TP rank count exceeds `N_kvheads`, KV cache is replicated across TP ranks rather than sharded — so a TP=8 deployment on a model with only 8 KV heads carries full KV replication, while the same model with 64 KV heads gets 8-way sharding. This means KV memory footprint and per-GPU transfer bandwidth are jointly determined by the parallelism strategy, not just by model size or sequence length. It is a common miscalculation to reason about KV cost without fixing the TP/KV-head ratio.
 
-**Observability for the KV-transfer data plane** is just landing in production. [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] (vLLM PR #26811) exposes NIXL transfer durations / sizes / counts to Prometheus via the new generalized **`KVConnectorStats`** abstraction. Connector-agnostic by design — future KV-transfer backends (Mooncake, custom RDMA) inherit the dashboard story. Histogram-bucket recipe (`2KB...8GB` log-scale × 4) is generally borrowable.
+**Observability for the KV-transfer data plane is now first-class in vLLM.** [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] (vLLM PR #26811, merged Oct 29 2025) exposes NIXL transfer durations, sizes, and counts to Prometheus via a new `KVConnectorStats` abstraction. Critically, the abstraction is connector-agnostic: future KV-transfer backends (Mooncake, custom RDMA) inherit the same metric surface without additional instrumentation work. Before this PR, operators running PD-disaggregated vLLM deployments had no visibility into the KV-transfer data plane; long-tail transfer latency was invisible to SLO tracking. The histogram-bucket recipe (`2KB → 8GB` log-scale × 4) is borrowable for any transfer or weight-loading histogram spanning wide byte ranges.
 
-**KV-cache duplication policy interacts with parallelism choice**. When TP rank count exceeds `N_kvheads`, KV cache is replicated across TP ranks rather than sharded. So a TP=8 deployment with `N_kvheads=8` has full KV-replication; the same model with `N_kvheads=64` would shard 8-ways. This matters for both per-GPU bandwidth requirements and total KV memory footprint.
+**The survey framing situates KV management within the broader inference design space.** [[2026-05-08-a-survey-of-llm-inference-systems]] (Pan + Li, arXiv:2506.21901) treats memory management — **paged memory, eviction + offloading, quantization, cache persistence** — as one of four major axes of LLM inference system design. The filing under `cs.DB` rather than `cs.AI` is deliberate: the authors position KV management as the analogue of buffer-pool management in database systems, with eviction policies mapping to LRU/MRU/clock and cache persistence mapping to warm-restart from disk. This framing is productive: decades of DB buffer-management literature become directly applicable, and techniques like cost-based eviction or multi-version concurrency have clear inference analogues.
 
-**The Pan+Li survey** ([[2026-05-08-a-survey-of-llm-inference-systems]]) treats memory management — **paged memory, eviction + offloading, quantization, cache persistence** — as one of the four major axes of the LLM inference design space (alongside operators-and-algorithms, model-optimization-and-execution, and system-composition). The survey's database-systems framing is most natural here: paged KV is the analogue of buffer-pool management; eviction policies are the analogue of LRU/MRU/clock; cache persistence is the analogue of warm-restart from disk.
-
+**The remaining KV-management work is operational, not architectural.** Bandwidth is not the constraint; the open problems are (1) dynamic rate matching between prefill and decode pools — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] shows a fixed Ctx:Gen GPU ratio is Pareto-suboptimal and that the optimal ratio varies with model, traffic shape, and latency target; (2) observability so operators can correlate KV-transfer behavior against request-level SLOs (being addressed by [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]]); and (3) eviction/offloading policy research, which the survey identifies as one of the active open challenges in the memory-management axis but does not detail (full survey PDF not in corpus).
 
 ## Open threads
 
