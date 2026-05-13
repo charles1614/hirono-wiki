@@ -1093,7 +1093,37 @@ Two commands + one Sonnet spawn for the entire monthly curation cycle. Flags:
 
 This is a thin orchestrator over the underlying CLIs; behavior is identical to running them by hand. Use whichever level of granularity fits the operator's risk tolerance.
 
-## 13c. One-tap / full-auto: propose-curation → apply-queue
+## 13c. Trigger strategy — when does anything fire automatically?
+
+Mostly the answer is "nothing fires; operator invokes" — but two narrow exceptions handle the easy cases:
+
+**Post-commit hook** (`.githooks/post-commit`) runs `hirono auto-fix --skip-reindex` after every commit. Scope:
+- Auto-applies alias merges where both sides exist in `Meta/entity-aliases.md`.
+- Skips reindex (the just-committed snapshot already has fresh indexes via pre-commit lint).
+- Loop-safe: skips itself if the previous commit was an auto-fix commit.
+- Escape hatch: `HIRONO_SKIP_POST_COMMIT=1 git commit ...` bypasses.
+
+**Lint advisory** — the `curation-needed` check (info-level, never blocks) aggregates `stale-synthesis + orphans + tier-mismatch` counts. When the total crosses `5`, lint prints:
+
+```
+INFO  (wiki): N curation candidates accumulated: X stale-synthesis, Y orphans, Z tier-mismatch
+      → Run `hirono auto-curate` ...
+```
+
+Operator sees the advisory in routine `lint` output and decides when to run the full curation loop.
+
+**Refine trigger policy** (the "too-often vs too-rarely" balance): `stale-synthesis` fires when either:
+- Newest citing Source is > 7 days newer than `synthesis_updated_at` (lag rule — gives ingest activity a grace window), OR
+- `synthesis_updated_at` is > 30 days old AND ≥ 3 Observations have accumulated (slow-drift rule — catches entities that don't get new cites but accumulate context anyway).
+
+Constants live at the top of `checkStaleSynthesis` in `tools/bin/lint.ts`: `STALE_LAG_DAYS = 7`, `STALE_AGE_DAYS = 30`, `STALE_OBS_THRESHOLD = 3`. Tune if the cadence feels wrong.
+
+**What's NOT triggered**:
+- Curation (merge/rename/refine/delete) — always operator-invoked via `auto-curate` or `propose-curation` + `apply-queue`.
+- Source ingestion — operator drops URLs into Raindrop; LLM-in-chat ingests.
+- Sonnet subagent calls — CLI cannot spawn subagents; the Claude session orchestrates.
+
+## 13d. One-tap / full-auto: propose-curation → apply-queue
 
 At scale (hundreds of entities, growing fast), running `health-check` and then deciding-and-invoking the matching atomic CLI for each finding gets expensive. Tier 2 compresses the loop: one LLM-judgment pass produces a queue of proposed mutations, the operator reviews them as a batch, then dispatches the approved subset in one shot.
 

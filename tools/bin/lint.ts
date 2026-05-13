@@ -56,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps" | "stale-synthesis" | "stale-source-review";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps" | "stale-synthesis" | "stale-source-review" | "curation-needed";
 
 export interface Issue {
   kind: CheckKind;
@@ -695,23 +695,50 @@ export function checkTopicContentGaps(docs: DocMeta[]): Issue[] {
 }
 
 /**
- * stale-synthesis: warn when an active-tier Entity's `synthesis_updated_at`
- * is older than the newest `updated:` of any Source that wikilinks to it.
+ * stale-synthesis: warn when an active-tier Entity's Synthesis is meaningfully
+ * stale vs accumulated evidence.
  *
- * Catches the "Synthesis paragraph asserts X, but a later Source contradicts
- * it" pattern that mechanical checks otherwise miss. The MLA case (Synthesis
- * said 'MLA is its decode kernel' while Observations documented 'Retired in
- * DeepSeek V4') is the canonical motivating example.
+ * Tuned trigger policy (avoids both too-often and too-rarely failure modes):
  *
- * Requires the entity to have a `synthesis_updated_at:` frontmatter field.
- * Entities without it fall back to `updated:`. Stub-Synthesis entities
- * (caught by other rules) are not flagged here.
+ *   Flag stale if EITHER:
+ *     A. newest citing Source.updated is > STALE_LAG_DAYS (default 7) newer
+ *        than synthesis_updated_at  — gives a grace window for ingest activity
+ *        to settle before forcing a refine.
+ *     B. synthesis_updated_at is > STALE_AGE_DAYS (default 30) old AND there
+ *        are ≥ STALE_OBS_THRESHOLD (default 3) Observations bullets — catches
+ *        slow drift even when no fresh citing Source landed recently.
  *
- * Severity: warn — operator regenerates Synthesis in-session.
+ * Stub-Synthesis entities (caught by other rules) are not flagged here.
+ *
+ * Severity: warn — operator (or `hirono auto-curate`) regenerates Synthesis.
  */
+const STALE_LAG_DAYS = 7;
+const STALE_AGE_DAYS = 30;
+const STALE_OBS_THRESHOLD = 3;
+
+function daysBetween(laterISO: string, earlierISO: string): number {
+  const a = Date.parse(laterISO);
+  const b = Date.parse(earlierISO);
+  if (!isFinite(a) || !isFinite(b)) return 0;
+  return Math.floor((a - b) / (24 * 3600 * 1000));
+}
+
+function countObservations(body: string): number {
+  // Imperative extraction (JS regex lacks \Z; /m + $ would match every line-end).
+  const lines = body.split("\n");
+  const start = lines.findIndex(l => l.trim() === "## Observations");
+  if (start < 0) return 0;
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^#{1,2}\s/.test(lines[i])) { end = i; break; }
+  }
+  return lines.slice(start + 1, end).filter(l => /^-\s+/.test(l)).length;
+}
+
 export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
   const SYNTHESIS_STUB_RE = /^\s*(\*Regenerated from Observations|\*Stub|\*Synthesis pending|\(to be filled in\))/im;
+  const todayISO = new Date().toISOString().slice(0, 10);
 
   // Source slug → updated date
   const sourceUpdated = new Map<string, string>();
@@ -731,7 +758,7 @@ export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
     const synthDate = String(d.frontmatter.synthesis_updated_at ?? d.frontmatter.updated ?? "");
     if (!synthDate) continue;
 
-    // Find Sources that wikilink to this Entity; check newest `updated:` among them
+    // Find newest citing Source
     let newest: { slug: string; updated: string } | null = null;
     for (const other of docs) {
       if (other.bucket !== "Sources") continue;
@@ -741,13 +768,27 @@ export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
       if (!newest || su > newest.updated) newest = { slug: other.slug, updated: su };
     }
 
+    // Rule A: newest cite is > STALE_LAG_DAYS newer than synthesis_updated_at
     if (newest && newest.updated > synthDate) {
+      const lag = daysBetween(newest.updated, synthDate);
+      if (lag > STALE_LAG_DAYS) {
+        issues.push({
+          kind: "stale-synthesis", severity: "warn", path: d.repo_path,
+          detail: `synthesis_updated_at=${synthDate} is ${lag}d older than newest citing Source updated=${newest.updated} ([[${newest.slug}]])`,
+          hint: `Run \`hirono refine-entity ${d.slug}\` (or \`hirono auto-curate\` to batch).`,
+        });
+        continue;  // one issue per entity is enough
+      }
+    }
+
+    // Rule B: > STALE_AGE_DAYS old AND ≥ STALE_OBS_THRESHOLD Observations
+    const ageDays = daysBetween(todayISO, synthDate);
+    const obsCount = countObservations(d.body);
+    if (ageDays > STALE_AGE_DAYS && obsCount >= STALE_OBS_THRESHOLD) {
       issues.push({
-        kind: "stale-synthesis",
-        severity: "warn",
-        path: d.repo_path,
-        detail: `synthesis_updated_at=${synthDate} is older than newest citing Source updated=${newest.updated} ([[${newest.slug}]])`,
-        hint: `Re-read citing Sources, rewrite ## Synthesis to reflect current state, bump synthesis_updated_at to today.`,
+        kind: "stale-synthesis", severity: "warn", path: d.repo_path,
+        detail: `synthesis_updated_at=${synthDate} is ${ageDays}d old with ${obsCount} Observations accumulated`,
+        hint: `Run \`hirono refine-entity ${d.slug}\` to re-synthesize from accumulated Observations.`,
       });
     }
   }
@@ -1001,7 +1042,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps", "stale-synthesis", "stale-source-review"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps", "stale-synthesis", "stale-source-review", "curation-needed"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -1027,7 +1068,37 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("topic-content-gaps")) issues.push(...checkTopicContentGaps(docs));
   if (checks.includes("stale-synthesis")) issues.push(...checkStaleSynthesis(docs));
   if (checks.includes("stale-source-review")) issues.push(...checkStaleSourceReview(docs, repoRoot));
+  if (checks.includes("curation-needed")) issues.push(...checkCurationNeeded(issues));
   return issues;
+}
+
+/**
+ * curation-needed: info-level advisory that aggregates stale-synthesis +
+ * orphan + (eventually duplicate-pair) counts and prints a single recommendation
+ * when the operator should run `hirono auto-curate`.
+ *
+ * Trigger threshold: ≥ 5 actionable items across the checked categories. Below
+ * that, regular health-check + lint surfaces individual issues; the advisory
+ * fires when the operator's backlog crosses into "worth a batch run" territory.
+ *
+ * Severity: info (never blocks commits).
+ */
+const CURATION_TRIGGER_THRESHOLD = 5;
+
+export function checkCurationNeeded(existingIssues: Issue[]): Issue[] {
+  const stale = existingIssues.filter(i => i.kind === "stale-synthesis").length;
+  const orphans = existingIssues.filter(i => i.kind === "orphans").length;
+  const tierMismatch = existingIssues.filter(i => i.kind === "tier-mismatch").length;
+  const total = stale + orphans + tierMismatch;
+  if (total < CURATION_TRIGGER_THRESHOLD) return [];
+  const detail = `${total} curation candidates accumulated: ${stale} stale-synthesis, ${orphans} orphans, ${tierMismatch} tier-mismatch`;
+  return [{
+    kind: "curation-needed",
+    severity: "info",
+    path: "(wiki)",
+    detail,
+    hint: `Run \`hirono auto-curate\` (Sonnet proposes merges / refines / orphan deletes; operator approves or runs full-auto).`,
+  }];
 }
 
 function main(): void {

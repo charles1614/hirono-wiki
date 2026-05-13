@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Post-commit hook: run zero-touch auto-fix after every commit.
+#
+# Strategy: apply only the safe-by-construction repairs (alias merges) —
+# never anything that requires LLM judgment. If new alias merges land,
+# the operator gets a notice + recommendation to commit + reindex.
+#
+# Reindex/build-sources-index are skipped here because:
+#   1. The just-completed commit already has its indexes (the pre-commit
+#      lint check ensures consistency).
+#   2. Running reindex would dirty the working tree and confuse the
+#      operator about whether they just committed a clean state.
+#
+# Skip-out conditions (don't run auto-fix):
+#   - Most recent commit is itself a `refactor | ` log entry (avoid loops
+#     on commits that auto-fix itself produced)
+#   - HIRONO_SKIP_POST_COMMIT=1 in env (escape hatch for scripted ops)
+
+set -euo pipefail
+
+if [[ "${HIRONO_SKIP_POST_COMMIT:-}" == "1" ]]; then
+  exit 0
+fi
+
+# Skip if the latest commit is itself an auto-fix-style refactor commit
+last_msg="$(git log -1 --pretty=%s)"
+if [[ "$last_msg" == *"auto-fix:"* ]] || [[ "$last_msg" == "refactor"* && "$last_msg" == *"auto-merge"* ]]; then
+  exit 0
+fi
+
+# Run auto-fix in skip-reindex mode (mutations only; index refresh waits
+# for the next operator-driven workflow step).
+out=$(npx tsx tools/bin/hirono.ts auto-fix --skip-reindex 2>&1) || {
+  # auto-fix failure is non-fatal at post-commit time (the commit succeeded;
+  # the operator can investigate)
+  printf '\n[post-commit] auto-fix failed (non-fatal):\n%s\n' "$out" >&2
+  exit 0
+}
+
+# Detect whether auto-fix did anything actionable
+if echo "$out" | grep -qE "alias merges: [1-9]"; then
+  echo ""
+  echo "[post-commit] hirono auto-fix produced new changes — review with \`git status\`,"
+  echo "[post-commit] then commit them. Run \`hirono auto-curate\` if curation backlog crossed threshold."
+fi
+
+exit 0
