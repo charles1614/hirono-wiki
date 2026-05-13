@@ -1032,7 +1032,31 @@ hirono raindrop gc [--keep-last N]    # content-rev*.md cleanup
 
 **Revision GC**: `hirono raindrop gc --keep-last 3` keeps the most recent 3 revisions; older `content-rev*.md` files are deleted and `revisions.jsonl` is updated with `body_pruned=true` markers.
 
-## 13. Tier-2 batch curation: propose-curation → apply-queue
+## 13. Tier-1 safe auto-fix: `hirono auto-fix`
+
+The narrowest autonomous loop. Runs three safe-by-construction operations and **never deletes anything**:
+
+```bash
+hirono auto-fix [--dry-run]
+```
+
+**Step 1 — alias merges**: for each `variant → canonical` in `Meta/entity-aliases.md` where BOTH `Entities/_seen/{variant,canonical}.md` exist, run `hirono merge-entities` automatically. Safe because the alias is operator-declared: if `bfloat16 → BF16` is in the file, the operator already stated they're the same thing. The merge concatenates Observations (no information loss), rewrites wikilinks, appends a refactor log entry.
+
+**Step 2 — refine-prompt prep**: for each entity flagged stale by `lint --check stale-synthesis`, write a refine prompt package to `.refine-prompts/`. No mutations. Operator then spawns Sonnet → apply per the normal refine workflow.
+
+**Step 3 — index refresh**: run `reindex.ts` + `build-sources-index.ts` to keep catalogs current. Mechanical, no content rewrites.
+
+**What auto-fix does NOT do** (deliberate, in answer to "when does delete trigger?"):
+
+- **No auto-delete of `_seen/` orphans.** Auto-detect-entities creates stubs at refs=0 by design; deletion would constantly fight the operator. Deletion stays in Tier 2.
+- **No auto-apply of refines.** Synthesis regeneration is judgment-heavy; operator approves each.
+- **No auto-merge of entities not in `entity-aliases.md`.** Sonnet-judged merges go through Tier 2.
+
+Safe enough for a pre-commit hook or scheduled cron. All mutations are atomic + logged + `git revert`-able.
+
+**Cadence**: weekly, or on-demand when new aliases land in `entity-aliases.md`.
+
+## 14. Tier-2 batch curation: propose-curation → apply-queue
 
 At scale (hundreds of entities, growing fast), running `health-check` and then deciding-and-invoking the matching atomic CLI for each finding gets expensive. Tier 2 compresses the loop: one LLM-judgment pass produces a queue of proposed mutations, the operator reviews them as a batch, then dispatches the approved subset in one shot.
 

@@ -145,6 +145,7 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 | Synthesis drifted vs new Observations | `hirono refine-entity <name>` | Sonnet regenerates `## Synthesis` from cited Sources; bumps `synthesis_updated_at` |
 | Topic's Current understanding drifted | `hirono refine-topic <name>` | same shape, for `## Current understanding` |
 | Batch refresh | `hirono refine-all-stale` | runs lint, prepares prompts for every flagged entity |
+| Safe autonomous repairs (Tier 1) | `hirono auto-fix` | Auto-applies alias merges from `Meta/entity-aliases.md` + preps refine prompts for stale Syntheses + refreshes indexes. **Never deletes anything.** Safe for cron / pre-commit. |
 | Periodic graph maintenance (Tier 2) | `hirono propose-curation` → `apply-queue` | Sonnet judges health-check + lint findings; emits `Meta/curation-queue.md` of merge/rename/refine/delete proposals; operator ticks `[x]` approved; dispatcher executes via existing atomic CLIs |
 | Operator-judged ingest mistake (rare) | `hirono raindrop forget <url>` | deletes Source + raw archive + adds to `Meta/sources-ingest-skips.md` |
 

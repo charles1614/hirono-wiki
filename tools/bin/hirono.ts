@@ -78,6 +78,8 @@ Top-level:
   refine-all-stale [--list]               batch-prepare refine prompts for stale Syntheses
   propose-curation [--finalize <path>]    Tier-2 curation: health-check + lint → Sonnet → queue
   apply-queue [--auto-apply <level>]      execute approved proposals from Meta/curation-queue.md
+  auto-fix [--dry-run]                    Tier-1 safe auto-repairs: alias merges,
+                                          refine-prompt prep, index refresh (NO deletions)
   delete-source <slug> [--keep-raw] [--force] [--reason]
                                           atomic Source + raw archive removal (cleanup primitive)
 
@@ -297,6 +299,12 @@ async function main(): Promise<void> {
 
   if (family === "apply-queue") {
     const { main } = await import("../hirono/apply-queue.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "auto-fix") {
+    const { main } = await import("../hirono/auto-fix.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }
