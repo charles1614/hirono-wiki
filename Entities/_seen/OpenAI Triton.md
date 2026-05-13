@@ -13,3 +13,8 @@ OpenAI-developed kernel-authoring DSL with compiler-managed Tensor-Core mapping;
 ## Observations
 
 - _(stub — populate as sources reference this entity. Reindex will count refs and may promote to active tier at ≥3.)_
+
+<!-- merged from `Triton` on 2026-05-13 -->
+
+- (auto-populated as Sources cite this entity)
+

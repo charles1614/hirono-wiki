@@ -12,8 +12,13 @@ source_count: 8
 
 *Stub topic — to be expanded from sources.*
 
+<!-- merged from `Pretraining` on 2026-05-13 -->
+
+Initial large-scale training of foundation models on diverse text corpora before downstream fine-tuning.
+
 ## Current understanding
 
+<!-- TODO: re-synthesize ## Current understanding (post-merge 2026-05-13) -->
 The corpus on LLM pretraining is thin compared to the inference-systems surface area, but a coherent picture emerges from several sources that touch the training stack.
 
 **The canonical setup.** LLM pretraining is next-token prediction at massive scale — a transformer (dense or MoE) trained on trillions of tokens using distributed hardware, with quality governed by the Chinchilla-style scaling laws that relate parameters, data, and compute. The [[2026-04-03-llm-architecture-gallery]] makes visible what 2025–26 pretraining targets actually look like: every frontier model above 100B parameters is a Mixture-of-Experts; GQA + RoPE is the dense default; MoE granularity has grown from 8 active experts (Mixtral era) to 128+ routed experts with 8 active. MoE dominates because it decouples parameter count from active compute — you can train a 671B-param model while activating ~37B per token.
@@ -30,9 +35,28 @@ The corpus on LLM pretraining is thin compared to the inference-systems surface 
 
 **Where the corpus is sparse.** The wiki has no Sources covering tokenization design, data deduplication / quality filtering, learning rate schedules / warmup, optimizer choices (Adam vs Adafactor vs Muon), or context-length extension strategies. The DeepMind "How to Scale Your Model" JAX book (jax-ml.github.io/scaling-book) is flagged in [[2026-04-16-我在-汪志鹏的笔记下发布了一条评论-训练-infra-最好的资料应该就是-dee]] as the best public quantitative treatment of training-cost economics and distributed-parallelism tradeoffs, but has not yet been ingested. Megatron-LM source code is the canonical reference implementation; no Source covers it directly beyond passing mentions.
 
+<!-- merged from `Pretraining` on 2026-05-13 -->
+
+Pretraining is the initial large-scale training phase in which a foundation model learns general representations from a massive, diverse text corpus — typically hundreds of billions to trillions of tokens drawn from web crawls, books, code repositories, and curated datasets. The objective is almost universally next-token prediction (autoregressive language modeling), though masked-language-modeling variants (BERT-style) and mixture objectives have also been used. The central insight is that predicting held-out tokens at scale forces the model to internalize syntax, factual associations, reasoning patterns, and world structure, producing a general-purpose representation that downstream fine-tuning stages can cheaply specialize.
+
+**Data composition and quality filtering** are widely recognized as more impactful than raw compute at a fixed budget. Sources consistently emphasize that deduplication, quality heuristics (perplexity filtering, domain weighting), and deliberate over-sampling of high-signal domains (code, math, scientific text) materially improve downstream task performance — often more than proportional increases in parameter count or training tokens.
+
+**Scaling laws** (Chinchilla and successors) establish that optimal compute allocation requires training tokens to scale roughly linearly with parameter count. Under-trained large models were the norm before Chinchilla; post-Chinchilla practice shifts toward smaller models trained on significantly more tokens, trading inference-time cost for training efficiency. More recent work probes the "overtrained" regime, showing that inference-optimal and training-optimal frontiers diverge: models trained well past the Chinchilla-optimal token count remain practical when inference volume justifies the upfront compute.
+
+**Architecture** is now largely standardized around the decoder-only transformer with rotary positional embeddings, grouped-query attention, and SwiGLU or similar gated activations. Encoder-only and encoder-decoder variants persist in specialized niches but are not the dominant pretraining architecture for general-purpose LLMs.
+
+**Tokenization** choices (vocabulary size, BPE vs. unigram, multilingual coverage) have outsized effects on downstream multilingual and code performance and are increasingly treated as a first-class design decision rather than an afterthought.
+
+No sources are yet attached to this topic. Claims above reflect cross-source consensus visible in the broader literature; they will be refined and attributed as Sources accumulate.
+
 ## Open threads
 
 
 ## Sources drawn on
 
 - (auto-populated by reindex)
+
+<!-- merged from `Pretraining` on 2026-05-13 -->
+
+_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+

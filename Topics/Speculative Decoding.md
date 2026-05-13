@@ -12,8 +12,13 @@ source_count: 9
 
 Inference-time techniques that **run a cheap draft model to propose tokens, then verify them against the expensive target model** — when the verifier agrees, multiple tokens commit per target-model step, lowering per-token latency. The space covers draft-model design (independent small model, MTP head, EAGLE-style), draft-target alignment (number of draft tokens, tree-vs-linear draft shapes), and scheduling (how speculation interacts with continuous batching + KV cache). Distinct from but adjacent to [[Speculative Decoding]]'s economic-extension: **Best-of-N inference-time ensembling**, where the same target model is sampled N times and a vote / aggregator picks the answer — a different cost/quality trade than draft-target speculation but on the same compute budget axis.
 
+<!-- merged from `Speculative Sampling` on 2026-05-13 -->
+
+Latency-reduction technique that uses a small draft model to propose tokens, verified in parallel by the large target model.
+
 ## Current understanding
 
+<!-- TODO: re-synthesize ## Current understanding (post-merge 2026-05-13) -->
 **EAGLE-3 is the current production reference point and has resolved a long-standing batch-throughput objection.** [[2025-10-09-eagle-3-scalingupinference-acceleration-]] establishes a **scaling law** for speculative-decoding draft models: draft quality (and therefore tokens-per-step speedup) grows proportionally with training-data scale, a property that prior EAGLE generations and HASS couldn't achieve because their feature-prediction loss `l_fea` capped expressiveness. The three architectural changes driving this — dropping `l_fea`, multi-layer feature fusion (low/mid/high target-model features concatenated to a 3k-vector), and training-time test (feeding the draft model its own prior output during training to close the train/inference distribution gap) — together enable **up to 6.5× speedup** over the target model alone. Critically, the SGLang integration shows a **40% throughput improvement at batch size 64**, directly refuting the conventional wisdom that speculation degrades large-batch serving. That number is the load-bearing production result because large-batch throughput — not single-request latency — is where prior speculative methods lost out in real deployments.
 
 **EAGLE-3 and DeepSeek cross-pollinated architecturally.** EAGLE-3's training-time test was inspired by V3's multi-token prediction (MTP) head design; conversely, V3/V4's MTP head at inference time functions as the speculative-decoding draft path. [[2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书]] reports that V4's MTP `depth=1` is simultaneously the speculative-decoding path (V4 §3.3.3). The implication for the V4 lineage is significant: "Multi-Token Prediction" and "Speculative Decoding" are not separate features — they are the same head in two modes (training objective at pre-train, draft-token generator at inference). Full confirmation awaits the V4 paper ingestion, but the convergence is consistent across sources.
@@ -27,6 +32,20 @@ Inference-time techniques that **run a cheap draft model to propose tokens, then
 **Best-of-N ensembling occupies the adjacent but distinct position on the inference-compute axis.** [[2026-04-28-iclr-2026-大量llms相关insights总结-一-小红书]] (Insight 5, *Best-of-Infinity*) reframes Best-of-N as early-stopping when the current majority answer is statistically stable under a Dirichlet posterior of vote counts. The mechanism is orthogonal to draft-target speculation: Best-of-N samples the *same* target model N times and aggregates, while speculation runs a *cheaper draft* model to accelerate each target-model step. Both trade compute for quality, but at different points in the cost stack. The corpus has no data on whether combining them — speculating within each of N samples — yields compositional gain; it's an open question.
 
 **The key open thread the corpus has not resolved** is whether a hybrid of EAGLE-3's draft architecture and V4's MTP-as-spec-decode pathway outperforms either alone. Both converged on the same intuition (train the draft on its own prior output distribution, fuse multi-layer features) but arrived independently. A joint ablation hasn't appeared in any ingested source.
+
+<!-- merged from `Speculative Sampling` on 2026-05-13 -->
+
+**Speculative sampling** (also called speculative decoding) is a latency-reduction technique for autoregressive language model inference. A small, fast **draft model** proposes a sequence of *k* candidate tokens in a single forward pass; the large **target model** then verifies all *k* tokens in a single parallel forward pass. Tokens accepted up to the first rejection are kept verbatim; the first rejected token is resampled from the target distribution. Because the target model's forward pass is parallelized over the draft sequence, wall-clock time per accepted token drops substantially when the draft acceptance rate is high — without changing the output distribution of the target model.
+
+The **correctness guarantee** is the technique's most important property: with an appropriately constructed acceptance/rejection rule, the joint output distribution is provably identical to what the target model would produce by sampling token-by-token. This is not an approximation; it is an exact match. The acceptance probability for draft token *x* at position *t* is min(1, p_target(x|context) / p_draft(x|context)), and a correction sample is drawn on rejection. The result is that speculative decoding is a drop-in replacement for standard sampling — no fine-tuning, no quality degradation.
+
+**Throughput and latency tradeoffs** depend on three factors: (1) the draft model's speed advantage relative to the target, (2) the draft acceptance rate (a function of how well the draft distribution approximates the target's), and (3) the number of draft tokens *k* proposed per verification round. In practice, draft models that are 5–10× smaller than the target and domain-matched to the workload achieve acceptance rates of 70–90 %, delivering 2–3× end-to-end speedups on generation-heavy tasks without additional hardware.
+
+Several **variants and extensions** have been explored: *self-speculative decoding* (the target model drafts its own continuations using early-exit layers), *tree-based speculation* (the draft produces a token tree rather than a linear sequence, allowing multiple candidate continuations to be verified simultaneously), and *medusa heads* (multiple auxiliary decoding heads attached to the target model predict tokens ahead without a separate draft model). Each variant trades implementation complexity against acceptance rate or hardware requirements.
+
+**Practical deployment considerations** include draft model selection (must be fast, same tokenizer, reasonably correlated with target), batching dynamics (speculation is less beneficial when batch sizes are large because the target's compute is already well-utilized), and memory bandwidth (speculation shifts the bottleneck from memory-bandwidth to compute, which is the profitable regime on modern accelerators during memory-bandwidth-bound single-user inference).
+
+The technique is now a standard component in serving stacks for large models; its value is highest in interactive, low-batch-size regimes (e.g., chat) and least in high-throughput offline batch inference where standard continuous batching already saturates hardware.
 
 ## Open threads
 
@@ -42,3 +61,8 @@ Inference-time techniques that **run a cheap draft model to propose tokens, then
 - [[2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系]] — Simple Eagle (NEXTN) production config on H20-96G DeepSeek; spec-overlap + CUDA-graphed draft post-processing PRs cited.
 - [[2026-04-28-iclr-2026-大量llms相关insights总结-一-小红书]] — Best-of-Infinity early-stopping ensembling (adjacent direction).
 - [[2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书]] — V4's MTP-as-spec-decode pathway (per panel-image citation; pending V4-paper verification).
+
+<!-- merged from `Speculative Sampling` on 2026-05-13 -->
+
+_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+

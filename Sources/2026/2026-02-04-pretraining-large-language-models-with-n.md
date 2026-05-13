@@ -45,7 +45,7 @@ PDF not in raw — re-fetch `arxiv.org/pdf/2509.25149` if FP4 quality-vs-FP8 cur
 
 ## Topics touched
 
-[[LLM Training Systems]], [[Quantization]], [[Numerical Precision]], [[Pretraining]]
+[[LLM Training Systems]], [[Quantization]], [[Numerical Precision]], [[LLM Pretraining]]
 
 ## Raw source
 

@@ -76,7 +76,7 @@ Validation that the post-init throughput gain isn't a benchmark artifact — it 
 
 ## Topics touched
 
-[[Data Loading]], [[LLM Training Systems]], [[GPU Utilization]], [[Python Concurrency]]
+[[Data Loading Pipelines]], [[LLM Training Systems]], [[GPU Utilization]], [[Python Concurrency]]
 
 ## Raw source
 

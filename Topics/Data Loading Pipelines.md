@@ -12,8 +12,13 @@ source_count: 1
 
 *Stub topic — to be expanded from sources.*
 
+<!-- merged from `Data Loading` on 2026-05-13 -->
+
+Pipeline mechanics for moving training data from storage to GPU — bottleneck-isolation, threading vs multiprocessing, GIL-aware design.
+
 ## Current understanding
 
+<!-- TODO: re-synthesize ## Current understanding (post-merge 2026-05-13) -->
 Data loading pipelines are the infrastructure layer between raw storage and GPU memory during model training. They sit upstream of compute and are frequently the silent throughput bottleneck at large GPU counts — a point made directly in [[2026-01-20-introducing-spdl-faster-ai-model-trainin]].
 
 **The three-stage model** is the load-bearing primitive. Every data loading pipeline passes through: (1) **data acquisition** (network/storage fetch — bandwidth-bound), (2) **preprocessing** (decode, augment, transform — CPU-bound), and (3) **GPU transfer** (memory-bus-bound). These stages have different bottleneck profiles and therefore require independent concurrency tuning. The core failure mode of naive pipelines is treating all three stages as one, forcing them to share a single concurrency setting that cannot be optimal for all three.
@@ -26,6 +31,12 @@ Data loading pipelines are the infrastructure layer between raw storage and GPU 
 
 The current corpus has one source on this topic. The three-stage model and the subprocess-vs-thread tradeoff are well-documented; what is not yet covered includes disk-format considerations (WebDataset / MosaicML StreamingDataset / TFDS sharding strategies), multi-modal heterogeneous batching pipelines, and the interaction between data loading and distributed-training communication overlap.
 
+<!-- merged from `Data Loading` on 2026-05-13 -->
+
+No sources have been ingested for this topic yet. The framing covers pipeline mechanics for moving training data from storage to GPU — bottleneck isolation, threading vs multiprocessing, and GIL-aware design — but no cited Sources are available to ground claims.
+
+Populate once Sources covering PyTorch `DataLoader` internals, distributed data loading (e.g. `IterableDataset`, `webdataset`, DALI), or profiling studies of storage-to-GPU pipelines are ingested and linked here.
+
 ## Open threads
 
 - SPDL vs NVIDIA DALI head-to-head: DALI is C++-based GPU-side decoding (very different architecture, same goal of saturating GPUs). The SPDL post doesn't compare; concrete benchmarks would clarify when to pick each. — [[2026-01-20-introducing-spdl-faster-ai-model-trainin]]
@@ -34,3 +45,8 @@ The current corpus has one source on this topic. The three-stage model and the s
 ## Sources drawn on
 
 - (auto-populated by reindex)
+
+<!-- merged from `Data Loading` on 2026-05-13 -->
+
+_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+
