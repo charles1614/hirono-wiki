@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 2
 tier: active
@@ -13,7 +13,9 @@ The original IO-aware fused attention kernel (Dao et al.); v1/v2/v3; foundation 
 
 ## Synthesis
 
-The IO-aware fused-attention kernel that became the substrate for everything that came after — the canonical reference cited when discussing Hopper-era attention kernel scheduling. **FlashAttention-3** is the explicit comparison point for FlashMLA's seesaw schedule (FA-3 introduced ping-pong scheduling + intra-warpgroup GEMM-softmax pipelining), and FlashMLA acknowledges FlashAttention as one of its primary inspirations alongside Flash-Decoding and CUTLASS. On the Transformer Engine side, **DotProductAttention bypasses FP8 TC** in favor of flash-attention — so attention doesn't actually benefit from FP8 in the standard TE path, per the HKUST Hopper microbench analysis.
+
+FlashAttention established the online-softmax-plus-accumulation algorithm that became the standard reference for fused attention kernels, and its third-generation variant (FA-3) introduced the ping-pong scheduling technique — interleaving two output matrices across warpgroups to overlap CUDA-core and Tensor-Core work — that defines the current baseline for Hopper-era attention kernel design. FlashMLA's seesaw schedule is a direct response to FA-3: the 64x512 MLA output matrix requires 32,768 registers (half the SM's file), making a second output buffer impossible, so DeepSeek's kernel vertically splits the output instead while preserving mathematical equivalence to FlashAttention's online softmax. A less obvious finding from the HKUST Hopper microbenchmark study is that Transformer Engine's DotProductAttention operator routes through flash-attention rather than FP8 Tensor Cores, meaning attention does not benefit from FP8 acceleration in the standard TE path — one concrete reason why FP8 LLM speedups fall short of the 2x peak rates that tensor-core specs would suggest. Together, these two sources position FlashAttention less as a finished artifact and more as the algorithmic substrate that newer kernels extend or route around, depending on the hardware constraints of the target regime.
+
 
 ## Observations
 

@@ -10,7 +10,7 @@
  *
  *   1. Prepare prompt (default, no flags):
  *        Reads entity body + cited Source bodies. Writes a prompt package
- *        to `Entities/_refine-prompts/<name>-synthesis-prompt.md`. Prints
+ *        to `.refine-prompts/<name>-synthesis-prompt.md`. Prints
  *        operator instructions: spawn Sonnet subagent, save response to
  *        `<name>-synthesis-response.txt` (plain text, 4-6 sentences).
  *
@@ -58,10 +58,10 @@ Modes:
 
 Example workflow:
   hirono refine-entity MLA
-  # → writes Entities/_refine-prompts/MLA-synthesis-prompt.md
+  # → writes .refine-prompts/MLA-synthesis-prompt.md
   # operator spawns Sonnet subagent, saves response to:
-  #   Entities/_refine-prompts/MLA-synthesis-response.txt
-  hirono refine-entity MLA --response Entities/_refine-prompts/MLA-synthesis-response.txt
+  #   .refine-prompts/MLA-synthesis-response.txt
+  hirono refine-entity MLA --response .refine-prompts/MLA-synthesis-response.txt
   # → prints diff
   hirono refine-entity MLA --response <path> --apply
   # → applies atomically + log entry
@@ -188,7 +188,7 @@ ${sourceBlocks}
 ---
 
 Save your response as plain text (4-6 sentences, no preamble) to:
-  \`Entities/_refine-prompts/${name}-synthesis-response.txt\`
+  \`.refine-prompts/${name}-synthesis-response.txt\`
 `;
 }
 
@@ -271,9 +271,11 @@ export function refineEntity(
   // Mode 1: prepare prompt
   if (!opts.responsePath) {
     const prompt = buildPrompt(name, entityRaw, parsed, sourcesBodies);
-    const promptDir = join(repoRoot, "Entities", "_refine-prompts");
+    // Prompts live under `.refine-prompts/` (gitignored) so lint's
+    // walkWikiDocs doesn't pick them up as malformed entity files.
+    const promptDir = join(repoRoot, ".refine-prompts");
     mkdirSync(promptDir, { recursive: true });
-    const promptPath = `Entities/_refine-prompts/${name}-synthesis-prompt.md`;
+    const promptPath = `.refine-prompts/${name}-synthesis-prompt.md`;
     writeFileSync(join(repoRoot, promptPath), prompt, "utf8");
     return { mode: "prepare", entityPath, promptPath, oldSynthesis: parsed.synthesis, citedSources: parsed.cited, unresolvedCitations: unresolved };
   }
@@ -326,7 +328,7 @@ export function main(argv: string[]): void {
       console.log(`\nNext steps:`);
       console.log(`  1. Spawn a Sonnet subagent in your Claude session with the prompt.`);
       console.log(`  2. Save the response (plain text, 4-6 sentences) to:`);
-      console.log(`       Entities/_refine-prompts/${args.name}-synthesis-response.txt`);
+      console.log(`       .refine-prompts/${args.name}-synthesis-response.txt`);
       console.log(`  3. Re-run with --response <path> to preview the diff.`);
       console.log(`  4. Re-run with --response <path> --apply to commit.`);
     } else if (r.mode === "dryrun") {

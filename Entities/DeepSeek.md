@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-12
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 3
 tier: active
@@ -13,7 +13,9 @@ Chinese AI lab; produces open-weight frontier-grade MoE and dense models; publis
 
 ## Synthesis
 
-Chinese AI lab producing open-weight frontier MoE and dense models — and notable for **publishing the kernel implementations behind their inference stack**. FlashMLA's design choices ([[MLA]] attention + no-TP-decoding + seesaw kernel schedule) reflect deliberate serving-economics decisions: keeping `h_q = 128` makes MLA decoding compute-bound on H800 (rather than memory-bound), justifying CUTLASS-level kernel optimization. The "publish the kernels, not just the weights" pattern (FlashMLA, DeepSeek-V3 inference system overview) is competitive transparency unusual in the frontier-model field.
+
+Chinese AI lab notable for publishing not just model weights but the operational internals of its inference stack — kernel source, profiler traces, and architectural tech reports — at a depth unusual among frontier-model developers. Its V3/R1 serving infrastructure reflects deliberate co-design choices: no tensor parallelism on decode keeps h_q at 128, making MLA decoding compute-bound rather than memory-bound on H800, which in turn justifies CUTLASS-level kernel optimization (the seesaw schedule in FlashMLA) and SM-lane partitioning where 112 SMs run compute disjoint from 20 SMs handling communication. The V4 architectural pivot — retiring MLA in favor of MHA+GQA with Compression Sparse Attention and on-disk KV cache stored on local SSD — signals that long-context efficiency at the million-token scale, not per-token KV compression, has become the dominant design axis; the inventor of MLA walking away from MLA is itself the story. V4 also treats post-training compute as a co-equal scaling axis to pre-training, and fuses Chat and Agent infrastructure into one model rather than forking the architecture per use-case. The published PyTorch Profiler traces for V3/R1 training, prefill, and decode provide an inspectable 2026 baseline for production MoE overlap strategy, including the SM-freeing AllToAll mechanism via DeepEP that makes EP128 decode viable.
+
 
 ## Observations
 

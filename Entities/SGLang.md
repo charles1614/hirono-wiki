@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-12
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 7
 tier: active
@@ -13,7 +13,9 @@ Open-source LLM inference system; built on top of model-serving infrastructure; 
 
 ## Synthesis
 
-Open-source LLM inference system (Tencent + LMSYS-affiliated contributors). 2025 H2 priorities (issue #8210) include distributed-serving enhancement, of which built-in OpenTelemetry-based request tracing (issue #8965, PR #9962) is foundational — request-centric Jaeger view + thread-centric Perfetto view + Perfetto/PyTorch-Profiler trace merging. Ships **EAGLE-3 speculative decoding in production** with **40% throughput improvement at batch size 64** (refuting the conventional wisdom that speculation degrades large-batch throughput). Anchor case in Pan & Li's 2025 survey of LLM inference systems alongside vLLM, Mooncake, and DeepFlow.
+
+SGLang is an open-source LLM inference framework with active contributions from Tencent, LMSYS-affiliated developers, and production users including Ant Group, whose January 2026 H20-96G deployment against DeepSeek-R1/V3 traced every optimization — scattered prefill, FusedMoE TMA, Expert Affinity EPLB using real-traffic co-activation matrices, and Single-Batch Overlap over Two-Batch Overlap — back to specific upstream SGLang pull requests. The project ships production-grade EAGLE-3 speculative decoding with a 40% throughput improvement at batch size 64, directly refuting the prior assumption that speculative methods degrade large-batch throughput. Its 2025 H2 roadmap (issue #8210) prioritized distributed-serving observability, delivering a built-in OpenTelemetry-based tracing framework (issue #8965, shipped as PR #9962) that resolves continuous-batching's multi-context misalignment problem and exposes dual views: request-centric Jaeger and thread-centric Perfetto, with the ability to merge Perfetto traces with PyTorch Profiler data. Development velocity accelerated sharply from August 2025 onward — a 14-day moving average climbing from roughly 20-25 PRs/day to 55-60 by March 2026, with a peak of 91 PRs on 2026-01-05, attributed to agent-amplified development via Claude Code and Codex — a trend operationalized inside the project itself through in-tree Claude Code SKILLs for CUDA crash debugging, YAML-driven benchmark search, and Torch Profiler analysis. SGLang is covered as a named system in Pan and Li's 2025 survey of LLM inference systems alongside vLLM, Mooncake, and DeepFlow, filed under a database-systems framing that positions inference as a systems-optimization problem rather than a modeling one.
+
 
 ## Observations
 

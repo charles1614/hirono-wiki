@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 3
 tier: active
@@ -13,7 +13,9 @@ Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 
 
 ## Synthesis
 
-Meta's open-weight LLM family — the de facto reference workload for ML-systems papers. **Disaggregation** behavior characterized at Llama-3.1-70B (TP scales from 2× to 64× as TTL tightens) and Llama 8B/70B/405B (larger models benefit more from disaggregated serving due to richer parallelism search space). **EAGLE-3 scaling-law** first observed on Llama-Instruct 3.1 8B (the 8B target paired with the surprising "more training data → more draft-model speedup" curve); evaluated also on Llama-Instruct 3.3 70B + DeepSeek-R1-Distill-LLaMA 8B. **HKUST H100 microbenchmark** uses Llama 7B/13B/70B hidden sizes (4096/5120/8192) for `te.TransformerLayer` FP8 vs FP16 application-level latency comparison.
+
+Meta's open-weight LLM family and the de facto reference workload for ML-systems papers across inference, hardware, and speculative-decoding research. In disaggregated serving studies, Llama-3.1-70B illustrates how decode tensor-parallelism scales from 2× to 64× as TTL tightens, while cross-model comparison across the 8B/70B/405B sizes establishes the principle that larger models benefit more from disaggregation due to the richer parallelism search space available when prefill and decode mappings are chosen independently. EAGLE-3's scaling-law discovery — that draft-model speedup grows proportionally with training-data scale, a relation absent in prior EAGLE generations — was first observed using Llama-Instruct 3.1 8B as the target on MT-bench, with the family further evaluated at Llama-Instruct 3.3 70B (4.12× mean speedup) and DeepSeek-R1-Distill-LLaMA 8B. The HKUST Hopper microbenchmark study uses Llama hidden sizes (7B: 4096, 13B: 5120, 70B: 8192) as the application-level benchmark for comparing FP8 versus FP16 performance through Transformer Engine's te.TransformerLayer, with SwiGLU and RMSNorm operators replaced by te.Linear and te.RMSNorm to engage FP8 Tensor Cores.
+
 
 ## Observations
 

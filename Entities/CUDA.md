@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 1
 tier: active
@@ -13,7 +13,9 @@ NVIDIA's GPU programming platform — language extensions, runtime, toolkit, lib
 
 ## Synthesis
 
-NVIDIA's GPU programming platform — language extensions, runtime, toolkit, libraries. The **2025-12 CUDA 13.1 release** is positioned as the platform's largest update "since CUDA was invented two decades ago," introducing CUDA Tile (Tile IR + cuTile Python) as a new abstraction above SIMT, runtime-API green contexts, MLOPart for Blackwell, FP32/FP64 emulation on Tensor Cores, and rewritten programming-guide docs.
+
+NVIDIA's GPU programming platform — language extensions, runtime, toolkit, and libraries — received its largest update since launch with CUDA 13.1 (December 2025). The headline addition is CUDA Tile, a new programming model above SIMT that lets developers write tile-level algorithm operations and have the compiler map them to threads, Tensor Cores, and future GPU architectures; it ships today as cuTile Python (with a C++ implementation planned) targeting Ampere, Ada, and Blackwell. Supporting the Tile model, Nsight Compute 2025.4 adds a dedicated Tile Statistics profiling surface — launch configuration, TMA utilization, and cuTile source mapping — while Compute Sanitizer 2025.4 gains compile-time patching via nvcc for faster, more precise memory-error detection. The release also promotes green contexts from the driver API to the runtime API for flexible SM partitioning, introduces MLOPart on Blackwell B200/B300 for memory-locality optimization, adds static SM partitioning for MPS, and carries forward cuBLAS FP32/FP64 emulation on Tensor Cores from CUDA 13.0. The CUDA programming guide was rewritten end-to-end, signaling that NVIDIA expects Tile programming to substantially broaden the developer audience.
+
 
 ## Observations
 

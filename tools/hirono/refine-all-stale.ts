@@ -28,7 +28,7 @@ function usage(): never {
 Run stale-synthesis lint, prepare a refine prompt for each flagged entity.
 
   (no flags)   For each stale entity, invoke \`refine-entity <name>\` in
-               prepare mode (writes prompt to Entities/_refine-prompts/).
+               prepare mode (writes prompt to .refine-prompts/).
   --list       Print the stale entity names + per-entity commands; do
                NOT write any prompt files.
 
@@ -122,10 +122,10 @@ export function main(argv: string[]): void {
       console.log(`Per-entity commands (run manually):`);
       for (const s of r.stale) console.log(`  hirono refine-entity ${s.name}`);
     } else {
-      console.log(`✓ prepared ${r.prepared.length} prompt(s) under Entities/_refine-prompts/`);
+      console.log(`✓ prepared ${r.prepared.length} prompt(s) under .refine-prompts/`);
       console.log(`\nNext steps (per entity):`);
       console.log(`  1. Spawn Sonnet subagent with each prompt.`);
-      console.log(`  2. Save response to Entities/_refine-prompts/<name>-synthesis-response.txt`);
+      console.log(`  2. Save response to .refine-prompts/<name>-synthesis-response.txt`);
       console.log(`  3. \`hirono refine-entity <name> --response <path> --apply\``);
     }
   } catch (e) {

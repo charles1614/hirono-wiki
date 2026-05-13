@@ -23,6 +23,7 @@ dist/
 .wiki-mention-map.json
 batch-*-candidates.json
 .curation-staging/
+.refine-prompts/
 
 # Backup files (any *.bak alongside an already-ignored state file)
 *.bak

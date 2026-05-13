@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-12
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 5
 tier: active
@@ -13,7 +13,9 @@ NVIDIA's 2022 GPU architecture; H100/H200/H800/GH200; introduced WGMMA, TMA, FP8
 
 ## Synthesis
 
-NVIDIA's 2022 architecture (H100/H200/H800/GH200) — introduced **WGMMA**, **TMA** (Tensor Memory Accelerator for block-level async copy), **DSM** (Distributed Shared Memory for SM-to-SM communication), **DPX** (dynamic-programming instructions), and **native FP8 Tensor Cores**. The HKUST microbenchmark study (arXiv:2402.13499) provides the canonical instruction-level data sheet for kernel authors. Transformer Engine's FP8 path on Hopper has practical limits (Softmax/GeLU not quantized; attention bypasses FP8 TC for FlashAttention). Hopper's SM register budget (65,536 32-bit registers) constrains kernel scheduling: FlashMLA's seesaw schedule is forced by the 32,768-register output-matrix footprint preventing FA-3-style ping-pong dual-buffering. Bookended on the deployment side by **H200's gpt-oss-120b quirk** (TensorRT-LLM's TRTLLM MoE backend doesn't support Hopper — H200 must use the `TRITON` backend from OpenAI).
+
+NVIDIA's Hopper architecture (H100/H200/H800/GH200) introduced four micro-architectural capabilities that define its kernel-authoring surface: TMA (block-level asynchronous copy between global and shared memory), DSM (direct SM-to-SM loads, stores, and atomics via thread-block clusters), DPX (hardware-accelerated dynamic-programming primitives), and native FP8 Tensor Cores — with the HKUST + HIT microbenchmark study (arXiv:2402.13499) providing the canonical instruction-level characterization of all three novel features. Transformer Engine's FP8 path on Hopper has documented practical limits: Softmax and GeLU remain unquantized, and DotProductAttention bypasses FP8 Tensor Cores in favor of FlashAttention, so real LLM speedups fall short of tensor-core peak rates. Hopper's SM register budget (65,536 32-bit registers) imposes a hard scheduling constraint: the 64×512 WGMMA output matrix occupies 32,768 registers — half the register file — preventing FlashAttention-3's two-output ping-pong design and forcing FlashMLA's seesaw schedule, which splits the output vertically into O_L/O_R across two warpgroups and achieves roughly 80% Tensor Core utilization and 3 TB/s bandwidth on H800 SXM5. CUDA 13.1 adds static SM partitioning for MPS in 8-SM chunks on Hopper-and-later discrete GPUs, enabling deterministic resource allocation between MPS clients. On the deployment side, H200 carries a backend constraint: the TensorRT-LLM TRTLLM MoE backend does not support Hopper, so gpt-oss-120b on H200 must use the TRITON backend (OpenAI's Triton MoE kernels, already shipped in the NGC container), while CUTLASS support on Hopper remains in progress.
+
 
 ## Observations
 

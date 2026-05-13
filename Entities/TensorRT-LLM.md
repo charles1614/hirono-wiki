@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 3
 tier: active
@@ -13,7 +13,9 @@ NVIDIA's LLM-specific inference engine; built on TensorRT; competitor to vLLM/SG
 
 ## Synthesis
 
-NVIDIA's first-party LLM inference engine — the **official Blackwell deployment path for gpt-oss-120b** (release 1.1.0rc1). Two-mode operating model: **low-latency** (`enable_attention_dp: false`, MoE backend `TRTLLM` or `TRITON`) targets max tps/user; **max-throughput** (`enable_attention_dp: true`, MoE backend `CUTLASS`, `stream_interval: 10`) targets max tps/gpu. Same `trtllm-serve` binary; only the YAML config differs. Headline numbers: **420 tps/user low-latency** (8× B200 batch 1), **>1.5M tps system-wide** on GB200 NVL72. Used as the **TransformerEngine-based comm-overlap baseline** Flux benchmarks against (Flux delivers 2.06× prefill / 2.10× decoding over TE specifically). Treated alongside vLLM, SGLang, Mooncake, and DeepFlow in Pan & Li's 2025 inference-systems survey.
+
+NVIDIA's first-party LLM inference engine and the official Blackwell deployment path for gpt-oss-120b (release 1.1.0rc1). It operates in two modes from a single trtllm-serve binary: low-latency (enable_attention_dp: false, TRTLLM/TRITON MoE backend) targeting maximum tps per user, and max-throughput (enable_attention_dp: true, CUTLASS MoE backend, stream_interval: 10) targeting maximum tps per GPU — the only difference is the YAML config. Headline numbers for gpt-oss-120b on Blackwell hardware reach 420 tps/user at low-latency (8x B200, batch 1) and over 1.5 million tps system-wide on a GB200 NVL72 at max-throughput. TensorRT-LLM serves as the TransformerEngine-based comm-overlap baseline in Flux's evaluation: Flux delivers 2.06x prefill and 2.10x decoding speedups specifically over TensorRT-LLM's TransformerEngine overlap path, with the gap attributable to TransformerEngine's SM-underutilization at small batch sizes — a regression that kernel-fusion eliminates. The system is catalogued alongside vLLM, SGLang, Mooncake, and DeepFlow in Pan and Li's 2025 survey of LLM inference systems (arXiv:2506.21901), which frames inference as a database-systems problem organized around load prediction, adaptive mechanisms, and cost reduction.
+
 
 ## Observations
 

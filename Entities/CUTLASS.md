@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 3
 tier: active
@@ -13,7 +13,9 @@ NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks fo
 
 ## Synthesis
 
-NVIDIA's CUDA C++ template library for high-performance matmul/conv — the substrate for **Flux's fine-grained kernel-fusion comm overlap** (ByteDance's choice over Triton for TC-heavy auto-tunable kernels) and one of the named inspirations for **FlashMLA's seesaw schedule** (alongside FlashAttention's online softmax + Flash-Decoding's split-K). At the deployment layer, **gpt-oss-120b max-throughput** on TensorRT-LLM uses the **CUTLASS MoE backend** — with the architectural constraint that CUTLASS only supports pure EP (no mixed TP/EP), forcing `--ep ${num_gpus}` on max-throughput configurations.
+
+NVIDIA's CUDA C++ template library for high-performance matrix multiplication and convolution, CUTLASS serves as the substrate for multiple frontier kernel projects. Flux (ByteDance/PKU) is built directly on CUTLASS — its auto-tunable, fine-grained kernel-fusion of compute and communication tiles into a single thread block is modular across GPU generations and interconnects, and CUTLASS was chosen over Triton specifically because Tensor-Core-heavy auto-tunable kernels are better suited to it. FlashMLA acknowledges CUTLASS as one of its primary inspirations alongside FlashAttention's online softmax and Flash-Decoding's split-K, crediting its kernel-fusion and tile-level scheduling primitives. At the deployment layer, TensorRT-LLM's max-throughput configuration for gpt-oss-120b on B200/GB200 uses the CUTLASS MoE backend, but with an architectural constraint: CUTLASS supports only pure expert parallelism (no mixed TP/EP), which forces max-throughput deployments to set `--ep ${num_gpus}` while the TRTLLM backend retains mixed TP/EP flexibility for low-latency configurations.
+
 
 ## Observations
 

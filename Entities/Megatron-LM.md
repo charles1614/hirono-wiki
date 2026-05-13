@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-12
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 3
 tier: active
@@ -13,7 +13,9 @@ NVIDIA's original tensor + pipeline + data parallelism training framework; found
 
 ## Synthesis
 
-NVIDIA's foundational large-model training framework — defines the canonical tensor + pipeline + data parallelism partitioning that the rest of the ecosystem benchmarks against. **Flux's training comparison** uses Megatron-LM as the non-overlap baseline (Flux delivers 1.24× over Megatron-LM on 128-GPU clusters). **Megatron-Core**, the modern productization, is where **MoE Parallel Folding** ships — making it the production path for NVIDIA-published MoE pretraining recipes.
+
+NVIDIA's open-source large-model training framework and canonical reference implementation for hybrid parallelism — it defines the tensor, pipeline, and data parallelism partitioning patterns that the broader ecosystem benchmarks against. Flux (ByteDance + PKU) uses Megatron-LM as its non-overlap baseline, achieving a 1.24× speedup over it on 128-GPU clusters (A100/H800, PCIe/NVLink) via kernel-fusion-based communication overlap — measuring the gap Megatron-LM's stream/event scheduling leaves on the table. Megatron-Core, the production-grade subpackage within the same repo, is where MoE Parallel Folding ships: NVIDIA's technique for decoupling the parallelism mappings of attention and MoE layers independently, achieving 49.3% MFU on Mixtral 8×22B at 1,024 H100 GPUs. Practitioners treating distributed training infrastructure seriously treat Megatron source-reading as effectively mandatory — pairing the codebase bottom-up with the DeepMind "How to Scale Your Model" book for the top-down cost-model framing.
+
 
 ## Observations
 

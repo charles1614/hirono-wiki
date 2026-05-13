@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-11
-synthesis_updated_at: 2026-05-12
+updated: 2026-05-13
+synthesis_updated_at: 2026-05-13
 type: entity
 refs: 2
 tier: active
@@ -13,7 +13,9 @@ NVIDIA's library for FP8 LLM training on Hopper+; wraps Linear/MLP layers to use
 
 ## Synthesis
 
-NVIDIA's library wrapping FP8 Tensor Core math for Hopper+ LLM training. **Two practical findings shape its real-world deployment:** (1) Flux's evaluation shows TransformerEngine's communication-overlap path can be *slower* than non-overlap PyTorch at small `m` due to SM-underutilization (the failure mode kernel-fusion comm overlap addresses); (2) HKUST's microbench reveals that TE's FP8 path is not end-to-end — `te.Linear` is fully quantized but Softmax/GeLU stay BF16 (data-format-conversion overhead), and `te.DotProductAttention` bypasses FP8 TC entirely for FlashAttention. The headline 2× FP8-vs-FP16 speedup is achievable only on linear-dominated workloads.
+
+Transformer Engine is NVIDIA's library wrapping FP8 Tensor Core math for Hopper-generation GPUs, designed to accelerate LLM training and inference. Its FP8 coverage is partial, not end-to-end: te.Linear is the only fully quantized operator, while Softmax and GeLU remain in BF16, incurring format-conversion overhead, and te.DotProductAttention routes through FlashAttention rather than FP8 Tensor Cores, so attention gains nothing from FP8. Decode-only causal models such as LLaMA and GPT require manual replacement of nn.Linear and RMSNorm with TE equivalents before the library engages at all. On the communication-overlap front, TE's stream/event-based approach suffers SM underutilization at small batch sizes, making it slower than a non-overlap PyTorch baseline in that regime — the structural weakness that Flux's kernel-fusion design directly targets, achieving 1.38x over TE in training and 2.06x/2.10x over TE on prefill/decoding. The headline 2x FP8-over-FP16 speedup is therefore achievable only on linear-dominated workloads with sufficiently large batch sizes.
+
 
 ## Observations
 
