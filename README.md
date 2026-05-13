@@ -45,31 +45,13 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 │   └── <slug>-img-*.{png,jpg,…}   localized images (web sources)
 │
 ├── tools/                       ← TypeScript pipeline + helpers
-│   ├── bin/
-│   │   ├── hirono.ts              canonical CLI entrypoint
-│   │   ├── reindex.ts             rebuild Meta/index*.md + ref counts
-│   │   ├── lint.ts                schema + dead-link checks
-│   │   ├── build-sources-index.ts URL → slug map (.wiki-sources-index.json)
-│   │   ├── ingest_batch.ts        batch-driven ingest workflow
-│   │   ├── preprocess.ts          markdown → Lark-ready
-│   │   └── sync.ts                upload to Lark Space 2 projection
-│   ├── sites/<host>/              per-host fetcher modules
-│   │   ├── index.ts                 Site contract (match + fetch)
-│   │   ├── converter.ts             custom DOM logic (optional)
-│   │   ├── _shared/                 article-site factory + post-cleanup
-│   │   └── _default/                catch-all module (registered last)
-│   ├── fetch-raw.ts               central pipeline library
-│   ├── fetch-raw-handlers.ts      CLI handlers for hirono raindrop
-│   ├── curation.ts                shared library for atomic mutators (rename/merge/refine)
-│   ├── hirono/                    subcommand impls — raindrop, doctor,
-│   │                              new-entity, new-topic, rename-entity,
-│   │                              merge-entities, merge-topics,
-│   │                              bulk-delete-orphans, health-check,
-│   │                              auto-detect-entities, refine-entity,
-│   │                              refine-topic, refine-all-stale,
-│   │                              delete-source, raindrop forget, raindrop gc
+│   ├── bin/                       reindex / lint / build-sources-index /
+│   │                              ingest_batch / preprocess / sync (+ hirono.ts CLI)
+│   ├── sites/<host>/              per-host fetcher modules (factory + _default)
+│   ├── hirono/                    subcommand impls; full list via `hirono --help`
+│   ├── fetch-raw.ts, curation.ts  fetch pipeline + atomic-mutator library
 │   ├── shared/                    infra utils (atomic-write, browser-lock)
-│   └── __tests__/                 1190+ tests; per-host snapshots, fixtures, structural rules
+│   └── __tests__/                 1190+ tests
 │
 ├── docs/                        ← architecture deep-dives
 │   └── fetcher-architecture.md
@@ -154,43 +136,18 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 
 **Observations are not auto-populated.** `reindex.ts` counts incoming wikilinks but doesn't write content. If an Entity has a non-zero `refs:` but an empty `## Observations`, the LLM hasn't yet folded that citing Source's lens into the entity — `reindex.ts` prints a `missing N observations` worklist per entity, naming which Sources still need a cited bullet. That report is the queue for the next ingest pass.
 
-**Creating a new Entity or Topic** the Source references is the LLM's job — per Karpathy, "you never (or rarely) write the wiki yourself." The LLM shells out to scaffolding CLIs as it works; the operator doesn't invoke these directly. Two paths cover the spectrum:
+**Wiki mutations are the LLM's job** per Karpathy — "you never (or rarely) write the wiki yourself." Every mutator below is invoked by the agent (during ingest or curation); the operator runs only `raindrop *` + `reindex` + `lint`. All mutators are idempotent (refuse overwrites, validate names, atomic apply) so the LLM doesn't have to remember the safety dance.
 
-```bash
-# During in-chat ingest, the LLM calls these per-entity as it notices new references.
-# Schema-conformant stubs the LLM then fills in with the Source's lens.
-npx tsx tools/bin/hirono.ts new-entity "FlashMLA"      --kind "DeepSeek's MLA decoding kernel"
-npx tsx tools/bin/hirono.ts new-topic  "Inference Disaggregation"  --what "Splitting prefill vs decode pools"
+| When | Command (LLM-invoked) | Effect |
+|---|---|---|
+| New entity / topic noticed during ingest | `hirono new-entity <Name>` / `new-topic <Name>` | scaffolds `Entities/_seen/<Name>.md` or `Topics/<Name>.md` |
+| Whole-Source NER pass | `hirono auto-detect-entities <slug>` | Sonnet subagent extracts entities → creates `_seen/` stubs atomically; uses `Meta/entity-aliases.md` to dedupe spelling variants |
+| Synthesis drifted vs new Observations | `hirono refine-entity <name>` | Sonnet regenerates `## Synthesis` from cited Sources; bumps `synthesis_updated_at` |
+| Topic's Current understanding drifted | `hirono refine-topic <name>` | same shape, for `## Current understanding` |
+| Batch refresh | `hirono refine-all-stale` | runs lint, prepares prompts for every flagged entity |
+| Operator-judged ingest mistake (rare) | `hirono raindrop forget <url>` | deletes Source + raw archive + adds to `Meta/sources-ingest-skips.md` |
 
-# Batch automation when ingesting many Sources: Sonnet subagent does the NER pass
-# over a whole Source body in one shot, CLI applies the atomic _seen/ writes.
-npx tsx tools/bin/hirono.ts auto-detect-entities <source-slug>
-#   → writes a prompt package; Claude spawns a Sonnet subagent in chat;
-#     saves JSON response; re-runs with --response <path> --apply.
-```
-
-New entities scaffold to `Entities/_seen/<Name>.md` (seen tier; reindex promotes at refs ≥ 3). New topics scaffold to `Topics/<Name>.md` with the four-section template. `auto-detect-entities` consults `Meta/entity-aliases.md` so spelling variants (`LLaMA → Llama`, `bfloat16 → BF16`) don't create duplicate stubs. All of these are mechanically idempotent (refuse to overwrite, validate names, atomic apply) — the LLM never has to remember the safety dance.
-
-**Keeping Syntheses fresh as Sources accumulate.** An Entity's `## Synthesis` paragraph (or a Topic's `## Current understanding`) is the LLM-judgment lens that should reflect everything currently cited. When new Observations land, the lens drifts. Two CLIs regenerate it via Sonnet subagent:
-
-```bash
-npx tsx tools/bin/hirono.ts refine-entity "MLA"                  # → prompt package
-# spawn Sonnet → save response.txt → re-run with --response <path> --apply
-npx tsx tools/bin/hirono.ts refine-topic "Inference Disaggregation"  # same shape, Topic side
-npx tsx tools/bin/hirono.ts refine-all-stale                     # batch: lint flags + prepare
-```
-
-Apply phase atomically replaces the section, bumps `synthesis_updated_at` to today, and appends a `refactor | Refine [[X]]` log entry. The `stale-synthesis` lint check (run on every commit) flags active-tier entities whose Synthesis dates predate their newest citing Source.
-
-**Accident cleanup is NOT the default path.** Karpathy's pattern absorbs every URL in raw; operator curation happens at the bookmark layer (what to add to Raindrop), not the wiki layer. But for the rare bookmark you regret, the cleanup primitives exist:
-
-```bash
-npx tsx tools/bin/hirono.ts delete-source <slug>             # Source + raw archive
-npx tsx tools/bin/hirono.ts raindrop forget <slug-or-url>    # delete + add to skip-list
-npx tsx tools/bin/hirono.ts raindrop gc --keep-last 3        # prune old content-rev*.md
-```
-
-The skip-list (`Meta/sources-ingest-skips.md`) is a last-resort registry for known spam / permanent duplicates — **not** for off-topic content (the wiki absorbs that broadly per Karpathy). Use `forget` when an accidental bookmark needs permanent shielding.
+The skip-list is a last-resort registry for spam / permanent duplicates — **not** for off-topic content (Karpathy: the wiki absorbs broadly; operator curation is at the bookmark layer, not the wiki layer).
 
 ### Mode 3 — Ask a question ("how does X relate to Y?")
 
@@ -217,64 +174,66 @@ Or click [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md
 ## How the data flows
 
 ```
-   Raindrop bookmarks            Lark Space 1 "Hirono Raw"
-   (562 today, source of truth        (curated knowledge nodes)
-    for "URLs I care about")                  │
-            │                                 │
-            │ hirono raindrop refresh-cache   │ lark-hirono fetch
-            ▼                                 ▼
-   ┌──────────────────────────────────────────────────┐
-   │  .wiki-raindrop-cache.json                       │
-   │  (local snapshot of the bookmark corpus)         │
-   └──────────────┬───────────────────────────────────┘
-                  │ hirono raindrop fetch-all  (new bookmarks → fetch)
-                  │ hirono raindrop sync       (existing → maybe refetch)
-                  │ hirono raindrop refetch    (one-shot, --force OK)
-                  ▼
-   ┌──────────────────────────────────────────────────┐
-   │  raw/raindrop/<host>/<slug>/                     │
-   │    ├── content.md  ── source.json                │
-   │    ├── revisions.jsonl  (audit trail)            │
-   │    └── images / PDFs                             │
-   └──────────────┬───────────────────────────────────┘
-                  │ rebuildRawIndex (auto on every write)
-                  ▼
-   ┌──────────────────────────────────────────────────┐
-   │  raw/raindrop/_index.json                        │
-   │    each slug's state =                           │
-   │      "not-yet-good"  │  "ingest-ready"  │ "ingested" │
-   └──────────────┬───────────────────────────────────┘
-                  │
-        ┌─────────┴───────────┬──────────────────────────┐
-        ▼                     ▼                          ▼
-   not-yet-good          ingest-ready                ingested
-   (extraction has       (clean raw, no              (Sources/.../<slug>.md
-    problems; debug       Sources/ summary            exists; frozen-slug
-    loop driven by        yet — LLM ingest            guard protects from
-    failure_kind)         queue)                      accidental refetch)
-        │                     │
-        │ (refetch)           │ (LLM reads content.md → writes Sources/...)
-        ▼                     ▼
-   ┌──────────────────────────────────────────────────┐
-   │  Sources/YYYY/<slug>.md   (the wiki layer)       │
-   │      TL;DR + Key claims + Visual obs +           │
-   │      Entities touched + Topics touched           │
-   └──────────────┬───────────────────────────────────┘
-                  │ tools/bin/reindex.ts
-                  ▼
-   ┌──────────────────────────────────────────────────┐
-   │  Entities/   Topics/   Meta/index*.md            │
-   │      (compounding artifact:                      │
-   │       refs counted, tier promotions, source      │
-   │       counts, indexes regenerated)               │
-   └──────────────┬───────────────────────────────────┘
-                  │ tools/bin/sync.ts upload-*
-                  ▼
-   ┌──────────────────────────────────────────────────┐
-   │  Lark Space 2 "HIRONO WIKI"  (read-only mobile)  │
-   │  one-way projection; NEVER edit there            │
-   └──────────────────────────────────────────────────┘
+   Raindrop bookmarks  ─►  .wiki-raindrop-cache.json  (local snapshot)
+       (562 today)             │  hirono raindrop fetch-all / sync / refetch
+                               ▼
+                       raw/raindrop/<host>/<slug>/
+                          content.md + source.json + revisions.jsonl + images
+                               │  rebuildRawIndex (auto)
+                               ▼
+                       raw/raindrop/_index.json   (3-state classifier)
+                               │
+                ┌──────────────┼────────────────┐
+                ▼              ▼                ▼
+          not-yet-good     ingest-ready     ingested
+          (debug per       (LLM ingest      (frozen-slug
+           site-handling-   queue)           guard)
+           patterns.md)        │
+                               │  LLM reads content.md →
+                               │  writes Sources/YYYY/<slug>.md
+                               ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │  Sources/YYYY/<slug>.md     (TL;DR + Key claims +            │
+   │                              Entities/Topics touched + …)   │
+   └─────────┬────────────────────────────────────────────────────┘
+             │
+             ├──► hirono auto-detect-entities <slug>  ─►  Sonnet NER pass
+             │      creates Entities/_seen/<X>.md stubs (atomic);
+             │      `Meta/entity-aliases.md` dedupes spelling variants.
+             │
+             ├──► LLM editorial pass (in chat or batch)
+             │      writes ## Observations bullets on touched Entities;
+             │      updates ## Current understanding on touched Topics.
+             │
+             ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │  Entities/  Topics/                                          │
+   │  ├─ Synthesis / Current understanding (LLM-judgment lens)    │
+   │  ├─ Observations (append-only, one bullet per citing Source) │
+   │  └─ frontmatter: refs, tier, synthesis_updated_at            │
+   └─────────┬────────────────────────────────────────────────────┘
+             │
+             ├──► reindex.ts                            (mechanical)
+             │      refs counted, _seen/ → active at ≥3,
+             │      Meta/index*.md regenerated, updated: bumped.
+             │
+             ├──► hirono refine-entity <name>           (Sonnet)
+             │    hirono refine-topic <name>
+             │      regenerates ## Synthesis or ## Current understanding
+             │      from accumulated Observations + cited Source bodies;
+             │      bumps synthesis_updated_at. Triggered when
+             │      stale-synthesis lint fires or after a merge.
+             │
+             ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │  Lark Space 2 "HIRONO WIKI"    (read-only mobile projection) │
+   │  via `tools/bin/sync.ts upload-changed` — never edit there   │
+   └──────────────────────────────────────────────────────────────┘
 ```
+
+Two loops run on this graph:
+- **Forward (per ingest)**: raw → Source → auto-detect stubs + Observations → reindex bumps refs + tiers.
+- **Refine (periodic)**: when `stale-synthesis` lint fires or a merge marks Synthesis stale, `refine-entity` / `refine-topic` regenerate the LLM-judgment section from accumulated Observations. The wiki re-compresses as evidence reshapes the picture.
 
 ## The 3-state model in one paragraph
 
