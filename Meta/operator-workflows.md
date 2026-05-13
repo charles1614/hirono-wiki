@@ -1032,7 +1032,19 @@ hirono raindrop gc [--keep-last N]    # content-rev*.md cleanup
 
 **Revision GC**: `hirono raindrop gc --keep-last 3` keeps the most recent 3 revisions; older `content-rev*.md` files are deleted and `revisions.jsonl` is updated with `body_pruned=true` markers.
 
-## 13. Tier-1 safe auto-fix: `hirono auto-fix`
+## 13. Three modes of automation (operator-touch ladder)
+
+The curation pipeline is fully LLM-driven end-to-end. The three "modes" differ only in how much operator review sits between the LLM's proposals and the actual file mutations:
+
+| Mode | LLM does | Operator does | Command |
+|---|---|---|---|
+| **Zero-touch** | nothing (mechanical operations only) | nothing | `hirono auto-fix` |
+| **One-tap** (default for Tier 2) | judges health-check findings, proposes specific atomic-CLI commands with rationale, dispatcher executes | reviews `Meta/curation-queue.md`, ticks `[x]` approved boxes | `propose-curation` → spawn Sonnet → `apply-queue` |
+| **Full auto** | same as one-tap PLUS auto-dispatch of high-confidence items | nothing (just kicks off the loop) | `propose-curation` → spawn Sonnet → `apply-queue --auto-apply high` |
+
+All three modes are *automated* — the LLM does the judgment work. They differ in operator-approval scope. Full-auto is appropriate when the operator trusts Sonnet's high-confidence calls (case-only alias merges, obvious orphan deletions, name collisions); one-tap is appropriate when reviewing each proposed mutation is worth the ~5 minutes; zero-touch is the safe-by-construction subset.
+
+## 13a. Zero-touch: `hirono auto-fix`
 
 The narrowest autonomous loop. Runs three safe-by-construction operations and **never deletes anything**:
 
@@ -1056,7 +1068,7 @@ Safe enough for a pre-commit hook or scheduled cron. All mutations are atomic + 
 
 **Cadence**: weekly, or on-demand when new aliases land in `entity-aliases.md`.
 
-## 14. Tier-2 batch curation: propose-curation → apply-queue
+## 13b. One-tap / full-auto: propose-curation → apply-queue
 
 At scale (hundreds of entities, growing fast), running `health-check` and then deciding-and-invoking the matching atomic CLI for each finding gets expensive. Tier 2 compresses the loop: one LLM-judgment pass produces a queue of proposed mutations, the operator reviews them as a batch, then dispatches the approved subset in one shot.
 
@@ -1094,7 +1106,12 @@ hirono apply-queue --auto-apply high --dry-run
 | `refine-topic` | `hirono refine-topic <name>` | Topic Current understanding drifted |
 | `skip` | (no-op) | finding is a false positive (SKU distinction, intentional naming) |
 
-**Karpathy alignment**: operator approval (the checkbox tick) is the gate. `--auto-apply high` lets the operator delegate the high-confidence cases (case-only variants, refs=0 orphans), but the default is review-before-apply. Atomic-CLI machinery + log entries make every individual mutation reversible via `git revert`.
+**Choosing one-tap vs full-auto**: the LLM-judgment work (NER, duplicate detection, refine-vs-keep calls) is automated either way. The difference is whether the operator wants to see each proposed mutation before it runs. Recommendation:
+
+- **One-tap** (`apply-queue` plain) — when ramping up or when proposal count is small (~10-30); review takes 2-5 minutes.
+- **Full-auto** (`apply-queue --auto-apply high`) — for routine cron-style runs where high-confidence calls (alias merges, obvious orphan deletions, case-only variants) don't need per-item review. Medium/low-confidence items can be deferred for next-run review.
+
+Both modes are reversible via `git revert` on the resulting commit — atomic-CLI machinery + per-mutation log entries make rollback safe.
 
 **Cadence**: run monthly or when health-check warning counts get unwieldy.
 
