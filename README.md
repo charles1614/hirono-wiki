@@ -146,8 +146,7 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 | Topic's Current understanding drifted | `hirono refine-topic <name>` | same shape, for `## Current understanding` |
 | Batch refresh | `hirono refine-all-stale` | runs lint, prepares prompts for every flagged entity |
 | Zero-touch autonomous repairs | `hirono auto-fix` | Auto-applies alias merges from `Meta/entity-aliases.md` + preps refine prompts for stale Syntheses + refreshes indexes. **Never deletes anything.** Safe for cron / pre-commit. |
-| One-tap LLM curation (review queue) | `hirono propose-curation` → `apply-queue` | Sonnet judges health-check findings + emits `Meta/curation-queue.md`; operator ticks `[x]` approved items; dispatcher executes via existing atomic CLIs. LLM-judgment is auto; only checkbox review is manual. |
-| Full-auto curation (no review) | `hirono propose-curation` → `apply-queue --auto-apply high` | Same pipeline; auto-dispatches high-confidence items without operator gate. Medium/low items deferred to next run. For routine cron use when high-confidence calls don't need per-item review. |
+| Unified curation loop (one command) | `hirono auto-curate` → Sonnet → `hirono auto-curate --continue` | Wraps the full pipeline: auto-fix + propose-curation in Phase 1, finalize + apply-queue in Phase 2. Default Phase 2 is full-auto (`--auto-apply high`); pass `--review` for the one-tap variant where you tick `[x]` boxes first. |
 | Operator-judged ingest mistake (rare) | `hirono raindrop forget <url>` | deletes Source + raw archive + adds to `Meta/sources-ingest-skips.md` |
 
 The skip-list is a last-resort registry for spam / permanent duplicates — **not** for off-topic content (Karpathy: the wiki absorbs broadly; operator curation is at the bookmark layer, not the wiki layer).
@@ -347,14 +346,12 @@ npx tsx tools/bin/hirono.ts health-check --scope drift    # raw-archive drift au
 npx tsx tools/bin/hirono.ts health-check --scope sources  # 0-wikilink Sources, age-stale, etc.
 
 # 6b. LLM-driven curation (monthly, when health-check warnings stack up)
-npx tsx tools/bin/hirono.ts auto-fix                                  # zero-touch: alias merges + index refresh
-npx tsx tools/bin/hirono.ts propose-curation                          # → prompt for Sonnet
+npx tsx tools/bin/hirono.ts auto-curate                               # Phase 1: auto-fix + propose-curation
 # spawn Sonnet → save .curation-prompts/curation-proposal-response.json
-npx tsx tools/bin/hirono.ts propose-curation --finalize <path>        # → Meta/curation-queue.md
-# Either review + apply approved items:
-npx tsx tools/bin/hirono.ts apply-queue                               # one-tap (checkbox review)
-# Or skip review for high-confidence items (full-auto):
-npx tsx tools/bin/hirono.ts apply-queue --auto-apply high             # no operator gate
+npx tsx tools/bin/hirono.ts auto-curate --continue                    # Phase 2: finalize + apply --auto-apply high
+# OR for one-tap (review before apply):
+npx tsx tools/bin/hirono.ts auto-curate --continue --review           # stops at queue; operator reviews + ticks
+npx tsx tools/bin/hirono.ts apply-queue                               # then dispatches approved items
 
 # 7. Project to Lark Space 2 (read-only mobile view)
 cd tools && npx tsx sync.ts upload-changed

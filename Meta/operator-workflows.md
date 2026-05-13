@@ -1068,7 +1068,32 @@ Safe enough for a pre-commit hook or scheduled cron. All mutations are atomic + 
 
 **Cadence**: weekly, or on-demand when new aliases land in `entity-aliases.md`.
 
-## 13b. One-tap / full-auto: propose-curation → apply-queue
+## 13b. Unified loop: `hirono auto-curate`
+
+Both one-tap and full-auto modes are wrapped in a single command that runs the whole cycle:
+
+```bash
+# Phase 1: auto-fix + propose-curation prompt
+hirono auto-curate
+# → spawn Sonnet subagent on the printed prompt
+# → save response to .curation-prompts/curation-proposal-response.json
+
+# Phase 2 (full-auto — high-confidence items dispatch without review):
+hirono auto-curate --continue
+
+# OR Phase 2 (one-tap — operator reviews queue + runs apply-queue manually):
+hirono auto-curate --continue --review
+```
+
+Two commands + one Sonnet spawn for the entire monthly curation cycle. Flags:
+- `--auto-apply <level>` — passed through to apply-queue (default `high`)
+- `--dry-run` — show what would run, don't dispatch
+- `--skip-step <auto-fix|propose|apply>` — skip a phase step
+- `--review` — stop after queue render, defer apply-queue to operator
+
+This is a thin orchestrator over the underlying CLIs; behavior is identical to running them by hand. Use whichever level of granularity fits the operator's risk tolerance.
+
+## 13c. One-tap / full-auto: propose-curation → apply-queue
 
 At scale (hundreds of entities, growing fast), running `health-check` and then deciding-and-invoking the matching atomic CLI for each finding gets expensive. Tier 2 compresses the loop: one LLM-judgment pass produces a queue of proposed mutations, the operator reviews them as a batch, then dispatches the approved subset in one shot.
 

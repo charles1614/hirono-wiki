@@ -80,6 +80,10 @@ Top-level:
   apply-queue [--auto-apply <level>]      execute approved proposals from Meta/curation-queue.md
   auto-fix [--dry-run]                    Tier-1 safe auto-repairs: alias merges,
                                           refine-prompt prep, index refresh (NO deletions)
+  auto-curate [--continue] [--review] [--auto-apply <lvl>]
+                                          unified 2-phase curation loop:
+                                          auto-fix + propose-curation, then
+                                          finalize + apply-queue
   delete-source <slug> [--keep-raw] [--force] [--reason]
                                           atomic Source + raw archive removal (cleanup primitive)
 
@@ -305,6 +309,12 @@ async function main(): Promise<void> {
 
   if (family === "auto-fix") {
     const { main } = await import("../hirono/auto-fix.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "auto-curate") {
+    const { main } = await import("../hirono/auto-curate.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }
