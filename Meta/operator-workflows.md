@@ -1032,6 +1032,48 @@ hirono raindrop gc [--keep-last N]    # content-rev*.md cleanup
 
 **Revision GC**: `hirono raindrop gc --keep-last 3` keeps the most recent 3 revisions; older `content-rev*.md` files are deleted and `revisions.jsonl` is updated with `body_pruned=true` markers.
 
+## 13. Tier-2 batch curation: propose-curation → apply-queue
+
+At scale (hundreds of entities, growing fast), running `health-check` and then deciding-and-invoking the matching atomic CLI for each finding gets expensive. Tier 2 compresses the loop: one LLM-judgment pass produces a queue of proposed mutations, the operator reviews them as a batch, then dispatches the approved subset in one shot.
+
+```bash
+# 1. Generate prompt package (runs health-check + lint internally, samples
+#    bodies of flagged entities so Sonnet has context to judge):
+hirono propose-curation
+# → writes .curation-prompts/curation-proposal-prompt.md
+
+# 2. Spawn Sonnet subagent in Claude session. Save JSON response to:
+#    .curation-prompts/curation-proposal-response.json
+
+# 3. Finalize: render operator-reviewable queue with checkboxes
+hirono propose-curation --finalize .curation-prompts/curation-proposal-response.json
+# → writes Meta/curation-queue.md (operator opens + ticks [x] approved items)
+
+# 4. Apply approved items — each dispatches to the matching atomic CLI
+hirono apply-queue
+# Or skip the manual checkbox step for high-confidence items:
+hirono apply-queue --auto-apply high
+
+# Dry-run first to verify what would happen:
+hirono apply-queue --auto-apply high --dry-run
+```
+
+**Proposal kinds Sonnet may emit** — each backed by an existing atomic CLI, so the dispatcher is a thin wrapper:
+
+| Kind | Atomic CLI invoked | When |
+|---|---|---|
+| `merge-entities` | `hirono merge-entities <Src> --into <Tgt>` | duplicate-pair candidates that aren't SKU distinctions |
+| `merge-topics` | `hirono merge-topics <Src> --into <Tgt>` | topic-name collisions, semantic-duplicate topics |
+| `rename-entity` | `hirono rename-entity <Old> <New>` | canonical-name normalization |
+| `delete-orphan` | `hirono bulk-delete-orphans --confirm <slug>` | refs=0 stubs with no semantic value |
+| `refine-entity` | `hirono refine-entity <name>` | active entity Synthesis stale or contradicted |
+| `refine-topic` | `hirono refine-topic <name>` | Topic Current understanding drifted |
+| `skip` | (no-op) | finding is a false positive (SKU distinction, intentional naming) |
+
+**Karpathy alignment**: operator approval (the checkbox tick) is the gate. `--auto-apply high` lets the operator delegate the high-confidence cases (case-only variants, refs=0 orphans), but the default is review-before-apply. Atomic-CLI machinery + log entries make every individual mutation reversible via `git revert`.
+
+**Cadence**: run monthly or when health-check warning counts get unwieldy.
+
 ---
 
 *See also: `CLAUDE.md` for fix recipes when site modules misbehave; `tools/sites/MIGRATION.md` for adding a new site module; `docs/fetcher-architecture.md` for how routing works.*
