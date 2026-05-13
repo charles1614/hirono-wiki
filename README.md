@@ -145,6 +145,7 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 | Synthesis drifted vs new Observations | `hirono refine-entity <name>` | Sonnet regenerates `## Synthesis` from cited Sources; bumps `synthesis_updated_at` |
 | Topic's Current understanding drifted | `hirono refine-topic <name>` | same shape, for `## Current understanding` |
 | Batch refresh | `hirono refine-all-stale` | runs lint, prepares prompts for every flagged entity |
+| Periodic graph maintenance (Tier 2) | `hirono propose-curation` → `apply-queue` | Sonnet judges health-check + lint findings; emits `Meta/curation-queue.md` of merge/rename/refine/delete proposals; operator ticks `[x]` approved; dispatcher executes via existing atomic CLIs |
 | Operator-judged ingest mistake (rare) | `hirono raindrop forget <url>` | deletes Source + raw archive + adds to `Meta/sources-ingest-skips.md` |
 
 The skip-list is a last-resort registry for spam / permanent duplicates — **not** for off-topic content (Karpathy: the wiki absorbs broadly; operator curation is at the bookmark layer, not the wiki layer).
@@ -231,9 +232,10 @@ Or click [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md
    └──────────────────────────────────────────────────────────────┘
 ```
 
-Two loops run on this graph:
+Three loops run on this graph:
 - **Forward (per ingest)**: raw → Source → auto-detect stubs + Observations → reindex bumps refs + tiers.
 - **Refine (periodic)**: when `stale-synthesis` lint fires or a merge marks Synthesis stale, `refine-entity` / `refine-topic` regenerate the LLM-judgment section from accumulated Observations. The wiki re-compresses as evidence reshapes the picture.
+- **Curate (batch, occasional)**: `hirono propose-curation` runs health-check + lint, hands the findings to a Sonnet judge, emits `Meta/curation-queue.md` of merge / rename / refine / delete proposals. Operator ticks `[x]` to approve, then `hirono apply-queue` dispatches each approved item to its atomic CLI. Cadence: monthly, or when health-check warning counts get unwieldy.
 
 ## The 3-state model in one paragraph
 
@@ -339,6 +341,13 @@ npx tsx tools/bin/hirono.ts auto-detect-entities <slug>   # per-Source NER pass
 npx tsx tools/bin/hirono.ts refine-all-stale              # batch-prepare refine prompts
 npx tsx tools/bin/hirono.ts health-check --scope drift    # raw-archive drift audit
 npx tsx tools/bin/hirono.ts health-check --scope sources  # 0-wikilink Sources, age-stale, etc.
+
+# 6b. Tier-2 batch curation (monthly, when health-check warnings stack up)
+npx tsx tools/bin/hirono.ts propose-curation                          # → prompt for Sonnet
+# spawn Sonnet → save .curation-prompts/curation-proposal-response.json
+npx tsx tools/bin/hirono.ts propose-curation --finalize <path>        # → Meta/curation-queue.md
+# operator opens queue, ticks [x] approved items
+npx tsx tools/bin/hirono.ts apply-queue                               # dispatches
 
 # 7. Project to Lark Space 2 (read-only mobile view)
 cd tools && npx tsx sync.ts upload-changed
