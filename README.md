@@ -154,21 +154,22 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 
 **Observations are not auto-populated.** `reindex.ts` counts incoming wikilinks but doesn't write content. If an Entity has a non-zero `refs:` but an empty `## Observations`, the LLM hasn't yet folded that citing Source's lens into the entity — `reindex.ts` prints a `missing N observations` worklist per entity, naming which Sources still need a cited bullet. That report is the queue for the next ingest pass.
 
-**Creating a new Entity or Topic** the Source references is the LLM's job. The friction-reducing helpers split into two layers — manual scaffolding for one-offs, and Sonnet-driven batch tooling for the bulk case:
+**Creating a new Entity or Topic** the Source references is the LLM's job — per Karpathy, "you never (or rarely) write the wiki yourself." The LLM shells out to scaffolding CLIs as it works; the operator doesn't invoke these directly. Two paths cover the spectrum:
 
 ```bash
-# Manual scaffolding (one-offs the operator already decided on)
+# During in-chat ingest, the LLM calls these per-entity as it notices new references.
+# Schema-conformant stubs the LLM then fills in with the Source's lens.
 npx tsx tools/bin/hirono.ts new-entity "FlashMLA"      --kind "DeepSeek's MLA decoding kernel"
 npx tsx tools/bin/hirono.ts new-topic  "Inference Disaggregation"  --what "Splitting prefill vs decode pools"
 
-# Batch automation — Sonnet does the LLM-NER pass, CLI handles atomic I/O
+# Batch automation when ingesting many Sources: Sonnet subagent does the NER pass
+# over a whole Source body in one shot, CLI applies the atomic _seen/ writes.
 npx tsx tools/bin/hirono.ts auto-detect-entities <source-slug>
-#   → writes a prompt package; operator spawns Sonnet subagent in chat;
+#   → writes a prompt package; Claude spawns a Sonnet subagent in chat;
 #     saves JSON response; re-runs with --response <path> --apply.
-#     Atomically creates _seen/ stubs for any new entities mentioned.
 ```
 
-New entities scaffold to `Entities/_seen/<Name>.md` (seen tier; reindex promotes at refs ≥ 3). New topics scaffold to `Topics/<Name>.md` with the four-section template. The `new-entity` / `new-topic` helpers refuse to overwrite existing files and validate name characters; `auto-detect-entities` consults `Meta/entity-aliases.md` so spelling variants (`LLaMA → Llama`, `bfloat16 → BF16`) don't create duplicate stubs.
+New entities scaffold to `Entities/_seen/<Name>.md` (seen tier; reindex promotes at refs ≥ 3). New topics scaffold to `Topics/<Name>.md` with the four-section template. `auto-detect-entities` consults `Meta/entity-aliases.md` so spelling variants (`LLaMA → Llama`, `bfloat16 → BF16`) don't create duplicate stubs. All of these are mechanically idempotent (refuse to overwrite, validate names, atomic apply) — the LLM never has to remember the safety dance.
 
 **Keeping Syntheses fresh as Sources accumulate.** An Entity's `## Synthesis` paragraph (or a Topic's `## Current understanding`) is the LLM-judgment lens that should reflect everything currently cited. When new Observations land, the lens drifts. Two CLIs regenerate it via Sonnet subagent:
 
