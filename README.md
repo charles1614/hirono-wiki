@@ -31,6 +31,8 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 │   ├── index.md  +  index-*.md    auto-regenerated catalogs
 │   ├── fetch-decisions.md         human-authored "accept this stub as-is"
 │   ├── sources-health-overrides.md
+│   ├── sources-ingest-skips.md    last-resort skip-list (spam / duplicates)
+│   ├── entity-aliases.md          spelling-variant normalization hints
 │   ├── references/                external inspiration docs (Karpathy gist)
 │   └── _archive/                  retired meta-docs
 │
@@ -58,9 +60,16 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 │   │   └── _default/                catch-all module (registered last)
 │   ├── fetch-raw.ts               central pipeline library
 │   ├── fetch-raw-handlers.ts      CLI handlers for hirono raindrop
-│   ├── hirono/                    raindrop / doctor subcommand impls
+│   ├── curation.ts                shared library for atomic mutators (rename/merge/refine)
+│   ├── hirono/                    subcommand impls — raindrop, doctor,
+│   │                              new-entity, new-topic, rename-entity,
+│   │                              merge-entities, merge-topics,
+│   │                              bulk-delete-orphans, health-check,
+│   │                              auto-detect-entities, refine-entity,
+│   │                              refine-topic, refine-all-stale,
+│   │                              delete-source, raindrop forget, raindrop gc
 │   ├── shared/                    infra utils (atomic-write, browser-lock)
-│   └── __tests__/                 31 test files; per-host snapshots, fixtures, structural rules
+│   └── __tests__/                 1190+ tests; per-host snapshots, fixtures, structural rules
 │
 ├── docs/                        ← architecture deep-dives
 │   └── fetcher-architecture.md
@@ -140,19 +149,47 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 
 | Layer | Who writes it | What it produces |
 |---|---|---|
-| **Editorial** (content) | The LLM, during ingest | `## Observations` bullets on each touched Entity (one atomic claim per citing Source, with `[[Sources/<slug>]]` citation); `## Synthesis` paragraph regenerated when evidence reshapes the picture; `## Current understanding` revised on touched Topics. |
+| **Editorial** (content) | The LLM, during ingest — or via a Sonnet subagent invoked by `auto-detect-entities` / `refine-entity` / `refine-topic` | `## Observations` bullets on each touched Entity (one atomic claim per citing Source, with `[[Sources/<slug>]]` citation); `## Synthesis` paragraph regenerated when evidence reshapes the picture; `## Current understanding` revised on touched Topics. |
 | **Mechanical** (metadata) | `reindex.ts`, after editorial | `refs:` counts; `source_count`; tier promotion (`_seen/` → active at ≥3 refs; **no auto-demotion**); `Meta/index*.md` regeneration; `updated:` timestamps. |
 
 **Observations are not auto-populated.** `reindex.ts` counts incoming wikilinks but doesn't write content. If an Entity has a non-zero `refs:` but an empty `## Observations`, the LLM hasn't yet folded that citing Source's lens into the entity — `reindex.ts` prints a `missing N observations` worklist per entity, naming which Sources still need a cited bullet. That report is the queue for the next ingest pass.
 
-**Creating a new Entity or Topic** the Source references is the LLM's job. Two CLI helpers reduce friction — both produce schema-conformant stubs the LLM just fills in:
+**Creating a new Entity or Topic** the Source references is the LLM's job. The friction-reducing helpers split into two layers — manual scaffolding for one-offs, and Sonnet-driven batch tooling for the bulk case:
 
 ```bash
+# Manual scaffolding (one-offs the operator already decided on)
 npx tsx tools/bin/hirono.ts new-entity "FlashMLA"      --kind "DeepSeek's MLA decoding kernel"
 npx tsx tools/bin/hirono.ts new-topic  "Inference Disaggregation"  --what "Splitting prefill vs decode pools"
+
+# Batch automation — Sonnet does the LLM-NER pass, CLI handles atomic I/O
+npx tsx tools/bin/hirono.ts auto-detect-entities <source-slug>
+#   → writes a prompt package; operator spawns Sonnet subagent in chat;
+#     saves JSON response; re-runs with --response <path> --apply.
+#     Atomically creates _seen/ stubs for any new entities mentioned.
 ```
 
-New entities scaffold to `Entities/_seen/<Name>.md` (seen tier; reindex promotes at refs ≥ 3). New topics scaffold to `Topics/<Name>.md` with the four-section template. Both refuse to overwrite existing files and validate name characters.
+New entities scaffold to `Entities/_seen/<Name>.md` (seen tier; reindex promotes at refs ≥ 3). New topics scaffold to `Topics/<Name>.md` with the four-section template. The `new-entity` / `new-topic` helpers refuse to overwrite existing files and validate name characters; `auto-detect-entities` consults `Meta/entity-aliases.md` so spelling variants (`LLaMA → Llama`, `bfloat16 → BF16`) don't create duplicate stubs.
+
+**Keeping Syntheses fresh as Sources accumulate.** An Entity's `## Synthesis` paragraph (or a Topic's `## Current understanding`) is the LLM-judgment lens that should reflect everything currently cited. When new Observations land, the lens drifts. Two CLIs regenerate it via Sonnet subagent:
+
+```bash
+npx tsx tools/bin/hirono.ts refine-entity "MLA"                  # → prompt package
+# spawn Sonnet → save response.txt → re-run with --response <path> --apply
+npx tsx tools/bin/hirono.ts refine-topic "Inference Disaggregation"  # same shape, Topic side
+npx tsx tools/bin/hirono.ts refine-all-stale                     # batch: lint flags + prepare
+```
+
+Apply phase atomically replaces the section, bumps `synthesis_updated_at` to today, and appends a `refactor | Refine [[X]]` log entry. The `stale-synthesis` lint check (run on every commit) flags active-tier entities whose Synthesis dates predate their newest citing Source.
+
+**Accident cleanup is NOT the default path.** Karpathy's pattern absorbs every URL in raw; operator curation happens at the bookmark layer (what to add to Raindrop), not the wiki layer. But for the rare bookmark you regret, the cleanup primitives exist:
+
+```bash
+npx tsx tools/bin/hirono.ts delete-source <slug>             # Source + raw archive
+npx tsx tools/bin/hirono.ts raindrop forget <slug-or-url>    # delete + add to skip-list
+npx tsx tools/bin/hirono.ts raindrop gc --keep-last 3        # prune old content-rev*.md
+```
+
+The skip-list (`Meta/sources-ingest-skips.md`) is a last-resort registry for known spam / permanent duplicates — **not** for off-topic content (the wiki absorbs that broadly per Karpathy). Use `forget` when an accidental bookmark needs permanent shielding.
 
 ### Mode 3 — Ask a question ("how does X relate to Y?")
 
@@ -261,6 +298,10 @@ Full design + per-scenario runbooks: [`Meta/corpus-pipeline.md`](Meta/corpus-pip
 |---|---|
 | Understand the corpus state machine end-to-end | [`Meta/corpus-pipeline.md`](Meta/corpus-pipeline.md) |
 | Run / understand operator commands | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) |
+| Entity/Topic curation (rename, merge, delete-orphan, health-check) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §9 |
+| Source curation (delete-source, raindrop forget, skip-list) — accident cleanup, NOT defaults | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §10 |
+| Auto-gen + refine entities/topics (LLM-NER, Synthesis regeneration via Sonnet) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §11 |
+| Drift detection cadence (`health-check --scope drift|sources`, `raindrop gc`) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §12 |
 | Debug a sub-good site, add a new host adapter, look up a defect pattern | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) |
 | Understand the fetcher architecture | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
 | Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
@@ -292,16 +333,16 @@ This is the question that confuses newcomers most. Every `.md` file in this repo
 ## Current state (regenerated by `tools/bin/reindex.ts`)
 
 ```
-Sources:          16
-Entities active:  19      (≥3 refs)
-Entities seen:   113      (1-2 refs)
-Topics:           53
-Total wiki pages: 201
+Sources:          35
+Entities active:  23      (≥3 refs)
+Entities seen:   208      (1-2 refs)
+Topics:           52
+Total wiki pages: 318
 
 raw/raindrop/_index.json:
-  ingested:       16
-  ingest-ready:   348
-  not-yet-good:   198
+  ingested:       35
+  ingest-ready:  ~329
+  not-yet-good:  ~198
   ────────────────────
   total slugs:    562   (one per Raindrop bookmark)
 ```
@@ -333,7 +374,13 @@ npx tsx tools/bin/lint.ts                        # schema + dead-link checks
 npx tsx tools/bin/build-sources-index.ts         # URL → slug map
 npx tsx tools/bin/hirono.ts raindrop reindex-raw # raw/_index.json (state field)
 
-# 6. Project to Lark Space 2 (read-only mobile view)
+# 6. Periodic: grow the entity graph + refresh stale Syntheses
+npx tsx tools/bin/hirono.ts auto-detect-entities <slug>   # per-Source NER pass
+npx tsx tools/bin/hirono.ts refine-all-stale              # batch-prepare refine prompts
+npx tsx tools/bin/hirono.ts health-check --scope drift    # raw-archive drift audit
+npx tsx tools/bin/hirono.ts health-check --scope sources  # 0-wikilink Sources, age-stale, etc.
+
+# 7. Project to Lark Space 2 (read-only mobile view)
 cd tools && npx tsx sync.ts upload-changed
 ```
 
