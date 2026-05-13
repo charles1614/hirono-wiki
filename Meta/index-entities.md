@@ -94,6 +94,7 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[HASS]]** _(1 refs)_ — Speculative-decoding method (Zhang et al. 2024); predicts next feature using current feature sequence; EAGLE family relative.
 - **[[HBM]]** _(1 refs)_ — High Bandwidth Memory — stacked DRAM directly attached to accelerators (TPU v3+, NVIDIA A100+).
 - **[[HKUST]]** _(1 refs)_ — Hong Kong University of Science and Technology (and HKUST-Guangzhou) — author affiliation for the Hopper microbenchmark paper.
+- **[[HSBC]]** _(1 refs)_ — British multinational banking and financial services holding company; cross-border consumer banking products including Pulse, Premier, 卓越
 - **[[ICI]]** _(1 refs)_ — Inter-Chip Interconnect — Google TPU's native pod-internal communication fabric.
 - **[[Jaeger]]** _(1 refs)_ — Open-source distributed-tracing system; consumes OpenTelemetry spans; request-centric visualization.
 - **[[JAX]]** _(1 refs)_ — Google's array-programming framework with composable transforms (grad, vmap, jit, pmap); built on XLA; foundation for Pathways + Gemini t…
