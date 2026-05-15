@@ -78,6 +78,11 @@ Top-level:
   refine-all-stale [--list|--preview|--limit N]
                                           batch-prepare refine prompts for stale Syntheses
                                           --preview: cost only; --limit N: top-N most-stale only
+  refine-batch <names...> | --from-stale [--limit N]
+                                          ONE Sonnet call refines N entities; merged
+                                          prompt + marker-delimited response; preamble
+                                          caches once. 3 tool calls for any N.
+                                          flags: --response <p> [--apply] --full-source
   ingest-preview [--since <ref>]          headline cost preview after bulk ingest:
                                           new Sources + flagged stale + est tokens/$
   refine-synthesis [--response <p>] [--apply]
@@ -300,6 +305,12 @@ async function main(): Promise<void> {
 
   if (family === "refine-all-stale") {
     const { main } = await import("../hirono/refine-all-stale.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "refine-batch") {
+    const { main } = await import("../hirono/refine-batch.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }

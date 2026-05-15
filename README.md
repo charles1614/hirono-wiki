@@ -12,6 +12,7 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 | **Ingest N sources** | *Ask Claude: "ingest 20 more from raw"* | LLM-authored — see CLAUDE.md §10 |
 | Preview refine cost after ingest | `npx tsx tools/bin/hirono.ts ingest-preview --since HEAD~1` | Shows new Sources + fan-out + est tokens/$ |
 | Refine stale Syntheses (when 7d lag fires) | `npx tsx tools/bin/hirono.ts refine-all-stale --preview` then `--limit N` | Cap each session; resumable across runs |
+| **Batch refine N entities** (≥3) — one Sonnet call | `npx tsx tools/bin/hirono.ts refine-batch --from-stale --limit N` | 3 tool calls total for any N; preamble caches once |
 | Top-level Synthesis regen | `npx tsx tools/bin/hirono.ts refine-synthesis` | When `stale-top-synthesis` lint fires |
 | Full curation loop | `npx tsx tools/bin/hirono.ts auto-curate` | Tier-1 auto-fix + Tier-2 propose-curation |
 | Periodic health check | `npx tsx tools/bin/hirono.ts health-check --scope drift` | Weekly; LLM-judgment audit |

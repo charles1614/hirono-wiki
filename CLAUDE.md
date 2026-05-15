@@ -394,7 +394,8 @@ The hirono CLIs exist because they encode invariants the LLM keeps getting wrong
 | "triage fetch failures" / "what's broken" | `hirono raindrop status --filter <kind>` |
 | **"ingest N from raw"** | follow §10 — pick candidates → per-item LLM authorship → validation gate |
 | "after ingest, what's the cost?" | `hirono ingest-preview --since HEAD~1` |
-| "refine stale" / "regenerate Syntheses" | `hirono refine-all-stale --preview` then `--limit N` (see §11) |
+| "refine stale" / "regenerate Syntheses" (≥3 items) | **`hirono refine-batch --from-stale --limit N`** — one Sonnet call, 3 tool calls total (see §11) |
+| "refine stale" — preview cost first | `hirono refine-all-stale --preview` (see §11) |
 | "refine one entity / topic" | `hirono refine-entity "<Name>"` → operator runs Sonnet → `--response <path> --apply` (see §11) |
 | "regenerate top-level Synthesis" | `hirono refine-synthesis` (see §11) |
 | "find/scaffold a new Entity for X" | `hirono new-entity "<Name>" --kind "<one-liner>"` |
@@ -674,6 +675,41 @@ hirono refine-synthesis [--response <resp> --apply]
 ```
 
 All three use the cache-friendly preamble (stable across calls; Anthropic's 5-min cache TTL amortizes) + curated Source excerpts (`tools/hirono/_shared/source-excerpt.ts`) — see `Meta/operator-workflows.md` §11.2 for the token-cost architecture. The per-call measure sidecar at `<prompt>-measure.json` shows char-count + est-tokens.
+
+### `refine-batch` — N entities in ONE Sonnet call (preferred for ≥3 entities)
+
+Per-entity `refine-entity` is 3 tool calls each — for 10 entities that's 30 tool calls + 10 fresh Sonnet contexts each paying full preamble cost. `refine-batch` collapses this to **3 tool calls total** for any N:
+
+```bash
+# Prepare: one merged prompt covering N entities (preamble FIRST, blocks LAST)
+hirono refine-batch <name1> <name2> ...                    # explicit names
+hirono refine-batch --from-stale [--limit N]               # pull top-N stale
+
+# Spawn ONE Sonnet via Agent tool — instruct it to read .refine-prompts/batch.md
+# and write marker-delimited response to .refine-prompts/batch-response.txt
+
+# Apply: parses markers, invokes refineEntity's atomic apply path per item
+hirono refine-batch --response .refine-prompts/batch-response.txt           # dry-run
+hirono refine-batch --response .refine-prompts/batch-response.txt --apply   # commit
+```
+
+**Why batched-single beats parallel-N**: the preamble bills exactly once within one Sonnet conversation (vs N times across N independent calls). Sonnet also sees all N entities together — can align framing where the same Source is cited across multiple. Plus 1 Agent call instead of N — less LLM-side orchestration risk.
+
+**Marker format** (parser-strict; the prompt body instructs Sonnet identically):
+
+```
+=== entity: <Name1> ===
+<4–6 sentence Synthesis paragraph; plain prose; no preamble; no wikilinks inside>
+
+=== entity: <Name2> ===
+<4–6 sentence Synthesis paragraph>
+```
+
+The CLI cross-checks parsed names against the saved `batch.md` and reports `missingFromResponse` (Sonnet skipped one) + `unmatchedInResponse` (Sonnet hallucinated a name). Apply is per-entity atomic — one bad block fails just that item, the rest still commit.
+
+**When to use which**:
+- 1–2 entities: `refine-entity` is fine (no orchestration saving).
+- ≥3 entities or any "refine all stale" task: **`refine-batch --from-stale --limit N`** — single CLI invocation, single Sonnet, single apply.
 
 ### `refine-all-stale` — batch refine with cost discipline
 
