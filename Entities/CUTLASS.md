@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 11
+refs: 19
 tier: active
 ---
 
@@ -23,3 +23,5 @@ NVIDIA's CUDA C++ template library for high-performance matrix multiplication an
 - The substrate Flux is built on — auto-tunable fine-grained kernel-fusion of compute + comm tiles into a single thread-block per tile pair. Modular per-architecture tuning across A100/H800 + PCIe/NVLink. ByteDance's choice over Triton for Tensor-Core-heavy auto-tunable kernels. — [[2025-10-09-flux-fast-software-based-communication-o]]
 - FlashMLA acknowledges CUTLASS as one of its primary inspirations alongside FlashAttention (online softmax) and Flash-Decoding (split-K) — kernel-fusion and tile-level scheduling primitives. — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
 - SemiAnalysis Tensor Core Evolution 引用 CUTLASS visualizer 生成的 Volta/Ampere MMA 数据布局图（quadpair 和 warp-wide layout 的 thread-data 映射），并引用 Programming Tensor Cores with CUTLASS（GTC 2019）作为 Volta 交错布局的规范文档来源。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- ThunderKittens技术解读将CUTLASS定位为高性能但嵌套模板复杂、编译体积大、开发门槛高的一极；MindGPT 3.0的LisaRT推理引擎基于CUTLASS定制GroupedGemm kernel实现MoE算子，性能提升2.8倍。 — [[2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易]]
+- Blackwell-native FP4 MoE schedule `KernelPtrArrayTmaWarpSpecialized1SmNvf4Sm100` (used by [[SGLang]]) provides: FP4 warp specialization (separate warp roles for load, dequantize, accumulate), TMA async loads with 128-byte alignment enforcement via padding, and 1-SM expert grouping. Generic CUTLASS 3.x (used by [[vLLM]]) skips alignment enforcement and misses FP4 warp specialization on `sm_100a`, resulting in 142 TFLOPS lower peak throughput. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]

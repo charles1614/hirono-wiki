@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 10
+source_count: 13
 ---
 
 # Speculative Decoding
@@ -64,5 +64,7 @@ The technique is now a standard component in serving stacks for large models; it
 
 <!-- merged from `Speculative Sampling` on 2026-05-13 -->
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-]] — AngelSlim将Eagle3训练范式扩展至全模态（LLM/VLM/Audio），1.4-1.9×加速，vLLM/SGLang直接部署。
+- [[2026-01-14-理想同学mindgpt-3-0发布-基于结构化思维链的深度思考模型]] — MindGPT 3.0车载LLM系统级推理优化：P-D分离、混合并行。
+- [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]] — Seer's adaptive grouped speculative sampling: CST-based no-draft-model n-gram speculation for RL rollout long-tail; 74–97% throughput vs VeRL.
 

@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 5
+refs: 8
 tier: active
 ---
 
@@ -20,3 +20,4 @@ Speculative decoding accelerates autoregressive inference by having a lightweigh
 ## Observations
 
 - **Suffix Decoding** (model-free speculative): pattern-matches request suffix against a cache of prior outputs; no draft model weights. Analysis of 22 Claude Code sessions (17,487 turns) found 39.3% output-pattern repetition, enabling 22% TPOT reduction on top of MTP baseline for GLM-4.7 (mean TPOT 25.13 ms → 19.63 ms). Effective specifically for agentic coding workloads with high structural repetition. — [[2026-01-26-optimizing-glm4-moe-for-production-65-fa]]
+- Seer's **adaptive grouped speculative sampling** (arXiv:2511.14617) is a no-draft-model variant: a Distributed Grouped Draft Server maintains one Compressed Suffix Tree (CST) per RL prompt group, aggregating token sequences from all in-flight sibling responses; inference instances periodically pull CST deltas and use them for local n-gram speculation with beam-search top-k path selection; draft length adapts to current concurrency (longer drafts at the tail stage when concurrency is low). Unlike traditional speculative decoding, draft tokens derive from peer responses rather than a separate model. — [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]]

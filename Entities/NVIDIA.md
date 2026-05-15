@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 31
+refs: 39
 tier: active
 ---
 
@@ -37,3 +37,5 @@ NVIDIA's 2025-26 strategic posture spans the full ML stack from silicon through 
 - TPU competitive threat demonstrably shifting GPU economics: OpenAI hasn't deployed any TPUs yet but already secured ~30% discount on its entire NVIDIA fleet from credible switch threat. NVIDIA issued reassuring PR in response to [[Google]]/[[TPU]] momentum. ~75% gross margin on full GPU systems (chip + CPU + switches + NICs + cabling) creates pricing flexibility but also the room [[Ironwood]] exploits via [[Broadcom]]'s lower silicon margins — all-in Ironwood TCO ~44% below GB200 from Google's cost perspective. Marketed Blackwell peak FLOPs inflated by DVFS; actual Blackwell utilization lands in the 70s% of rated peak. — [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]]
 - Launches Physical AI Data Factory Blueprint at GTC 2026 (March 2026) — open reference architecture unifying data curation ([[NVIDIA Cosmos]] Curator), synthetic augmentation (Cosmos Transfer), and automated evaluation (Cosmos Evaluator) for robotics / vision AI / AV development. [[NVIDIA OSMO]] orchestration integrates with coding agents (Claude Code, OpenAI Codex, Cursor). Cloud partners: Microsoft Azure + Nebius on Blackwell infrastructure. Internal use case: [[NVIDIA Alpamayo]], the world's first open reasoning-based VLA for autonomous driving. — [[2026-03-17-nvidia-announces-open-physical-ai-data-f]]
 - [[OpenAI]]与[[NVIDIA]]签署合作，黄仁勋承诺投资1000亿美金；形成相互持股飞轮，与[[AMD]]、其他科技巨头共同构建"大而不倒"利益共同体。 — [[2026-01-14-openai将科技巨头手拉手-大而不倒]]
+- Alibaba Cloud PAI formally partnered with NVIDIA for Physical AI (announced at 2025 云栖大会): PAI integrates the full NVIDIA Physical AI software stack (Isaac Sim, Isaac Lab, NVIDIA Cosmos, Physical AI datasets) with Alibaba Cloud's data compute, training/inference, and big-data-AI pipelines; jointly with ByteDance-supplier veRoCE, NVIDIA is also cited as a collaborator for the new RDMA protocol. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
+- ByteDance's veRoCE RDMA protocol collaboration: NVIDIA is one of five hardware partners (alongside AMD, Broadcom, 云脉芯联, 比特智路) supporting veRoCE verification on NICs from 400G to 1.6T; collaboration announced at Force大会 December 2025. — [[2025-12-19-火山引擎-force-大会发布-veroce-传输协议]]

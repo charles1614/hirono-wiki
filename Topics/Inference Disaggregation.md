@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 12
+source_count: 14
 ---
 
 # Inference Disaggregation
@@ -60,4 +60,5 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li survey treating disaggregation as a first-class composition tier.
 - [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]] — SGLang 96-GPU DeepSeek-V3 deployment; surfaces DeepEP dispatch-mode incompatibility as hard constraint; EPLB + TBO as the two load-bearing optimizations at scale.
 - [[2026-02-08-deepwiki-vllm-10-distributed-prefill-con]] — vLLM distributed architecture doc; specifies [[Prefill Context Parallelism]] (PCP) as a distinct in-engine mechanism from CPP; PCP adds workers and shards token+expert weights; currently MoE-only.
+- PyTorch Conference 2025 session #78 ("Serving PyTorch LLMs at Scale: Disaggregated Inference With Kubernetes and llm-d") highlights disaggregated inference with Kubernetes as a production deployment pattern, alongside [[vLLM]] at scale. — [[2025-12-14-vllm-project-vllm-in-pytorch-conference-]]
 

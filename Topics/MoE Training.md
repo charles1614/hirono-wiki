@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 3
+source_count: 4
 ---
 
 # MoE Training
@@ -30,6 +30,11 @@ Two distinct regimes exist for handling **expert capacity** (the maximum tokens 
 
 ## Open threads
 
+## Observations
+
+- Alibaba Cloud PAI paiMoE engine targets large-scale MoE training: Tangram (supports diverse fine-grained MoE training tasks via a single scheduling mechanism) + ChunkFlow (chunk-centric mechanism for variable-length and ultra-long sequences; ICML 2025) are deployed as default mechanisms for [[Qwen]] series CPT/SFT stages, achieving 3× end-to-end speedup and MFU >61% on Qwen3 training. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
+
 ## Sources drawn on
 
 - [[2026-03-04-qwen3-5-blog]] — Qwen3.5-397B-A17B training: disaggregated async RL framework (3×–5× speedup), native FP8 pipeline (~50% activation memory, >10% throughput), Gated DeltaNet + Gated Attention hybrid MoE architecture.
+- [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]] — Alibaba Cloud PAI paiMoE: Tangram + ChunkFlow as production MoE training primitives; 3× speedup and MFU >61% on Qwen3.

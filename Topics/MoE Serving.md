@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 14
+source_count: 16
 ---
 
 # MoE Serving
@@ -72,4 +72,5 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]] — SGLang 96-GPU DeepSeek-V3 deployment: EPLB (1.49×/2.54× prefill/decode), TBO (27–40% gains), DeepEP two-mode dispatch, DeepGEMM phase-specific GEMMs; first open-source near-match of DeepSeek's official throughput.
 - [[2026-02-05-在-blackwell-上推动-vllm-wide-ep-与大规模推理走向成熟-]] — vLLM GB200 Wide-EP: NVFP4 dispatch cuts EP all-to-all traffic 4×; weight offloading v2 with NVLink-C2C async prefetch; prefill scale-down to 2 GPUs improves TPGS by halving NCCL overhead.
 - [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]] — vLLM gpt-oss-120b Pareto optimization: torch.compile-based MoE kernel fusion, FlashInfer trtllm-gen + cutlass backends, async scheduling + stream interval; 38% max-throughput uplift on Blackwell.
+- [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]] — SGLang vs vLLM 142 TFLOPS gap on B200 NVFP4 MoE: kernel fusion, Blackwell-native CUTLASS schedule, adaptive grid sizing; 1.84× at BS=1.
 

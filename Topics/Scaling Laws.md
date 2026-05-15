@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 6
+source_count: 8
 ---
 
 # Scaling Laws
@@ -30,6 +30,9 @@ The corpus currently holds two concrete data points on scaling laws, both from t
 
 ## Open threads
 
+## Observations
+
+- Karpathy (2025 review): RLVR introduced a new test-time compute scaling axis — longer reasoning traces = higher capability — and caused labs to redirect pretraining compute budget toward RL runs; compute-optimal pretraining is no longer the sole scaling axis. Combined with RLVR's domain-specific performance spikes ("jagged intelligence"), classical benchmark scores no longer reliably track capability. — [[2025-12-20-2025-llm-year-in-review]]
 
 ## Sources drawn on
 

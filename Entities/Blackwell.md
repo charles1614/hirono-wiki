@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 29
+refs: 35
 tier: active
 ---
 
@@ -30,3 +30,5 @@ NVIDIA's Blackwell generation (B200/B300/GB200/GB300) is the first architecture 
 - [[vLLM]] Wide-EP on GB200 achieves 26.2K prefill TPGS / 10.1K decode TPGS for DeepSeek MoE (3–5× over H200); `gpt-oss-120b` optimization achieves 38% higher max throughput and 13% lower min latency vs InferenceMAX baseline. Host CPU bottleneck is a distinctive Blackwell characteristic — GPU executes so fast that async scheduling + Stream Interval are required to eliminate CPU-side gaps between kernel launches. — [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]]
 - [[FlashMLA]] SM100/Blackwell kernel targets: dense prefill via CUTLASS (1460 TFlops fwd / 1000 TFlops bwd on B200); sparse decode SM100 with head64/head128 + `fwd_for_small_topk` variant; sparse prefill SM100 with head64/head128 specialization. — [[2026-01-30-deepwiki-flashmla-03-kernel-implementati]]
 - Blackwell（5th gen TC，`tcgen05.mma`）架构要点：256KB TMEM（Tensor Memory，与 register file 同大小）专用于 TC 操作，操作数全移出 register（A→SMEM，D→TMEM）；MMA.2SM 在 CTA pair 粒度跨 2 SMs 共享 B 矩阵，每 SM 的 SMEM 需求减半，等效 SMEM 翻倍；支持 MXFP8/6/4 和 NVFP4（4:8 pair-wise 结构化稀疏）；CC 10.0（B200/GB200），CC 10.3（GB300/B300）。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- B200 (`sm_100a`) benchmarked for FP4 MoE inference: [[SGLang]] achieves 1168 TFLOPS vs [[vLLM]] 1026 TFLOPS (142 TFLOPS gap) on GPT-OSS-20B. The Blackwell-native [[CUTLASS]] schedule `KernelPtrArrayTmaWarpSpecialized1SmNvf4Sm100` requires 128-byte TMA alignment enforced via padding; generic CUTLASS 3.x without this padding risks TMA stalls. B200 has 142 SMs — at batch size 1, only 2 thread blocks would be launched with 128-token tiling, leaving 98.6% of SMs idle without adaptive grid sizing. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]
+- Blackwell B200 is a dual-die package (208B transistors, TSMC 4N); each die ≈1.25× H100 compute → 2 dies ≈2.5× H100 dense FP16. 8×B200 (HGX) = 36P sparse FP16, approximately 2.25× 8×H100/H200; B100 = ~3/4 of B200 (28P). Gen-5 NVLink doubles per-port bandwidth from 50 GB/s to 100 GB/s per lane; 4th-gen [[NVSwitch]] supports 576 GPUs at 1 PB/s. GTC data: 3× training (GPT-MoE-1.8T, 4096 HGX B200 vs H100), 15× inference on 8 systems (3.5→58 tok/s) using FP4+NVL72 full fabric. — [[2026-01-12-analysis-of-nvidia-s-latest-hardware-b10]]

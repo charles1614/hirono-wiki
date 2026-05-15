@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 20
+source_count: 23
 ---
 
 # Agentic AI Infrastructure
@@ -37,6 +37,8 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - [[2026-03-19-深入理解openclaw技术架构与实现原理-上]] — Architectural deep-dive into OpenClaw: Gateway control plane, Pi Agentic Loop, cron, channels, Docker sandbox isolation.
 - [[2026-03-17-security-default-safety-posture-sandbox-]] — OpenClaw Issue #7827: default sandbox/session-isolation hardening proposals (closed completed Mar 7, 2026).
 - [[2026-01-14-ai交互的革命-从操作现有软件-到生成未来软件]] — API/GUI/GenUI三重范式演进；[[Li Auto]]理想同学MCP+CUA混合架构落地案例；Google GenUI生成式UI范式。
+- [[2026-01-11-重磅-volcano发布agentcube-构建ai-agent时代的云原生基础]] — AgentCube (Volcano/CNCF): K8s extension for Agent workloads with Warm Pool + Claim-and-Go MicroVM pre-warming, Volcano Agent Scheduler, and AgentRuntime + CodeInterpreter CRDs.
+- [[2026-01-10-姚顺雨对着唐杰杨植麟林俊旸贴大脸开讲-基模四杰中关村论英雄]] — AGI-Next summit: Chat→Agent shift requires full-async RL, API+GUI hybrid interaction, and "three Scalings" (data/model + inference compute + self-learning environment).
 
 ## Observations
 
@@ -48,3 +50,4 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - Practitioner Vibe Design workflow for STEM engineers: [[Claude]] and AI design tools cited as T0-tier enablers for achieving product aesthetic quality without a design background, signaling that agentic coding tooling is expanding to cover the aesthetic / UX layer, not just code generation. — [[2026-03-13-理科生审美救星-vibe-design之神-小红书]]
 - [[Ghostty]] terminal adoption pattern as agentic infrastructure: [[Claude Code]] team runs 5 parallel instances simultaneously using Ghostty split-pane + GPU-rendered scrolling; a practitioner replicated the workflow (Claude Code + yazi + lazygit split-pane) configured entirely by asking Claude Code in one sentence. — [[2026-03-13-claude-code团队都在使用的终端软件ghostty-小红书]]
 - API vs GUI vs GenUI Agent交互范式演进：API Agent受限于接口开放度（高效精准）；GUI Agent通过多模态截屏点击实现通用性（速度慢、对改版脆弱）；Generative UI直接生成用户专属交互界面（从操作者到创造者）。[[Li Auto]]理想同学MCP+CUA混合架构是GPU+GUI双脑协同的工业级落地案例。 — [[2026-01-14-ai交互的革命-从操作现有软件-到生成未来软件]]
+- Alibaba Cloud Agentic Search (released at 2025 云栖大会) is a multi-Agent coordinated architecture for LLM-era search: main Agent ([[Qwen]]3 + short/long-term memory) dynamically dispatches Code Agent and Browser Agent; claims to beat Gemini and OpenAI on OpenAI BrowseComp + Deep Research by >40% complex task accuracy. Data infrastructure: vector+full-text hybrid retrieval, multi-modal document parsing, knowledge graph integration. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]

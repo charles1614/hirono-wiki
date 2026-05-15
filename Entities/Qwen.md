@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-15
 type: entity
-refs: 11
+refs: 18
 tier: active
 ---
 
@@ -25,3 +25,5 @@ Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacen
 - Qwen3.5 pretraining uses a native FP8 pipeline across activations, MoE routing, and GEMM with runtime BF16 fallback in sensitive layers — ~50% activation memory reduction, >10% throughput gain. The asynchronous disaggregated RL training framework achieves 3×–5× end-to-end RL speedup at million-scale agent scaffolds. — [[2026-03-04-qwen3-5-blog]]
 - RTPurbo（[[RTP-LLM]]团队）已在Qwen3-480B上验证5倍Attention计算压缩，识别约15%长程头保留全局注意力，其余截断；自蒸馏微调仅需小时级+约1万条数据，长文本表现与原模型持平。 — [[2026-01-14-直播预告-rtpurbo-小时级训练实现qwen3-480b模型5x-atten]]
 - Qwen研究主页（2026年4月–5月）快照：Qwen-Scope可解释性工具包（基于SAE，插入Qwen3/Qwen3.5隐藏层）；FlashQLA（GDN架构的CP-/Bwd-Friendly融合线性注意力核，覆盖Qwen3.5/Qwen3.6系列）；Qwen3.6-27B开源dense多模态模型（flagship-level Agentic Coding）；Qwen3.6-Max-Preview专有模型预览版（知识+指令+Coding全面提升）。 — [[2026-01-14-qwen-research]]
+- Alibaba Cloud paiMoE engine used Qwen3 full training (CPT/SFT) as the primary production benchmark: Tangram + ChunkFlow as default mechanisms achieved 3× end-to-end speedup and training MFU >61% for Qwen series. Qwen3-VL-2B is also used as the understanding expert in Tsinghua Motus's MoT architecture for embodied robot control. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
+- Qwen2.5-VL-72B-Instruct used as the teacher model in CF-VLA (NVIDIA/UCLA/Stanford) to label counterfactual reasoning traces for autonomous driving VLA training; demonstrates Qwen multimodal models as practical annotation engines in data pipelines for embodied AI. — [[2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观]]

@@ -2,7 +2,7 @@
 created: 2026-05-12
 updated: 2026-05-15
 type: entity
-refs: 9
+refs: 13
 tier: active
 ---
 
@@ -22,3 +22,5 @@ Moonshot AI's 1T-parameter open-weights MoE model, the first 1T open-weights mod
 - Kimi K2.6 API pricing (as of 2026-03): uncached input 6.5 RMB/1M tokens, cached input 1.1 RMB/1M, output 27 RMB/1M, 256K context; coding plan enforces a rolling 5-hour and weekly token budget (uncached input + output only). — [[2026-03-20-ai-coding-plan-杰哥的知识库]]
 - Kimi K2.5 became the first model on Cloudflare Workers AI's frontier tier (256k context, tool calling, vision); Cloudflare's internal use cut inference costs 77% vs a mid-tier proprietary model for a 7B-token/day security-review agent. — [[2026-03-24-powering-the-agents-workers-ai-now-runs-]]
 - Listed on Novita AI's inference API at $0.95/M input and $4.00/M output tokens (Kimi K2.6 variant, OpenAI-compatible API), 58.6% SWE-Bench Pro, 256K context; positioned for long-horizon agentic coding workloads. — [[2026-02-10-novita]]
+- AGI-Next summit (Jan 2026): [[Moonshot AI]] founder 杨植麟 framed the Kimi lineage as grounded in a "world-view" philosophy; Kimi's focus on long-context and reasoning reflects a deliberate architectural stance, not a benchmark-chasing strategy. — [[2026-01-10-姚顺雨对着唐杰杨植麟林俊旸贴大脸开讲-基模四杰中关村论英雄]]
+- Kimi K2 (DP32/EP32 configuration) is one of the three production models on which Seer's RL rollout system was evaluated, demonstrating that the divided-rollout + context-aware scheduling + grouped speculative sampling approach scales to 1T-parameter MoE models at high parallelism. — [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]]

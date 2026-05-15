@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 8
+source_count: 9
 ---
 
 # LLM Architectures
@@ -53,3 +53,4 @@ The broader pattern Raschka identifies: the decisive differentiators in 2025 are
 ## Observations
 
 - Qwen3.5-397B-A17B introduces a hybrid linear + sparse attention architecture: Gated Delta Networks (linear attention) fused with Gated Attention and a high-sparsity MoE, achieving 397B total / 17B activated parameters with 8.6×–19× decoding throughput over Qwen3-Max while matching its quality — the first major open-weight demonstration of linear attention hybrid at frontier scale. — [[2026-03-04-qwen3-5-blog]]
+- Mini3DV 2025 community consensus on unified multimodal architecture: "AR backbone + per-token Diffusion Head" is the target pattern — autoregressive for reasoning/planning/understanding, diffusion decoder for high-fidelity visual output; LLaDA (large language diffusion model) demonstrates discrete-text diffusion as viable without sequential prior, extending the unification possibility to language-only tasks. — [[2025-12-19-mini3dv-2025-观点总结-世界模型前沿进展与技术展望]]

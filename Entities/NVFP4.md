@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 11
+refs: 15
 tier: active
 ---
 
@@ -24,3 +24,4 @@ NVFP4 is NVIDIA's 4-bit floating-point format introduced on Blackwell (B200/GB20
 - Rubin NVL72 rack delivers 3,600 PFLOPS NVFP4 inference (50 PFLOPS per GPU); full specs: 20.7 TB HBM4 at 1,580 TB/s, 260 TB/s NVLink 6 scale-up bandwidth per rack. Training at 2,520 PFLOPS NVFP4 (35 PFLOPS per GPU). — [[2026-01-26-nvidia-vera-rubin-nvl72-co-designed-infr]]
 - The four-ingredient method that makes 4-bit pretraining work: (1) Random Hadamard transforms per-block to bound outliers; (2) 2-D quantization scheme for forward/backward consistency (prior FP4 schemes failed on the backward path because matmul transposes change scale structure); (3) stochastic rounding for unbiased gradients across millions of steps; (4) selective high-precision layers for the stability-critical operators (embedding, layer-norm, final softmax). Validated at **12B parameters × 10T tokens** — longest 4-bit pretraining run publicly documented. — [[2026-02-04-pretraining-large-language-models-with-n]]
 - NVFP4 精度优于 MXFP4 的推测原因：更小的 block size、不同的 scaling factor 数据格式、以及两级量化方法；Blackwell 5th-gen TC 引入 4:8 pair-wise 结构化稀疏（每 8 元素分 4 对，恰好 2 对非零），因为 NVFP4 是 sub-byte 数据类型，pair-wise 约束与 2:4 相比并非更宽松的剪枝条件。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- NVFP4 MoE (GPT-OSS-20B, 32 experts, top-4) single-card benchmarks on [[Blackwell]] B200: [[SGLang]] 1168 TFLOPS, FlashInfer CuteDSL 1156 TFLOPS, [[vLLM]] 1026 TFLOPS. The 142 TFLOPS gap between SGLang and vLLM is attributable to kernel fusion (21.9% activation memory reduction), Blackwell-native [[CUTLASS]] schedule with TMA + FP4 warp specialization, and adaptive grid sizing for small-batch SM occupancy. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]

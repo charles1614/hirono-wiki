@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # GUI Agents

@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 29
+source_count: 36
 ---
 
 # LLM Inference Systems
@@ -71,4 +71,11 @@ The **cs.DB framing** from the Pan+Li survey remains the most useful cross-cutti
 - [[2026-02-05-在-blackwell-上推动-vllm-wide-ep-与大规模推理走向成熟-]] — vLLM GB200 Wide-EP Part I: NVFP4 GEMM + dispatch (4× comm reduction), kernel fusions, weight offloading v2 with async prefetch; 26.2K prefill TPGS + 10.1K decode TPGS, 3–5× over H200.
 - [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]] — vLLM + NVIDIA gpt-oss-120b Pareto frontier optimization on Blackwell: FlashInfer integration, torch.compile fusion, async scheduling, stream interval; 38% max-throughput uplift, 13% latency reduction.
 - [[2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布]] — 全双工端到端语音推理系统：消除ASR→LLM→TTS级联延迟，P-D分离多阶段调度，异构GPU部署推理成本降50%，首token延迟1s→20ms。
+- [[2026-01-14-理想同学mindgpt-3-0发布-基于结构化思维链的深度思考模型]] — MindGPT 3.0千亿MoE推理引擎LisaRT：P-D分离使高并发Decode速度提升3倍，DP+TP+EP混合并行使服务吞吐提升3.3倍，CUTLASS GroupedGemm MoE算子性能提升2.8倍。
+- [[2026-01-13-烧光600亿-小扎再砍元宇宙1500人-6000亿豪赌算力帝国]] — Meta Compute计划：2028年前美国AI基础设施投资6000亿美元，目标数十吉瓦算力规模；与Stargate并列为最大规模AI算力布局。
+- [[2026-01-06-deepwiki-simai]] — SimAI (Alibaba Cloud, NSDI'25): full-stack training+inference simulator with Analytical/NS-3/Physical fidelity modes; Astra-Sim core, Vidur inference scheduler, AICB workload generator.
+- [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]] — SGLang vs vLLM 142 TFLOPS B200 NVFP4 MoE benchmark; three kernel knobs: fusion, Blackwell CUTLASS schedule, adaptive grid sizing.
+- [[2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向]] — Patterson & Ma (arXiv:2601.05047): LLM inference bottleneck is memory + interconnect latency, not FLOPS; four hardware research directions (HBF, PNM, 3D stacking, low-latency interconnect); critique of current "full-reticle + high-FLOPS + multi-HBM" design philosophy.
+- [[2026-01-12-analysis-of-nvidia-s-latest-hardware-b10]] — fibermall.com Blackwell hardware overview: B100/B200/GB200/NVL72/SuperPod specs, NVLink Gen 5, NVSwitch Gen 4, GTC performance benchmarks (3×/15× vs. HGX H100).
+- [[2025-12-25-如何系统性定位并分析-pytorch-模型推理中的性能瓶颈]] — 系统性性能对比方法论；[[SGLang]] Diffusion vs LightX2V性能分析：3个kernel-level优化（FA3库差异、FlashInfer RoPE、非contiguous tensor cat）将单step从0.77s降至0.63s。
 

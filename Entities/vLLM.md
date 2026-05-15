@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 21
+refs: 31
 tier: active
 ---
 
@@ -26,3 +26,6 @@ vLLM is the dominant open-source LLM inference engine, built on PagedAttention a
 - v1 distributed architecture supports **six parallelism axes**: TP, PP, EP, DP, [[Prefill Context Parallelism]] (PCP, MoE-prefill), [[Decode Context Parallelism]] (DCP, long-context decode). PCP adds workers (`world_size *= pcp_size`); DCP subdivides the TP group. PCP attention-layer support is infrastructure-ready but all backends currently set `supports_pcp = False` (source commit 4061dcf4c). — [[2026-02-08-deepwiki-vllm-10-distributed-prefill-con]]
 - Achieved 26.2K prefill TPGS and 10.1K decode TPGS on [[GB200]] for DeepSeek MoE workloads (2K in + 2K out) via [[Wide-EP]] with four levers: [[NVFP4]] GEMM + dispatch (4× comm reduction), kernel fusion (RoPE+Quant+Q Write, RoPE+Quant, `concat_mla_k`), weight offloading v2 with async prefetch via [[NVLink]]-C2C, and prefill scale-down from 4→2 GPUs per instance to cut NCCL overhead. — [[2026-02-05-在-blackwell-上推动-vllm-wide-ep-与大规模推理走向成熟-]]
 - Optimized `gpt-oss-120b` (OpenAI native MXFP4 MoE) on [[Blackwell]]: 38% higher max throughput and 13% lower min latency vs InferenceMAX baseline by integrating [[FlashInfer]] as primary kernel backend (`trtllm-gen` + `cutlass` MoE), using `torch.compile`-driven AllReduce+RMSNorm fusion, and deploying async scheduling + Stream Interval to eliminate host CPU overhead (57% improvement at 1024 concurrency). — [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]]
+- At PyTorch Conference 2025, at least 53 of 117 sessions (~45%) mentioned vLLM, spanning dedicated talks (#3 vLLM & DeepSpeed keynote, #44 "Easy, Fast, and Cheap LLM Serving"), cross-accelerator deployment (AMD/Triton #69, Amazon NxD #81), post-training co-location with TRL (#60), and disaggregated inference (#78). Signals vLLM as the de facto inference backend across the [[PyTorch]] ecosystem. — [[2025-12-14-vllm-project-vllm-in-pytorch-conference-]]
+- AngelSlim v2（腾讯混元）训练的Eagle3草稿模型训练完成后直接兼容vLLM部署（以及SGLang），vLLM被列为AngelSlim的优先部署目标框架之一；测试设置num_speculative_tokens=2 or 4时接收长度1.8-3.5，加速1.4-1.9×。 — [[2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-]]
+- vLLM's [[NVFP4]] MoE forward launches **7 separate CUDA kernels** (shuffle → quant → GEMM1 → SiLU → quant → GEMM2 → shuffle), using a generic [[CUTLASS]] 3.x schedule without Blackwell-specific TMA alignment padding; at batch size 1–4, kernel launch overhead alone accounts for 10–20% of latency. Benchmarked at 1026 TFLOPS peak on [[Blackwell]] B200 for GPT-OSS-20B (32 experts, top-4, NVFP4), 142 TFLOPS below [[SGLang]]. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]

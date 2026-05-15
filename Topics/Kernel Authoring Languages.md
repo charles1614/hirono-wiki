@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 3
+source_count: 4
 ---
 
 # Kernel Authoring Languages
@@ -50,3 +50,4 @@ The current source base covers only NVIDIA's own framing of this transition. The
 ## Sources drawn on
 
 - (auto-populated by reindex)
+- [[2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易]] — ThunderKittens的CUTLASS vs Triton vs Python DSL横评：C++模板库三级抽象（warp/block/grid），2026年初随tilelang/cuTile成熟，优势收窄至纯C++生态和NCU精准调试。

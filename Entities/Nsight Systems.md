@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: entity
-refs: 7
+refs: 8
 tier: active
 ---
 
@@ -25,3 +25,4 @@ NVIDIA's system-level statistical profiler + tracer for GPU/CPU workloads
 - Multi-node profiling pattern for MPI/DeepSpeed/torchrun: CLI prefixed before the *application*, not the launcher; rank/PID embedded in output filename via `%q{OMPI_COMM_WORLD_RANK}` / `%p` to prevent collisions. Network trace modules: `--trace=mpi` (Open MPI/MPICH), `--trace=nccl`, `--trace=ucx`, `--trace=nvtx` (NVTX-MPI wrappers fallback). — [[2025-08-17-user-guide-nsight-systems]]
 - Python profiling suite: backtrace sampling (1Hz–2KHz, CPython 3.9+), Python Functions Trace (JSON-configured, no source changes), GIL tracing, PyTorch auto-annotation (`--pytorch=autograd-nvtx` or `functions-trace` with shape logging); Dask annotation also supported. — [[2025-08-17-user-guide-nsight-systems]]
 - Interactive Nsys profiling for SGLang Server: use `--start-later` when launching the server to enter delayed mode, then `nsys start/stop --session=<id>` to control capture windows without restarting the server; supports multiple start/stop cycles in a single run. Complements SGLang's HTTP `/start_profile` + `/stop_profile` for PyTorch Profiler. — [[2026-02-10-sglang-server交互式profiling的一些技巧-pytorch-n]]
+- 系统性定位两框架性能差异的方法论：用`nsys profile --trace-fork-before-exec=true --cuda-graph-trace=node --force-overwrite=true`采集profile，在Windows/Mac端GUI打开，固定同一step同一layer的两个FlashAttention kernel作为时间线左右端点，逐一对比中间每个kernel；AI无法有效阅读Nsight profile结果，需人工基于经验分析。 — [[2025-12-25-如何系统性定位并分析-pytorch-模型推理中的性能瓶颈]]
