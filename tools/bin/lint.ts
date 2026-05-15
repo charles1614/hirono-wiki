@@ -56,7 +56,7 @@ const TIER_THRESHOLD = 3;
 // types
 // ---------------------------------------------------------------------------
 
-export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps" | "stale-synthesis" | "stale-source-review" | "curation-needed";
+export type CheckKind = "orphans" | "dead-wikilinks" | "tier-mismatch" | "frontmatter" | "raw-orphan" | "sources-index" | "source-image-refs" | "source-image-count" | "observation-gaps" | "tag-vocabulary" | "topic-content-gaps" | "comparison-table-missing" | "comparison-opportunity" | "stale-synthesis" | "stale-topic-synthesis" | "stale-top-synthesis" | "stale-source-review" | "curation-needed";
 
 export interface Issue {
   kind: CheckKind;
@@ -695,6 +695,153 @@ export function checkTopicContentGaps(docs: DocMeta[]): Issue[] {
 }
 
 /**
+ * comparison-table-missing: warn when a Topic has a `## Comparison` H2
+ * heading but no usable table beneath it.
+ *
+ * Comparison sections are optional and embedded — any Topic may choose to
+ * carry one (per Meta/schema.md §"Topic sub-shapes"). Presence of the
+ * heading IS the contract; absence is fine (most Topics don't need one).
+ * The lint only fires when the operator has added the heading but the
+ * table is missing / stub.
+ *
+ * Required: ≥3 `|`-separated rows beneath the heading (markdown table
+ * header + separator + ≥1 data row).
+ *
+ * Severity: warn. Hint suggests `hirono refine-topic <name>` which
+ * detects the heading and prompts Sonnet for the axis × option table.
+ */
+export function checkComparisonTable(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+
+  for (const d of docs) {
+    if (d.bucket !== "Topics") continue;
+
+    const bodyLines = d.body.split("\n");
+    const headingIdx = bodyLines.findIndex(l => l.trim() === "## Comparison");
+    if (headingIdx < 0) continue;  // section absent = nothing to enforce
+
+    // Find end of Comparison section (next ## heading or EOF)
+    let endIdx = bodyLines.length;
+    for (let i = headingIdx + 1; i < bodyLines.length; i++) {
+      if (/^#{1,2}\s/.test(bodyLines[i])) { endIdx = i; break; }
+    }
+    const section = bodyLines.slice(headingIdx + 1, endIdx);
+    const tableRowCount = section.filter(l => /^\s*\|.*\|\s*$/.test(l)).length;
+    if (tableRowCount < 3) {
+      issues.push({
+        kind: "comparison-table-missing", severity: "warn", path: d.repo_path,
+        detail: `\`## Comparison\` section has no usable table (found ${tableRowCount} \`|\`-row(s); need ≥3 — header + separator + ≥1 data row)`,
+        hint: `Run \`hirono refine-topic ${d.slug}\` to regenerate the table from cited Sources, or delete the heading if no comparison is warranted.`,
+      });
+    }
+  }
+  return issues;
+}
+
+/**
+ * comparison-opportunity: INFO-level suggestion that a Topic might benefit
+ * from a `## Comparison` section.
+ *
+ * Heuristic — fires when ALL of:
+ *   - Topic does NOT already have a `## Comparison` heading (those go to
+ *     `comparison-table-missing` instead).
+ *   - Topic's `## Current understanding` mentions ≥ COMPARISON_MIN_ENTITIES
+ *     (default 3) distinct active-tier entities. Counted via either
+ *     inline `[[Entity]]` wikilinks OR bare-name word-boundary matches
+ *     against the active-tier entity slug list (case-insensitive). The
+ *     bare-name match catches the dominant authoring pattern in this
+ *     corpus: entity names appear as prose ("FlashAttention-3", "Hopper",
+ *     "B200") rather than wikilinks.
+ *   - Topic's CU prose contains ≥1 contrast marker (` vs `, "compared to",
+ *     "tradeoff", "differs from", "versus") — evidence the prose is
+ *     already drawing contrasts.
+ *
+ * Names below MIN_ENTITY_NAME_LEN are skipped for bare-name matching to
+ * avoid false positives on common short tokens (e.g. 2-char acronyms).
+ *
+ * Severity: INFO (not warn) — this is a *suggestion*, not a defect. Most
+ * Topics don't need a comparison section. Surfaced in propose-curation as
+ * candidates for Sonnet to judge.
+ */
+const COMPARISON_MIN_ENTITIES = 3;
+const MIN_ENTITY_NAME_LEN = 3;
+const CONTRAST_MARKER_RE = /\bvs\b|\bcompared to\b|\btradeoff\b|\bdiffers from\b|\bversus\b|\bvs\.\b/i;
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function checkComparisonOpportunity(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+
+  // Build active-tier entity slug set
+  const activeEntitySlugs = new Set<string>();
+  for (const d of docs) {
+    if (d.bucket !== "Entities") continue;
+    if (d.repo_path.includes("/_seen/")) continue;
+    activeEntitySlugs.add(d.slug);
+  }
+
+  // Bare-name matcher: one regex with alternation, sorted longest-first so
+  // "FlashAttention-3" matches before "FlashAttention" would.
+  const namesForRegex = [...activeEntitySlugs]
+    .filter(s => s.length >= MIN_ENTITY_NAME_LEN)
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegex);
+  // Word-boundary anchors don't work for names containing non-word chars
+  // (e.g. "vLLM", "FP8", "FlashAttention-3"). Use lookarounds for explicit
+  // non-letter context on each side; this still avoids matching
+  // "FlashAttention-3" inside "myFlashAttention-3x" but allows hyphens
+  // inside the name itself.
+  const nameRe = namesForRegex.length > 0
+    ? new RegExp(`(?<![A-Za-z0-9])(${namesForRegex.join("|")})(?![A-Za-z0-9])`, "g")
+    : null;
+
+  for (const d of docs) {
+    if (d.bucket !== "Topics") continue;
+
+    // Skip if already opted in
+    const bodyLines = d.body.split("\n");
+    if (bodyLines.some(l => l.trim() === "## Comparison")) continue;
+
+    // Extract ## Current understanding section text
+    const cuStart = bodyLines.findIndex(l => l.trim() === "## Current understanding");
+    if (cuStart < 0) continue;
+    let cuEnd = bodyLines.length;
+    for (let i = cuStart + 1; i < bodyLines.length; i++) {
+      if (/^#{1,2}\s/.test(bodyLines[i])) { cuEnd = i; break; }
+    }
+    const cuText = bodyLines.slice(cuStart + 1, cuEnd).join("\n");
+    if (!cuText.trim() || /_\(stub —/.test(cuText)) continue;  // stubs not eligible
+
+    // Combine wikilink mentions + bare-name mentions, dedupe
+    const cited = new Set<string>();
+    for (const target of d.wikilinks) {
+      if (activeEntitySlugs.has(target)) cited.add(target);
+    }
+    if (nameRe) {
+      // Reset regex state for each topic
+      nameRe.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = nameRe.exec(cuText)) !== null) {
+        cited.add(m[1]);
+      }
+    }
+    if (cited.size < COMPARISON_MIN_ENTITIES) continue;
+
+    // Need a contrast marker in the Current understanding prose
+    if (!CONTRAST_MARKER_RE.test(cuText)) continue;
+
+    issues.push({
+      kind: "comparison-opportunity", severity: "info", path: d.repo_path,
+      detail: `Topic mentions ${cited.size} active-tier entities and the prose contains contrast markers — may benefit from a \`## Comparison\` section.`,
+      hint: `If a head-to-head table is warranted, add the heading via \`hirono add-comparison-heading ${d.slug}\` then \`hirono refine-topic ${d.slug}\` populates the table from cited Sources. Skip if contrasts are incidental, not load-bearing.`,
+    });
+  }
+  return issues;
+}
+
+/**
  * stale-synthesis: warn when an active-tier Entity's Synthesis is meaningfully
  * stale vs accumulated evidence.
  *
@@ -793,6 +940,140 @@ export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
     }
   }
   return issues;
+}
+
+/**
+ * stale-topic-synthesis: warn when a Topic's `## Current understanding`
+ * (or embedded `## Comparison` table) is meaningfully older than the newest
+ * citing Source. Topic-side parallel of `stale-synthesis` (which covers
+ * Entities) — fires when new evidence has landed but the Topic hasn't been
+ * re-synthesized.
+ *
+ * Trigger (same shape as stale-synthesis Rule A): newest citing Source
+ * `updated` is > STALE_LAG_DAYS (default 7) newer than the Topic's
+ * `synthesis_updated_at` (falling back to `updated`).
+ *
+ * A "citing Source" is any `bucket=Sources` doc whose body wikilinks to
+ * this Topic (resolved by slug).
+ *
+ * Stub Topics (no `## Current understanding` content, or content that's
+ * just the auto-generated stub placeholder) are not flagged here —
+ * `topic-content-gaps` catches those separately.
+ *
+ * Severity: warn. Hint suggests `hirono refine-topic <name>` (which
+ * auto-detects whether the Topic carries a `## Comparison` heading and
+ * regenerates the table alongside Current understanding).
+ */
+export function checkStaleTopicSynthesis(docs: DocMeta[]): Issue[] {
+  const issues: Issue[] = [];
+  const CU_STUB_RE = /_\(stub —/;  // matches the new-topic.ts stub placeholder
+
+  // gray-matter parses YAML dates as Date objects; coerce to ISO-YYYY-MM-DD.
+  const toISO = (v: unknown): string => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    return String(v ?? "").trim().slice(0, 10);
+  };
+
+  const sourceUpdated = new Map<string, string>();
+  for (const d of docs) {
+    if (d.bucket !== "Sources") continue;
+    const u = toISO(d.frontmatter.updated);
+    if (u) sourceUpdated.set(d.slug, u);
+  }
+
+  for (const d of docs) {
+    if (d.bucket !== "Topics") continue;
+
+    // Skip stub Topics — covered by topic-content-gaps
+    const cuMatch = d.body.match(/^## Current understanding\s*$([\s\S]*?)(?=^## |\Z)/m);
+    if (!cuMatch) continue;
+    const cuBody = cuMatch[1].trim();
+    if (!cuBody || CU_STUB_RE.test(cuBody)) continue;
+
+    const synthDate = toISO(d.frontmatter.synthesis_updated_at ?? d.frontmatter.updated);
+    if (!synthDate) continue;
+
+    let newest: { slug: string; updated: string } | null = null;
+    for (const other of docs) {
+      if (other.bucket !== "Sources") continue;
+      if (!other.wikilinks.has(d.slug)) continue;
+      const su = sourceUpdated.get(other.slug);
+      if (!su) continue;
+      if (!newest || su > newest.updated) newest = { slug: other.slug, updated: su };
+    }
+
+    if (!newest) continue;
+    if (newest.updated <= synthDate) continue;
+
+    const lag = daysBetween(newest.updated, synthDate);
+    if (lag <= STALE_LAG_DAYS) continue;
+
+    const hasComparison = d.body.split("\n").some(l => l.trim() === "## Comparison");
+    const sectionHint = hasComparison
+      ? "regenerates ## Current understanding AND ## Comparison table from updated evidence"
+      : "regenerates ## Current understanding from updated evidence";
+    issues.push({
+      kind: "stale-topic-synthesis", severity: "warn", path: d.repo_path,
+      detail: `synthesis_updated_at=${synthDate} is ${lag}d older than newest citing Source updated=${newest.updated} ([[${newest.slug}]])`,
+      hint: `Run \`hirono refine-topic ${d.slug}\` — ${sectionHint}.`,
+    });
+  }
+  return issues;
+}
+
+/**
+ * stale-top-synthesis: warn when the repo-root `Synthesis.md` is meaningfully
+ * older than the newest Topic `synthesis_updated_at`.
+ *
+ * Synthesis.md is the corpus-wide thesis page. It lives outside the four
+ * standard buckets (it's at repo root, not Meta/), so this check reads it
+ * directly rather than going through walkWikiDocs.
+ *
+ * Trigger: any Topic with `synthesis_updated_at > Synthesis.md updated`
+ * by more than STALE_LAG_DAYS (7) → flag with the newest contributing Topic.
+ * Missing Synthesis.md → INFO (don't enforce existence; not all wikis want it).
+ *
+ * Severity: warn — operator (or `hirono auto-curate`) runs
+ * `hirono refine-synthesis` to regenerate.
+ */
+export function checkStaleTopSynthesis(docs: DocMeta[], repoRoot: string): Issue[] {
+  const synthRel = "Synthesis.md";
+  const synthAbs = join(repoRoot, synthRel);
+  // Missing Synthesis.md is fine — not every wiki uses a top-level thesis.
+  // The check only fires when the file exists AND is stale.
+  if (!existsSync(synthAbs)) return [];
+  const raw = readFileSync(synthAbs, "utf8");
+  const fmMatch = raw.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!fmMatch) return [];
+  const updatedMatch = fmMatch[1].match(/^updated:\s*(.+)$/m);
+  const synthDate = (updatedMatch?.[1] ?? "").trim();
+  if (!synthDate) return [];
+
+  // Find newest Topic synthesis_updated_at. gray-matter parses YAML dates
+  // to Date objects, so coerce to ISO-YYYY-MM-DD for comparison.
+  const toISO = (v: unknown): string => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    const s = String(v ?? "").trim();
+    return s.slice(0, 10);
+  };
+  let newest: { name: string; date: string } | null = null;
+  for (const d of docs) {
+    if (d.bucket !== "Topics") continue;
+    const t = toISO(d.frontmatter.synthesis_updated_at ?? d.frontmatter.updated);
+    if (!t) continue;
+    if (!newest || t > newest.date) newest = { name: d.slug, date: t };
+  }
+  if (!newest) return [];
+  if (newest.date <= synthDate) return [];
+
+  const lag = Math.floor((Date.parse(newest.date) - Date.parse(synthDate)) / (24 * 3600 * 1000));
+  if (lag <= 7) return [];
+
+  return [{
+    kind: "stale-top-synthesis", severity: "warn", path: synthRel,
+    detail: `Synthesis.md updated=${synthDate} is ${lag}d older than newest Topic synthesis_updated_at=${newest.date} ([[${newest.name}]])`,
+    hint: "Run `hirono refine-synthesis` (or `hirono auto-fix` to batch-prep) to regenerate the corpus-wide thesis.",
+  }];
 }
 
 /**
@@ -1042,7 +1323,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
 // orchestration
 // ---------------------------------------------------------------------------
 
-const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps", "stale-synthesis", "stale-source-review", "curation-needed"];
+const ALL_CHECKS: CheckKind[] = ["orphans", "dead-wikilinks", "tier-mismatch", "frontmatter", "raw-orphan", "sources-index", "source-image-refs", "source-image-count", "observation-gaps", "tag-vocabulary", "topic-content-gaps", "comparison-table-missing", "comparison-opportunity", "stale-synthesis", "stale-topic-synthesis", "stale-top-synthesis", "stale-source-review", "curation-needed"];
 
 export interface LintOptions {
   checks?: CheckKind[];
@@ -1066,7 +1347,11 @@ export function runLint(repoRoot: string, opts: LintOptions = {}): Issue[] {
   if (checks.includes("observation-gaps")) issues.push(...checkObservationGaps(docs));
   if (checks.includes("tag-vocabulary")) issues.push(...checkTagVocabulary(docs));
   if (checks.includes("topic-content-gaps")) issues.push(...checkTopicContentGaps(docs));
+  if (checks.includes("comparison-table-missing")) issues.push(...checkComparisonTable(docs));
+  if (checks.includes("comparison-opportunity")) issues.push(...checkComparisonOpportunity(docs));
   if (checks.includes("stale-synthesis")) issues.push(...checkStaleSynthesis(docs));
+  if (checks.includes("stale-topic-synthesis")) issues.push(...checkStaleTopicSynthesis(docs));
+  if (checks.includes("stale-top-synthesis")) issues.push(...checkStaleTopSynthesis(docs, repoRoot));
   if (checks.includes("stale-source-review")) issues.push(...checkStaleSourceReview(docs, repoRoot));
   if (checks.includes("curation-needed")) issues.push(...checkCurationNeeded(issues));
   return issues;

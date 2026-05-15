@@ -22,168 +22,164 @@ Or auto-apply only high-confidence items:
 npx tsx tools/bin/hirono.ts apply-queue --auto-apply high
 ```
 
-## Proposals (15 actionable, 11 skipped)
+## Proposals (15 actionable, 7 skipped)
 
-### 1. Merge `FlashAttention-3` → `FlashAttention`  [confidence: medium]
-
-- [ ] approved
-
-**Rationale**: entity-aliases.md maps FA3/FlashAttention 3/FlashAttention v3 → FlashAttention-3, and FlashAttention's active Synthesis already describes FA-3's ping-pong schedule in detail. The seen stub (refs=1) adds no incremental content not already captured.
-
-```
-hirono merge-entities FlashAttention-3 --into FlashAttention --reason "versioned iteration fully absorbed into parent entity's active Synthesis; FA-3's ping-pong scheduling and Hopper specifics are already documented there"
-```
-
-### 2. Merge `Triton` → `OpenAI Triton`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: Both entity bodies describe exactly the same OpenAI-developed GPU kernel DSL. 'OpenAI Triton' is the correct canonical name (refs=1); 'Triton' (refs=0) is ambiguous. Merge removes the duplication.
-
-```
-hirono merge-entities Triton --into "OpenAI Triton" --reason "same DSL — 'Triton' is a refs=0 alias of OpenAI Triton; the disambiguated name avoids confusion with NVIDIA Triton Inference Server"
-```
-
-### 3. Merge Topic `Speculative Sampling` → `Speculative Decoding`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: The Speculative Sampling topic self-identifies as the same technique as speculative decoding. Speculative Decoding is the dominant term in the literature and has 9× more sources. No content would be lost.
-
-```
-hirono merge-topics "Speculative Sampling" --into "Speculative Decoding" --reason "synonyms — the Speculative Sampling body explicitly says 'also called speculative decoding'; Speculative Decoding has 9 sources vs 1"
-```
-
-### 4. Merge Topic `Pretraining` → `LLM Pretraining`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: Within this ML-systems corpus, 'Pretraining' means LLM pretraining. LLM Pretraining has 8 sources and a full synthesis; Pretraining is an unlinked stub covering identical ground. Merging avoids a split link graph.
-
-```
-hirono merge-topics Pretraining --into "LLM Pretraining" --reason "Pretraining is a zero-source stub whose scope is fully subsumed by LLM Pretraining, which has 8 sources and substantive synthesis"
-```
-
-### 5. Merge Topic `Data Loading` → `Data Loading Pipelines`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: The two What descriptions are near-identical. Data Loading Pipelines already contains all substantive content (SPDL, subprocess-vs-thread tradeoff, Free-Threaded Python) that would populate Data Loading. Equal source counts but unequal content depth.
-
-```
-hirono merge-topics "Data Loading" --into "Data Loading Pipelines" --reason "same scope — both cover moving training data from storage to GPU; Data Loading is a stub while Data Loading Pipelines has the SPDL analysis and the three-stage model grounded in a source"
-```
-
-### 6. Delete orphan `Samsung`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: Memory semiconductor company cited only for a stock-price reaction to a competitor's announcement. Not an ML or GPU systems concept; no future Sources will reference it substantively.
-
-```
-hirono bulk-delete-orphans --confirm Samsung
-```
-
-### 7. Delete orphan `Star History`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: A GitHub analytics website, not a systems or ML concept. The one data point it provided (2149 stars in 7 days) is incidental color in a reproduction story. Will not recur.
-
-```
-hirono bulk-delete-orphans --confirm "Star History"
-```
-
-### 8. Delete orphan `Twilio`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: Cloud communications platform mentioned as a peripheral integration in one personal tool. Clearly outside the ML/GPU systems scope of the corpus.
-
-```
-hirono bulk-delete-orphans --confirm Twilio
-```
-
-### 9. Delete orphan `GitHub Gist`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: Snippet-sharing service cited as the upload destination in one tool's feature description. No independent semantic content in an ML-systems wiki.
-
-```
-hirono bulk-delete-orphans --confirm "GitHub Gist"
-```
-
-### 10. Delete orphan `Y Combinator`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: YC is referenced only to identify Garry Tan's affiliation. Carries no ML-systems semantic content and will not accrue refs in this corpus.
-
-```
-hirono bulk-delete-orphans --confirm "Y Combinator"
-```
-
-### 11. Delete orphan `GBrain`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: Garry Tan's personal MIT-licensed corpus-recall tool is covered in one Source. It is a one-off project reference that will not gain additional refs in an ML-systems corpus.
-
-```
-hirono bulk-delete-orphans --confirm GBrain
-```
-
-### 12. Delete orphan `GiantPandaLLM`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: GiantPandaLLM is a WeChat public account cited as the publication venue for a PR-volume analysis. It is an author handle/channel, not a concept.
-
-```
-hirono bulk-delete-orphans --confirm GiantPandaLLM
-```
-
-### 13. Delete orphan `vibe-replay`  [confidence: medium]
+### 1. Add `## Comparison` heading to Topic `Distributed-Serving Observability`  [confidence: high]
 
 - [ ] approved
 
-**Rationale**: vibe-replay is a real MIT-licensed tool but is primarily dev-tooling, not ML/GPU systems. At refs=0 with no connection to the core inference/training topics, it will not gain traction. Borderline — operator may prefer to keep.
+**Rationale**: Head-to-head contrast of two named frameworks on named axes with sourced detail — a table would crystallize what the prose already does structurally.
 
 ```
-hirono bulk-delete-orphans --confirm vibe-replay
+hirono add-comparison-heading "Distributed-Serving Observability" --reason "Prose has an explicit 'Where they diverge' section contrasting SGLang (OTel spans, request-centric) vs vLLM (Prometheus metrics, throughput-monitoring) on shared axes: primitive type, use case, data model, PD-disagg support. The comparison is the Topic's central job."
 ```
 
-### 14. Delete orphan `OpenCode`  [confidence: high]
-
-- [x] approved
-
-**Rationale**: OpenCode appears only as one of three tools supported by vibe-replay. No independent claims or analysis; will not accrue refs.
-
-```
-hirono bulk-delete-orphans --confirm OpenCode
-```
-
-### 15. Delete orphan `SQLite`  [confidence: high]
+### 2. Add `## Comparison` heading to Topic `Attention Kernels`  [confidence: high]
 
 - [ ] approved
 
-**Rationale**: SQLite appears solely as the performance baseline in one source's DuckDB query-performance comparison. The entity adds no standalone content to this corpus.
+**Rationale**: Kernel-schedule comparison is load-bearing with sourced numbers; table of (kernel × scheduling strategy × constraint × outcome) would be directly useful.
 
 ```
-hirono bulk-delete-orphans --confirm SQLite
+hirono add-comparison-heading "Attention Kernels" --reason "Central job is contrasting FA-3 ping-pong vs FlashMLA seesaw schedule on shared axes: register budget, warpgroup count, CUDA-Core/Tensor-Core overlap mechanism, compute-vs-memory-bound regime. Concrete numbers from sourced benchmarks (80% TC utilization, 660 TFlops on H800)."
+```
+
+### 3. Add `## Comparison` heading to Topic `MoE Serving`  [confidence: high]
+
+- [ ] approved
+
+**Rationale**: Backend × hardware × TP/EP support × throughput table is the actionable output operators need; the prose already has all the data points.
+
+```
+hirono add-comparison-heading "MoE Serving" --reason "Contrasts CUTLASS MoE backend vs TRTLLM MoE backend vs OpenAI Triton MoE backend on axes: hardware support (Hopper/Blackwell), TP/EP mixing allowed, max-throughput ceiling. Also contrasts drop vs dropless dispatching. Sourced from production TensorRT-LLM deployment guide."
+```
+
+### 4. Add `## Comparison` heading to Topic `GPU Resource Partitioning`  [confidence: high]
+
+- [ ] approved
+
+**Rationale**: Four named mechanisms, stated axes, explicit tradeoff-curve framing — a Comparison table is the natural structural complement to the prose.
+
+```
+hirono add-comparison-heading "GPU Resource Partitioning" --reason "Topic catalogs green contexts vs static MPS partitioning vs MLOPart vs MIG on a tradeoff curve (isolation, granularity, mutability, hardware generation). The prose explicitly says 'three mechanisms occupy different points on a tradeoff curve' — the comparison structure is stated in the text."
+```
+
+### 5. Add `## Comparison` heading to Topic `Low-Precision Training`  [confidence: high]
+
+- [ ] approved
+
+**Rationale**: Format × stability-ingredient × hardware-support × throughput matrix is the core finding; a Comparison section would consolidate what is currently spread across three paragraphs.
+
+```
+hirono add-comparison-heading "Low-Precision Training" --reason "Contrasts FP4 vs FP8 vs BF16 training on shared axes: stability requirements, four-ingredient recipe need, hardware-native support (Ironwood FP8, Blackwell FP4), practical throughput gains. Two sources supply concrete numbers."
+```
+
+### 6. Add `## Comparison` heading to Topic `Kernel Authoring Languages`  [confidence: high]
+
+- [ ] approved
+
+**Rationale**: Comparison need is explicitly stated in Open threads; sourced data on cuTile design goals is present to seed the table even before Triton comparative sources arrive.
+
+```
+hirono add-comparison-heading "Kernel Authoring Languages" --reason "Open thread explicitly requests cuTile Python vs Triton comparison; prose contrasts CUDA Tile (tile abstraction, portable IR, Python-only today) vs prior SIMT model. The Topic exists to differentiate these authoring approaches."
+```
+
+### 7. Add `## Comparison` heading to Topic `Accelerator Economics`  [confidence: high]
+
+- [ ] approved
+
+**Rationale**: Competing vendor strategies with quantified claims are the Topic's central thesis; a Comparison section makes the axis × vendor table explicit.
+
+```
+hirono add-comparison-heading "Accelerator Economics" --reason "Topic is explicitly structured as TPU vertical-integration (perf/W, AI Hypercomputer stack) vs NVIDIA FP4-throughput-per-dollar reframing, on shared axes: power efficiency, throughput, TCO. Concrete numbers on both sides (1.2-1.7× at 53-77% power; 1.5M tps on GB200 NVL72)."
+```
+
+### 8. Add `## Comparison` heading to Topic `Inference Disaggregation`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: 'Disagg is not a universal speedup' framing plus the Ctx:Gen ratio axis are load-bearing contrasts; a table of (workload shape × model size × winner) would operationalize the finding.
+
+```
+hirono add-comparison-heading "Inference Disaggregation" --reason "Contrasts disaggregated serving vs piggybacked co-located serving on axes: workload type (prefill-heavy vs decode-heavy), model size, latency regime, Ctx:Gen ratio dynamics. Sourced from 100k-design-point NVIDIA study with concrete Pareto-frontier data."
+```
+
+### 9. Add `## Comparison` heading to Topic `Communication-Computation Overlap`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: Three named methods, quantified outcomes, shared axes — table-ready comparison that the prose currently presents only narratively.
+
+```
+hirono add-comparison-heading "Communication-Computation Overlap" --reason "Core contrast: Flux kernel-fusion approach vs Megatron-LM chunked overlap vs TransformerEngine stream/event approach on axes: SM utilization, overlap fraction, throughput gain. Concrete numbers: Flux 96% overlap, 1.24× training speedup, 1.66× prefill / 1.30× decode vs vLLM."
+```
+
+### 10. Add `## Comparison` heading to Topic `GPU Programming Models`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: Three-way comparison with stated axes is the Topic's thesis; a Comparison table would make the programming-model selection guidance scannable.
+
+```
+hirono add-comparison-heading "GPU Programming Models" --reason "Topic has an explicit 'practical division of labor' paragraph distinguishing Triton vs CUTLASS/CuTe vs cuTile on axes: abstraction level, performance ceiling, expressiveness, target use case. This is the Topic's stated purpose."
+```
+
+### 11. Add `## Comparison` heading to Topic `Tensor Parallelism`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: Three overlap strategies with quantified outcomes plus the TP-vs-EP design axis make this comparison-ready; counter-pattern adds a third dimension worth surfacing.
+
+```
+hirono add-comparison-heading "Tensor Parallelism" --reason "Contrasts three comm-overlap strategies (Flux kernel-fusion vs Megatron chunked vs TE) with MFU numbers, and TP vs EP for MoE layers. Also notes the deliberate no-TP counter-pattern (DeepSeek FlashMLA decode stays compute-bound)."
+```
+
+### 12. Add `## Comparison` heading to Topic `FP8 Computation`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: Format × tensor-role × scaling-strategy matrix is the operational core of FP8 implementation; a table would consolidate the decision logic currently spread across paragraphs.
+
+```
+hirono add-comparison-heading "FP8 Computation" --reason "E4M3 vs E5M2 format choice per tensor role, static vs dynamic scaling, inference vs training FP8 paths are all contrasted in the prose. These are named options on shared axes (dynamic range, resolution, use case)."
+```
+
+### 13. Add `## Comparison` heading to Topic `AI Accelerators`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: Multi-vendor comparison is the Topic's declared scope; a Comparison section now serves as a scaffold for future sources even if partially populated.
+
+```
+hirono add-comparison-heading "AI Accelerators" --reason "Contrasts TPU systolic-array design (deterministic pipeline, systolic MACs) vs NVIDIA Hopper (TMA/DSM/FP8 TC, flexible) vs non-duopoly entrants on axes: FP8 throughput, HBM capacity, interconnect, vertical integration. Sourcing is currently TPU-weighted but the axes are explicitly stated."
+```
+
+### 14. Add `## Comparison` heading to Topic `Decoding Optimization`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: Track × (target bottleneck, mechanism, measured gain) table would make the composition story scannable and operationalize which lever to pull for a given bottleneck.
+
+```
+hirono add-comparison-heading "Decoding Optimization" --reason "Three orthogonal tracks (speculative sampling, prefix caching, kernel-level scheduling) are contrasted as composable but non-substitutable, each with concrete outcome numbers (40% throughput gain at BS64; 6.2× TTFT reduction; 80% TC utilization)."
+```
+
+### 15. Add `## Comparison` heading to Topic `Database Systems × ML Systems`  [confidence: medium]
+
+- [ ] approved
+
+**Rationale**: Analogy-holds vs analogy-limits framing is the Topic's thesis; a structured table of (ML system primitive × DB analogue × where it holds × where it breaks) would sharpen the insight.
+
+```
+hirono add-comparison-heading "Database Systems × ML Systems" --reason "Topic is structured around DB-analogy holds (KV cache eviction, disaggregated inference as replication partitioning, OLAP observability) vs where the analogy breaks down. 'Where sources agree / where the analogy has limits' is an explicit comparison axis."
 ```
 
 ## Skipped (Sonnet judged these to be false positives)
 
-- B200 ↔ GB200 duplicate-pair — Different silicon packages, different deployment units, different price tiers — same distinction as H100 SXM vs GH200. Both reach refs≥2 independently.
-- DuckDB orphan concern — DuckDB is substantive infrastructure in the OpenClaw observability stack (6×–56× speedup over SQLite for trace analytics). The Distributed-Serving Observability topic will likely cite it further. Keep.
-- Chrome DevTools Protocol / CDM / Selenium orphan concern — All three are substantive enough to keep as they form the conceptual backbone of the CDM observability Source. They may accrue refs as agent-observability Sources grow.
-- OpenClaw orphan concern — OpenClaw is the AI coding agent runtime whose observability architecture is the source's main subject. It is substantive enough to keep — not a passing mention.
-- Claude / Claude Code / Cursor / Anthropic orphan concern — Each of these is either the primary subject of an ingested Source or a tool explicitly cited in agent-tooling Sources. They will accrue refs as indexing completes.
-- Grafana / Prometheus / Zipkin / Perfetto orphan concern — These are the backbone of the OpenTelemetry observability stack covered in at least one active Source. Per instructions, do not delete substantive ML-systems infrastructure concepts at refs=0.
-- AVO / AlphaEvolve / FunSearch / GuidedSampling / Sparling / Ego-Foresight / Vintix II / Best-of-N / Decision Transformer orphan concern — All are genuine ML concepts extracted from ICLR 2026 / research paper Sources. They will accrue refs as the corpus expands to more alignment, RL, and search papers.
-- TurboQuant / turboquant_plus / PolarQuant / Walsh-Hadamard Transform orphan concern — TurboQuant is a concrete ICLR 2026 paper; turboquant_plus is the open-source reproduction with 2149 GitHub stars. Both are ML concepts that will gain refs as quantization and KV-cache Sources grow.
-- Kimi K2 / GLM-4.5 / OLMo / Granite / Gemma / Phi-4 / Tencent Hy3 / xLSTM / Vicuna orphan concern — All are substantive LLM model families catalogued in the architecture gallery. The gallery updates regularly; more Sources in the same vein will reference these.
-- tier-mismatch lint warnings (CUDA, FlashAttention, H100, H800, NVFP4, Transformer Engine at refs < 3) — Lint warns on tier-mismatch but the health-check shows no contradictions or stale-synthesis flags for these entities. refs=2 is expected when only ~20 Sources are indexed.
-- Kernel Authoring ↔ Kernel Authoring Languages topic collision concern — The What descriptions differ meaningfully. KAL is grounded in the CUDA 13.1 Source; KA is a broader discipline stub. Merging would conflate the 'what to do' (discipline) with the 'how to express it' (languages). Keep separate.
+- Topics/GPU Utilization.md: comparison-opportunity (3 active entities) — No sourced cross-entity comparison exists; the Topic is a reference explainer.
+- Topics/Multi-Tenancy on GPUs.md: comparison-opportunity (5 active entities) — Zero sources; comparison heading would be empty. GPU Resource Partitioning better serves the comparison need.
+- Topics/LLM Pretraining.md: comparison-opportunity (7 active entities) — Survey of heterogeneous sub-concerns; contrast markers are incidental co-mentions, not load-bearing comparisons on shared axes.
+- Topics/GPU Kernel Scheduling.md: comparison-opportunity (3 active entities) — Instructional explainer of hardware mechanisms, not competing design choices; no sourced benchmark numbers.
+- Topics/Numerical Precision.md: comparison-opportunity (5 active entities) — Unsourced reference survey; the comparison-rich content with actual sources lives in Low-Precision Training.
+- Topics/Kernel Authoring.md: comparison-opportunity (5 active entities) — Zero sources; comparison need is better served by GPU Programming Models and Kernel Authoring Languages which have sourced content.
+- Topics/Tensor Core Programming.md: comparison-opportunity (5 active entities) — Instructional explainer of instruction-family evolution; no sourced numbers to populate a comparison table.

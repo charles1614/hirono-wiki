@@ -76,6 +76,11 @@ Top-level:
   refine-topic <name>  [--response <p>] [--apply]
                                           regenerate ## Current understanding via Sonnet subagent
   refine-all-stale [--list]               batch-prepare refine prompts for stale Syntheses
+  refine-synthesis [--response <p>] [--apply]
+                                          regenerate top-level Synthesis.md via Sonnet subagent
+  add-comparison-heading <name> [--reason "<one-liner>"]
+                                          insert opt-in \`## Comparison\` heading into a Topic
+                                          (idempotent); next refine-topic populates the table
   propose-curation [--finalize <path>]    Tier-2 curation: health-check + lint → Sonnet → queue
   apply-queue [--auto-apply <level>]      execute approved proposals from Meta/curation-queue.md
   auto-fix [--dry-run]                    Tier-1 safe auto-repairs: alias merges,
@@ -291,6 +296,18 @@ async function main(): Promise<void> {
 
   if (family === "refine-all-stale") {
     const { main } = await import("../hirono/refine-all-stale.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "refine-synthesis") {
+    const { main } = await import("../hirono/refine-synthesis.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "add-comparison-heading") {
+    const { main } = await import("../hirono/add-comparison-heading.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }

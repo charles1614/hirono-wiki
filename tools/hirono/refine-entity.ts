@@ -34,6 +34,9 @@ import {
   cleanupStaging,
   type PendingOp,
 } from "../curation.ts";
+import { REFINE_ENTITY_PREAMBLE } from "./_shared/prompt-preamble.ts";
+import { excerptSource, type ExcerptMode } from "./_shared/source-excerpt.ts";
+import { writePromptMeasure } from "./_shared/prompt-measure.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..");
@@ -42,10 +45,11 @@ interface ParsedArgs {
   name: string;
   responsePath: string;
   apply: boolean;
+  fullSource: boolean;
 }
 
 function usage(): never {
-  console.error(`usage: hirono refine-entity <name> [--response <path>] [--apply]
+  console.error(`usage: hirono refine-entity <name> [--response <path>] [--apply] [--full-source]
 
 Regenerate an entity's ## Synthesis from its Observations + cited Source bodies.
 
@@ -56,15 +60,12 @@ Modes:
                           Apply: replace Synthesis, bump synthesis_updated_at,
                           append refactor log entry.
 
-Example workflow:
-  hirono refine-entity MLA
-  # → writes .refine-prompts/MLA-synthesis-prompt.md
-  # operator spawns Sonnet subagent, saves response to:
-  #   .refine-prompts/MLA-synthesis-response.txt
-  hirono refine-entity MLA --response .refine-prompts/MLA-synthesis-response.txt
-  # → prints diff
-  hirono refine-entity MLA --response <path> --apply
-  # → applies atomically + log entry
+Flags:
+  --full-source           Include FULL raw Source bodies in the prompt instead
+                          of the curated excerpt (TL;DR + Key claims + What
+                          this changes). Escape hatch — use only when Source
+                          curation is suspect. ~3× more tokens; default is
+                          "curated" (1.5–3 KB per Source vs 5–15 KB).
 `);
   process.exit(2);
 }
@@ -72,18 +73,20 @@ Example workflow:
 function parseArgs(argv: string[]): ParsedArgs {
   let responsePath = "";
   let apply = false;
+  let fullSource = false;
   const positional: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--response") { i++; responsePath = (argv[i] ?? "").trim(); }
     else if (a === "--apply") apply = true;
+    else if (a === "--full-source") fullSource = true;
     else if (a === "--help" || a === "-h") usage();
     else if (a.startsWith("-")) { console.error(`unknown flag: ${a}`); usage(); }
     else positional.push(a);
   }
   if (positional.length !== 1) usage();
   if (apply && !responsePath) { console.error("--apply requires --response"); usage(); }
-  return { name: positional[0], responsePath, apply };
+  return { name: positional[0], responsePath, apply, fullSource };
 }
 
 /** Find an entity file at active or seen tier. */
@@ -158,36 +161,30 @@ function resolveSourcePath(repoRoot: string, token: string): string | null {
 }
 
 function buildPrompt(name: string, entityBody: string, parsed: { synthesis: string; observations: string[] }, sourcesBodies: { slug: string; body: string }[]): string {
-  const sourceBlocks = sourcesBodies.map(s => `### Source: ${s.slug}\n\n\`\`\`\n${s.body}\n\`\`\``).join("\n\n");
-  return `# Synthesis regeneration prompt for [[${name}]]
+  const sourceBlocks = sourcesBodies.map(s => `### Source: ${s.slug}\n\n${s.body}`).join("\n\n");
+  // Layout: STABLE preamble FIRST (caches across all refine-entity runs),
+  // VARIABLE per-entity content LAST. See _shared/prompt-preamble.ts.
+  return `${REFINE_ENTITY_PREAMBLE}
 
-## Instructions to Sonnet subagent
+---
 
-Regenerate the \`## Synthesis\` paragraph for the entity \`${name}\` from:
-  - the Observations bullets below (atomic claims, each with a Source citation), and
-  - the cited Source bodies (provided in full).
+## Subject: [[${name}]]
 
-Rules:
-  - Preserve **attributability**: every substantive claim should trace to an Observation. Don't add claims that aren't grounded in the Observations or Source bodies.
-  - Cap at **4-6 sentences**.
-  - Plain prose. No bullet list. No headings. No wikilinks INSIDE the Synthesis (those live in Observations).
-  - Output ONLY the new Synthesis paragraph text — no preamble like "Here is the new Synthesis:". The CLI will paste your response verbatim under \`## Synthesis\`.
-
-## Current Synthesis (for context — feel free to keep or rewrite)
+### Current Synthesis (for continuity — keep or rewrite)
 
 ${parsed.synthesis || "_(stub)_"}
 
-## Observations
+### Observations
 
 ${parsed.observations.map(o => `- ${o}`).join("\n")}
 
-## Cited Source bodies
+### Cited Source excerpts
 
 ${sourceBlocks}
 
 ---
 
-Save your response as plain text (4-6 sentences, no preamble) to:
+Save your response as plain text (4–6 sentences, no preamble) to:
   \`.refine-prompts/${name}-synthesis-response.txt\`
 `;
 }
@@ -247,7 +244,7 @@ export interface RefineResult {
 export function refineEntity(
   repoRoot: string,
   name: string,
-  opts: { responsePath?: string; apply?: boolean } = {},
+  opts: { responsePath?: string; apply?: boolean; sourceMode?: ExcerptMode } = {},
 ): RefineResult {
   const entityPath = findEntityFile(repoRoot, name);
   if (!entityPath) throw new Error(`entity not found: ${name}`);
@@ -255,17 +252,20 @@ export function refineEntity(
   const entityRaw = readFileSync(join(repoRoot, entityPath), "utf8");
   const { body } = splitFM(entityRaw);
   const parsed = parseEntity(body);
+  const sourceMode: ExcerptMode = opts.sourceMode ?? "curated";
 
-  // Resolve citations to Source paths
+  // Resolve citations to Source paths and load curated excerpts (default)
+  // or full bodies (--full-source escape hatch). Excerpts are 60–80%
+  // smaller than full bodies; quality preserved because Sources are
+  // already curated.
   const sourcesBodies: { slug: string; body: string }[] = [];
   const unresolved: string[] = [];
   for (const token of parsed.cited) {
     const srcPath = resolveSourcePath(repoRoot, token);
     if (!srcPath) { unresolved.push(token); continue; }
-    try {
-      const raw = readFileSync(join(repoRoot, srcPath), "utf8");
-      sourcesBodies.push({ slug: token, body: raw });
-    } catch { unresolved.push(token); }
+    const excerpt = excerptSource(repoRoot, srcPath, sourceMode);
+    if (excerpt === null) { unresolved.push(token); continue; }
+    sourcesBodies.push({ slug: token, body: excerpt });
   }
 
   // Mode 1: prepare prompt
@@ -277,6 +277,10 @@ export function refineEntity(
     mkdirSync(promptDir, { recursive: true });
     const promptPath = `.refine-prompts/${name}-synthesis-prompt.md`;
     writeFileSync(join(repoRoot, promptPath), prompt, "utf8");
+    writePromptMeasure(repoRoot, promptPath, prompt, {
+      source_count: sourcesBodies.length,
+      mode: sourceMode,
+    });
     return { mode: "prepare", entityPath, promptPath, oldSynthesis: parsed.synthesis, citedSources: parsed.cited, unresolvedCitations: unresolved };
   }
 
@@ -318,6 +322,7 @@ export function main(argv: string[]): void {
     const r = refineEntity(REPO_ROOT_DEFAULT, args.name, {
       responsePath: args.responsePath,
       apply: args.apply,
+      sourceMode: args.fullSource ? "full" : "curated",
     });
     if (r.mode === "prepare") {
       console.log(`✓ wrote prompt package: ${r.promptPath}`);

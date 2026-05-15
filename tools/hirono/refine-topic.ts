@@ -24,6 +24,9 @@ import {
   cleanupStaging,
   type PendingOp,
 } from "../curation.ts";
+import { REFINE_TOPIC_PREAMBLE } from "./_shared/prompt-preamble.ts";
+import { excerptSource, type ExcerptMode } from "./_shared/source-excerpt.ts";
+import { writePromptMeasure } from "./_shared/prompt-measure.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..");
@@ -32,22 +35,24 @@ interface ParsedArgs {
   name: string;
   responsePath: string;
   apply: boolean;
+  fullSource: boolean;
 }
 
 function usage(): never {
-  console.error(`usage: hirono refine-topic <name> [--response <path>] [--apply]
+  console.error(`usage: hirono refine-topic <name> [--response <path>] [--apply] [--full-source]
 
-Regenerate a Topic's ## Current understanding from its cited Sources.
+Regenerate a Topic's ## Current understanding (+ ## Comparison if present)
+from its cited Sources.
 
 Modes:
   (no flags)              Generate prompt package; operator spawns Sonnet subagent.
   --response <path>       Dry-run diff.
   --response <path> --apply   Atomic replace + log entry.
 
-Example:
-  hirono refine-topic "Inference Disaggregation"
-  hirono refine-topic "Inference Disaggregation" \\
-      --response .refine-prompts/<name>-topic-response.txt --apply
+Flags:
+  --full-source           Include full raw Source bodies instead of curated
+                          excerpts (TL;DR + Key claims + What this changes).
+                          Escape hatch; ~3× more tokens.
 `);
   process.exit(2);
 }
@@ -55,18 +60,20 @@ Example:
 function parseArgs(argv: string[]): ParsedArgs {
   let responsePath = "";
   let apply = false;
+  let fullSource = false;
   const positional: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--response") { i++; responsePath = (argv[i] ?? "").trim(); }
     else if (a === "--apply") apply = true;
+    else if (a === "--full-source") fullSource = true;
     else if (a === "--help" || a === "-h") usage();
     else if (a.startsWith("-")) { console.error(`unknown flag: ${a}`); usage(); }
     else positional.push(a);
   }
   if (positional.length !== 1) usage();
   if (apply && !responsePath) { console.error("--apply requires --response"); usage(); }
-  return { name: positional[0], responsePath, apply };
+  return { name: positional[0], responsePath, apply, fullSource };
 }
 
 function findTopicFile(repoRoot: string, name: string): string | null {
@@ -119,22 +126,40 @@ function resolveSourcePath(repoRoot: string, slug: string): string | null {
   return null;
 }
 
-function buildPrompt(name: string, parsed: { what: string; currentUnderstanding: string }, sourcesBodies: { slug: string; body: string }[]): string {
-  const sourceBlocks = sourcesBodies.map(s => `### Source: ${s.slug}\n\n\`\`\`\n${s.body}\n\`\`\``).join("\n\n");
-  return `# Current understanding regeneration prompt for Topic: ${name}
+export type TopicShape = "survey" | "comparison";
 
-## Instructions to Sonnet subagent
+/**
+ * A Topic carries a comparison iff its body contains a `## Comparison` H2
+ * heading. Presence of the heading IS the contract; no frontmatter field,
+ * no filename heuristic. Any Topic — Survey or otherwise — may opt in by
+ * adding the heading; refine-topic will then regenerate the table
+ * alongside Current understanding.
+ */
+export function detectTopicShape(_name: string, _fmRaw: string, body: string): TopicShape {
+  return body.split("\n").some(l => l.trim() === "## Comparison") ? "comparison" : "survey";
+}
 
-Regenerate the \`## Current understanding\` section for Topic \`${name}\`.
+function buildPrompt(
+  name: string,
+  shape: TopicShape,
+  parsed: { what: string; currentUnderstanding: string; comparison: string },
+  sourcesBodies: { slug: string; body: string }[],
+): string {
+  const sourceBlocks = sourcesBodies.map(s => `### Source: ${s.slug}\n\n${s.body}`).join("\n\n");
 
-Rules:
-  - Preserve **attributability**: every substantive claim should trace to a cited Source (in the body below). Inline \`[[<source-slug>]]\` wikilinks are encouraged in Current understanding so the reader can navigate.
-  - Length: 3-8 short paragraphs OR a structured bullet list with headers. Topic Current-understanding is denser than Entity Synthesis because Topics aggregate cross-source consensus.
-  - **No bold inside headings**, but inline **bold** for key terms within prose paragraphs IS allowed (Topic style differs from Entity-Synthesis style).
-  - Cover: what we now know, where Sources agree, where they disagree (if anywhere), and the load-bearing primitives.
-  - Output ONLY the new ## Current understanding section *content* (no \`## Current understanding\` heading — the CLI prepends it). Plain markdown body.
+  // Layout: STABLE preamble FIRST (caches across all refine-topic runs).
+  // Per-Topic VARIABLE content LAST. See _shared/prompt-preamble.ts.
+  const shapeMarker = shape === "comparison"
+    ? "**Shape**: COMPARISON — this Topic body carries a `## Comparison` heading. Your response MUST include BOTH `## Current understanding` AND `## Comparison` sections per the preamble's strict 2-section format. The table is load-bearing — lint will fail without ≥3 |-rows."
+    : "**Shape**: SURVEY — output ONLY the new `## Current understanding` content (no heading — the CLI prepends it).";
 
-## The Topic's framing
+  return `${REFINE_TOPIC_PREAMBLE}
+
+---
+
+## Subject: Topic \`${name}\`
+
+${shapeMarker}
 
 ### ## What
 
@@ -143,8 +168,8 @@ ${parsed.what || "_(no What section)_"}
 ### Current ## Current understanding (for context)
 
 ${parsed.currentUnderstanding || "_(stub)_"}
-
-## Cited Source bodies
+${shape === "comparison" ? `\n### Current ## Comparison (for context)\n\n${parsed.comparison || "_(no Comparison section yet — generate one)_"}\n` : ""}
+### Cited Source excerpts
 
 ${sourceBlocks}
 
@@ -155,39 +180,73 @@ Save your response as plain text/markdown to:
 `;
 }
 
-function buildReplacement(topicRaw: string, newContent: string, dateISO: string): string {
+function buildReplacement(topicRaw: string, newContent: string, dateISO: string, shape: TopicShape = "survey"): string {
   const { fm, body } = splitFM(topicRaw);
-
-  // Imperative section replacement (matches refine-entity's extractSection
-  // pattern — avoids the non-greedy + $-in-/m trap where empty-match inserts
-  // instead of replacing).
   const lines = body.split("\n");
-  let headingIdx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim() === "## Current understanding") { headingIdx = i; break; }
-  }
 
   let newBody: string;
-  if (headingIdx >= 0) {
-    // Find next section heading (## or #) or EOF
-    let endIdx = lines.length;
-    for (let i = headingIdx + 1; i < lines.length; i++) {
-      if (/^#{1,2}\s/.test(lines[i])) { endIdx = i; break; }
+  if (shape === "comparison") {
+    // Comparison shape: response carries BOTH ## Current understanding AND
+    // ## Comparison (the LLM was prompted with the strict 2-section format).
+    // Replace the span from ## Current understanding through end-of-Comparison
+    // (or next non-Comparison ## heading) with the response verbatim.
+    const startIdx = lines.findIndex(l => l.trim() === "## Current understanding");
+    let insertAt: number;
+    let endIdx: number;
+    if (startIdx >= 0) {
+      insertAt = startIdx;
+      // End at ## Open threads if present, else next H2/H1 after the last of
+      // {## Current understanding, ## Comparison}, else EOF.
+      endIdx = lines.length;
+      const openIdx = lines.findIndex(l => l.trim() === "## Open threads");
+      if (openIdx >= 0 && openIdx > startIdx) endIdx = openIdx;
+      else {
+        // Walk forward, skipping ## Comparison (it's part of the comparison block we're replacing)
+        for (let i = startIdx + 1; i < lines.length; i++) {
+          const t = lines[i].trim();
+          if (/^#{1,2}\s/.test(t) && t !== "## Comparison" && t !== "## Current understanding") {
+            endIdx = i;
+            break;
+          }
+        }
+      }
+    } else {
+      // No Current understanding yet — insert before Open threads or at end
+      const openIdx = lines.findIndex(l => l.trim() === "## Open threads");
+      insertAt = openIdx >= 0 ? openIdx : lines.length;
+      endIdx = insertAt;
     }
-    const before = lines.slice(0, headingIdx + 1).join("\n");  // includes heading line
+    const before = lines.slice(0, insertAt).join("\n");
     const after = lines.slice(endIdx).join("\n");
     newBody = `${before}\n\n${newContent.trim()}\n\n${after}`;
   } else {
-    // No Current understanding section — insert before Open threads (or at end)
-    const openThreadsIdx = lines.findIndex(l => l.trim() === "## Open threads");
-    if (openThreadsIdx >= 0) {
-      const before = lines.slice(0, openThreadsIdx).join("\n");
-      const after = lines.slice(openThreadsIdx).join("\n");
-      newBody = `${before}\n## Current understanding\n\n${newContent.trim()}\n\n${after}`;
+    // Survey shape: replace only the ## Current understanding section.
+    let headingIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim() === "## Current understanding") { headingIdx = i; break; }
+    }
+    if (headingIdx >= 0) {
+      let endIdx = lines.length;
+      for (let i = headingIdx + 1; i < lines.length; i++) {
+        if (/^#{1,2}\s/.test(lines[i])) { endIdx = i; break; }
+      }
+      const before = lines.slice(0, headingIdx + 1).join("\n");  // includes heading line
+      const after = lines.slice(endIdx).join("\n");
+      newBody = `${before}\n\n${newContent.trim()}\n\n${after}`;
     } else {
-      newBody = body.replace(/\s*$/, `\n\n## Current understanding\n\n${newContent.trim()}\n`);
+      const openThreadsIdx = lines.findIndex(l => l.trim() === "## Open threads");
+      if (openThreadsIdx >= 0) {
+        const before = lines.slice(0, openThreadsIdx).join("\n");
+        const after = lines.slice(openThreadsIdx).join("\n");
+        newBody = `${before}\n## Current understanding\n\n${newContent.trim()}\n\n${after}`;
+      } else {
+        newBody = body.replace(/\s*$/, `\n\n## Current understanding\n\n${newContent.trim()}\n`);
+      }
     }
   }
+
+  // De-dup consecutive blank lines that may have been introduced
+  newBody = newBody.replace(/\n{3,}/g, "\n\n");
 
   // Bump (or insert) synthesis_updated_at in frontmatter
   let newFm = fm;
@@ -218,33 +277,41 @@ export interface RefineTopicResult {
 export function refineTopic(
   repoRoot: string,
   name: string,
-  opts: { responsePath?: string; apply?: boolean } = {},
+  opts: { responsePath?: string; apply?: boolean; sourceMode?: ExcerptMode } = {},
 ): RefineTopicResult {
   const topicPath = findTopicFile(repoRoot, name);
   if (!topicPath) throw new Error(`Topic not found: ${name}`);
   const topicRaw = readFileSync(join(repoRoot, topicPath), "utf8");
-  const { body } = splitFM(topicRaw);
+  const { fm, body } = splitFM(topicRaw);
+  const shape = detectTopicShape(name, fm, body);
 
   const what = extractSection(body, "## What");
   const currentUnderstanding = extractSection(body, "## Current understanding");
+  const comparison = extractSection(body, "## Comparison");
   const cited = extractSourceCitations(body);
 
+  const sourceMode: ExcerptMode = opts.sourceMode ?? "curated";
   const sourcesBodies: { slug: string; body: string }[] = [];
   const unresolved: string[] = [];
   for (const slug of cited) {
     const p = resolveSourcePath(repoRoot, slug);
     if (!p) { unresolved.push(slug); continue; }
-    try { sourcesBodies.push({ slug, body: readFileSync(join(repoRoot, p), "utf8") }); }
-    catch { unresolved.push(slug); }
+    const excerpt = excerptSource(repoRoot, p, sourceMode);
+    if (excerpt === null) { unresolved.push(slug); continue; }
+    sourcesBodies.push({ slug, body: excerpt });
   }
 
   // Mode 1: prepare prompt
   if (!opts.responsePath) {
-    const prompt = buildPrompt(name, { what, currentUnderstanding }, sourcesBodies);
+    const prompt = buildPrompt(name, shape, { what, currentUnderstanding, comparison }, sourcesBodies);
     const promptDir = join(repoRoot, ".refine-prompts");
     mkdirSync(promptDir, { recursive: true });
     const promptPath = `.refine-prompts/${name}-topic-prompt.md`;
     writeFileSync(join(repoRoot, promptPath), prompt, "utf8");
+    writePromptMeasure(repoRoot, promptPath, prompt, {
+      source_count: sourcesBodies.length,
+      mode: sourceMode,
+    });
     return { mode: "prepare", topicPath, promptPath, oldContent: currentUnderstanding, citedSources: cited, unresolvedCitations: unresolved };
   }
 
@@ -260,12 +327,14 @@ export function refineTopic(
   }
 
   const dateISO = new Date().toISOString().slice(0, 10);
-  const newRaw = buildReplacement(topicRaw, newContent, dateISO);
+  const newRaw = buildReplacement(topicRaw, newContent, dateISO, shape);
   const ops: PendingOp[] = [{ kind: "write", path: topicPath, body: newRaw }];
   const opId = `refine-topic-${name.replace(/[^a-zA-Z0-9-]/g, "_")}-${Date.now()}`;
   applyAtomically(repoRoot, opId, ops);
-  appendLogEntry(repoRoot, "refactor", `Refine Topic [[${name}]] Current understanding`, [
-    `Regenerated ## Current understanding from ${sourcesBodies.length} cited Source body(ies).`,
+  const sectionLabel = shape === "comparison" ? "Current understanding + Comparison" : "Current understanding";
+  appendLogEntry(repoRoot, "refactor", `Refine Topic [[${name}]] ${sectionLabel}`, [
+    `Topic shape: ${shape}.`,
+    `Regenerated ${sectionLabel} from ${sourcesBodies.length} cited Source body(ies).`,
     unresolved.length > 0 ? `${unresolved.length} citation(s) failed to resolve: ${unresolved.join(", ")}` : `All cited Sources resolved.`,
     `\`synthesis_updated_at\` bumped to ${dateISO}.`,
   ]);
@@ -285,6 +354,7 @@ export function main(argv: string[]): void {
     const r = refineTopic(REPO_ROOT_DEFAULT, args.name, {
       responsePath: args.responsePath,
       apply: args.apply,
+      sourceMode: args.fullSource ? "full" : "curated",
     });
     if (r.mode === "prepare") {
       console.log(`✓ wrote prompt package: ${r.promptPath}`);

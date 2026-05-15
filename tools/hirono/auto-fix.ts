@@ -163,6 +163,81 @@ function prepareRefinePrompt(repoRoot: string, name: string, dryRun: boolean): {
   return { ok: false, msg: (result.stderr || result.stdout || "non-zero exit").trim().slice(-200) };
 }
 
+function findStaleTopicSynthesis(repoRoot: string): string[] {
+  const result = spawnSync("npx", ["tsx", "tools/bin/lint.ts", "--check", "stale-topic-synthesis", "--json"], {
+    cwd: repoRoot, encoding: "utf8",
+  });
+  const names: string[] = [];
+  for (const line of result.stdout.split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      const issue = JSON.parse(line) as LintIssue;
+      if (issue.kind !== "stale-topic-synthesis") continue;
+      const m = issue.path.match(/^Topics\/([^\/]+?)\.md$/);
+      if (m) names.push(m[1]);
+    } catch { /* skip */ }
+  }
+  return names;
+}
+
+/**
+ * Topics with `## Comparison` heading but no table — the heading was added
+ * (via `hirono add-comparison-heading`, manual edit, or Tier-2 dispatch)
+ * but the axis × option table hasn't been generated yet. Same remediation
+ * as stale-topic-synthesis: prep a refine-topic prompt (the prompt-builder
+ * auto-detects the comparison heading and switches to 2-section mode).
+ */
+function findMissingComparisonTable(repoRoot: string): string[] {
+  const result = spawnSync("npx", ["tsx", "tools/bin/lint.ts", "--check", "comparison-table-missing", "--json"], {
+    cwd: repoRoot, encoding: "utf8",
+  });
+  const names: string[] = [];
+  for (const line of result.stdout.split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      const issue = JSON.parse(line) as LintIssue;
+      if (issue.kind !== "comparison-table-missing") continue;
+      const m = issue.path.match(/^Topics\/([^\/]+?)\.md$/);
+      if (m) names.push(m[1]);
+    } catch { /* skip */ }
+  }
+  return names;
+}
+
+function prepareRefineTopicPrompt(repoRoot: string, name: string, dryRun: boolean): { ok: boolean; msg: string } {
+  if (dryRun) {
+    return { ok: true, msg: `would prepare: hirono refine-topic ${quote(name)}` };
+  }
+  const result = spawnSync("npx", ["tsx", "tools/bin/hirono.ts", "refine-topic", name], {
+    cwd: repoRoot, encoding: "utf8",
+  });
+  if (result.status === 0) return { ok: true, msg: "prompt prepared" };
+  return { ok: false, msg: (result.stderr || result.stdout || "non-zero exit").trim().slice(-200) };
+}
+
+function findStaleTopSynthesis(repoRoot: string): boolean {
+  const result = spawnSync("npx", ["tsx", "tools/bin/lint.ts", "--check", "stale-top-synthesis", "--json"], {
+    cwd: repoRoot, encoding: "utf8",
+  });
+  for (const line of result.stdout.split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      const issue = JSON.parse(line) as LintIssue;
+      if (issue.kind === "stale-top-synthesis" && issue.severity === "warn") return true;
+    } catch { /* skip */ }
+  }
+  return false;
+}
+
+function prepareTopSynthesisPrompt(repoRoot: string, dryRun: boolean): { ok: boolean; msg: string } {
+  if (dryRun) return { ok: true, msg: "would prepare: hirono refine-synthesis" };
+  const result = spawnSync("npx", ["tsx", "tools/bin/hirono.ts", "refine-synthesis"], {
+    cwd: repoRoot, encoding: "utf8",
+  });
+  if (result.status === 0) return { ok: true, msg: "prompt prepared" };
+  return { ok: false, msg: (result.stderr || result.stdout || "non-zero exit").trim().slice(-200) };
+}
+
 // ---------------------------------------------------------------------------
 // Step 3: index refresh
 // ---------------------------------------------------------------------------
@@ -213,16 +288,42 @@ export function autoFix(repoRoot: string, opts: ParsedArgs): AutoFixResult {
   // Step 2
   if (!opts.skipRefine) {
     const stale = findStaleSynthesis(repoRoot);
-    r.refinePromptsAttempted = stale.length;
-    if (stale.length > 0) {
-      console.log(`# Step 2: refine-prompt prep (${stale.length} stale entit${stale.length === 1 ? "y" : "ies"})`);
+    const staleTopics = findStaleTopicSynthesis(repoRoot);
+    const missingTables = findMissingComparisonTable(repoRoot).filter(n => !staleTopics.includes(n));  // dedupe
+    const staleTop = findStaleTopSynthesis(repoRoot);
+    r.refinePromptsAttempted = stale.length + staleTopics.length + missingTables.length + (staleTop ? 1 : 0);
+    if (stale.length + staleTopics.length + missingTables.length > 0 || staleTop) {
+      const labelParts: string[] = [];
+      if (stale.length > 0) labelParts.push(`${stale.length} stale entit${stale.length === 1 ? "y" : "ies"}`);
+      if (staleTopics.length > 0) labelParts.push(`${staleTopics.length} stale topic${staleTopics.length === 1 ? "" : "s"}`);
+      if (missingTables.length > 0) labelParts.push(`${missingTables.length} comparison table${missingTables.length === 1 ? "" : "s"} pending`);
+      if (staleTop) labelParts.push("top-level Synthesis");
+      console.log(`# Step 2: refine-prompt prep (${labelParts.join(" + ")})`);
       for (const name of stale) {
         const result = prepareRefinePrompt(repoRoot, name, opts.dryRun);
         const sym = result.ok ? (opts.dryRun ? "·" : "✓") : "✖";
-        console.log(`  ${sym} ${name}${result.ok ? "" : `\n    ↳ ${result.msg}`}`);
+        console.log(`  ${sym} entity:${name}${result.ok ? "" : `\n    ↳ ${result.msg}`}`);
         if (result.ok && !opts.dryRun) r.refinePromptsPrepared++;
       }
-      console.log(`\n  Next: spawn Sonnet subagents on the .refine-prompts/ files, save responses, then \`hirono refine-entity <name> --response <path> --apply\` per entity.`);
+      for (const name of staleTopics) {
+        const result = prepareRefineTopicPrompt(repoRoot, name, opts.dryRun);
+        const sym = result.ok ? (opts.dryRun ? "·" : "✓") : "✖";
+        console.log(`  ${sym} topic:${name}${result.ok ? "" : `\n    ↳ ${result.msg}`}`);
+        if (result.ok && !opts.dryRun) r.refinePromptsPrepared++;
+      }
+      for (const name of missingTables) {
+        const result = prepareRefineTopicPrompt(repoRoot, name, opts.dryRun);
+        const sym = result.ok ? (opts.dryRun ? "·" : "✓") : "✖";
+        console.log(`  ${sym} topic-comparison:${name}${result.ok ? "" : `\n    ↳ ${result.msg}`}`);
+        if (result.ok && !opts.dryRun) r.refinePromptsPrepared++;
+      }
+      if (staleTop) {
+        const result = prepareTopSynthesisPrompt(repoRoot, opts.dryRun);
+        const sym = result.ok ? (opts.dryRun ? "·" : "✓") : "✖";
+        console.log(`  ${sym} Synthesis.md (top-level)${result.ok ? "" : `\n    ↳ ${result.msg}`}`);
+        if (result.ok && !opts.dryRun) r.refinePromptsPrepared++;
+      }
+      console.log(`\n  Next: spawn Sonnet subagents on the .refine-prompts/ files, save responses, then \`hirono refine-entity <name> --response <path> --apply\` (or \`refine-topic\` / \`refine-synthesis\` per file).`);
     } else {
       console.log(`# Step 2: refine-prompt prep — no stale Syntheses`);
     }

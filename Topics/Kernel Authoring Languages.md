@@ -20,17 +20,29 @@ The field of GPU kernel authoring has historically meant writing in **SIMT** (Si
 
 Two components implement CUDA Tile today. **CUDA Tile IR** is a virtual ISA for tile-based GPU programming — the portable intermediate representation the compiler targets. **cuTile Python** is the user-facing DSL, currently Python-only (a C++ implementation is planned for a future release). This makes the new model immediately accessible for AI/ML workloads but not yet for systems or latency-sensitive kernels that require C++ [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]].
 
-Alongside the programming-model shift, CUDA 13.1 extended the **runtime API surface** in ways relevant to kernel authoring in production settings. **Green contexts** — lightweight context-style SM partitioning previously available only via the driver API since CUDA 12.4 — are now first-class runtime objects with a configurable `split()` API, enabling deterministic SM reservation for latency-sensitive code paths. **Static SM partitioning for MPS** (`-S` flag, Ampere+) adds deterministic resource allocation between MPS clients, addressing the unpredictability of dynamic provisioning in multi-tenant deployments.
+Alongside the programming-model shift, CUDA 13.1 extended the **runtime API surface** in ways relevant to kernel authoring in production settings. **Green contexts** — lightweight context-style SM partitioning previously available only via the driver API since CUDA 12.4 — are now first-class runtime objects with a configurable `split()` API, enabling deterministic SM reservation for latency-sensitive code paths. **Static SM partitioning for MPS** (`-S` flag, Ampere+) adds deterministic resource allocation between MPS clients, addressing the unpredictability of dynamic provisioning in multi-tenant deployments [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]].
 
 Tooling for kernel authors has been updated in parallel. **Nsight Compute 2025.4** adds a Tile Statistics section (Tile Mapping, TMA byte counts, launch configuration, Tile vs. SIMT result-type columns) and source mapping back to cuTile Python — making Tile-kernel performance analysis concrete rather than inferential. **Compute Sanitizer 2025.4** shifts to compile-time patching (`nvcc -fdevice-sanitize=memcheck`), reducing runtime overhead and enabling base-and-bounds analysis between adjacent allocations that the prior runtime-injection model missed [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]].
 
 The current source base covers only NVIDIA's own framing of this transition. There is no comparative coverage of competing kernel authoring approaches (Triton, OpenCL, HIP, SYCL, HLSL compute) or third-party benchmarks validating NVIDIA's portability and productivity claims for CUDA Tile. The consensus picture is therefore single-vendor and announcement-era — useful as a reference for what CUDA Tile *is* and *targets*, but incomplete as an assessment of where kernel authoring languages are heading broadly.
 
+## Comparison
+
+| Axis | CUDA (SIMT) | CUDA Tile / cuTile Python | Triton | OpenCL / SYCL / HIP |
+|---|---|---|---|---|
+| **Abstraction level** | Per-thread; programmer partitions data and defines each thread's execution path [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | Tile-based; compiler + runtime map tiles to threads and tensor cores [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | ? |
+| **Primary language** | C/C++ | Python (C++ implementation planned for a future release) [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | C/C++ (OpenCL C; SYCL C++; HIP C++) |
+| **Hardware portability** | NVIDIA GPUs (feature availability is compute-capability-gated) | Ampere / Ada / Blackwell (cc 8.x, 10.x, 11.x, 12.x); forward-portable by design [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | ? |
+| **Tensor-core targeting** | Manual (PTX / WMMA / CUTLASS primitives) | Compiler-managed via CUDA Tile IR virtual ISA [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | N/A (vendor-agnostic; no direct tensor-core abstraction) |
+| **Intermediate representation** | PTX | CUDA Tile IR (virtual ISA for tile-based GPU programming) [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | SPIR-V (OpenCL / SYCL); ? (HIP) |
+| **Profiler support** | Nsight Compute (full; mature) | Nsight Compute 2025.4 — Tile Statistics section, TMA byte counts, cuTile Python source mapping, Tile vs. SIMT result-type column [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | ? |
+| **Sanitizer / debug tooling** | Compute Sanitizer (runtime injection model) | Compute Sanitizer 2025.4 compile-time patching (`nvcc -fdevice-sanitize=memcheck`); base-and-bounds analysis between adjacent allocations [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | ? |
+| **AI/ML production readiness** | Mature; dominant in production stacks (vLLM, TRTLLM, CUTLASS) | AI algorithms targeted first; Python-only today limits C++-based production stacks; C++ required for latency-sensitive paths [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | ? |
+
 ## Open threads
 
 - cuTile Python vs Triton: what's the actual boundary? Both target above-SIMT with Python frontends + compiler-managed tensor-core mapping. Worth a careful comparison. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
 - CUDA Tile C++ landing: when? Production stacks (vLLM, TRTLLM) won't move until C++ ships; the Python-only-today positioning suggests this is the larger drop. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
-
 
 ## Sources drawn on
 

@@ -34,6 +34,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { PROPOSE_CURATION_PREAMBLE } from "./_shared/prompt-preamble.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..");
@@ -116,50 +117,12 @@ function readFileSafe(p: string, maxLen = 4000): string {
 }
 
 function buildPromptPackage(repoRoot: string, health: HealthAudit, lintIssues: LintIssue[]): string {
+  // Layout: STABLE preamble FIRST (caches across all propose-curation runs).
+  // Per-run findings LAST. See _shared/prompt-preamble.ts.
   const lines: string[] = [
-    `# Curation proposal prompt`,
+    PROPOSE_CURATION_PREAMBLE,
     "",
-    `## Instructions to Sonnet subagent`,
-    "",
-    `You are a wiki-curation judge. Read the findings below and propose specific atomic-CLI commands to fix the issues that are real problems. Skip the false positives.`,
-    "",
-    `**Available proposal kinds** (each backed by an existing atomic CLI):`,
-    "",
-    `- \`merge-entities\` — when two entity slugs refer to the same thing (e.g. \`bfloat16\` ↔ \`BF16\`). args: { source, target, reason }`,
-    `- \`merge-topics\` — when two topic slugs collide (case+punctuation normalized to the same string). args: { source, target, reason }`,
-    `- \`rename-entity\` — when canonical naming should change. args: { old, new, reason }`,
-    `- \`delete-orphan\` — when a \`_seen/\` entity has refs=0 and is genuinely unwanted. args: { slug, reason }`,
-    `- \`refine-entity\` — when an active entity's Synthesis has drifted (stale or contradicted by Observations). args: { name, reason }`,
-    `- \`refine-topic\` — same for a Topic's Current understanding. args: { name, reason }`,
-    `- \`skip\` — finding is a false positive (SKU distinction like H100 vs H200, intentional naming, etc.). args: { finding, reason }`,
-    "",
-    `**Confidence levels**:`,
-    `- \`high\` — mechanically obvious, low risk if applied (e.g. case-only variants, refs=0 with no semantic value).`,
-    `- \`medium\` — defensible call but a thoughtful operator could disagree.`,
-    `- \`low\` — judgment-heavy, operator should definitely review.`,
-    "",
-    `**Output format** — ONE JSON object, no preamble, no markdown fence:`,
-    "",
-    `\`\`\``,
-    JSON.stringify({
-      proposals: [
-        {
-          kind: "merge-entities",
-          args: { source: "bfloat16", target: "BF16", reason: "case+spelling variant" },
-          confidence: "high",
-          rationale: "Same IEEE float format; alias already in Meta/entity-aliases.md.",
-        },
-        {
-          kind: "skip",
-          args: { finding: "H100 ↔ H200 duplicate-pair", reason: "SKU distinction" },
-          confidence: "high",
-          rationale: "Different hardware SKUs, both reach refs ≥ 3 independently.",
-        },
-      ],
-    }, null, 2),
-    `\`\`\``,
-    "",
-    `Save to:  \`.curation-prompts/curation-proposal-response.json\``,
+    `Save to: \`.curation-prompts/curation-proposal-response.json\``,
     "",
     `---`,
     "",
@@ -224,6 +187,17 @@ function buildPromptPackage(repoRoot: string, health: HealthAudit, lintIssues: L
     lines.push("");
   }
 
+  // Comparison-opportunity suggestions — surfaced separately because they
+  // need Sonnet judgment (mechanical heuristic flags candidates; only some
+  // are real). Propose `add-comparison-heading` for load-bearing contrasts,
+  // `skip` for incidental mentions.
+  const compOps = lintIssues.filter(i => i.kind === "comparison-opportunity");
+  if (compOps.length) {
+    lines.push(`### Comparison opportunities (heuristic — judge each): ${compOps.length}`, "");
+    for (const i of compOps) lines.push(`- ${i.path}: ${i.detail}`);
+    lines.push("");
+  }
+
   lines.push(`---`, "");
   lines.push(`Now output the JSON proposals. Skip false positives. For genuine fixes, name the atomic-CLI verb + args + confidence + a one-line rationale.`);
   return lines.join("\n");
@@ -250,7 +224,7 @@ function preparePrompt(repoRoot: string): { promptPath: string; findingCount: nu
 // ---------------------------------------------------------------------------
 
 interface Proposal {
-  kind: "merge-entities" | "merge-topics" | "rename-entity" | "delete-orphan" | "refine-entity" | "refine-topic" | "skip";
+  kind: "merge-entities" | "merge-topics" | "rename-entity" | "delete-orphan" | "refine-entity" | "refine-topic" | "refine-synthesis" | "add-comparison-heading" | "skip";
   args: Record<string, string>;
   confidence: "high" | "medium" | "low";
   rationale: string;
@@ -322,6 +296,8 @@ function proposalHeading(p: Proposal): string {
     case "delete-orphan":  return `Delete orphan \`${p.args.slug}\``;
     case "refine-entity":  return `Refine Entity \`${p.args.name}\` Synthesis`;
     case "refine-topic":   return `Refine Topic \`${p.args.name}\` Current understanding`;
+    case "refine-synthesis": return `Refine top-level Synthesis.md (corpus-wide thesis)`;
+    case "add-comparison-heading": return `Add \`## Comparison\` heading to Topic \`${p.args.name}\``;
     case "skip":           return `Skip: ${p.args.finding}`;
   }
 }
@@ -341,6 +317,10 @@ function renderCommand(p: Proposal): string {
       return `hirono refine-entity ${q(p.args.name)}    # → prompt; operator spawns Sonnet → apply`;
     case "refine-topic":
       return `hirono refine-topic ${q(p.args.name)}     # → prompt; operator spawns Sonnet → apply`;
+    case "refine-synthesis":
+      return `hirono refine-synthesis                   # → prompt; operator spawns Sonnet → apply`;
+    case "add-comparison-heading":
+      return `hirono add-comparison-heading ${q(p.args.name)} --reason ${q(p.args.reason ?? p.rationale)}`;
     case "skip":
       return `# (no action — skipped)`;
   }

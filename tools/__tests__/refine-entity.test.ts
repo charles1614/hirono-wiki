@@ -57,8 +57,13 @@ test("refineEntity prepare: writes prompt with entity body + cited Sources", () 
     assert.deepEqual(r.unresolvedCitations, []);
 
     const prompt = readFileSync(join(root, r.promptPath!), "utf8");
-    assert.ok(prompt.includes("# Synthesis regeneration prompt for [[TestEntity]]"));
+    // Preamble-first layout (Tier 1 of the token-cost architecture):
+    // stable preamble heads the prompt; entity-specific content follows.
+    assert.ok(prompt.includes("# refine-entity — Synthesis regeneration"));
+    assert.ok(prompt.includes("## Subject: [[TestEntity]]"));
     assert.ok(prompt.includes("Existing synthesis paragraph"));
+    // Test Sources are fixtures without curated sections, so excerptSource
+    // falls back to full body — body content should be inlined.
     assert.ok(prompt.includes("Foo source body content"));
     assert.ok(prompt.includes("Bar source body content"));
     assert.ok(prompt.includes("First atomic claim"));

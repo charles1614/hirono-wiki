@@ -996,6 +996,12 @@ hirono refine-entity MLA --response <path> --apply
 
 Apply phase replaces `## Synthesis`, bumps `synthesis_updated_at: <today>`, appends `refactor | Refine [[<name>]] Synthesis` log entry.
 
+**Token-cost notes** (apply to every `refine-*` and `auto-detect-entities`):
+
+- **Cache-friendly preamble**: every prompt file starts with a stable preamble from `tools/hirono/_shared/prompt-preamble.ts` (`REFINE_ENTITY_PREAMBLE`, `REFINE_TOPIC_PREAMBLE`, etc.). When you spawn a Sonnet Agent on the prompt, the Claude API caches this preamble for ~5 minutes — subsequent spawns within the TTL hit cache, billing only the variable suffix (subject name, cited bodies) at full rate. Practical implication: **run multi-entity refines back-to-back** (e.g. `auto-fix` stale loop) within a single 5-minute window to maximize cache reuse. Editing the preamble file invalidates the cache for ~5 minutes.
+- **Curated source mode** (default): cited Source bodies are excerpted to `## TL;DR` + `## Key claims` + `## What this changes` + `## Entities touched` + `## Topics touched` via `tools/hirono/_shared/source-excerpt.ts`. ~60–80% smaller than full raw bodies. Use `--full-source` as an escape hatch when the Source's own curation is suspect; ~3× more tokens.
+- **Measure sidecars**: every prepare-mode write also produces `<prompt>-measure.json` next to the prompt — tracks `prompt_chars`, `prompt_lines`, `source_count`, `stub_count`, `mode`. Compare across runs to spot prompt-size regressions.
+
 ### 11.3 `hirono refine-all-stale` (batch)
 
 ```bash
@@ -1004,6 +1010,35 @@ hirono refine-all-stale --list     # list-only mode (don't write prompt files)
 ```
 
 Runs `lint --check stale-synthesis --json`, calls `refine-entity` in prepare mode for each flagged entity. Operator then orchestrates the per-entity Sonnet calls.
+
+### 11.4 Top-level [[Synthesis]] regeneration
+
+[[Synthesis]] (repo root) is the corpus-wide thesis page — what the wiki *collectively* argues across all Topics. It is regenerated **per-batch, not per-ingest**: most ingests refine claims, they don't shift them, so per-ingest regeneration is noise.
+
+**Trigger detection — fully automated.** The lint check `stale-top-synthesis` (in `tools/bin/lint.ts`) flags `Synthesis.md` when its `updated:` is > 7 days older than the newest Topic `synthesis_updated_at`. Symmetric with the per-entity `stale-synthesis` check; same threshold.
+
+**Regeneration flow — three commands, mirrors `refine-entity`/`refine-topic`**:
+
+```bash
+# 1. Prepare prompt (gathers Synthesis.md + every Topic's What+Current understanding):
+hirono refine-synthesis
+#   → writes .refine-prompts/synthesis-prompt.md
+
+# 2. Spawn a Sonnet subagent on the prompt; save the response to:
+#    .refine-prompts/synthesis-response.txt
+
+# 3. Apply atomically (replaces body, bumps updated:, appends log entry):
+hirono refine-synthesis \
+    --response .refine-prompts/synthesis-response.txt --apply
+```
+
+Dry-run with `--response <path>` (without `--apply`) prints the diff before commit.
+
+**Auto-fix integration.** `hirono auto-fix` (Tier-1, zero-touch) automatically detects `stale-top-synthesis` and runs Step 1 alongside per-entity refine prep. The prompt package is ready under `.refine-prompts/synthesis-prompt.md` without operator intervention; Steps 2+3 still need the Sonnet subagent spawn.
+
+**Auto-curate integration.** `hirono propose-curation` exposes `refine-synthesis` as a Sonnet-dispatchable proposal kind. When the Sonnet judge sees the `stale-top-synthesis` lint finding, it can emit a proposal that `apply-queue` executes as `hirono refine-synthesis` (which prepares the prompt). The Sonnet+apply loop for the regeneration itself is the operator's next iteration — same shape as how `refine-entity` regenerations close.
+
+**Quality bar**: every claim in [[Synthesis]] must be backed by ≥1 `[[Topics/X]]` or `[[Sources/YYYY/X]]` or `[[<Entity>]]` wikilink. Orphan assertions (claims with no link) are a regression — the lint doesn't catch them, so eye-read every regeneration before approving.
 
 ## 12. Drift detection (Phase B)
 
@@ -1054,7 +1089,7 @@ hirono auto-fix [--dry-run]
 
 **Step 1 — alias merges**: for each `variant → canonical` in `Meta/entity-aliases.md` where BOTH `Entities/_seen/{variant,canonical}.md` exist, run `hirono merge-entities` automatically. Safe because the alias is operator-declared: if `bfloat16 → BF16` is in the file, the operator already stated they're the same thing. The merge concatenates Observations (no information loss), rewrites wikilinks, appends a refactor log entry.
 
-**Step 2 — refine-prompt prep**: for each entity flagged stale by `lint --check stale-synthesis`, write a refine prompt package to `.refine-prompts/`. No mutations. Operator then spawns Sonnet → apply per the normal refine workflow.
+**Step 2 — refine-prompt prep**: for each entity flagged stale by `lint --check stale-synthesis`, write a refine prompt package to `.refine-prompts/`. Also, when `lint --check stale-top-synthesis` fires (top-level `Synthesis.md` >7d behind newest Topic `synthesis_updated_at`), prep `.refine-prompts/synthesis-prompt.md` via `hirono refine-synthesis`. No mutations. Operator then spawns Sonnet → apply per the normal refine workflow (per-entity or top-level).
 
 **Step 3 — index refresh**: run `reindex.ts` + `build-sources-index.ts` to keep catalogs current. Mechanical, no content rewrites.
 
@@ -1159,6 +1194,8 @@ hirono apply-queue --auto-apply high --dry-run
 | `delete-orphan` | `hirono bulk-delete-orphans --confirm <slug>` | refs=0 stubs with no semantic value |
 | `refine-entity` | `hirono refine-entity <name>` | active entity Synthesis stale or contradicted |
 | `refine-topic` | `hirono refine-topic <name>` | Topic Current understanding drifted |
+| `refine-synthesis` | `hirono refine-synthesis` | top-level `Synthesis.md` flagged by `stale-top-synthesis` |
+| `add-comparison-heading` | `hirono add-comparison-heading <name>` | `comparison-opportunity` lint surfaces a Topic with ≥3 active-tier entity wikilinks + contrast markers in prose; Sonnet judges whether the contrast is load-bearing |
 | `skip` | (no-op) | finding is a false positive (SKU distinction, intentional naming) |
 
 **Choosing one-tap vs full-auto**: the LLM-judgment work (NER, duplicate detection, refine-vs-keep calls) is automated either way. The difference is whether the operator wants to see each proposed mutation before it runs. Recommendation:

@@ -17,7 +17,29 @@ Every page declares its `type` in frontmatter. Four types:
 | `source` | `Sources/YYYY/` | Summary of one ingested raw source (Raindrop bookmark, Space 1 node, URL) |
 | `entity` | `Entities/` or `Entities/_seen/` | A person, project, paper, product, model, company |
 | `topic` | `Topics/` | Synthesis across multiple sources; answers to questions; cross-cutting themes |
-| `meta` | `Meta/` | Schema, index, log, linting notes |
+| `meta` | `Meta/` | Schema, index, log, linting notes, and the top-level [[Synthesis]] page |
+
+### Comparison sections inside Topics
+
+Comparisons are an optional **section inside a Topic**, not a separate page type. Any Topic may opt in by adding a `## Comparison` H2 heading to its body. Most won't need one — but Topics whose evidence carries a head-to-head dimension (`LLM Inference Systems` comparing vLLM / SGLang / TensorRT-LLM, `Low-Precision Training` comparing FP8 / FP4, `AI Accelerators` comparing GPU / TPU / custom silicon) earn one.
+
+**Contract**: presence of the `## Comparison` heading IS the operator's signal. No `shape:` frontmatter, no filename convention, no `<X> vs <Y>.md` separate file. Add the heading where the comparison belongs — usually right after `## Current understanding`, before `## Open threads`.
+
+**Required content**: an axis × option markdown table with ≥3 `|`-rows (header + separator + ≥1 data row). Caption prose around the table is allowed; the table itself is the load-bearing part.
+
+**Lint**: `comparison-table-missing` fires WARN when a `## Comparison` heading exists but no usable table is beneath it. Absence of the heading is fine — most Topics don't need one. If a comparison stops being useful, delete the heading; lint silences.
+
+**Authoring flow**:
+
+- **Add the section**: hand-edit any Topic — insert `## Comparison\n\n` where appropriate (or run `hirono refine-topic <name>` with the heading already in place to bootstrap it).
+- **Generate / regenerate the table**: `hirono refine-topic <name>` detects the `## Comparison` heading and switches the Sonnet prompt to a strict 2-section output (`## Current understanding` + `## Comparison` with axis × option table). The CLI replaces both sections atomically. Cells whose value can't be cited from a Source get `?` / `N/A` — Sonnet is instructed not to invent numbers.
+- **Update on source change**: same `synthesis_updated_at` machinery. When cited Sources change, re-run `hirono refine-topic <name>` to regenerate both prose and table from updated evidence.
+
+**Why not standalone `<X> vs <Y>.md` Topics?** Pulling a comparison out of its parent Topic strips the surrounding context that makes the comparison legible (what design choices, market dynamics, deployment recipes). Comparisons belong embedded in the broader cross-cutting Topic. The rare exception — when the contrast itself is the cross-cutting theme — can still be authored manually by creating a Topic page with `## Comparison` as the primary section; no special tooling needed.
+
+### Top-level Synthesis
+
+[[Synthesis]] (root, not `Meta/`) is a `type: meta` page that states what the corpus collectively argues across all Topics. One page, regenerated per-batch (not per-ingest). It is the entry point for "what is this wiki *about*", complementing [[index]]'s catalog role. Regeneration cadence and triggers are documented in [[operator-workflows]] §11.4.
 
 ## Frontmatter spec
 

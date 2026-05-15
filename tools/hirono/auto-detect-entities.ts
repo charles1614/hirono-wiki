@@ -38,6 +38,7 @@ import {
   type PendingOp,
 } from "../curation.ts";
 import { renderEntityStub } from "./new-entity.ts";
+import { AUTO_DETECT_ENTITIES_PREAMBLE } from "./_shared/prompt-preamble.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..");
@@ -139,46 +140,26 @@ function listEntitySlugs(repoRoot: string): { active: string[]; seen: string[] }
 /** Build the prompt-package markdown the operator hands to a Sonnet subagent. */
 function buildPrompt(slug: string, sourceBody: string, entities: { active: string[]; seen: string[] }): string {
   const allEntities = [...entities.active, ...entities.seen].sort();
-  return `# Entity-extraction prompt for ${slug}
+  // Layout: STABLE preamble FIRST (caches across all auto-detect runs).
+  // Existing-entity list is variable (grows over time) but mostly stable
+  // between adjacent runs, so it sits in the middle. Source body LAST.
+  return `${AUTO_DETECT_ENTITIES_PREAMBLE}
 
-## Instructions to Sonnet subagent
+---
 
-Extract entity references from the Source body below. An entity is a named,
-identifiable thing the wiki should track separately:
-
-- Specific models (DeepSeek-V3, Kimi K2, Llama 3.1-70B)
-- Specific hardware (H100, B200, Hopper, TPU v5e)
-- Specific frameworks/libraries (vLLM, SGLang, FlashAttention-3)
-- Specific organizations (NVIDIA, Anthropic, DeepSeek, HSBC)
-- Specific concepts with established names (MLA, MoE, chunked-prefill)
-
-**NOT entities**: generic terms ("the model", "GPUs", "transformers" without
-a specific architecture), filler phrases, prose verbs.
-
-**Existing entity slugs** (use exact spelling if you encounter these — don't
-create variants):
+## Existing entity slugs (use exact spelling — don't create variants)
 
 ${allEntities.map(e => `- ${e}`).join("\n")}
 
-**Output format** (JSON array under top-level \`entities\` key):
+---
 
-\`\`\`json
-{
-  "entities": [
-    { "name": "DeepSeek-V3", "description": "MoE LLM by DeepSeek, ~671B total / 37B active" },
-    { "name": "FlashAttention-3", "description": "FA optimized for Hopper" }
-  ]
-}
-\`\`\`
+## Source: ${slug}
 
-Save your response as JSON to:
-  \`<raw-dir>/${slug}-entities-response.json\`
-
-## Source body
-
-\`\`\`
 ${sourceBody}
-\`\`\`
+
+---
+
+Save your response as JSON to: \`<raw-dir>/${slug}-entities-response.json\`
 `;
 }
 
