@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 3
 ---
 
 # Kernel Fusion
@@ -27,6 +27,10 @@ The primary limitation is **register pressure**: a fused kernel that performs ma
 No Sources have been cited for this topic yet. The understanding above reflects consensus across the ML systems literature; it should be updated with inline `<source-slug>` attributions as Sources are added.
 
 ## Open threads
+
+## Observations
+
+- [[JAX]]'s XLA backend performs compiler-driven kernel fusion as part of the Jaxpr → MLIR → StableHLO → XLA HLO lowering pipeline; XLA can fuse elementwise chains, reductions, and epilogue operations because the Jaxpr captures the full computation graph at trace time — a functionally pure IR enables more aggressive fusion than an eager-execution graph. — [[2026-01-20-deepwiki-jax-04-transformation-system]]
 
 ## Sources drawn on
 

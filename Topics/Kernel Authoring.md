@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 8
+source_count: 10
 ---
 
 # Kernel Authoring
@@ -45,3 +45,4 @@ Sources on specific kernels (FlashAttention variants, Triton tutorials, CUTLASS,
 ## Observations
 
 - `nsight-python` enables automated profiling loops where Python scripts decorated with `@nsight.analyze.kernel` run `ncu` sweeps and return pandas DataFrames — the author proposes wrapping these as Claude Skills to give kernel-authoring agents programmatic benchmark feedback without manual `.ncu-rep` parsing. — [[2026-02-12-gvwwekyppgmtxdpex-qw]]
+- Tencent [[HPC-Ops]] (CUDA + CuTe from scratch) achieves production-grade performance with three techniques applicable to any LLM inference kernel: (1) AB matrix swap for `wgmma` alignment (>80% HBM bandwidth on inference cards); (2) Interleave reordering to eliminate inter-thread data shuffle (FP8 attention); (3) CuTe-based `vec` abstraction layer with `Layout` algebra isolating tiling from compute logic — reduces developer cognitive burden while preserving instruction-level control. — [[2026-01-27-腾讯混元ai-infra核心技术重磅开源-推理吞吐提升30]]

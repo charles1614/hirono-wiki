@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 6
+refs: 11
 tier: active
 ---
 
@@ -22,3 +22,4 @@ NVIDIA's CUDA C++ template library for high-performance matrix multiplication an
 - gpt-oss-120b max-throughput configuration on TensorRT-LLM 1.1.0rc1 uses **CUTLASS MoE backend** (B200/GB200 path). Architectural constraint: **CUTLASS supports only pure EP** (no mixed TP/EP), so max-throughput requires `--ep ${num_gpus}` while the low-latency TRTLLM backend retains mixed TP/EP flexibility. — [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]
 - The substrate Flux is built on — auto-tunable fine-grained kernel-fusion of compute + comm tiles into a single thread-block per tile pair. Modular per-architecture tuning across A100/H800 + PCIe/NVLink. ByteDance's choice over Triton for Tensor-Core-heavy auto-tunable kernels. — [[2025-10-09-flux-fast-software-based-communication-o]]
 - FlashMLA acknowledges CUTLASS as one of its primary inspirations alongside FlashAttention (online softmax) and Flash-Decoding (split-K) — kernel-fusion and tile-level scheduling primitives. — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
+- SemiAnalysis Tensor Core Evolution 引用 CUTLASS visualizer 生成的 Volta/Ampere MMA 数据布局图（quadpair 和 warp-wide layout 的 thread-data 映射），并引用 Programming Tensor Cores with CUTLASS（GTC 2019）作为 Volta 交错布局的规范文档来源。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]

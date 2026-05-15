@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 4
 ---
 
 # Context Parallelism
@@ -25,6 +25,10 @@ The principal implementation challenge is the **ring-attention / all-gather patt
 No sources are cited in this Topic yet; the above reflects established consensus from the broader distributed-training literature and will be refined as Sources accumulate.
 
 ## Open threads
+
+## Observations
+
+- [[Megatron-LM]] CP achieves quadratic (CP²) activation memory reduction: at seq=32K, CP=4 reduces attention elements from 1B to 64M (16×). Four communication strategies: P2P ring (low memory, CP sequential steps, best for large CP), All-to-All (parallel 2-step exchange, best for CP=2–8), AllGather (simplest, highest memory), hybrid a2a+p2p (A2A intra-node NVLink + P2P inter-node IB). Hierarchical CP (`--hierarchical-context-parallel-sizes`) supports multi-level multi-node deployments. — [[2026-01-21-deepwiki-megatron-lm-08-context-parallel]]
 
 ## Sources drawn on
 

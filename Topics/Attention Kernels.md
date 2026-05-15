@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 12
+source_count: 20
 ---
 
 # Attention Kernels
@@ -55,6 +55,11 @@ GPU kernels implementing the attention operator at production-grade efficiency �
 ## Observations
 
 - FA4 (Blackwell/sm100) introduces 5-warp-role specialization (Load/MMA/Softmax/Correction/Epilogue), a polynomial software exp approximation via Horner's method to relieve SFU bottleneck, and a smarter online Softmax (90% fewer rescaling operations). ~20% improvement over cuDNN 9.11.0 on Blackwell. — [[2026-02-07-解析flash-attention-4-fa4-blackwell-核心实现与架]]
+- [[Megatron-LM]]'s `DotProductAttention` abstracts over five backends (flash_attn, Transformer Engine, cuDNN SDPA, Triton, native PyTorch), selected via `attention_backend` config; production recommendation on A100/H100 is `flash_attn` for O(N) memory + 2–4× speedup. Standard O(N²) attention materializes a [B, H, S, S] tensor (2.1 GB at batch=8, heads=32, seq=2048) vs FlashAttention's 134 MB — 16× savings. — [[2026-01-21-deepwiki-megatron-lm-12-attention-mechan]]
+- [[FlashMLA]] attention algorithm details: online softmax accumulates running max `m`, running sum `l`, and output accumulator `o` over KV blocks without storing full attention matrix. Seesaw scheduling executes a 12-step protocol per iteration: two warpgroups compute QK GEMMs (phases 1–2), each applies softmax with max update (phases 3–4), then PV GEMMs run in parallel on split output halves O_L/O_R (phases 5–8), followed by cross-update in phases 9–11. CUDA-Core/Tensor-Core overlap is achieved because one warpgroup's softmax executes while the other's Tensor Cores run GEMM. — [[2026-01-30-deepwiki-flashmla-05-attention-algorithm]]
+- DSA (DeepSeek Sparse Attention) reduces attention compute from O(seq_len) to O(topk) by attending only to selected token indices; implemented in [[FlashMLA]] sparse kernels for both SM90 and SM100 targets. Supports variable topk per query via `topk_length` parameter. Uses base-2 exp/log for better hardware efficiency: `P = (Q @ focused_kv.T) × sm_scale × log2(e)`, `lse = log2sumexp2(P)`, `out = exp2(P − lse) @ focused_kv`. Sparse decode (SM90 FP8): 410 TFlops at topk=2048, 460 TFlops at topk=32768 on H800. — [[2026-01-30-deepwiki-flashmla-03-kernel-implementati]]
+- FlashMLA supports four kernel types targeting Hopper (SM90) and Blackwell (SM100): Dense Decode (BF16, 660 TFlops H800), Sparse Decode (FP8, 410 TFlops H800, crossover via [[Distributed Shared Memory]]), Dense Prefill ([[CUTLASS]]-based, backward supported, 1460 TFlops B200), Sparse Prefill (1450 TFlops B200). Dense decode achieves 3000 GB/s on H800 (89% of 3.35 TB/s peak) in memory-bound configurations. Requires CUDA 12.8+ for SM90, 12.9+ for SM100. — [[2026-01-27-deepwiki-flashmla-01-overview]]
+- Tencent [[HPC-Ops]] achieves 1.35×–2.22× over FlashInfer/FlashAttention in BF16 decode and 1.09×–2.0× in FP8 decode on H20-class inference cards (targeting Chinese deployment hardware rather than H800). Techniques: AB matrix swap to align with `wgmma` instruction (>80% bandwidth utilization), Interleave reordering for FP8 kernel (eliminates thread shuffle), persistent kernels (hides prologue/epilogue). Validates that attention kernel optimization differs substantially across hardware targets. — [[2026-01-27-腾讯混元ai-infra核心技术重磅开源-推理吞吐提升30]]
 
 ## Sources drawn on
 
@@ -62,4 +67,5 @@ GPU kernels implementing the attention operator at production-grade efficiency �
 - [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] — HKUST Hopper microbenchmark; canonical FP8 / TE-limit reference and TMA/DSM/DPX instruction-level numbers.
 - [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] — FlashMLA seesaw schedule deep-dive; the load-bearing kernel-design case study for MLA on H800.
 - [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]] — AutoResearch + Opus 4.6 custom mask Flash Attention case study on RTX 3080; demonstrates LLM-driven kernel authoring reaching production-grade MFU.
+- [[2026-01-14-直播预告-rtpurbo-小时级训练实现qwen3-480b模型5x-atten]] — RTPurbo后训练Attention压缩：识别约15%长程头，其余截断远程注意力，5倍Attention压缩，Qwen3-480B验证。
 

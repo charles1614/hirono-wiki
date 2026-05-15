@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 9
+source_count: 12
 ---
 
 # Accelerator Economics
@@ -64,6 +64,10 @@ Axis × option table comparing TPU v7 Ironwood (Google's current-gen inference-f
 - Power as competitive moat: does Ironwood + AI Hypercomputer become a structural advantage vs Nvidia, or does Nvidia + grid-power-PPA close the gap? — [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]
 - Trainium3 perf-per-TCO claims vs GB200 NVL72 remain unquantified — SemiAnalysis references its paywalled TCO Model for granular numbers. Needed: actual tps/$ comparison Trn3 NL72x2 vs GB200 NVL72 at comparable model/batch. — [[2026-02-04-aws-trainium3-deep-dive-a-potential-chal]]
 - SemiAnalysis Ironwood analysis is behind a partial paywall — the Nvidia competitive analysis section and TPU v8 roadmap (Vera Rubin vs TPUv8AX/8X "Sunfish/Zebrafish") were not captured. The TCO model numbers ($1.60/hr Anthropic pricing, 44% all-in TCO delta) come from the public section but the full competitive framing may have nuance not visible here. — [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]]
+
+## Observations
+
+- TCO scenario analysis (三场景: training, Prefill, Decode): TPUv7 saves 45–56% on training TCO (FP8 MFU 40% vs GPU 30%, per SemiAnalysis — contested by MegaScale BF16 parity data); [[GB200]]/GB300 reverses in Prefill by 35–50% via FP4 (SGLang GB200 NVL72: ~$0.047/M tokens vs H100 ~$0.14/M); Decode gap smaller than HBM specs imply due to NVLink bandwidth becoming the bottleneck at large batch. TPU v8 moat erosion: training TCO gap GB200/TPUv7 1.52× → VR200/TPUv8p 1.23×; HBM bandwidth per-TCO 1.32× → 1.10×. — [[2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解]]
 
 ## Sources drawn on
 

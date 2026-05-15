@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 5
 ---
 
 # GPU Kernel Scheduling
@@ -33,3 +33,7 @@ The key design tension is **occupancy vs. resource pressure**: more resident war
 ## Sources drawn on
 
 _(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+
+## Observations
+
+- CUDA-L2 (arXiv:2512.02551) leveled-optimization framework maps kernel scheduling awareness to optimization levels: Level 1 requires tiling and shared memory staging; Level 2 requires warp and [[Tensor Core Programming]] awareness; the LLM feedback pool gates higher-level hints until lower-level prerequisites are met. — [[2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书]]

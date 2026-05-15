@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 13
+refs: 21
 tier: active
 ---
 
@@ -24,3 +24,5 @@ vLLM is the dominant open-source LLM inference engine, built on PagedAttention a
 - **Nano-vLLM** (~1,200 LoC Python) re-implements vLLM's core (paged attention, prefix caching, tensor parallelism, Torch compile, CUDA graphs) for pedagogy — matches or slightly beats vLLM throughput on a laptop-class benchmark (Qwen3-0.6B on RTX 4070 Laptop 8GB, 256 sequences: 1434 vs 1361 tok/s). API mirrors vLLM closely (`LLM`, `SamplingParams`, `llm.generate`). — [[2025-12-14-geeeekexplorer-nano-vllm-nano-vllm]]
 - Anchor case in Pan & Li's "A Survey of LLM Inference Systems" (arXiv:2506.21901, June 2025, cs.DB framing) alongside SGLang, Mooncake, and DeepFlow. — [[2026-05-08-a-survey-of-llm-inference-systems]]
 - v1 distributed architecture supports **six parallelism axes**: TP, PP, EP, DP, [[Prefill Context Parallelism]] (PCP, MoE-prefill), [[Decode Context Parallelism]] (DCP, long-context decode). PCP adds workers (`world_size *= pcp_size`); DCP subdivides the TP group. PCP attention-layer support is infrastructure-ready but all backends currently set `supports_pcp = False` (source commit 4061dcf4c). — [[2026-02-08-deepwiki-vllm-10-distributed-prefill-con]]
+- Achieved 26.2K prefill TPGS and 10.1K decode TPGS on [[GB200]] for DeepSeek MoE workloads (2K in + 2K out) via [[Wide-EP]] with four levers: [[NVFP4]] GEMM + dispatch (4× comm reduction), kernel fusion (RoPE+Quant+Q Write, RoPE+Quant, `concat_mla_k`), weight offloading v2 with async prefetch via [[NVLink]]-C2C, and prefill scale-down from 4→2 GPUs per instance to cut NCCL overhead. — [[2026-02-05-在-blackwell-上推动-vllm-wide-ep-与大规模推理走向成熟-]]
+- Optimized `gpt-oss-120b` (OpenAI native MXFP4 MoE) on [[Blackwell]]: 38% higher max throughput and 13% lower min latency vs InferenceMAX baseline by integrating [[FlashInfer]] as primary kernel backend (`trtllm-gen` + `cutlass` MoE), using `torch.compile`-driven AllReduce+RMSNorm fusion, and deploying async scheduling + Stream Interval to eliminate host CPU overhead (57% improvement at 1024 concurrency). — [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]]

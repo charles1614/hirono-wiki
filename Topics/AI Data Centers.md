@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 4
+source_count: 8
 ---
 
 # AI Data Centers
@@ -29,6 +29,10 @@ Epoch.ai's open database of 43 frontier AI data centers (updated May 2026) is th
 
 **Stargate site-by-site rollout and international expansion**: IntuitionLabs' project guide details the site footprint in granular form. U.S.: Abilene flagship (1.2 GW, 450k GB200 GPUs), plus six follow-on campuses (Shackelford County TX, Doña Ana County NM, Midwest TBD, Lordstown OH, Milam County TX, Saline Township MI "The Barn") bringing total planned U.S. capacity to 8+ GW. International "OpenAI for Countries": UAE 1 GW (G42 JV, 200 MW by 2026), Norway 230 MW (Narvik hydropower, liquid cooling + waste heat), UK Nscale Cobalt Park (31k GPUs), Argentina 500 MW / $25B (Patagonia, first 100 MW 2027). Technology roadmap: current GB200 NVL racks succeeded by Vera Rubin in H2 2026; custom "Titan" inference chip (Broadcom + TSMC 3nm) mass production also H2 2026 targeting 10 GW deployment by 2029. [[2026-01-22-openai-s-stargate-project-a-guide-to-the]]
 
+## Observations
+
+- [[xAI]] Colossus 2 (Memphis, TN) went operational 2026-01-17 as the world's first 1 GW AI training cluster, dedicated to training [[Grok]]; [[xAI]] plans a scale-up to 1.5 GW in April 2026. — [[2026-01-19-x-上的-elon-musk-the-colossus-2-supercompu]]
+
 ## Open threads
 
 - Meta Hyperion power timeline: three 752 MW gas turbines + 1.8 GW MISO substation are permitted but not operational — when does Hyperion join the measured dataset?
@@ -41,3 +45,4 @@ Epoch.ai's open database of 43 frontier AI data centers (updated May 2026) is th
 - [[2026-01-22-data-on-frontier-ai-data-centers]] — Epoch.ai's 43-site open database; primary source for all quantitative claims above.
 - [[2026-01-22-oracle-openai-s-300b-deal-ai-infrastruct]] — IntuitionLabs deep-dive on the Oracle–OpenAI $300B contract; Stargate buildout status through April 2026; project-finance mechanics; capex-per-GW benchmark.
 - [[2026-01-22-openai-s-stargate-project-a-guide-to-the]] — IntuitionLabs project guide (revised Feb 2026); site-by-site U.S. campus rollout; international "OpenAI for Countries" deployments; hardware timeline (Vera Rubin, Titan chip).
+- [[2026-01-15-economictimes-indiatimes-com]] — Economic Times overview of OpenAI's trillion-dollar deal spree (Oracle +$300B, NVIDIA +$100B 10GW, AMD 6GW+10% equity, Broadcom 10GW, SK Hynix/Samsung HBM); stock surge mechanics and AI bubble concern framing.

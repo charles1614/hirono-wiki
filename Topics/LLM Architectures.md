@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 6
+source_count: 8
 ---
 
 # LLM Architectures
@@ -49,3 +49,7 @@ The broader pattern Raschka identifies: the decisive differentiators in 2025 are
 - [[2025-12-04-a-technical-tour-of-the-deepseek-models-]] — Raschka deep-dive on DeepSeek V3→V3.2 lineage; evidence for DSA sparse attention composition with MLA.
 - [[2026-03-21-2026大模型架构概览-二-glm-5-dsv3-2]] — kaiyuan parameter-level configuration comparison of GLM 5 and DeepSeek V3.2; first corpus entry with exact DSA+MLA numerical configs.
 - [[2026-03-21-https-zhuanlan-zhihu-com-p-2017528295286]] — Moonshot AI Infra engineer's first-person engineering rationale for Block AttnRes vs Full AttnRes; two-phase computation IO analysis and the training-side PP communication blocker.
+
+## Observations
+
+- Qwen3.5-397B-A17B introduces a hybrid linear + sparse attention architecture: Gated Delta Networks (linear attention) fused with Gated Attention and a high-sparsity MoE, achieving 397B total / 17B activated parameters with 8.6×–19× decoding throughput over Qwen3-Max while matching its quality — the first major open-weight demonstration of linear attention hybrid at frontier scale. — [[2026-03-04-qwen3-5-blog]]

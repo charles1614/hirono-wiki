@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 17
+source_count: 20
 ---
 
 # Agentic AI Infrastructure
@@ -36,6 +36,7 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - [[2026-03-24-new-released-overview-z-ai-developer-doc]] — Z.AI GLM series release notes showing industry progression toward 8-hour autonomous engineering agents.
 - [[2026-03-19-深入理解openclaw技术架构与实现原理-上]] — Architectural deep-dive into OpenClaw: Gateway control plane, Pi Agentic Loop, cron, channels, Docker sandbox isolation.
 - [[2026-03-17-security-default-safety-posture-sandbox-]] — OpenClaw Issue #7827: default sandbox/session-isolation hardening proposals (closed completed Mar 7, 2026).
+- [[2026-01-14-ai交互的革命-从操作现有软件-到生成未来软件]] — API/GUI/GenUI三重范式演进；[[Li Auto]]理想同学MCP+CUA混合架构落地案例；Google GenUI生成式UI范式。
 
 ## Observations
 
@@ -44,3 +45,6 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - OpenClaw Docker NAT pairing bug (#6959): Docker Desktop NAT causes gateway to classify browser connections as external (IP 192.168.65.0/24), triggering device-pairing requirement. Fix: `allowInsecureAuth: true` + `trustedProxies` in gateway JSON config inside container. — [[2026-02-12-fix-disconnected-1008-pairing-required-e]]
 - Three agentic RL systems (Kimi K2.5 PARL, Cursor Composer 2, Chroma Context-1) demonstrate a common infrastructure pattern: train inside the production harness, use outcome rewards, and invest in large-scale async rollout infrastructure; context management (self-summarization, parallel sub-agents, context pruning) is a first-class engineering problem in all three. — [[2026-03-30-how-kimi-cursor-and-chroma-train-agentic]]
 - Community AutoResearch practitioners confirm reward specification as the binding constraint: ill-specified evaluation criteria cause autonomous optimization to diverge from intent; this generalizes beyond RL post-training to any agent-in-the-loop optimization loop. — [[2026-03-24-全自动科研-真的建议早点接触-小红书]]
+- Practitioner Vibe Design workflow for STEM engineers: [[Claude]] and AI design tools cited as T0-tier enablers for achieving product aesthetic quality without a design background, signaling that agentic coding tooling is expanding to cover the aesthetic / UX layer, not just code generation. — [[2026-03-13-理科生审美救星-vibe-design之神-小红书]]
+- [[Ghostty]] terminal adoption pattern as agentic infrastructure: [[Claude Code]] team runs 5 parallel instances simultaneously using Ghostty split-pane + GPU-rendered scrolling; a practitioner replicated the workflow (Claude Code + yazi + lazygit split-pane) configured entirely by asking Claude Code in one sentence. — [[2026-03-13-claude-code团队都在使用的终端软件ghostty-小红书]]
+- API vs GUI vs GenUI Agent交互范式演进：API Agent受限于接口开放度（高效精准）；GUI Agent通过多模态截屏点击实现通用性（速度慢、对改版脆弱）；Generative UI直接生成用户专属交互界面（从操作者到创造者）。[[Li Auto]]理想同学MCP+CUA混合架构是GPU+GUI双脑协同的工业级落地案例。 — [[2026-01-14-ai交互的革命-从操作现有软件-到生成未来软件]]

@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 6
+refs: 17
 tier: active
 ---
 
@@ -24,3 +24,7 @@ FlashMLA is DeepSeek's hand-tuned MLA decode-attention kernel for Hopper GPUs, d
 - **Design point relativized if V4's CSA + on-disk KV path supplants per-token KV compression.** FlashMLA's kernel optimizes the per-token-KV decode pathway, which is exactly the pathway DeepSeek V4 reportedly walks away from. Open question for the corpus: does FlashMLA evolve to handle Compression Sparse Attention, gain an SSD-bandwidth-aware scheduling layer for on-disk KV reuse, or get replaced by a different kernel family entirely? The kernel's current design point assumes per-token KV is the hot loop; V4 reportedly changes that assumption. — [[2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书]]
 - **Listed alongside DeepEP + DualPipe** as part of DeepSeek's "publish-the-receipts" open-infra series. The deepseek-ai/profile-data repo (PyTorch Profiler traces for V3/R1 training+inference) is the trace-level evidence that FlashMLA + DeepEP + DualPipe compose into the deployed serving stack. — [[2026-04-03-deepseek-ai-profile-data-analyze-computa]]
 - **Comparison baseline for AVO's agent-discovered attention kernels** (NVIDIA arXiv:2603.24517, March 2026): AVO's autonomous evolution on B200 outperforms FlashAttention-4 by up to **10.5%** on MHA and **9.3%** on GQA. FlashMLA is the comparable design point in the FlashAttention lineage; AVO's result raises the question whether an analogous agent-evolution pipeline could find better MLA decode kernels than the hand-tuned FlashMLA seesaw schedule. — [[2026-03-31-avo框架实现gpu内核性能优化-小红书]]
+- DeepWiki documents four kernel types: Dense Decode (660 TFlops H800, BF16, MQA), Sparse Decode FP8 (410 TFlops H800, crossover via [[Distributed Shared Memory]]), Dense Prefill (1460 TFlops B200, [[CUTLASS]]-based, backward-pass supported), Sparse Prefill (1450 TFlops B200); sparse decode uses DeepSeek Sparse Attention (DSA) to attend only to top-k=2048 tokens per query. The V32 FP8 KVCache format stores each token in 656 bytes (vs. 2304 bytes BF16), a 4× reduction via 512 FP8_e4m3 NoPE + 4 float32 tile-scale + 64 BF16 RoPE values. — [[2026-01-27-deepwiki-flashmla-01-overview]]
+- Attention algorithm details from doc 05: MLA operates with `d_qk=576` (512 NoPE + 64 RoPE), `d_v=512`, h_q=128, h_kv=1; compute-memory ratio ≈ 242 FLOPs/byte (H800 crossover ≈ 258, confirming compute-bound operation). Seesaw scheduling achieves ~80% Tensor Core utilization. DSA reduces computation from O(seq_len) to O(topk) via token index gathering; variable topk per query and attention-sink scaling are first-class kernel parameters. — [[2026-01-30-deepwiki-flashmla-05-attention-algorithm]]
+- Memory management details from doc 04: FP8 V32 format enables ~122K context on 80 GB (vs. ~35K for BF16); dequantization on H800 requires 4-step type conversion (FP8→half→float32→BF16) because no native FP8→BF16 cast. DSM crossover technique splits dequantization across 2 CTAs per cluster, improving throughput 64% (250→410 TFlops); paged KVCache uses block table mapping logical positions to 64-token physical blocks. — [[2026-01-30-deepwiki-flashmla-04-memory-management]]
+- Kernel implementation details from doc 03: programmatic dependent launch overlaps the main splitkv kernel with the combine kernel, eliminating host-device sync. Scheduler distributes work via `DecodingSchedMeta` per-SM request/block-range assignments; combine kernel uses log-sum-exp: `final_out = Σ O_i × exp(LSE_i − global_lse)`. — [[2026-01-30-deepwiki-flashmla-03-kernel-implementati]]

@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 1
+source_count: 4
 ---
 
 # GPU Memory Management
@@ -22,6 +22,11 @@ where N = parameter count, P = bytes per parameter, A = activations per token, B
 [[PyTorch]] ships a first-party profiler: `torch.cuda.memory._record_memory_history` + `_dump_snapshot` produces a `.pkl` that [pytorch.org/memory_viz](https://pytorch.org/memory_viz) renders as an interactive timeline — useful for identifying which zone is driving OOM events. Activations per token can be measured via forward hooks; empirically, A ≈ 4.69 × 10⁻⁴ × N + 1.85 × 10⁶ across several LLMs, giving a practical pre-run heuristic. — [[2025-09-22-visualize-and-understand-gpu-memory-in-p]]
 
 ## Open threads
+
+## Observations
+
+- [[Megatron-LM]] TP activation memory: without SP, activation per layer ≈ `batch × seq × hidden × 34 × num_layers`; with SP (`sequence_parallel=True`), reduces by ~1/TP for LayerNorm/Dropout activations (~30% total at TP=8). Llama-3 70B at TP=4: 17.5B params/GPU = 35 GB FP16 + 210 GB AdamW optimizer state before ZeRO sharding. — [[2026-01-28-deepwiki-megatron-lm-05-tensor-paralleli]]
+- [[FlashMLA]] memory optimization hierarchy: FP8 KVCache (V32: 656 bytes/token; MODEL1: 512 bytes/token), DSM crossover (64% dequantization throughput improvement), paged KVCache (no fragmentation), TMA pipelining (overlap load+compute). Together enable practical 128K+ context on a single 80 GB GPU. — [[2026-01-30-deepwiki-flashmla-04-memory-management]]
 
 ## Sources drawn on
 

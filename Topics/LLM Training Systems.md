@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 9
+source_count: 16
 ---
 
 # LLM Training Systems
@@ -36,3 +36,7 @@ Once Sources are attached, this section should be revised to anchor each claim t
 
 - [[2026-02-28-deepwiki-slime-01-overview]] — slime RL post-training framework: three-subsystem architecture (Megatron-LM + SGLang + Ray), colocated vs. dedicated GPU modes, async pipelining design.
 - [[2026-03-18-阶跃星辰开源全量-sft-数据集-欢迎使用-小红书]] — StepFun Step 3.5 Flash SFT dataset release: 17B tokens, multi-turn + CoT, SteptronOss training framework, preprocessed shards + tokenizer.
+- [[2026-01-22-deepwiki-pytorch-02-core-tensor-library]] — DeepWiki PyTorch architecture overview covering the full stack from Python API to C++ core (c10, ATen, autograd) and compiler layers (Dynamo, FX, Inductor).
+- [[2026-01-21-deepwiki-megatron-lm-12-attention-mechan]] — Megatron-LM attention mechanisms: MHA, GQA, MLA, FlashAttention backends, RoPE, TP sharding patterns.
+- [[2026-01-21-deepwiki-megatron-lm-13-feedforward-netw]] — Megatron-LM MLP block: standard vs GLU variants, TP partitioning, fused kernels, activation checkpointing.
+- [[2026-01-21-deepwiki-megatron-lm-08-context-parallel]] — Megatron-LM Context Parallelism: sequence-dimension sharding, communication strategies, hierarchical CP, TP orthogonality.

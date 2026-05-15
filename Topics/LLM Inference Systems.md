@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 26
+source_count: 29
 ---
 
 # LLM Inference Systems
@@ -70,4 +70,5 @@ The **cs.DB framing** from the Pan+Li survey remains the most useful cross-cutti
 - [[2026-03-24-powering-the-agents-workers-ai-now-runs-]] — Cloudflare Workers AI serving Kimi K2.5 with prefix caching, session-affinity routing, and redesigned async API; production cost case study.
 - [[2026-02-05-在-blackwell-上推动-vllm-wide-ep-与大规模推理走向成熟-]] — vLLM GB200 Wide-EP Part I: NVFP4 GEMM + dispatch (4× comm reduction), kernel fusions, weight offloading v2 with async prefetch; 26.2K prefill TPGS + 10.1K decode TPGS, 3–5× over H200.
 - [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]] — vLLM + NVIDIA gpt-oss-120b Pareto frontier optimization on Blackwell: FlashInfer integration, torch.compile fusion, async scheduling, stream interval; 38% max-throughput uplift, 13% latency reduction.
+- [[2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布]] — 全双工端到端语音推理系统：消除ASR→LLM→TTS级联延迟，P-D分离多阶段调度，异构GPU部署推理成本降50%，首token延迟1s→20ms。
 

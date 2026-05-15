@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 1
+source_count: 3
 ---
 
 # Python Concurrency
@@ -35,6 +35,7 @@ The trajectory of the ecosystem is toward **Free-Threaded Python (PEP 703 / CPyt
 ## Open threads
 
 - Thread-context-switch overhead at very high concurrency with Free-Threaded Python — subprocess models avoid that via OS-scheduler isolation. Benchmarks at >32 worker threads on a contended CPU pool would settle whether SPDL's threading model degrades. — [[2026-01-20-introducing-spdl-faster-ai-model-trainin]]
+- SPDL's asyncio-in-background-thread pattern: the event loop runs in a dedicated thread isolated from the user thread; foreground calls use `run_coroutine_threadsafe()`; the loop stays alive after pipeline task completion so foreground can drain remaining items via sync `get_nowait()` — a concrete case study in Python thread/async coordination for I/O-intensive pipelines. — [[2026-01-20-deepwiki-spdl-03-core-architecture]]
 
 
 ## Sources drawn on

@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 9
+source_count: 13
 ---
 
 # KV Cache Management
@@ -28,6 +28,9 @@ KV cache management sits at the intersection of memory architecture and serving 
 
 ## Open threads
 
+## Observations
+
+- [[FlashMLA]] paged KVCache layout: block table maps logical sequence positions to physical 64-token blocks; index encoding `block_idx × page_block_size + offset_in_block` enables direct sparse-attention KV access without table lookup. FP8 V32 format achieves 3.5× KVCache savings (656 bytes vs 2304 bytes BF16/token), enabling 122K context in 80 GB vs 35K for BF16. FP8 MODEL1 format achieves 4.5× savings (512 bytes/token, ~156K context). — [[2026-01-30-deepwiki-flashmla-04-memory-management]]
 
 ## Sources drawn on
 

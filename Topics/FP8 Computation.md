@@ -44,3 +44,7 @@ The generational trajectory is clear: each hardware generation adds lower-precis
 ## Sources drawn on
 
 _(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+
+## Observations
+
+- Qwen3.5's training infrastructure applies FP8 end-to-end (activations, MoE routing, GEMM) with runtime monitoring to keep sensitive layers in BF16, achieving ~50% activation memory reduction and >10% speedup; the same FP8 pipeline is used in its asynchronous RL rollout framework, yielding 3×–5× end-to-end RL training speedup at tens of trillions of token scale. — [[2026-03-04-qwen3-5-blog]]

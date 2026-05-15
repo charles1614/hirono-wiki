@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 13
+source_count: 14
 ---
 
 # MoE Serving
@@ -57,6 +57,10 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - MoE Parallel Folding supports both token-dropping and token-dropless training; which is recommended for which scenario? The paper presents both as supported without comparing quality vs throughput tradeoffs. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
 - Does MoE Parallel Folding extract similar gains on fine-grained MoE (256+ experts, 8+ active à la DeepSeek-MoE) as on Mixtral's 8 experts? Fine-grained MoE stresses the EP/AllToAll path harder. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
 - EPLB requires in-distribution statistics to be effective; SGLang's 96-GPU deployment concedes this and recommends periodic rebalancing. What is the optimal rebalancing frequency for production traffic with distribution drift? No direct measurement yet. — [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]
+
+## Observations
+
+- Tencent [[HPC-Ops]] FusedMoE module encapsulates the full pipeline (data reorder + GroupGEMM + Reduce-weighted-average): in TP mode up to 1.49× over [[TensorRT-LLM]] v1.1.0; in EP-simulated balanced mode up to 1.09×. Uses adaptive data-reordering strategy per input length. Compatible with [[vLLM]] and [[SGLang]] via seamless API. — [[2026-01-27-腾讯混元ai-infra核心技术重磅开源-推理吞吐提升30]]
 
 ## Sources drawn on
 

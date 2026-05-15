@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 6
+refs: 9
 tier: active
 ---
 
@@ -23,3 +23,5 @@ FlashAttention established the online-softmax-plus-accumulation algorithm that b
 - HKUST Hopper microbench finding: Transformer Engine's `DotProductAttention` operator uses flash-attention instead of FP8 Tensor Cores. So attention doesn't get FP8 acceleration in TE — a non-obvious finding that explains why FP8 LLM speedups don't match the 2× peak rates suggest. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
 - FA4 (Blackwell-targeted) achieves ~20% improvement over cuDNN 9.11.0's best attention kernel. Key innovations: warp specialization with 5 warp roles (Load/MMA/Softmax/Correction/Epilogue), a software polynomial exp approximation replacing SFU calls via Horner's method, and an online Softmax that reduces rescaling operations by 90% by only triggering when the running max changes enough to affect numerical stability. — [[2026-02-07-解析flash-attention-4-fa4-blackwell-核心实现与架]]
 - Claude Code (Opus 4.6) autonomously produced a CUDA Flash Attention with custom mask kernel that outperforms the standard Triton FlashAttention baseline by 46.7% on RTX 3080 (25.17 TFLOPS, MFU 42%), via 25 AutoResearch-style iterations with self-directed ncu profiling and PTX analysis. Confirms that FlashAttention is the reference baseline for custom mask attention kernels on consumer hardware. — [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]]
+- [[Megatron-LM]]'s `DotProductAttention` selects FlashAttention as the default backend for production runs on A100/H100 (O(N) memory, 2–4× speedup); standard attention materializes an [B, H, S, S] tensor (example: 2.1 GB at batch=8, heads=32, seq=2048) which FlashAttention reduces to 134 MB — a 16× savings by tiling in SRAM. — [[2026-01-21-deepwiki-megatron-lm-12-attention-mechan]]
+- Meituan (Longcat) found FlashAttention backward gradient computation specifically sensitive to SDC in production LLM training, prompting addition of custom SDC detection probes to their training stack. — [[2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手]]

@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 12
+source_count: 16
 ---
 
 # GPU Programming Models
@@ -46,3 +46,10 @@ A notable upstream pressure: AVO (NVIDIA, arXiv:2603.24517) demonstrated that LL
 ## Sources drawn on
 
 _(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+
+## Observations
+
+- CUDA-L2 (arXiv:2512.02551) introduces leveled-feedback LLM-guided CUDA kernel optimization: Level 0 = naive correctness, Level 1 = memory (tiling + shared mem), Level 2 = compute (warp + tensor cores), with a learnable feedback pool providing level-appropriate hints; generated kernels outperform GPT-4o baselines on HPC benchmarks without reference code. — [[2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书]]
+- [[JAX]]'s Jaxpr IR compiles via MLIR → StableHLO → XLA HLO, giving [[XLA]] full visibility into the computation graph for kernel fusion, memory layout optimization, and hardware-specific code generation — a compiler-driven fusion path alongside Triton's tile-level model and CUTLASS's layout algebra. — [[2026-01-20-deepwiki-jax-03-core-architecture]]
+- [[JAX]]'s `jax.jit` three-stage pipeline (trace Python → lower Jaxpr to MLIR → XLA compilation + cache) demonstrates a functional-programming entry point to GPU performance: cache keys encode shape/dtype/sharding so same-shape repeated calls skip recompilation entirely; buffer donation (`donate_argnums`) enables in-place buffer reuse without explicit CUDA memory management. — [[2026-01-20-deepwiki-jax-04-transformation-system]]
+- PTX（Parallel Thread Execution）是 NVIDIA GPU 的虚拟 ISA，抽象于各代架构之上；SASS 是底层架构特定 ISA（由 PTX 编译得到）；SIMT（单指令多线程）是 GPU 执行模型，与 SIMD 的核心区别是指定单线程行为而非向量宽度；warp（32线程）是 SIMT 的基本调度单元。NVIDIA 有意隐藏 SASS 细节，使竞争对手难以逆向工程其架构优势。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]

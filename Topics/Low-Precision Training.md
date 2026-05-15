@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 5
+source_count: 8
 ---
 
 # Low-Precision Training
@@ -53,4 +53,8 @@ On the **TPU side**, Google's Ironwood ([[2026-01-12-ironwood-the-first-google-t
 - [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] — native FP8 on Ironwood (vs emulated on v4/v5p); reference for the TPU-side low-precision trajectory.
 - [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] — HKUST Hopper microbench; canonical FP8/TE-limits + Tensor-Core precision-cross-comparison.
 - [[2026-02-04-pretraining-large-language-models-with-n]] — NVFP4 four-ingredient method + 12B/10T validation; the load-bearing 4-bit-training existence proof.
+
+## Observations
+
+- Qwen3.5 applies FP8 natively across activations, MoE routing, and GEMM during both pretraining and RL post-training, with runtime monitoring preserving BF16 for sensitivity-critical layers; the result is ~50% activation memory reduction and >10% throughput increase, and is stable at tens-of-trillions-of-tokens scale. — [[2026-03-04-qwen3-5-blog]]
 

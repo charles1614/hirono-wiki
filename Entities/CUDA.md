@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 13
+refs: 21
 tier: active
 ---
 
@@ -21,3 +21,6 @@ NVIDIA's GPU programming platform — language extensions, runtime, toolkit, and
 
 - CUDA 13.1 (Dec 2025) introduces a substantial platform refresh: **CUDA Tile** programming model (Tile IR + cuTile Python) targeting "above SIMT" kernel authoring with compiler-managed Tensor-Core mapping; **green contexts** moved from driver API to runtime API (with customizable `split()` for SM partitioning); **MLOPart** for Blackwell memory-locality partitioning; cuBLAS FP32/FP64 Tensor-Core emulation; Nsight Compute 2025.4 Tile profiling; Compute Sanitizer compile-time patching. Programming guide rewritten end-to-end. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
 - Profiling support for CUDA workloads uses CUPTI (CUDA Profiling Tools Interface) — the mechanism behind [[Nsight Systems]]' CUDA Runtime/Driver API trace and GPU timeline. CUDA 10.0+ is the floor for most platforms; Arm SBSA requires 10.2+. Driver and toolkit must be paired per the published compatibility table. — [[2025-08-18-installation-guide-nsight-systems]]
+- CUDA-L2 (arXiv:2512.02551) demonstrates that LLM-generated CUDA kernels improve significantly with staged leveled prompting: Level 0 (correct), Level 1 (memory — tiling + shared memory), Level 2 (compute — warp + tensor cores), with level-appropriate learnable feedback, outperforming GPT-4o on HPC benchmarks without any reference code. — [[2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书]]
+- Three official CUDA container image variants cover distinct use cases: `base` (libcudart only — run pre-compiled binaries), `runtime` (base + cuBLAS/cuDNN — inference/training), `devel` (runtime + nvcc + headers — build custom CUDA operators); `libcuda.so` is always injected by [[NVIDIA]] Container Toolkit at runtime and must never be installed in the container image itself. — [[2026-01-20-nvidia-gpu-容器环境-原理与构建指南]]
+- Compute Capability (CC) defines the hardware features and supported instructions per GPU architecture: CC 9.0 = Hopper (H100/H200/GH200), CC 10.0 = [[Blackwell]] (GB200/B200), CC 10.3 = GB300/B300, CC 12.0 = RTX PRO Blackwell / GeForce RTX 5090–5050, CC 12.1 = GB10 (DGX Spark). Programs must be compiled for the target CC to use architecture-specific instructions such as `tcgen05.mma`. — [[2026-01-15-nvidia-cuda-gpu-compute-capability]]

@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 5
 ---
 
 # GPU Microarchitecture
@@ -29,6 +29,11 @@ The practical implication for workload designers: **pure FP16 compute workloads 
 - Blackwell (B100/B200) microbenchmark follow-up — re-run the HKUST H100 instruction-level study on Blackwell + FP4 + 5th-gen Tensor Cores. Predates Blackwell release. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
 - TMA + DSM interaction: do they compose well, or is using both simultaneously bandwidth-bottlenecked? The paper benchmarks each in isolation. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
 
+
+## Observations
+
+- SemiAnalysis Tensor Core Evolution（Dylan Patel）提供从 Volta 到 Blackwell 的 TC 架构演进全景：MMA 作用域（quadpair→warp→warpgroup→single-thread）、操作数位置（register→SMEM→TMEM）、精度（FP16→FP8→FP4/NVFP4）、异步化（同步→HGMMA commit/fence→tcgen05 完全异步）；关键量化：TC 吞吐每代翻倍但全局内存延迟未降，SMEM 每代增长以维持 staging buffer；Blackwell TMEM（256KB）功耗效率更高，因操作数 D 被访问 2Kt 次（A/B 各 1 次）。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- NVIDIA 官方 Compute Capability 查询表（2026-01-15 快照）：CC 7.5=Turing，8.0=A100，8.6=A40/RTX 3090，8.9=L40S/RTX 4090，9.0=H100/H200/GH200，10.0=GB200/B200，10.3=GB300/B300，12.0=RTX PRO Blackwell/RTX 5090，12.1=GB10 DGX Spark。 — [[2026-01-15-nvidia-cuda-gpu-compute-capability]]
 
 ## Sources drawn on
 

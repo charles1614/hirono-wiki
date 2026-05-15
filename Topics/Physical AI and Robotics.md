@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 7
+source_count: 8
 ---
 
 # Physical AI and Robotics
@@ -39,3 +39,4 @@ The architectural framing — "compute is data" — marks a shift in how NVIDIA 
 - [[2026-03-24-nvidia-vla-inference性能系统分析-小红书]] — VLA-Perf: roofline-based analytical performance model for VLA inference across algorithm × hardware × network design space; 15 performance insights from NVIDIA Research / NUS.
 - [[2026-03-17-gtc2026理想汽车詹锟-mindvla-o1分享-小红书]] — GTC 2026 slide summary of Li Auto MindVLA-o1: generative world model supervision, MoE parallel action decoding, RL with world-model rollouts.
 - [[2026-02-07-waymo联手deepmind打造世界模型-基于genie-3-让自动驾驶-脑补]] — Waymo World Model built on Genie 3: transfers internet-scale 2D video knowledge to 3D multi-sensor (camera + LiDAR) AV simulation with three controllability axes; covers long-tail rare events fleet data cannot provide.
+- [[2026-01-15-ces-2026-基于-nvidia-alpamayo-构建具备推理能力的辅助驾]] — CES 2026 launch of NVIDIA Alpamayo 1 (10B reasoning VLA), AlpaSim closed-loop simulation framework, and physical AI datasets for autonomous driving R&D.

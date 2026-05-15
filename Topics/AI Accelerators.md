@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 7
+source_count: 9
 ---
 
 # AI Accelerators
@@ -54,6 +54,11 @@ The primary design divide in AI accelerators is between **systolic-array ASICs**
 | **Realistic MFU ceiling** | ~40% MFU (Anthropic estimate) — conservatively rated FLOPs + elite compiler team [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]] | ? | ~70s% of rated peak for Blackwell due to DVFS; marketed FLOPs inflated by zero-filled GEMM benchmarks [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]] |
 
 ## Open threads
+
+## Observations
+
+- Vera Rubin NVL72 (NVIDIA, full production 2026) delivers 50 PFLOPS NVFP4 inference per GPU (288 GB HBM4, 22 TB/s, 3.6 TB/s NVLink 6); full 72-GPU rack at 3,600 PFLOPS NVFP4 / 20.7 TB HBM4 / 1,580 TB/s bandwidth. Co-designed with NVIDIA Groq 3 LPX rack (256 LPUs, 40 PB/s memory bandwidth) as inference accelerator. Claims 1/4 GPU count for MoE training and 1/10 cost per token vs. Blackwell NVL72. — [[2026-01-26-nvidia-vera-rubin-nvl72-co-designed-infr]]
+- [[TPU]] 3D Torus + OCS vs [[GPU]] Switch Fabric (NVSwitch/Fat-tree): fundamental architectural split on traffic-pattern assumptions — 3D Torus assumes predictable/schedulable flows, optimized for 1k–20k chip LLM training; NVSwitch assumes arbitrary traffic, wins on sub-100 chips, MoE training, latency-sensitive inference. TPU max cluster (v7p): 9,216 chips via 48 × 288-port OCS; OCS upgrade to 300×300 (576 ports) would double ceiling to 18,432. — [[2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解]]
 
 ## Sources drawn on
 

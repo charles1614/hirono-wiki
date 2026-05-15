@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 1
+source_count: 3
 ---
 
 # Tensor Core Programming
@@ -29,6 +29,10 @@ Tensor Cores are NVIDIA's dedicated matrix-multiply-accumulate (MMA) units, firs
 **Pipeline staging** (software pipelining of GEMM mainloops) is the other load-bearing primitive. The standard pattern is a K-dimension loop that interleaves TMA prefetch for the next K-block with WGMMA computation on the current K-block, using a circular shared-memory pipeline of depth 2–8. Depth is constrained by shared-memory capacity (each stage holds the A and B tiles for one K-block) and register pressure (holding more pipeline slots requires more accumulator registers). The Hopper `warpgroup` model further subdivides this: one warpgroup runs the WGMMA producer loop, another runs the epilogue (e.g. scale + store), overlapped via `arrive/wait` on named shared-memory barriers.
 
 ## Open threads
+
+## Observations
+
+- SemiAnalysis Tensor Core Evolution 梳理了从 Volta（1st gen，8 TC/SM，quadpair 8 线程 MMA）→ Ampere（3rd gen，warp 32 线程）→ Hopper（4th gen，`wgmma` 128 线程，A/B 直接从 SMEM）→ Blackwell（5th gen，`tcgen05.mma`，单线程语义，A→SMEM，D→TMEM，MMA.2SM）的完整编程模型演进，并提供 TC 尺寸/数量增长策略、SMEM/TMEM 设计动机的系统性分析。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
 
 ## Sources drawn on
 
