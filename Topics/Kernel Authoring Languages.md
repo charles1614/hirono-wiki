@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # Kernel Authoring Languages
@@ -39,10 +39,13 @@ The current source base covers only NVIDIA's own framing of this transition. The
 | **Sanitizer / debug tooling** | Compute Sanitizer (runtime injection model) | Compute Sanitizer 2025.4 compile-time patching (`nvcc -fdevice-sanitize=memcheck`); base-and-bounds analysis between adjacent allocations [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | ? |
 | **AI/ML production readiness** | Mature; dominant in production stacks (vLLM, TRTLLM, CUTLASS) | AI algorithms targeted first; Python-only today limits C++-based production stacks; C++ required for latency-sensitive paths [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]] | ? | ? |
 
+**LLM-driven agentic authoring now works end-to-end for CUDA attention kernels, with ncu as the hardware feedback channel.** The [[AutoResearch]] pattern applied to kernel authoring ([[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]]) produced a CUDA Flash Attention with custom mask kernel at 25.17 TFLOPS (MFU 42%) on RTX 3080, beating standard Triton/cuDNN/FlashInfer. The model self-navigated WMMA Tensor Core adoption and ncu-driven optimization without operator code involvement. This establishes a practical boundary: for well-scoped kernels with deterministic eval harnesses, the LLM + ncu feedback loop substitutes for expert CUDA engineering at >10× time compression and >100× cost reduction. Implications for the CUDA vs Triton authoring choice: Triton's Python frontend advantage shrinks when the human is no longer writing either, but CUDA's PTX-level debuggability is a concrete advantage the model can exploit (as shown in PTX-analysis rounds). The cuTile/Triton comparison ([[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]) should now include "LLM usability" as an authoring-language axis.
+
 ## Open threads
 
 - cuTile Python vs Triton: what's the actual boundary? Both target above-SIMT with Python frontends + compiler-managed tensor-core mapping. Worth a careful comparison. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
 - CUDA Tile C++ landing: when? Production stacks (vLLM, TRTLLM) won't move until C++ ships; the Python-only-today positioning suggests this is the larger drop. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
+- LLM-driven kernel authoring changes the "ease of use" axis comparison between CUDA, Triton, and cuTile: if the model is writing and debugging all levels, CUDA's PTX visibility is an asset, not a liability. Does the PTX feedback loop generalize to other kernel classes (MoE dispatch, custom reduce)? — [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]]
 
 ## Sources drawn on
 

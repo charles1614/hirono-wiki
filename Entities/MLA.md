@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 8
+refs: 10
 tier: active
 ---
 
@@ -28,3 +28,4 @@ Multi-Head Latent Attention (MLA) was DeepSeek's KV-compression mechanism, load-
 - **Architectural-diagram corroboration of V4's MLA retirement**: Sebastian Raschka's LLM Architecture Gallery renders V4-Pro and V4-Flash with CSA + HCA composition (not MLA), confirming the xhs narrative at the diagram level. Direct visual comparison against the MLA-era V3/R1 671B architecture is available in the same gallery. — [[2026-04-03-llm-architecture-gallery]]
 - Raschka's survey documents MLA's spread beyond DeepSeek in 2025: Kimi K2 (1T) and GLM-4.5 (355B) both adopted MLA. Kimi Linear's global-attention layers also use MLA (with an added gate). DeepSeek-V2 ablations cited in the survey show MLA outperforms standard MHA in modeling quality (unlike GQA which slightly underperforms MHA), which explains MLA adoption despite its extra implementation complexity. — [[2026-01-28-the-big-llm-architecture-comparison]]
 - In V3.2 and V3.2-Exp, MLA is retained alongside the new DeepSeek Sparse Attention (DSA). The DSA lightning indexer **reuses MLA's compressed latent representations** to compute per-query token-relevance scores (`I_{t,s} = Σ_j w_{t,j} · ReLU(q_{t,j} · k_s)`), then a token selector retains only top-k=2048 past tokens. MLA and DSA are thus composited in the same model; MLA handles per-token KV compression, DSA handles which tokens are attended. — [[2025-12-04-a-technical-tour-of-the-deepseek-models-]]
+- **GLM 5采用相同的MLA + DSA参数配置**（kaiyuan配置对比，2026-03-21）：GLM 5（774B）与DeepSeek V3.2（671B）的MLA参数完全相同——`q_lora_rank=2048, kv_lora_rank=512, qk_nope_head_dim=192, qk_rope_head_dim=64, v_head_dim=256, heads=64`，Indexer参数也完全相同（`index_topk=2048, index_head_dim=128, index_n_heads=32`）。这是corpus中对DSA+MLA组合的最细粒度参数级配置记录，确认GLM 5是对该架构的独立实现而非仅概念借鉴。 — [[2026-03-21-2026大模型架构概览-二-glm-5-dsv3-2]]

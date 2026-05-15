@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # Parallelism Strategies
@@ -27,6 +27,8 @@ The systems load-bearing component is a **flexible token-level dispatcher** that
 Results on H100: **49.3% MFU on Mixtral 8×22B** and **39.0% MFU on Qwen2-57B-A14B** at up to 1,024 GPUs and 128K sequence length, with loss curves matching vanilla Megatron-Core throughout training (quality is preserved). The technique ships in [NVIDIA/Megatron-LM](https://github.com/NVIDIA/Megatron-LM) (Megatron-Core), making it an immediately adoptable production recipe rather than a theoretical result. [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
 
 The generalizable principle beyond MoE: **heterogeneous parallelism mappings between layer types** is the right design primitive for any architecture with structurally dissimilar layers — multimodal models, MoD-MoE hybrids, speech-language systems. The EP-degree ceiling (`max(EP) ≤ DP`) was a real-world constraint that MoE Parallel Folding removes; teams sizing TP/EP/DP allocations at 512+ GPU scale no longer need to budget EP within the DP limit.
+
+**Inference-time Context Parallelism** splits further into two distinct sub-axes in production engines. [[vLLM]] (source commit 4061dcf4c) implements **[[Prefill Context Parallelism]] (PCP)** — adds workers, shards tokens by interleaved position, and uses AllGather + ReduceScatter around MoE expert computation — and **[[Decode Context Parallelism]] (DCP)** — subdivides the TP group to shard KV cache across ranks, with partial attentions combined via LSE (`logsumexp`). PCP is MoE-only today (attention-layer PCP infrastructure exists but all backends set `supports_pcp = False`). The two can compose as a 2D CP grid. DCP at scale=4 enables 4× KV memory reduction on a fixed TP=8 configuration. Notably, PCP increases EP group size: `EP_group_size = dp_size × pcp_size × tp_size`, so adding PCP ranks enlarges the expert sharding domain. [[2026-02-08-deepwiki-vllm-10-distributed-prefill-con]]
 
 ## Open threads
 

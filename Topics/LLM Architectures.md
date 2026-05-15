@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 2
+source_count: 4
 ---
 
 # LLM Architectures
@@ -25,13 +25,17 @@ The 2025–2026 cohort of open-weight frontier models (DeepSeek V3, Llama 4, Qwe
 
 **Multi-Token Prediction (MTP)** has become a mainstream training signal (DeepSeek V3/V3.2, GLM-4.5, Qwen3-Next, Xiaomi MiMo) and is increasingly used at inference time: Nemotron 3 Super uses its shared-weight MTP head as a native speculative-decoding draft model.
 
+**Attention Residual (AttnRes) — depth-dimension attention.** Moonshot AI's [[Kimi K2]] introduces [[Attention Residual]] as a new residual structure: instead of summing the previous layer's output, each layer attends (via a small cross-layer attention) over all historical *block* representations. The production form is **Block AttnRes** (block_num=8, 16 layers/block): inter-block queries are decoupled from hidden state as learnable parameters, enabling a two-phase batched computation that limits per-layer extra memory access to ~2.5D over the 4D baseline (~2% decode latency overhead). Full AttnRes — attending over *all* prior layer outputs — is architecturally viable at inference (O(√L) IO via two-phase, ~2 GB/card memory at 128K context with TP sharding) but was blocked by training-side cross-pipeline-parallel communication overhead; it remains a long-term target. This design philosophy ("co-design model expressiveness, hardware constraints, and inference latency from day one") extends the emerging pattern of systems-aware architecture decisions. — [[2026-03-21-https-zhuanlan-zhihu-com-p-2017528295286]]
+
 Normalization placement remains architecturally contested: Pre-Norm (GPT-2 / Llama / most defaults), Post-Norm (OLMo 2/3, for training stability), Pre+Post combined (Gemma 3/4), and depth-scaled sandwich norm (Arcee Trinity with depth-dependent second-RMSNorm gain).
 
 The broader pattern Raschka identifies: the decisive differentiators in 2025 are training pipeline and inference scaling rather than the base architecture. The structural similarity across labs makes DeepSeek V3 / Qwen3 / GPT-OSS largely interchangeable at the architectural level; the real divergence is in training data, post-training RL strategies, and inference-time compute.
 
 **DeepSeek V3.2 sparse attention overlay (Dec 2025).** DeepSeek V3.2-Exp and V3.2 add a third efficiency layer on top of MLA: DeepSeek Sparse Attention (DSA). DSA uses a lightning indexer (per-query relevance scores over compressed MLA latents) plus a token selector (top-k=2048) to restrict each token's attention to a learned sparse subset of past tokens, cutting complexity from O(L²) to O(Lk). Notably, DSA is composited with MLA — both mechanisms run in the same model, addressing orthogonal inefficiencies (per-token KV compression vs which tokens are attended). This contrasts with DeepSeek V4's later move to retire MLA entirely in favor of Compression Sparse Attention.
 
-— [[2026-01-28-the-big-llm-architecture-comparison]], [[2025-12-04-a-technical-tour-of-the-deepseek-models-]]
+**GLM 5 and DSA adoption cross-lab.** GLM 5 (Zhipu AI, 774B/40B active, Feb 2026) adopts the same DSA architecture as DeepSeek V3.2 — and shares identical MLA + Indexer parameter configurations (`q_lora_rank=2048`, `kv_lora_rank=512`, `index_topk=2048`, `index_n_heads=32`). The first-order configuration parity between GLM 5 and DeepSeek V3.2 (before Zhipu's Slime training framework diverges) confirms DSA as a repeatable architecture point, not a one-off. GLM 5 adds front-3-dense-layers stability pattern (inherited from GLM-4.5/DeepSeek V3), extends context to 200k (vs DeepSeek V3.2's 128k), and achieves SWE-bench-Verified 77.8.
+
+— [[2026-01-28-the-big-llm-architecture-comparison]], [[2025-12-04-a-technical-tour-of-the-deepseek-models-]], [[2026-03-21-2026大模型架构概览-二-glm-5-dsv3-2]], [[2026-03-21-https-zhuanlan-zhihu-com-p-2017528295286]]
 
 ## Open threads
 
@@ -43,3 +47,5 @@ The broader pattern Raschka identifies: the decisive differentiators in 2025 are
 
 - [[2026-01-28-the-big-llm-architecture-comparison]] — Raschka's living survey covering 23+ model architectures, Jan 2026 through Apr 2026; primary evidence for this topic.
 - [[2025-12-04-a-technical-tour-of-the-deepseek-models-]] — Raschka deep-dive on DeepSeek V3→V3.2 lineage; evidence for DSA sparse attention composition with MLA.
+- [[2026-03-21-2026大模型架构概览-二-glm-5-dsv3-2]] — kaiyuan parameter-level configuration comparison of GLM 5 and DeepSeek V3.2; first corpus entry with exact DSA+MLA numerical configs.
+- [[2026-03-21-https-zhuanlan-zhihu-com-p-2017528295286]] — Moonshot AI Infra engineer's first-person engineering rationale for Block AttnRes vs Full AttnRes; two-phase computation IO analysis and the training-side PP communication blocker.

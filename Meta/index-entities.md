@@ -11,41 +11,49 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 ## Active (≥3 refs)
 
 - **[[NVIDIA]]** _(21 refs)_ — Dominant ML accelerator vendor; CUDA platform owner; GPU architectures: Ampere → Ada → Hopper → Blackwell.
-- **[[Blackwell]]** _(14 refs)_ — NVIDIA's 2024 GPU architecture; B100/B200/B300/GB200; first NVFP4 native silicon.
+- **[[Blackwell]]** _(16 refs)_ — NVIDIA's 2024 GPU architecture; B100/B200/B300/GB200; first NVFP4 native silicon.
+- **[[SGLang]]** _(14 refs)_ — Open-source LLM inference system; built on top of model-serving infrastructure; Tencent + LMSYS contributors prominent.
 - **[[Ironwood]]** _(12 refs)_ — Google's seventh-generation TPU (TPU v7), inference-optimized, GA Nov 2025; 4,614 TFLOPS/chip, 192 GB HBM, 9,216-chip pods at 42.5 EFLOPS.
 - **[[Anthropic]]** _(11 refs)_ — AI safety company whose two engineering blog posts on effective harnesses for long-running agents are core references for the course.
+- **[[MoE]]** _(11 refs)_ — Mixture-of-Experts; sparse-activation architecture; current frontier-model default (DeepSeek-V3, GPT-OSS, GLM-4.6, Mixtral).
 - **[[OpenAI]]** _(11 refs)_ — AI lab; ChatGPT; GPT models; Triton kernel language; recently OpenAI-MoE-kernels-on-Hopper outperform NVIDIA's own.
+- **[[vLLM]]** _(11 refs)_ — Open-source LLM inference engine; PagedAttention; continuous batching; the dominant production inference system today.
 - **[[Broadcom]]** _(10 refs)_ — Semiconductor company; co-designer of Google TPU silicon; supplies TPU chips to Google
 - **[[Google]]** _(10 refs)_ — Tech company; AI lab (DeepMind); TPU silicon vendor; Pathways runtime; competitor to OpenAI/Anthropic/Meta.
-- **[[SGLang]]** _(10 refs)_ — Open-source LLM inference system; built on top of model-serving infrastructure; Tencent + LMSYS contributors prominent.
-- **[[Inference Disaggregation]]** _(9 refs)_ — LLM serving architecture that separates prefill (context) and decode (generation) compute onto distinct GPU pools to optimize each phase …
+- **[[Inference Disaggregation]]** _(10 refs)_ — LLM serving architecture that separates prefill (context) and decode (generation) compute onto distinct GPU pools to optimize each phase …
+- **[[MLA]]** _(10 refs)_ — Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in DeepSeek-V2/V3; FlashMLA is its decode kernel.
 - **[[Stargate]]** _(9 refs)_ — OpenAI/Oracle/Microsoft JV; US AI infrastructure buildout; B commitment
 - **[[TPU]]** _(9 refs)_ — Google's family of ML accelerators; v2 → v3 → v4 → v5p/v5e → Trillium (v6) → Ironwood (v7).
-- **[[MLA]]** _(8 refs)_ — Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in DeepSeek-V2/V3; FlashMLA is its decode kernel.
+- **[[DeepSeek]]** _(8 refs)_ — Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
 - **[[Pathways]]** _(8 refs)_ — Google's distributed ML runtime; lets one program span tens of thousands of TPU chips; powers Gemini.
+- **[[CUDA]]** _(7 refs)_ — NVIDIA's GPU programming platform — language extensions, runtime, toolkit, libraries.
+- **[[Hopper]]** _(7 refs)_ — NVIDIA's 2022 GPU architecture; H100/H200/H800/GH200; introduced WGMMA, TMA, FP8.
+- **[[Nsight Compute]]** _(7 refs)_ — NVIDIA's kernel-level profiler; SM/warp metrics, source-line attribution; integrated with CUDA toolkit.
+- **[[Oracle]]** _(7 refs)_ — Cloud provider; Stargate JV partner; GPU cloud
 - **[[Rubin]]** _(7 refs)_ — NVIDIA GPU architecture successor to Blackwell, paired with Vera CPU in Vera Rubin NVL72 platform
-- **[[DeepSeek]]** _(6 refs)_ — Chinese AI lab; produces open-weight frontier-grade MoE and dense models; published FlashMLA + DeepSeek-V3.
+- **[[DeepSeek-R1]]** _(6 refs)_ — DeepSeek reasoning model, late 2024 / early 2025; emphasizes inference-time test/think capability.
 - **[[FlashMLA]]** _(6 refs)_ — DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~660 TFlops via "seesaw" scheduling.
-- **[[MoE]]** _(6 refs)_ — Mixture-of-Experts; sparse-activation architecture; current frontier-model default (DeepSeek-V3, GPT-OSS, GLM-4.6, Mixtral).
-- **[[Nsight Compute]]** _(6 refs)_ — NVIDIA's kernel-level profiler; SM/warp metrics, source-line attribution; integrated with CUDA toolkit.
 - **[[Nsight Systems]]** _(6 refs)_ — NVIDIA's system-level statistical profiler + tracer for GPU/CPU workloads
-- **[[Oracle]]** _(6 refs)_ — Cloud provider; Stargate JV partner; GPU cloud
+- **[[Prefill Context Parallelism]]** _(6 refs)_ — PCP — vLLM inference parallelism strategy for long-context MoE prefill; splits tokens across ranks with AllGather+ReduceScatter over expe…
+- **[[PyTorch]]** _(6 refs)_ — Dominant ML framework for research and production; graph compilation via torch.compile; Meta-maintained.
+- **[[Qwen]]** _(6 refs)_ — Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacent alternative.
 - **[[Vera CPU]]** _(6 refs)_ — NVIDIA custom Arm-based CPU purpose-built for agentic AI and reinforcement learning
-- **[[vLLM]]** _(6 refs)_ — Open-source LLM inference engine; PagedAttention; continuous batching; the dominant production inference system today.
 - **[[Amazon Trainium]]** _(5 refs)_ — AWS custom ML accelerator; Trainium2/3 generations for training and inference
-- **[[CUDA]]** _(5 refs)_ — NVIDIA's GPU programming platform — language extensions, runtime, toolkit, libraries.
-- **[[DeepSeek-R1]]** _(5 refs)_ — DeepSeek reasoning model, late 2024 / early 2025; emphasizes inference-time test/think capability.
-- **[[Hopper]]** _(5 refs)_ — NVIDIA's 2022 GPU architecture; H100/H200/H800/GH200; introduced WGMMA, TMA, FP8.
-- **[[PyTorch]]** _(5 refs)_ — Dominant ML framework for research and production; graph compilation via torch.compile; Meta-maintained.
-- **[[Qwen]]** _(5 refs)_ — Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacent alternative.
+- **[[Decode Context Parallelism]]** _(5 refs)_ — DCP — vLLM inference parallelism strategy for long-context decode; subdivides TP group to shard KV cache across ranks with LSE-combined a…
+- **[[FlashAttention]]** _(5 refs)_ — The original IO-aware fused attention kernel (Dao et al.); v1/v2/v3; foundation for most modern attention kernel work.
+- **[[Llama]]** _(5 refs)_ — Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 (lowercase from v3.1); reference benchmark target for inf…
+- **[[Megatron-LM]]** _(5 refs)_ — NVIDIA's original tensor + pipeline + data parallelism training framework; foundational reference for large-model training; now subsumed …
 - **[[Speculative Decoding]]** _(5 refs)_ — Inference technique class where a lightweight draft model generates candidate token sequences subsequently verified by the target model i…
 - **[[AMD]]** _(4 refs)_ — GPU manufacturer; Instinct MI-series for AI/HPC; direct NVIDIA competitor
+- **[[Attention Residual]]** _(4 refs)_ — architectural mechanism — cross-layer attention over historical block representations
+- **[[AutoResearch]]** _(4 refs)_ — agentic research framework by Karpathy
 - **[[CUDA Tile]]** _(4 refs)_ — NVIDIA's tile-based programming model (CUDA 13.1+); cuTile Python DSL + Tile IR; sits above SIMT.
 - **[[CUTLASS]]** _(4 refs)_ — NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks for cuBLAS + custom kernels.
 - **[[GShard]]** _(4 refs)_ — Google's MoE infrastructure (2020) — scaled models to trillions of parameters using MoE layers.
-- **[[Llama]]** _(4 refs)_ — Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 (lowercase from v3.1); reference benchmark target for inf…
+- **[[Kimi K2]]** _(4 refs)_ — Moonshot AI's 1T-parameter open-weights MoE model, the first 1T open-weights model, with K2.5 and K2.6 successors.
 - **[[Meta]]** _(4 refs)_ — Meta Platforms; AI Research; Llama models; Reality Labs; FAIR; PyTorch maintainer.
 - **[[Microsoft]]** _(4 refs)_ — Hyperscaler; Azure cloud; AI infrastructure; OpenAI partner
+- **[[NCCL]]** _(4 refs)_ — NVIDIA Collective Communications Library — standard GPU-to-GPU collective primitive implementations (AllReduce, AllGather, ReduceScatter,…
 - **[[NVLink]]** _(4 refs)_ — NVIDIA's high-bandwidth GPU-to-GPU interconnect; current gen (NVLink 5) ~1.8 TB/s; defines the NVLink domain for inference disaggregation.
 - **[[Pine AI]]** _(4 refs)_ — AI startup by Bojie Li; uses vibe coding as an engineering hiring filter
 - **[[TensorRT-LLM]]** _(4 refs)_ — NVIDIA's LLM-specific inference engine; built on TensorRT; competitor to vLLM/SGLang in NVIDIA-stack serving.
@@ -55,13 +63,15 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[BF16]]** _(3 refs)_ — 16-bit Brain Float numeric format — wide dynamic range, lower precision than FP16. Default training precision on TPU v2+.
 - **[[Bojie Li]]** _(3 refs)_ — AI engineer and entrepreneur; founder of Pine AI; author of vibe coding interview posts
 - **[[Cursor]]** _(3 refs)_ — AI-powered code editor with a CLI mode supported by vibe-replay for session capture and replay, accounting for 6% of demo activity.
+- **[[Expert Parallelism]]** _(3 refs)_ — A parallelism strategy for MoE models where different experts are placed on different GPUs, abbreviated EP.
 - **[[FP8]]** _(3 refs)_ — 8-bit floating-point format; the previous-generation widely-adopted low-precision training format.
+- **[[GLM-4.5]]** _(3 refs)_ — Zhipu AI's GLM series MoE model (355B and Air 106B variants), with GLM-5 at 744B and GLM-5.1 as frontier entries.
 - **[[H100]]** _(3 refs)_ — NVIDIA Hopper datacenter GPU (compute capability 9.0); the production workhorse before Blackwell.
-- **[[Megatron-LM]]** _(3 refs)_ — NVIDIA's original tensor + pipeline + data parallelism training framework; foundational reference for large-model training; now subsumed …
-- **[[NCCL]]** _(3 refs)_ — NVIDIA Collective Communications Library — standard GPU-to-GPU collective primitive implementations (AllReduce, AllGather, ReduceScatter,…
+- **[[Moonshot AI]]** _(3 refs)_ — Chinese AI lab that developed the Kimi K2 / K2.5 / K2.6 1T open-weights MoE model family.
 - **[[NVIDIA Alpamayo]]** _(3 refs)_ — reasoning-based vision language action model for autonomous driving
 - **[[NVIDIA Cosmos]]** _(3 refs)_ — world foundation model suite for physical AI
 - **[[NVIDIA OSMO]]** _(3 refs)_ — open-source orchestration framework for physical AI workflows
+- **[[OpenAI Triton]]** _(3 refs)_ — OpenAI-developed kernel-authoring DSL with compiler-managed Tensor-Core mapping; also OpenAI ships Triton-kernel optimizations for its Mo…
 - **[[OpenTelemetry]]** _(3 refs)_ — Vendor-neutral observability standard; spans/traces/metrics/logs; consumed by Jaeger/Zipkin/Perfetto/Grafana.
 - **[[Project Rainier]]** _(3 refs)_ — Amazon-Anthropic AI data center collaboration; AWS campus buildout
 - **[[SparseCore]]** _(3 refs)_ — Google TPU accelerator for ultra-large embeddings; ranking/recommendation workloads; expanded scope in Ironwood.
@@ -69,7 +79,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[Tensor Core]]** _(3 refs)_ — NVIDIA's matrix-multiply accelerator unit on Volta+ GPUs; 4 generations (Volta, Turing, Ampere, Hopper); extended in Blackwell.
 - **[[Trillium]]** _(3 refs)_ — Google's sixth-generation TPU (v6); Ironwood's predecessor.
 - **[[xAI]]** _(3 refs)_ — Elon Musk AI lab; Grok models; Colossus data center operator
-- **[[FlashAttention]]** _(2 refs)_ — The original IO-aware fused attention kernel (Dao et al.); v1/v2/v3; foundation for most modern attention kernel work.
 - **[[H800]]** _(2 refs)_ — NVIDIA Hopper GPU; export-controlled variant of H100 (cut interconnect bandwidth); widely used in China.
 - **[[NVFP4]]** _(2 refs)_ — NVIDIA's 4-bit floating-point format introduced with Blackwell; positioned as the next standard low-precision training format after FP8.
 - **[[Transformer Engine]]** _(2 refs)_ — NVIDIA's library for FP8 LLM training on Hopper+; wraps Linear/MLP layers to use FP8 Tensor Cores; ~2x speedup target.
@@ -79,41 +88,54 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[AI Hypercomputer]]** _(2 refs)_ — Google's vertically-integrated AI infrastructure architecture (TPU + Jupiter fabric + XLA / JAX / Pathways).
 - **[[Ampere]]** _(2 refs)_ — NVIDIA GPU architecture (compute capability 8.0/8.6), A100 generation.
 - **[[B200]]** _(2 refs)_ — NVIDIA Blackwell datacenter GPU, second-generation tensor-core silicon at the high end.
+- **[[Claude Code]]** _(2 refs)_ — Anthropic's CLI-based AI coding agent, which accounts for 94% of activity in the vibe-replay demo dashboard (108 of 115 sessions).
+- **[[Cloudflare R2]]** _(2 refs)_ — object storage service
+- **[[Context Parallelism]]** _(2 refs)_ — Parallelism strategy that shards the sequence dimension across GPUs for long-context training, assigned to the attention layer group in M…
 - **[[CoreWeave]]** _(2 refs)_ — GPU cloud provider; NVIDIA GPU-as-a-service; AI infrastructure
 - **[[CUDA Tile IR]]** _(2 refs)_ — NVIDIA's virtual instruction set for tile-based GPU programming, introduced in CUDA 13.1.
-- **[[Expert Parallelism]]** _(2 refs)_ — A parallelism strategy for MoE models where different experts are placed on different GPUs, abbreviated EP.
 - **[[FP4]]** _(2 refs)_ — 4-bit floating-point format — half the bytes of FP8, doubled compute density on Blackwell Tensor Cores. NVFP4 is NVIDIA's specific encoding.
 - **[[GB200]]** _(2 refs)_ — NVIDIA Grace-Blackwell superchip (Grace CPU + 2× B200); deployed in GB200 NVL72 racks (72 chips).
 - **[[Gemini]]** _(2 refs)_ — Google DeepMind's frontier-LLM family; runs on Google TPU.
-- **[[GLM-4.5]]** _(2 refs)_ — Zhipu AI's GLM series MoE model (355B and Air 106B variants), with GLM-5 at 744B and GLM-5.1 as frontier entries.
+- **[[GLM 5]]** _(2 refs)_ — Zhipu AI's 774B MoE LLM (40B active), adopts DSA sparse attention
 - **[[GPT-OSS]]** _(2 refs)_ — OpenAI's open-weight GPT model family released in 2025; includes GPT-OSS-120B used in TRT-LLM serving guide.
 - **[[GQA]]** _(2 refs)_ — Group Query Attention; multi-head attention variant where K/V are shared across query heads (Llama2/3 style); cheaper KV cache than MHA, …
 - **[[Grace CPU]]** _(2 refs)_ — NVIDIA Arm-based CPU predecessor to Vera, used in Grace Hopper Superchip
 - **[[Grafana]]** _(2 refs)_ — Open-source observability dashboard; renders Prometheus metrics + OpenTelemetry data.
+- **[[GRPO]]** _(2 refs)_ — Group Relative Policy Optimization; RL algorithm variant; reward-normalized advantage estimation without a critic
+- **[[GSPO]]** _(2 refs)_ — Group Sequence Policy Optimization; RL algorithm variant; sequence-level policy gradient for LLM post-training
 - **[[HBM]]** _(2 refs)_ — High Bandwidth Memory — stacked DRAM directly attached to accelerators (TPU v3+, NVIDIA A100+).
-- **[[Kimi K2]]** _(2 refs)_ — Moonshot AI's 1T-parameter open-weights MoE model, the first 1T open-weights model, with K2.5 and K2.6 successors.
 - **[[Mistral Small]]** _(2 refs)_ — Mistral AI's Mistral Small 3.1 24B and 3.4 119B dense models catalogued in the gallery.
+- **[[OpenAI Codex]]** _(2 refs)_ — Agentic coding tool by OpenAI used by BBuf to generate the data-fetching and chart-plotting code analyzing SGLang and vLLM PR velocity.
 - **[[PagedAttention]]** _(2 refs)_ — vLLM's attention mechanism using paged KV-cache memory management for efficient batched inference.
 - **[[Perfetto]]** _(2 refs)_ — Google's tracing visualization tool; thread-centric timeline view; consumes Chrome-Trace + protobuf traces.
+- **[[PPO]]** _(2 refs)_ — Proximal Policy Optimization; cited in Insight 9 as the RL algorithm by which two interacting LLM agents update their policies, enabling …
 - **[[PyTorch Profiler]]** _(2 refs)_ — PyTorch's built-in performance profiler; traces Python stack + CUDA events; limited under subprocesses.
 - **[[Quantization]]** _(2 refs)_ — Model weight and activation compression technique (e.g., FP8, INT4) for reducing memory and compute cost; covered under the survey's mode…
+- **[[Ray]]** _(2 refs)_ — open-source distributed computing framework; provides actor model + placement groups + object store; used for ML cluster orchestration
 - **[[Sebastian Raschka]]** _(2 refs)_ — ML educator and researcher who maintains the LLM Architecture Gallery, a live-updated visual catalog of LLM architectures.
 - **[[Skild AI]]** _(2 refs)_ — general-purpose robot foundation model startup
+- **[[slime]]** _(2 refs)_ — THUDM RL post-training framework; connects Megatron-LM training with SGLang inference via Ray orchestration
 - **[[SoftBank]]** _(2 refs)_ — Japanese conglomerate; Vision Fund; AI infrastructure investor; Stargate JV founder
 - **[[Tensor Parallelism]]** _(2 refs)_ — A model parallelism strategy that shards individual weight matrices across multiple GPUs, abbreviated TP.
+- **[[THUDM]]** _(2 refs)_ — Tsinghua University Department of Machine Learning; research group; develops GLM model series and slime framework
 - **[[TMA]]** _(2 refs)_ — Tensor Memory Accelerator; Hopper+ instruction for async global↔shared memory copies; used heavily in FlashAttention-3 + FlashMLA.
+- **[[Tsinghua]]** _(2 refs)_ — Tsinghua University — author affiliation for the LLM Inference Systems survey.
 - **[[Ada]]** _(1 refs)_ — NVIDIA GPU architecture (compute capability 8.9), powering RTX 40-series consumer cards.
 - **[[AlphaFold]]** _(1 refs)_ — DeepMind's protein-structure-prediction model; Nobel-cited; runs on Google TPU.
+- **[[Arm]]** _(1 refs)_ — ARM-architecture CPU IP (Vera CPU CSS-V2, Ampere AmpereOne, NVIDIA Grace, AWS Graviton — Stargate procurement context)
 - **[[AWS]]** _(1 refs)_ — Amazon Web Services; hyperscaler; custom silicon (Trainium, Graviton, Nitro)
 - **[[B300]]** _(1 refs)_ — NVIDIA Blackwell-generation GPU (B300 SKU).
+- **[[BackupLoupe]]** _(1 refs)_ — macOS app for Time Machine space analysis
 - **[[ByteDance]]** _(1 refs)_ — Chinese tech company; LLM lab (Doubao); large internal training infrastructure; co-authored FLUX kernel-fusion paper with PKU.
+- **[[Chunked Pipeline Parallelism]]** _(1 refs)_ — CPP — a prefill parallelism technique introduced in this paper that splits input sequences into chunks processed with overlapping pipelin…
+- **[[Claude]]** _(1 refs)_ — Anthropic's AI assistant used by Tom Turney to accelerate the 7-day reproduction of Google's TurboQuant algorithm from paper math to work…
 - **[[Compute Sanitizer]]** _(1 refs)_ — NVIDIA's GPU memory-error detection tool, akin to AddressSanitizer for CUDA kernels.
-- **[[Context Parallelism]]** _(1 refs)_ — Parallelism strategy that shards the sequence dimension across GPUs for long-context training, assigned to the attention layer group in M…
 - **[[cuBLAS]]** _(1 refs)_ — NVIDIA's CUDA BLAS library; matmul + GEMM kernels; tuned per architecture.
 - **[[CUDA Graph]]** _(1 refs)_ — CUDA mechanism for recording and replaying a fixed sequence of kernel launches, eliminating per-launch CPU overhead.
 - **[[cuTile Python]]** _(1 refs)_ — Python DSL for CUDA Tile programming (CUDA 13.1+); kernels compile to Tile IR.
 - **[[DeepFlow]]** _(1 refs)_ — An LLM inference system; named alongside vLLM/SGLang/Mooncake in the Survey of LLM Inference Systems.
 - **[[DeepSeek-MoE]]** _(1 refs)_ — DeepSeek's fine-grained MoE architecture — 256+ small experts per layer, 8+ active per token.
+- **[[DeepSeek-V3.2]]** _(1 refs)_ — DeepSeek's 671B MoE LLM (37B active), introduces DSA sparse attention
 - **[[Distributed Shared Memory]]** _(1 refs)_ — Hopper-specific feature; SMs in the same thread-block cluster can load/store/atomic each other's shared memory; enables cross-SM cooperat…
 - **[[DPX]]** _(1 refs)_ — Hopper instruction set for dynamic-programming primitives (min/max-of-3 reductions); accelerates Smith-Waterman, Floyd-Warshall, DTW; LLM…
 - **[[DualPipe]]** _(1 refs)_ — concept
@@ -122,6 +144,7 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[EAGLE-3]]** _(1 refs)_ — Third-generation EAGLE speculative decoding; training-time test technique; ~6.5× speedup on HumanEval; integrated in SGLang.
 - **[[El Capitan]]** _(1 refs)_ — World's largest supercomputer at announcement of Ironwood (~1.7 EFLOPS FP64); reference for Google's '24× El Capitan' Ironwood-pod claim.
 - **[[FlashAttention-3]]** _(1 refs)_ — Third-generation FlashAttention with ping-pong scheduling and intra-warpgroup GEMM-softmax pipelining for Hopper.
+- **[[FlashInfer]]** _(1 refs)_ — Library whose API-logging pattern inspired the SGLang CUDA Debug Crash SKILL's staged verbosity approach.
 - **[[Free-Threaded Python]]** _(1 refs)_ — CPython build (PEP 703) that disables the GIL; experimental in 3.13; production-ready timeline unclear.
 - **[[Gemma]]** _(1 refs)_ — Google DeepMind's Gemma 3/4 model family (dense, 270M to 31B) included in Raschka's architecture gallery.
 - **[[GIL]]** _(1 refs)_ — Python's Global Interpreter Lock; serializes Python bytecode execution; root cause of subprocess-based parallelism in CPython.
@@ -148,11 +171,14 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[MLOPart]]** _(1 refs)_ — Memory Locality Optimization Partition — Blackwell feature that presents one underlying GPU as multiple memory-locality-optimized CUDA de…
 - **[[Mooncake]]** _(1 refs)_ — Moonshot AI's LLM inference system; KV-cache-centric serving architecture; named in the Survey of LLM Inference Systems.
 - **[[MPS]]** _(1 refs)_ — CUDA Multi-Process Service — daemon for sharing a single GPU across multiple CUDA processes with finer-grained scheduling.
+- **[[MTP]]** _(1 refs)_ — Multi-Token Prediction, a training and inference objective carried over from DeepSeek V3.1 into V4, enabling the model to predict multipl…
 - **[[NIXL]]** _(1 refs)_ — A KV-cache transfer backend used by vLLM for cross-instance KV migration (PD-disaggregation).
+- **[[NVIDIA MGX]]** _(1 refs)_ — NVIDIA modular reference rack architecture; Vera CPU platform integration
 - **[[OCS]]** _(1 refs)_ — Optical Circuit Switch — dynamically reconfigurable optical pod fabric introduced on TPU v4.
 - **[[OLMo]]** _(1 refs)_ — Allen AI's OLMo 2/3 open-weights dense models (7B/32B) included in Raschka's gallery as reference entries.
-- **[[OpenAI Triton]]** _(1 refs)_ — OpenAI-developed kernel-authoring DSL with compiler-managed Tensor-Core mapping; also OpenAI ships Triton-kernel optimizations for its Mo…
+- **[[OpenClaw]]** _(1 refs)_ — AI coding agent runtime whose observability instrumentation is the subject of this source, exposing 20 hook points across session, tool-c…
 - **[[PEP 703]]** _(1 refs)_ — Python Enhancement Proposal making the Global Interpreter Lock (GIL) optional — shipped in CPython 3.13t.
+- **[[PicGo]]** _(1 refs)_ — image upload client
 - **[[Pipeline Parallelism]]** _(1 refs)_ — PP — parallelism strategy that splits model layers across GPUs in a pipeline; combined with EP in CPP to handle long-context prefill on D…
 - **[[Prometheus]]** _(1 refs)_ — Open-source metrics system; pull-based scraping; histograms + counters + gauges; dominant ecosystem for app metrics.
 - **[[PyTorch DataLoader]]** _(1 refs)_ — PyTorch's reference data-loading class — process-based workers, copies tensors via shared memory.
@@ -162,11 +188,15 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[RTX PRO 6000]]** _(1 refs)_ — NVIDIA workstation/server Blackwell GPU SKU. Supports cuBLAS FP32 / FP64 Tensor-Core emulation.
 - **[[SPDL]]** _(1 refs)_ — Scalable and Performant Data Loading; Meta Reality Labs' thread-based PyTorch DataLoader replacement.
 - **[[Stochastic Rounding]]** _(1 refs)_ — Rounding mode that preserves expected value across many operations — critical for unbiased gradient updates in low-precision training.
+- **[[Su Jianlin]]** _(1 refs)_ — researcher — Moonshot AI, original proposer of Attention Residual / general full attention formulation
 - **[[TF32]]** _(1 refs)_ — TensorFloat-32 — Ampere-era Tensor-Core format with FP32 range and reduced mantissa precision.
+- **[[Time Machine]]** _(1 refs)_ — macOS built-in backup utility
+- **[[tmutil]]** _(1 refs)_ — macOS CLI tool for Time Machine management
 - **[[Torch Compile]]** _(1 refs)_ — PyTorch 2.x's compilation path that fuses operators and emits optimized kernels (Inductor backend).
-- **[[Tsinghua]]** _(1 refs)_ — Tsinghua University — author affiliation for the LLM Inference Systems survey.
+- **[[Vera Rubin NVL72]]** _(1 refs)_ — Next-gen NVIDIA rack platform — Vera CPU paired with Rubin GPU at NVL72 scale (~Stargate H2 2026)
 - **[[Vicuna]]** _(1 refs)_ — Open-weight chat-fine-tuned LLaMA variant from LMSYS; widely used as speculative-decoding benchmark target.
 - **[[Volta]]** _(1 refs)_ — NVIDIA GPU architecture (2017) — introduced the first Tensor Cores (FP16/FP32 MMA).
+- **[[WebP Cloud]]** _(1 refs)_ — image proxy / optimization SaaS
 - **[[WGMMA]]** _(1 refs)_ — Hopper+ instruction for async warpgroup-level matrix multiply; cornerstone of FlashAttention-3 + FlashMLA.
 - **[[XLA]]** _(1 refs)_ — Google's accelerated-linear-algebra compiler; targets TPU + GPU; foundation for JAX and TensorFlow execution.
 - **[[Zipkin]]** _(1 refs)_ — Open-source distributed-tracing system (Twitter origin); consumes OpenTelemetry spans; alternative to Jaeger.
@@ -181,9 +211,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[CDM]]** _(0 refs)_ — A Chrome DevTools Protocol MCP server that exposes browser-control as agent tools (New Page, Take Snapshot, Evaluate Script, List Network…
 - **[[Chen Long]]** _(0 refs)_ — Head of Xiaomi's smart-driving foundation-model team (陈龙), formerly at Wayve, who developed the XLA architecture and Latent CoT training …
 - **[[Chrome DevTools Protocol]]** _(0 refs)_ — Browser-control protocol (CDP) that enables low-level DOM inspection, script evaluation, and network-request listing — used here as the u…
-- **[[Chunked Pipeline Parallelism]]** _(0 refs)_ — CPP — a prefill parallelism technique introduced in this paper that splits input sequences into chunks processed with overlapping pipelin…
-- **[[Claude]]** _(0 refs)_ — Anthropic's AI assistant used by Tom Turney to accelerate the 7-day reproduction of Google's TurboQuant algorithm from paper math to work…
-- **[[Claude Code]]** _(0 refs)_ — Anthropic's CLI-based AI coding agent, which accounts for 94% of activity in the vibe-replay demo dashboard (108 of 115 sessions).
 - **[[Compression Sparse Attention]]** _(0 refs)_ — CSA attention variant introduced in DeepSeek V4-Pro replacing MLA, paired with Highly Compressed Attention (HCA).
 - **[[CoT]]** _(0 refs)_ — Chain-of-thought reasoning methodology used in driving AI as structured annotation (identify objects → understand states → decide action)…
 - **[[cuDNN]]** _(0 refs)_ — NVIDIA's deep neural network primitives library, used as a baseline in the AVO paper where AVO-discovered attention kernels achieved up t…
@@ -195,7 +222,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[Ego-Foresight]]** _(0 refs)_ — ICLR 2026 paper (Insight 8) proposing self-supervised agent-aware representation learning by correlating commanded actions with pixel cha…
 - **[[First-Token Latency]]** _(0 refs)_ — FTL — the latency from request arrival to generation of the first output token; the primary SLA governing prefill performance in disaggre…
 - **[[Flash-Decoding]]** _(0 refs)_ — Technique for efficient autoregressive decoding over long KV sequences; acknowledged as an inspiration for FlashMLA alongside FlashAttent…
-- **[[FlashInfer]]** _(0 refs)_ — Library whose API-logging pattern inspired the SGLang CUDA Debug Crash SKILL's staged verbosity approach.
 - **[[FLUX]]** _(0 refs)_ — ByteDance + PKU system that hides tensor-parallel communication behind computation by fusing fine-grained comm and compute tiles into a s…
 - **[[FunSearch]]** _(0 refs)_ — Prior LLM-in-the-loop evolutionary search system cited in the AVO paper as confining the LLM to candidate generation within a heuristic f…
 - **[[Granite]]** _(0 refs)_ — IBM Research's Granite 4.1 30B late-2025 MoE model, newly catalogued in Raschka's gallery.
@@ -217,20 +243,15 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[MiMo-Embodied]]** _(0 refs)_ — Xiaomi's open-source embodied-AI model released 2025-11-21, extending MiMo-VL with autonomous-thinking capability for driving and robot d…
 - **[[MiMo-VL]]** _(0 refs)_ — Xiaomi's open-source vision-language model series, built by Luo Fuli's team, that serves as the base layer for Chen Long's smart-driving …
 - **[[Model Context Protocol]]** _(0 refs)_ — Protocol (MCP) that standardizes tool exposure to AI agents; CDM wraps CDP browser primitives as MCP tools consumable by Codex or Claude …
-- **[[Moonshot AI]]** _(0 refs)_ — Chinese AI lab that developed the Kimi K2 / K2.5 / K2.6 1T open-weights MoE model family.
-- **[[MTP]]** _(0 refs)_ — Multi-Token Prediction, a training and inference objective carried over from DeepSeek V3.1 into V4, enabling the model to predict multipl…
 - **[[Nano-vLLM]]** _(0 refs)_ — A ~1,200-line Python reimplementation of vLLM's core (paged attention, prefix caching, tensor parallelism, Torch compile, CUDA graphs) bu…
 - **[[NVSHMEM]]** _(0 refs)_ — NVIDIA's OpenSHMEM-based library for GPU-to-GPU communication, covered alongside NCCL in PMPP 5e's new Multi-GPU API chapter.
 - **[[Obsidian]]** _(0 refs)_ — Personal knowledge management and markdown note-taking app referenced as an existing tool Garry Tan moved away from in favor of agent-med…
-- **[[OpenAI Codex]]** _(0 refs)_ — Agentic coding tool by OpenAI used by BBuf to generate the data-fetching and chart-plotting code analyzing SGLang and vLLM PR velocity.
-- **[[OpenClaw]]** _(0 refs)_ — AI coding agent runtime whose observability instrumentation is the subject of this source, exposing 20 hook points across session, tool-c…
 - **[[OpenThoughts-114k]]** _(0 refs)_ — Math-focused reasoning dataset added to the EAGLE-3 training corpus for the reasoning-model (DeepSeek-R1-Distill) variant.
 - **[[Pallas]]** _(0 refs)_ — Google's kernel-authoring DSL for TPU/GPU, built on JAX; analogous to Triton + CUDA Tile.
 - **[[PDL]]** _(0 refs)_ — Programmatic Dependent Launch, an NVIDIA Hopper/Blackwell feature for overlapping compute and communication, enabled via TRTLLM_ENABLE_PDL.
 - **[[Phi-4]]** _(0 refs)_ — Microsoft's Phi-4 14B dense model catalogued in Raschka's LLM Architecture Gallery.
 - **[[PMPP]]** _(0 refs)_ — Programming Massively Parallel Processors — the canonical CUDA programming textbook by Hwu, Kirk, and El Hajj, now in its 5th edition (20…
 - **[[PolarQuant]]** _(0 refs)_ — Novel quantization scheme introduced by TurboQuant (Google Research, ICLR 2026) for compressing KV-cache entries with near-zero perplexit…
-- **[[PPO]]** _(0 refs)_ — Proximal Policy Optimization; cited in Insight 9 as the RL algorithm by which two interacting LLM agents update their policies, enabling …
 - **[[Prefix Caching]]** _(0 refs)_ — Optimization that reuses KV-cache from shared prompt prefixes across requests; one of the four core features implemented in Nano-vLLM alo…
 - **[[ReduceScatter]]** _(0 refs)_ — Collective communication primitive used in tensor-parallel layers to distribute partial sums across devices, fused with compute tiles in …
 - **[[Roofline Model]]** _(0 refs)_ — Performance analysis model that bounds compute throughput by the minimum of peak FLOPS and memory-bandwidth × arithmetic intensity, used …

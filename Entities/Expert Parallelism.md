@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
+updated: 2026-05-15
 type: entity
-refs: 2
-tier: seen
+refs: 3
+tier: active
 ---
 
 # Expert Parallelism

@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 8
+source_count: 9
 ---
 
 # Inference Disaggregation
@@ -50,6 +50,7 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 
 - Are simulator-based design-space-exploration numbers translatable to dollars/W for capacity planning? Beyond-the-Buzz reports normalized Pareto frontiers; the missing translation is the cost-engineering step. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]
 - SGLang's MTP integration gap: simulated MTP recovers decode throughput to within 6.6% of DeepSeek's profile, but full MTP + DP Attention co-deployment is not yet implemented. Does MTP's attention overhead generalize to non-DeepSeek architectures in a disaggregated setup? — [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]
+- **CPP vs PCP naming collision**: the corpus uses both terms for "long-context MoE prefill parallelism" but they are different mechanisms. CPP (Chunked Pipeline Parallelism, [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]) overlaps PP stages at the disaggregated-serving level to reduce FTL without wide TP. PCP (Prefill Context Parallelism, [[2026-02-08-deepwiki-vllm-10-distributed-prefill-con]]) is a vLLM in-engine parallelism axis that adds workers, shards tokens by interleaved position, and performs AllGather+ReduceScatter within MoE layers. Whether SGLang/TRT-LLM implement an analogous in-engine PCP axis is not captured in current sources.
 
 ## Sources drawn on
 
@@ -58,4 +59,5 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 - [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] — vLLM NIXL/KVConnectorStats observability for PD-disagg data plane.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li survey treating disaggregation as a first-class composition tier.
 - [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]] — SGLang 96-GPU DeepSeek-V3 deployment; surfaces DeepEP dispatch-mode incompatibility as hard constraint; EPLB + TBO as the two load-bearing optimizations at scale.
+- [[2026-02-08-deepwiki-vllm-10-distributed-prefill-con]] — vLLM distributed architecture doc; specifies [[Prefill Context Parallelism]] (PCP) as a distinct in-engine mechanism from CPP; PCP adds workers and shards token+expert weights; currently MoE-only.
 

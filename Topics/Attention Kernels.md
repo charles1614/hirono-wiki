@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-13
 synthesis_updated_at: 2026-05-13
 type: topic
-source_count: 9
+source_count: 10
 ---
 
 # Attention Kernels
@@ -42,16 +42,20 @@ GPU kernels implementing the attention operator at production-grade efficiency �
 | **Prefill-chunking overhead** | N/A for MHA/GQA (no latent re-projection) | Redundant down/up-projection per chunk with MLA; mitigation: cache up-projected KV from earlier chunks [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] | N/A |
 | **Algorithmic lineage** | WGMMA warpgroup abstractions (Hopper); online softmax from FlashAttention [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] | FlashAttention (online softmax), Flash-Decoding (split-K), CUTLASS (tile scheduling) [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] | FlashAttention [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] |
 
+**LLM-driven agentic kernel authoring is now a credible path to production-grade custom attention kernels.** [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]] demonstrates Claude Opus 4.6 autonomously iterating a CUDA Flash Attention with custom mask kernel through 25 rounds on RTX 3080 — using the [[AutoResearch]] pattern (locked eval harness + scope-constrained edits). The model self-navigated from basic FP32 optimizations (R1–R8) → WMMA Tensor Core introduction (R9–R12) → ncu-guided profiling and PTX-level debugging (R13+), reaching 25.17 TFLOPS (MFU 42%) and outperforming Triton/cuDNN/FlashInfer. A later MMA-based rewrite (round 25 via Cursor Opus 4.6) reached 27 TFLOPS. Key design constraint: the evaluation harness (`run.py`) must be locked against model modification to prevent goodhart-style benchmark manipulation. This extends the "kernel design is forced by hardware constraints" theme — the model internalized ncu output and PTX patterns as hardware feedback, not relying on operator expertise.
+
 ## Open threads
 
 - TE limitations as of the Feb-2024 HKUST paper (Softmax / GeLU not FP8-quantized, DotProductAttention bypasses FP8 TC) — do they still hold in 2025/2026 TransformerEngine versions? FP8 LLM stacks have matured substantially since. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
 - Why does DeepSeek not TP decode? FlashMLA asserts this as fact without justification; decode-side TP is a common KV-bandwidth optimization. There's an architectural / serving-economics reason worth understanding. — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
 - FlashMLA's seesaw schedule is designed for 2 warpgroups + Hopper register budget. Does it generalize to 4 warpgroups on Blackwell (larger register file + different WGMMA shape)? — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
 - MLA piggyback overhead mitigation (cache up-projected KV from earlier chunks, per the NVIDIA Beyond-the-Buzz paper) — is this in any OSS serving stack yet? FlashMLA is the obvious candidate. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
+- The custom mask + short sequence (< 1K) scenario is a known gap in OSS attention libraries; the AutoResearch result suggests it's a fruitful niche for LLM-driven kernel authoring, but no peer comparison against optimized sparse-mask implementations. — [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]]
 
 ## Sources drawn on
 
 - [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] — surfaces the MLA piggyback overhead in disagg-prefill chunking; relevant for the kernel-stack interaction.
 - [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]] — HKUST Hopper microbenchmark; canonical FP8 / TE-limit reference and TMA/DSM/DPX instruction-level numbers.
 - [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] — FlashMLA seesaw schedule deep-dive; the load-bearing kernel-design case study for MLA on H800.
+- [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]] — AutoResearch + Opus 4.6 custom mask Flash Attention case study on RTX 3080; demonstrates LLM-driven kernel authoring reaching production-grade MFU.
 

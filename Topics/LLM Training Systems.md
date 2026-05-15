@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 6
+source_count: 7
 ---
 
 # LLM Training Systems
@@ -34,4 +34,4 @@ Once Sources are attached, this section should be revised to anchor each claim t
 
 ## Sources drawn on
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2026-02-28-deepwiki-slime-01-overview]] — slime RL post-training framework: three-subsystem architecture (Megatron-LM + SGLang + Ray), colocated vs. dedicated GPU modes, async pipelining design.

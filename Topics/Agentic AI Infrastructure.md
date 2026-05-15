@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # Agentic AI Infrastructure
@@ -19,6 +19,8 @@ The architectural thesis is that agentic scale requires co-designed CPU + GPU + 
 
 Reinforcement learning is co-cited alongside agentic inference as a primary Vera target workload — both generate CPU-bound orchestration load (reward evaluation, environment stepping, code execution) that current GPU server designs under-provision.
 
+**AutoResearch-style agentic loops demonstrate the software pattern that Vera-class hardware targets.** [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]] shows [[AutoResearch]] applied to CUDA kernel authoring: the model issues tool calls (compile, benchmark, ncu profile, web search, PTX analysis) in a tight loop, each completing at software latency. The bottleneck was daily API quota, not compute. This is the workload character Vera's 256 CPUs-per-rack design addresses: many concurrent CPU environments executing orchestration-heavy agent loops.
+
 ## Open threads
 
 - Competitive response: AMD, Intel, and Arm-ecosystem players have not yet published purpose-built agentic-CPU silicon; will the workload characterization hold as competitors respond?
@@ -28,3 +30,4 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 ## Sources drawn on
 
 - [[2026-03-17-nvidia-launches-vera-cpu-purpose-built-f]] — GTC 2026 press release introducing Vera CPU, NVLink-C2C integration, and the agentic-AI-first CPU thesis.
+- [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]] — AutoResearch kernel authoring case study; illustrates the tool-call-dense CPU workload pattern Vera targets.
