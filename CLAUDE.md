@@ -30,7 +30,8 @@ Match your intent to the canonical doc; don't re-derive what's already written d
 | Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
 | External inspiration — Karpathy's "LLM Wiki" gist (the loose pattern this project rhymes with; not a binding spec) | [`Meta/references/karpathy-llm-wiki-gist.md`](Meta/references/karpathy-llm-wiki-gist.md) |
 | **How this wiki maps to Karpathy** — coverage map, deliberate deviations, acknowledged gaps. Re-run periodically. | [`Meta/references/karpathy-alignment.md`](Meta/references/karpathy-alignment.md) |
-| **Wiki ingest mechanics** — raw → `Sources/YYYY/<slug>.md` authoring (slug rule, schema, citation scope, image-path depth, scaffold-on-dead-link rule, validation gate). The rote rules subagents miss on first pass. **Read before any "ingest from raw" task.** | §10 of this file |
+| **Wiki ingest mechanics** — raw → `Sources/YYYY/<slug>.md` authoring (decision tree, slug rule, schema, frontmatter rules + lint-required tags, citation scope, image-path depth, image-extract sidecar, canonical Visual-observations rationale phrases, scaffold-on-dead-link rule, validation gate). The rote rules subagents miss on first pass. **Read before any "ingest from raw" task.** | §10 of this file |
+| **Refine + curation workflows** — the `--response <path> --apply` two-step; `auto-detect-entities` / `refine-entity` / `refine-topic` / `refine-synthesis` / `refine-all-stale --preview --limit N`; curation primitives (`rename-entity`, `merge-entities`, `delete-source`, `bulk-delete-orphans`); `auto-fix` / `auto-curate` / `propose-curation` / `apply-queue`; `health-check`. **Reach for the CLI; don't improvise.** | §11 of this file |
 | What this file (`CLAUDE.md`) covers | the section list immediately below — quality rules, fidelity check, output contract, formatting rules, fix recipes, regression set, code pointers |
 
 This file deliberately overlaps with the docs above on a few load-bearing topics (output contract, fidelity checks, fix recipes) — those are the rules that should fire on every commit, regardless of whether the operator opened the workflow / patterns docs first. When in doubt about a workflow or a per-site fix, defer to the dedicated doc.
@@ -382,6 +383,32 @@ When `shouldExtractImages` triggers (same 5 signals the `source-image-count` lin
 
 When the user says "ingest N raw sources" / "ingest from raw" / "continue ingesting", this is the canonical flow. There is **no single command** that converts raw → Source; the LLM IS the authoring layer. The rules below are what `lint.ts` enforces — get them right on the first pass, don't ship a cleanup round.
 
+### Decision tree (user said X → run Y)
+
+The hirono CLIs exist because they encode invariants the LLM keeps getting wrong. **Always reach for the CLI first**, not a hand-rolled equivalent. Common asks and their canonical commands:
+
+| User said | First command |
+|---|---|
+| "fetch new bookmarks" / "pull from raindrop" | `hirono raindrop refresh-cache && hirono raindrop fetch-all` |
+| "what's ingestable" / "show pending" | `hirono raindrop ingest-candidates --limit 50 --md` |
+| "triage fetch failures" / "what's broken" | `hirono raindrop status --filter <kind>` |
+| **"ingest N from raw"** | follow §10 — pick candidates → per-item LLM authorship → validation gate |
+| "after ingest, what's the cost?" | `hirono ingest-preview --since HEAD~1` |
+| "refine stale" / "regenerate Syntheses" | `hirono refine-all-stale --preview` then `--limit N` (see §11) |
+| "refine one entity / topic" | `hirono refine-entity "<Name>"` → operator runs Sonnet → `--response <path> --apply` (see §11) |
+| "regenerate top-level Synthesis" | `hirono refine-synthesis` (see §11) |
+| "find/scaffold a new Entity for X" | `hirono new-entity "<Name>" --kind "<one-liner>"` |
+| "find/scaffold a new Topic for X" | `hirono new-topic "<Name>" --what "<one-liner>"` |
+| "rename Entity Foo → Bar" | `hirono rename-entity "Foo" "Bar" --reason "<...>"` (atomic — never sed) |
+| "merge Foo into Bar" | `hirono merge-entities "Foo" --into "Bar"` (atomic; transfers Observations) |
+| "delete Source X" | `hirono delete-source <slug> --reason "<...>"` (atomic; removes raw too unless `--keep-raw`) |
+| "clean up orphan entities" | `hirono bulk-delete-orphans --confirm` (lists _seen/ entities with refs=0) |
+| "audit the wiki health" | `hirono health-check --scope drift` (read-only LLM-judgment audit) |
+| "one-tap curation" / "fix everything safe" | `hirono auto-fix` (Tier-1, no Sonnet spend) or `hirono auto-curate` (Tier-1+2) |
+| "lint" / "ready to commit?" | `npx tsx tools/bin/lint.ts` — must end `0 error(s)` |
+
+If a CLI matches the ask, **run the CLI**. Don't hand-roll a sed/awk replacement for `rename-entity`. Don't manually delete Source files for `delete-source`. The CLIs are atomic + log to `Meta/refactor-log.md` + update indexes; hand-rolled equivalents skip those invariants.
+
 ### Flow
 
 ```
@@ -415,14 +442,14 @@ The filename in `Sources/YYYY/<slug>.md` MUST equal the raw folder name **EXACTL
 
 ```markdown
 ---
-created: <today, YYYY-MM-DD>
-updated: <today, YYYY-MM-DD>
+created: <ingest-date, YYYY-MM-DD>   # today's date when YOU write this file
+updated: <ingest-date, YYYY-MM-DD>   # same as created on first write
 type: source
-source_url: <verbatim from source.json>
-tags: [tag-1, tag-2, ...]
+source_url: <verbatim from source.json — keep original utm/share params; lint compares exact strings>
+tags: [tag-1, tag-2, ...]            # ≥1 from CANONICAL_TAGS (Meta/schema.md §"Canonical tag vocabulary"); lint ERROR if missing
 ---
 
-# [YYYY-MM-DD] <Clean Title>
+# [<source-publication-date, YYYY-MM-DD>] <Clean Title>
 
 ## TL;DR
 
@@ -435,7 +462,7 @@ tags: [tag-1, tag-2, ...]
 
 ## Visual observations
 
-*<canonical rationale phrase from Meta/schema.md's exact-string list, OR 2–5 `![](../../raw/...)` refs for genuinely visual images>*
+*<canonical rationale phrase, OR 2–5 `![](../../raw/raindrop/<host>/<slug>/<img>.ext)` refs for genuinely visual images>*
 
 ## What this changes
 
@@ -451,8 +478,43 @@ tags: [tag-1, tag-2, ...]
 
 ## Raw source
 
-[host.tld/slug](<URL>) — <1-line provenance: author/date/format>. Read <today>.
+[host.tld/slug](<URL>) — <1-line provenance: author/date/format>. Read <ingest-date>.
 ```
+
+### Frontmatter rules (lint-enforced)
+
+**Two date fields, distinct meanings** (per Meta/schema.md):
+
+- `created:` / `updated:` (frontmatter) — the date YOU write/update the Source file (today's real-world date, from `date +%Y-%m-%d` or system time). Both equal "today" on first write.
+- `# [YYYY-MM-DD] <Title>` (H1 heading) — the date the SOURCE itself was published or captured. Resolution order:
+  1. `source.json.published_at` if set
+  2. `source.json.created` (Raindrop bookmark date) if set
+  3. The `YYYY-MM-DD-` prefix of the raw archive slug (since `fetch-all` slugifies with that prefix)
+  4. First `<time>` element in `content.md` if present
+  
+  A Source slug `2025-08-23-tensorrt-llm-...` with `created: 2026-05-15` is CORRECT — the source was published in 2025, you ingested it today.
+
+**`tags:` is lint-required**. Pick 2–5 tags from `Meta/schema.md` §"Canonical tag vocabulary" — 5 axes (workload / subdomain / hardware / source-shape / special). Non-canonical tags emit WARN; missing tags emit ERROR. **Don't tag proper nouns** (companies, models, hardware SKUs) — those go in `## Entities touched`.
+
+**`source_url:` is verbatim** from `source.json.url`. Keep utm/share params; lint compares exact strings against the index.
+
+### Canonical "Visual observations" rationale phrases (exact-string match)
+
+If raw has no load-bearing images (the common case for text-heavy sources), use ONE of these exact phrases — paraphrasing breaks the lint check:
+
+- `*No load-bearing images — all panels redundant with body text.*` (xhs comment-screenshots; weixin posts where prose paraphrases each diagram)
+- `*No load-bearing images — all panels decorative (logos, badges, photos).*` (github READMEs with chrome only; non-technical xhs)
+- `*No load-bearing images — all images text-only (typed content extracted into body).*` (xhs typed summary cards; PDF cover + TOC pages; "screenshot of paragraphs" pattern)
+- `*No load-bearing images — figures inline-captioned in raw, no standalone images.*` (papers where Marker captioned figures inline)
+- `*No load-bearing images — source has no images.*` (text-only blog posts, API JSON, pure prose)
+
+For mixed cases (some load-bearing + some decorative), include the load-bearing `![](...)` refs AND append: `*Other images decorative — <brief category list>.*`
+
+Litmus test for "load-bearing": can the image's content be fully conveyed in markdown prose, tables, and code blocks? If yes → text-only (use rationale phrase). If no (visual relationships text would lose) → 2–5 `![](...)` refs with one-sentence factual captions.
+
+### Image-extract sidecar (read alongside `content.md`)
+
+If `raw/raindrop/<host>/<slug>/<slug>-images-extract.md` exists, **read it before writing Key claims**. It's a Sonnet-pre-extracted verbatim record of image content (charts, diagrams, dense Chinese text) — saves a re-extraction and surfaces specifics the body text doesn't restate. Don't paraphrase the extract; cite specifics verbatim. (Image-heavy Source signal — see §9.)
 
 ### Bullet citation scope (subtle but load-bearing)
 
@@ -469,9 +531,21 @@ If you write `[[Some Entity]]` and `ls Entities/ Entities/_seen/` shows no match
 
 Match existing names exactly — case + spelling. `ls Entities/ Entities/_seen/ Topics/` BEFORE writing the wikilink, not after.
 
-### Append observations
+### Append observations (exact shape + atomicity)
 
-For each `[[Entity]]` mentioned in the new Source: append a bullet to that Entity's `## Observations` section. Shape: `- <one-paragraph cited claim referencing the Source>. — [[<source-slug>]]`. Same for `[[Topic]]` → `Topics/<Name>.md`'s `## Observations`. Atomic Read-then-Edit; retry up to 3× on collision when sibling subagents touch the same file.
+For each `[[Entity]]` or `[[Topic]]` mentioned in the new Source, append a bullet to that page's `## Observations` section. Exact shape (mind the em-dash + slug-only citation):
+
+```markdown
+- <one-paragraph cited claim with concrete numbers/specifics; wikilink sibling [[Entities]] mentioned in the claim>. — [[<source-slug>]]
+```
+
+Notes:
+- The trailing citation is the bare slug only — **NO `Sources/2026/` prefix**.
+- The em-dash is `—` (U+2014, ` — `), not a hyphen.
+- Append at the END of `## Observations`, after existing bullets.
+- If the Entity/Topic file doesn't have a `## Observations` heading yet (rare — happens with freshly-scaffolded `_seen/` stubs), add it before the bullet.
+
+**Atomicity**: Read the file immediately before each Edit; retry up to 3× on collision when sibling parallel subagents touch the same file. Don't use Write to wholesale-replace; targeted Edit only.
 
 ### Stub-skip rule
 
@@ -507,6 +581,154 @@ After lint is green:
 hirono ingest-preview --since HEAD~1
 ```
 Shows new-Sources count + touched-Entities/Topics + stale-flag count + est refine cost. This is the headline number to report back to the user.
+
+## 11. Refine + curation workflows
+
+When the user says "refine X" / "regenerate Synthesis" / "clean up the wiki" / "fix orphans" — there's a canonical CLI for each. **Reach for it, don't improvise**. Many use a common two-step pattern: command writes a prompt to disk → operator (you) runs Sonnet on it → re-run command with `--response <path> --apply` to atomically write back.
+
+### The `--response <path> --apply` two-step (recurring pattern)
+
+Multiple commands (`auto-detect-entities`, `refine-entity`, `refine-topic`, `refine-synthesis`) follow this shape:
+
+```bash
+# Step 1: prepare prompt (cheap; no Sonnet spend)
+hirono <command> "<target>"                      # writes <prompt>.md to disk
+
+# Step 2: spawn Sonnet subagent
+# Use the Agent tool with model:"sonnet" and feed it the prompt-file path.
+# Save its raw response (whatever shape the prompt asks for) to <response>.json or .txt.
+
+# Step 3: dry-run (preview the diff)
+hirono <command> "<target>" --response <path>
+
+# Step 4: apply atomically (writes Synthesis / scaffolds entities / etc.)
+hirono <command> "<target>" --response <path> --apply
+```
+
+Never skip Step 3 (dry-run) for production runs. The dry-run reveals which entities will be scaffolded, which Observations will be retained, what wikilinks change.
+
+### `auto-detect-entities <slug>` — LLM-NER for a Source
+
+When to run: AFTER you've manually authored `Sources/YYYY/<slug>.md` per §10 and want to discover entities/topics you missed.
+
+```bash
+hirono auto-detect-entities <slug>                                       # writes prompt
+# spawn Sonnet → save JSON response
+hirono auto-detect-entities <slug> --response <path>                     # dry-run
+hirono auto-detect-entities <slug> --response <path> --apply             # creates _seen/<canon>.md stubs
+```
+
+Does NOT insert wikilinks into the Source body — that's still your job (read the dry-run output, decide which to add, edit the Source). Consults `Meta/entity-aliases.md` for normalization (LLaMA → Llama, bfloat16 → BF16). Operator-workflows.md §11.1 is the deep-dive.
+
+### `refine-entity` / `refine-topic` / `refine-synthesis` — regenerate Synthesis sections
+
+Each Entity has a `## Synthesis` and each Topic has a `## Current understanding` paragraph. These rot as Sources accumulate. The 7-day staleness lag (`STALE_LAG_DAYS = 7` in `lint.ts:862`) marks pages whose Synthesis is older than the newest citing Source by >7 days.
+
+```bash
+# Single Entity
+hirono refine-entity "<Name>"                                            # writes prompt to .refine-prompts/
+hirono refine-entity "<Name>" --response <resp> --apply                  # atomic rewrite
+
+# Single Topic
+hirono refine-topic "<Name>" [--response <resp> --apply]
+
+# Top-level Synthesis.md (corpus-wide thesis)
+hirono refine-synthesis [--response <resp> --apply]
+```
+
+All three use the cache-friendly preamble (stable across calls; Anthropic's 5-min cache TTL amortizes) + curated Source excerpts (`tools/hirono/_shared/source-excerpt.ts`) — see `Meta/operator-workflows.md` §11.2 for the token-cost architecture. The per-call measure sidecar at `<prompt>-measure.json` shows char-count + est-tokens.
+
+### `refine-all-stale` — batch refine with cost discipline
+
+The storm-containment command. After bulk ingest, dozens of Entities/Topics flip stale at once.
+
+```bash
+# Always preview before authorizing
+hirono refine-all-stale --preview          # NO Sonnet spend — prints count + est tokens + est $
+hirono refine-all-stale --list             # lists stale items sorted by lag-days desc
+hirono refine-all-stale --limit N          # write prompts for top-N most-stale items only
+hirono refine-all-stale                    # full batch (NO cap — only run after --preview)
+```
+
+**Discipline (from `feedback_*` memory + operator-workflows §11.3)**:
+
+- **Ingest frequently, refine rarely**. Let the 7-day lag accumulate so one refine batches multiple Sources' worth of drift.
+- **--preview before any refine batch**. Always. Burning Sonnet calls without knowing the count is a known waste mode.
+- **--limit N is resumable**. Per-item `synthesis_updated_at` counters are independent — refining top-20 stalest items today leaves the rest for tomorrow's session. Chain `--limit N` across days without breaking anything.
+- **Default cadence**: when `hirono ingest-preview --since HEAD~7` shows >10 stale items, run `--preview`, decide a cap (typical: 10–20), run `--limit N`.
+
+### `ingest-preview` — headline cost preview after ingest
+
+```bash
+hirono ingest-preview --since HEAD~1       # what fan-out did the last commit produce?
+hirono ingest-preview --since-date 2026-05-08
+```
+
+Outputs: new-Sources count, touched-Entities/Topics count, currently-stale count, est refine cost ($) at current Sonnet pricing. Run this after every ingest commit to see whether the storm is forming.
+
+### Curation primitives (atomic, log-tracked)
+
+**Use these instead of manual sed/mv/rm.** Each is atomic, writes to `Meta/refactor-log.md`, and updates the relevant indexes.
+
+```bash
+hirono rename-entity "<Old>" "<New>" --reason "<one-line>"          # rewrites all wikilinks repo-wide
+hirono merge-entities "<Src>" --into "<Tgt>"                        # transfers Observations + links, deletes Src
+hirono merge-topics   "<Src>" --into "<Tgt>"                        # same for Topics
+hirono delete-source <slug> [--keep-raw] [--force] --reason "..."   # removes Source + raw archive (unless --keep-raw)
+hirono bulk-delete-orphans [--confirm | --all-zero]                 # _seen/ entities with refs=0
+```
+
+When the user asks "rename Foo to Bar", `rename-entity` does (a) the file rename, (b) every wikilink rewrite across Sources/Entities/Topics, (c) the refactor log entry. Hand-rolled `mv` + `sed` skips (b) and (c) → produces dead wikilinks + missing audit trail.
+
+### `auto-fix` and `auto-curate` (one-tap)
+
+**`auto-fix`** (Tier-1, NO Sonnet spend, NO deletions): safe alias-merges + refine-prompt prep + index refresh. Pre-commit-hook-safe.
+
+```bash
+hirono auto-fix [--dry-run]
+```
+
+**`auto-curate`** (Tier-1 + Tier-2 unified loop): runs `auto-fix`, then `propose-curation` (Sonnet proposes merges/refines/orphan-deletes based on `health-check` + lint), then `apply-queue`. Default is full-auto on Phase 2; pass `--review` for operator-checkbox.
+
+```bash
+hirono auto-curate                          # full-auto Phase 2
+hirono auto-curate --review                 # operator approves each proposal
+hirono auto-curate --continue               # resume after interruption
+```
+
+When user says "tidy up" / "fix what's broken" / "one-tap cleanup" — reach for `auto-curate`.
+
+### `propose-curation` / `apply-queue` — Tier-2 separately
+
+If you want the propose step without auto-applying:
+
+```bash
+hirono propose-curation                     # Sonnet writes Meta/curation-queue.md
+# operator reads, marks [x] APPROVED on each item
+hirono apply-queue [--auto-apply <level>]   # dispatcher executes approved items via atomic CLIs
+```
+
+### `health-check` — read-only LLM-judgment audit
+
+```bash
+hirono health-check                          # all scopes
+hirono health-check --scope drift            # cross-source contradictions
+hirono health-check --scope sources          # source-quality patterns
+```
+
+Outputs proposed actions WITHOUT executing. Operator-workflows.md §12 deep-dive. Run weekly or when things feel drifty.
+
+### Validation gate (after any refine / curation)
+
+Same as §10:
+
+```bash
+npx tsx tools/bin/reindex.ts
+npx tsx tools/bin/build-sources-index.ts
+npx tsx tools/bin/lint.ts                   # 0 error(s) required
+```
+
+`refine-*` and `auto-curate` already update indexes for their changes, but re-running these three is cheap and catches anything that drifted across operations.
 
 ## Auto-capturing learnings (no reminder needed)
 
