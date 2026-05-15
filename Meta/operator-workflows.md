@@ -1007,9 +1007,32 @@ Apply phase replaces `## Synthesis`, bumps `synthesis_updated_at: <today>`, appe
 ```bash
 hirono refine-all-stale            # prepare prompts for all stale entities
 hirono refine-all-stale --list     # list-only mode (don't write prompt files)
+hirono refine-all-stale --preview  # cost-only: prompts/tokens/$ — no writes
+hirono refine-all-stale --limit 10 # cap to top 10 most-stale; rest deferred
 ```
 
 Runs `lint --check stale-synthesis --json`, calls `refine-entity` in prepare mode for each flagged entity. Operator then orchestrates the per-entity Sonnet calls.
+
+**Refine-storm containment.** Each stale Entity carries its own `synthesis_updated_at` counter (per-item, not global). Refining the top-N stalest items leaves the rest untouched — next run picks them up in lag-desc order. There's no "must refine all at once" coupling. Use `--preview` to see the bill before authorizing; use `--limit N` to cap a batch.
+
+### 11.3a Post-bulk-ingest discipline: `hirono ingest-preview`
+
+After a bulk `fetch-all` + per-Source `auto-detect-entities --apply`, the natural failure mode is the **refine storm**: 30 new Sources can fan out into 80+ stale Entities + 15+ stale Topics. The 7-day staleness lag (see `lint.ts:862` `STALE_LAG_DAYS`) is the natural batching mechanism — but only if the operator stops to see the fan-out shape before reflexively running `refine-all-stale`.
+
+```bash
+hirono ingest-preview              # default: since HEAD~1
+hirono ingest-preview --since v0.7 # against a tag/branch/SHA
+hirono ingest-preview --json       # machine-readable for further tooling
+```
+
+Output:
+
+- **Ingest signal**: new Sources + touched Entities/Topics counts since `<ref>` (from git diff + each Source's `## Entities touched` / `## Topics touched`).
+- **Lint-flagged staleness**: counts of stale-synthesis / stale-topic-synthesis / stale-top-synthesis right now.
+- **Cost preview**: Sonnet calls × est input tokens × est cost (Sonnet 4.6 at list price). Entity costs use real `refineEntity({ preview: true })` builds; topic/top-synthesis costs use stable per-call averages.
+- **Recommended next steps**: cap suggestions, or "wait — staleness will batch further drift".
+
+**Discipline**: ingest frequently, refine rarely. Let staleness accumulate so each refine batches multiple Sources' worth of drift. The 7-day lag is a feature, not a deadline. Manual refines reset the per-item counter cleanly — no drift, no race conditions.
 
 ### 11.4 Top-level [[Synthesis]] regeneration
 

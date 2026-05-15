@@ -23,6 +23,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEntityAliases } from "../curation.ts";
+import { summarizeMeasures, estimateCostUSD } from "./_shared/prompt-measure.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..");
@@ -324,6 +325,16 @@ export function autoFix(repoRoot: string, opts: ParsedArgs): AutoFixResult {
         if (result.ok && !opts.dryRun) r.refinePromptsPrepared++;
       }
       console.log(`\n  Next: spawn Sonnet subagents on the .refine-prompts/ files, save responses, then \`hirono refine-entity <name> --response <path> --apply\` (or \`refine-topic\` / \`refine-synthesis\` per file).`);
+      // Cost summary across ALL currently-pending prompts in .refine-prompts/
+      // (not just this run — measure sidecars accumulate until apply).
+      if (!opts.dryRun) {
+        const summary = summarizeMeasures(join(repoRoot, ".refine-prompts"));
+        if (summary.count > 0) {
+          const cost = estimateCostUSD(summary);
+          console.log(`\n  Pending dispatch cost: ~$${cost.toFixed(2)} across ${summary.count} prompt(s), ~${(summary.est_input_tokens / 1000).toFixed(1)}K input tokens.`);
+          console.log(`  Cap a smaller batch: \`hirono refine-all-stale --limit 10\`.  Headline view: \`hirono ingest-preview\`.`);
+        }
+      }
     } else {
       console.log(`# Step 2: refine-prompt prep — no stale Syntheses`);
     }

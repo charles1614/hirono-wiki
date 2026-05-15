@@ -75,7 +75,11 @@ Top-level:
                                           regenerate ## Synthesis via Sonnet subagent
   refine-topic <name>  [--response <p>] [--apply]
                                           regenerate ## Current understanding via Sonnet subagent
-  refine-all-stale [--list]               batch-prepare refine prompts for stale Syntheses
+  refine-all-stale [--list|--preview|--limit N]
+                                          batch-prepare refine prompts for stale Syntheses
+                                          --preview: cost only; --limit N: top-N most-stale only
+  ingest-preview [--since <ref>]          headline cost preview after bulk ingest:
+                                          new Sources + flagged stale + est tokens/$
   refine-synthesis [--response <p>] [--apply]
                                           regenerate top-level Synthesis.md via Sonnet subagent
   add-comparison-heading <name> [--reason "<one-liner>"]
@@ -296,6 +300,12 @@ async function main(): Promise<void> {
 
   if (family === "refine-all-stale") {
     const { main } = await import("../hirono/refine-all-stale.ts");
+    main([sub, ...rest].filter((a) => a !== undefined));
+    return;
+  }
+
+  if (family === "ingest-preview") {
+    const { main } = await import("../hirono/ingest-preview.ts");
     main([sub, ...rest].filter((a) => a !== undefined));
     return;
   }

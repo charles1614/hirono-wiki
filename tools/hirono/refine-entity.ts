@@ -231,7 +231,7 @@ function buildReplacement(entityRaw: string, newSynthesis: string, dateISO: stri
 }
 
 export interface RefineResult {
-  mode: "prepare" | "dryrun" | "apply";
+  mode: "prepare" | "dryrun" | "apply" | "preview";
   entityPath?: string;
   promptPath?: string;
   oldSynthesis?: string;
@@ -239,12 +239,17 @@ export interface RefineResult {
   citedSources?: string[];
   unresolvedCitations?: string[];
   opId?: string;
+  // Populated only when mode === "preview" — size of the prompt that
+  // WOULD be written, no disk side effects.
+  promptChars?: number;
+  promptLines?: number;
+  sourceCount?: number;
 }
 
 export function refineEntity(
   repoRoot: string,
   name: string,
-  opts: { responsePath?: string; apply?: boolean; sourceMode?: ExcerptMode } = {},
+  opts: { responsePath?: string; apply?: boolean; sourceMode?: ExcerptMode; preview?: boolean } = {},
 ): RefineResult {
   const entityPath = findEntityFile(repoRoot, name);
   if (!entityPath) throw new Error(`entity not found: ${name}`);
@@ -268,9 +273,21 @@ export function refineEntity(
     sourcesBodies.push({ slug: token, body: excerpt });
   }
 
-  // Mode 1: prepare prompt
+  // Mode 1: prepare prompt (or preview — same prompt body, no writes)
   if (!opts.responsePath) {
     const prompt = buildPrompt(name, entityRaw, parsed, sourcesBodies);
+    if (opts.preview) {
+      return {
+        mode: "preview",
+        entityPath,
+        oldSynthesis: parsed.synthesis,
+        citedSources: parsed.cited,
+        unresolvedCitations: unresolved,
+        promptChars: prompt.length,
+        promptLines: prompt.split("\n").length,
+        sourceCount: sourcesBodies.length,
+      };
+    }
     // Prompts live under `.refine-prompts/` (gitignored) so lint's
     // walkWikiDocs doesn't pick them up as malformed entity files.
     const promptDir = join(repoRoot, ".refine-prompts");
