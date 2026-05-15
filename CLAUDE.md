@@ -607,6 +607,43 @@ hirono <command> "<target>" --response <path> --apply
 
 Never skip Step 3 (dry-run) for production runs. The dry-run reveals which entities will be scaffolded, which Observations will be retained, what wikilinks change.
 
+### Sonnet subagent template (Step 2 of the two-step)
+
+The "spawn Sonnet" step is **always via the Agent tool with `model:"sonnet"`** — never `curl` to the API, never a shell `claude` invocation. The wiki's preamble caching depends on the Anthropic-side prefix-match — only Agent-tool calls hit the right code path.
+
+Literal template (paraphrase per command):
+
+```
+Agent({
+  description: "Refine <Name> Synthesis",
+  subagent_type: "general-purpose",
+  model: "sonnet",
+  prompt: `Read the file at <repo-root>/.refine-prompts/<Name>-synthesis-prompt.md (or wherever the CLI wrote it; the CLI prints the path on success). Follow its instructions exactly. Output ONLY the requested artifact (e.g., 4–6 sentences of plain prose for refine-entity) with no preamble or wrapper text. The CLI pastes your output verbatim — extra text breaks the apply step.
+
+Write your output to <repo-root>/.refine-prompts/<Name>-synthesis-response.txt then report the file path. Under 50 words of meta-commentary.`
+})
+```
+
+Response-file path convention per command (where the CLI looks when you pass `--response <path>`):
+
+| Command | Prompt file (CLI writes) | Response file (you write) |
+|---|---|---|
+| `refine-entity "<N>"` | `.refine-prompts/<N>-synthesis-prompt.md` | `.refine-prompts/<N>-synthesis-response.txt` |
+| `refine-topic "<N>"` | `.refine-prompts/<N>-topic-prompt.md` | `.refine-prompts/<N>-topic-response.txt` |
+| `refine-synthesis` | `.refine-prompts/top-synthesis-prompt.md` | `.refine-prompts/top-synthesis-response.txt` |
+| `auto-detect-entities <slug>` | `raw/raindrop/<host>/<slug>/<slug>-entities-prompt.md` | `raw/raindrop/<host>/<slug>/<slug>-entities-response.json` (JSON, not text) |
+| `propose-curation` | `Meta/.propose-curation/prompt.md` | `Meta/.propose-curation/response.json` (JSON) |
+
+Use these literal paths; the CLI's `--response <path>` accepts absolute or repo-relative. **Don't invent custom paths** — operator-workflows.md §11.2 indexes the canonical locations.
+
+### Prompt-cache invariants (don't reorder, don't paraphrase)
+
+The token-cost architecture depends on a strict layout: cache-friendly preamble FIRST, curated-Source excerpts MIDDLE, variable context LAST. The Anthropic API caches by exact-prefix match on a 5-min TTL — every byte change invalidates the cache.
+
+The preamble strings live in `tools/hirono/_shared/prompt-preamble.ts` as deterministic constants (no interpolation, no dates). **Never edit them inline in a prompt file or response text** — that breaks every cache hit for ~5 minutes. If you need to refine the wording of an Entity-refine instruction, edit `prompt-preamble.ts` in code (a single commit, all callers updated) — don't hack the generated `.refine-prompts/*.md` file.
+
+The Sonnet subagent's response (Step 2 output) is also paste-verbatim: 4–6 sentences for `refine-entity`, no preamble, no wikilinks inside the Synthesis itself (per `REFINE_ENTITY_PREAMBLE` in `prompt-preamble.ts:24-50`). The CLI prepends `## Synthesis\n\n` and writes the file atomically; if the response has a `## Synthesis` header or markdown fence, you get a doubled heading.
+
 ### `auto-detect-entities <slug>` — LLM-NER for a Source
 
 When to run: AFTER you've manually authored `Sources/YYYY/<slug>.md` per §10 and want to discover entities/topics you missed.
