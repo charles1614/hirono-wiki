@@ -1,8 +1,8 @@
 ---
 created: 2026-05-12
-updated: 2026-05-11
+updated: 2026-05-15
 type: entity
-refs: 1
+refs: 2
 tier: seen
 ---
 
@@ -12,9 +12,7 @@ NVIDIA's virtual instruction set for tile-based GPU programming, introduced in C
 
 ## Observations
 
-- _(stub — populate as sources reference this entity. Reindex will count refs and may promote to active tier at ≥3.)_
-
 <!-- merged from `Tile IR` on 2026-05-12 -->
 
-- (auto-populated as Sources cite this entity)
+- Virtual ISA for tile-based GPU programming introduced in CUDA 13.1 — the portable intermediate representation that [[CUDA Tile]]'s compiler targets. Sits below cuTile Python source and above hardware-specific PTX/SASS. Enables the "write once, run on future architectures" portability promise because hardware specialization (tensor cores, future units) is encoded in the compiler pass, not the programmer's source. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
 

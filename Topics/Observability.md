@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 5
+source_count: 7
 ---
 
 # Observability
@@ -34,4 +34,4 @@ The corpus currently covers observability at three distinct layers of the LLM st
 
 ## Sources drawn on
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2025-08-18-installation-guide-nsight-systems]] — install reference for [[Nsight Systems]], the system-level GPU/CPU profiler; covers CUPTI + NVTX as the underlying trace mechanisms for the GPU timeline layer

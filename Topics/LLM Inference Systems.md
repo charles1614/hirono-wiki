@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 13
+source_count: 14
 ---
 
 # LLM Inference Systems
@@ -65,4 +65,5 @@ The **cs.DB framing** from the Pan+Li survey remains the most useful cross-cutti
 - [[2026-01-09-google-tpus-explained-architecture-perfo]] — TPU/Gemini context for the hardware axis.
 - [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] — Google's inference-first TPU.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li cs.DB-framed survey; the three-primitive lens.
+- [[2026-01-26-optimizing-glm4-moe-for-production-65-fa]] — Novita AI production SGLang optimizations for GLM-4.7 MoE on H200: Shared Experts Fusion, Qknorm Fusion, Async Transfer (up to 1 s TTFT savings on 92-layer model), Suffix Decoding.
 

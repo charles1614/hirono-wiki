@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 1
+refs: 5
 tier: active
 ---
 
@@ -20,3 +20,4 @@ NVIDIA's GPU programming platform — language extensions, runtime, toolkit, and
 ## Observations
 
 - CUDA 13.1 (Dec 2025) introduces a substantial platform refresh: **CUDA Tile** programming model (Tile IR + cuTile Python) targeting "above SIMT" kernel authoring with compiler-managed Tensor-Core mapping; **green contexts** moved from driver API to runtime API (with customizable `split()` for SM partitioning); **MLOPart** for Blackwell memory-locality partitioning; cuBLAS FP32/FP64 Tensor-Core emulation; Nsight Compute 2025.4 Tile profiling; Compute Sanitizer compile-time patching. Programming guide rewritten end-to-end. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
+- Profiling support for CUDA workloads uses CUPTI (CUDA Profiling Tools Interface) — the mechanism behind [[Nsight Systems]]' CUDA Runtime/Driver API trace and GPU timeline. CUDA 10.0+ is the floor for most platforms; Arm SBSA requires 10.2+. Driver and toolkit must be paired per the published compatibility table. — [[2025-08-18-installation-guide-nsight-systems]]

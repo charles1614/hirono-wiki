@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 8
+source_count: 10
 ---
 
 # MoE Serving
@@ -28,6 +28,12 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 
 **DeepSeek's MLA + MoE serving shape reshapes the bottleneck from memory to compute.** DeepSeek does not use tensor parallelism for decoding, keeping h_q = 128, which pushes the compute-to-memory ratio above H800's ~258 crossover point — making FlashMLA decode compute-bound rather than memory-bound. The FlashMLA seesaw schedule works around the register constraint that prevents FA-3's ping-pong schedule (a 64×512 output matrix requires 32,768 registers — half the SM's register file — so only one output per SM is possible), and achieves ~80% Tensor Core utilization on H800 ([[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]). The implication for MoE serving: high attention-head concurrency (TP=1 → large h_q) combined with fine-grained EP and AlltoAll-per-token is DeepSeek's architectural recipe; the compute-bound attention regime and EP-heavy MoE routing reinforce each other.
 
+**Kernel-fusion and scheduling optimizations are the practical levers in production MoE deployments.** Novita AI's January 2026 SGLang deployment of GLM-4.7 (160+1 experts, 92 layers, TP8 FP8 on H200) isolates four independent wins: (1) **Shared Experts Fusion** — unifying the shared expert into the routed dispatch (top-9 of 161 instead of top-8 routed + 1 separate) yields 23.7% TTFT / 20.8% ITL gains because the small intermediate size (192 under TP8 FP8) makes the double-dispatch overhead proportionally large; (2) **Qknorm+RoPE fusion** into a single head-wise kernel reduces per-layer overhead; (3) **Async Transfer** is the highest-leverage single fix for PD-disaggregated deep-layer models — advancing the KV transfer to fire immediately after its GPU op (in a separate thread) rather than waiting for the next batch's kernel launch eliminates up to 1 s of TTFT on models without CUDA Graph, because 92-layer kernel launch alone accumulates hundreds of ms; (4) **Suffix Decoding** adds 22% TPOT reduction for agentic coding sessions by exploiting output-pattern repetition (39.3% in 22 Claude Code sessions) without any draft model. The Async Transfer insight generalizes: any MoE model with 80+ layers in a PD-disaggregated deployment without CUDA Graph is exposed to this overhead ([[2026-01-26-optimizing-glm4-moe-for-production-65-fa]]).
+
+**Large-scale EP requires load balancing as a first-class infrastructure concern.** SGLang's 96-GPU DeepSeek-V3 deployment ([[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]) demonstrates that EPLB is the dominant single optimization at EP scale: 1.49× prefill and 2.54× decode speedup over unbalanced EP. The mechanism: allocate 32 redundant experts (288 total vs. 256 original), use the extra capacity to replicate hot experts and co-locate cold experts on the same device, minimizing the max-vs-mean token-count gap across GPUs. The redundant-expert budget also unlocks non-power-of-2 EP sizes (EP12, EP72) that strict 256-expert configurations preclude. EPLB effectiveness is directly proportional to alignment with the serving workload distribution — production deployments need periodic rebalancing as traffic shifts, implemented in 3 stages: disk preload → async DMA device transfer → device-to-device weight copy.
+
+**Two-Batch Overlap is the complement to EP at multi-node scale.** When InfiniBand bandwidth is the bottleneck, TBO splits batches into two micro-batches, overlapping computation (attention, MLP) with communication (DeepEP combine + dispatch). On prefill, TBO doubles supported batch size (8K → 16K tokens/device before OOM) and yields 27–40% throughput gains. On decode, gains require batch size ≥ 64–128 tokens; at batch 256, 25.5% speedup. The implementation challenge — CPU-blocking from normal dispatch (DeepEP blocks CPU until metadata received from all ranks) — is resolved by submitting GPU computation tasks before launching the blocking operation, keeping the GPU active.
+
 **Open threads the corpus does not resolve.** AlltoAll comm-overlap strategies — Flux's kernel-fusion approach vs. DeepSeek-V3-style per-EP-instance pipelining — coexist in the literature but are not benchmarked against each other. Fine-grained MoE (256+ experts, 8+ active per token as in DeepSeek-MoE) stresses the EP/AlltoAll path harder than Mixtral's 8-expert design; whether MoE Parallel Folding's MFU gains hold at that granularity is unconfirmed ([[2025-10-28-moeparallel-folding-heterogeneous-parall]]). The drop-vs-dropless quality/throughput tradeoff for inference has no direct measurement in any of the four Sources.
 
 ## Comparison
@@ -50,6 +56,7 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - AlltoAll for MoE: how does Flux's fused-kernel approach compare against per-EP-instance pipelining patterns used in modern MoE serving (e.g., DeepSeek-V3)? — [[2025-10-09-flux-fast-software-based-communication-o]]
 - MoE Parallel Folding supports both token-dropping and token-dropless training; which is recommended for which scenario? The paper presents both as supported without comparing quality vs throughput tradeoffs. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
 - Does MoE Parallel Folding extract similar gains on fine-grained MoE (256+ experts, 8+ active à la DeepSeek-MoE) as on Mixtral's 8 experts? Fine-grained MoE stresses the EP/AllToAll path harder. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
+- EPLB requires in-distribution statistics to be effective; SGLang's 96-GPU deployment concedes this and recommends periodic rebalancing. What is the optimal rebalancing frequency for production traffic with distribution drift? No direct measurement yet. — [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]
 
 ## Sources drawn on
 
@@ -57,4 +64,6 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - [[2025-10-09-flux-fast-software-based-communication-o]] — kernel-fusion comm overlap including AlltoAll (relevant for EP dispatch).
 - [[2025-10-28-moeparallel-folding-heterogeneous-parall]] — Megatron-Core's MoE Parallel Folding; the 5-D hybrid parallelism mapping that decouples attention from MoE.
 - [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]] — FlashMLA decode kernel; the MoE-MLA serving substrate for DeepSeek-class models.
+- [[2026-01-26-optimizing-glm4-moe-for-production-65-fa]] — Novita AI GLM-4.7 production recipe: Shared Experts Fusion (top-k+1 of N+1 unification), Async Transfer scheduling for deep-layer models, Suffix Decoding for agentic workloads.
+- [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]] — SGLang 96-GPU DeepSeek-V3 deployment: EPLB (1.49×/2.54× prefill/decode), TBO (27–40% gains), DeepEP two-mode dispatch, DeepGEMM phase-specific GEMMs; first open-source near-match of DeepSeek's official throughput.
 

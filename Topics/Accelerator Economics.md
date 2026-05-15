@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 4
+source_count: 9
 ---
 
 # Accelerator Economics
@@ -26,7 +26,13 @@ Performance, power, and dollar-cost tradeoffs across AI accelerator vendors and 
 
 **Where the sources agree**: power is now the binding constraint, not silicon area alone. Both Google and NVIDIA frame their next-gen positioning around energy efficiency rather than peak FLOP counts in isolation. The shift is visible in how both companies present TCO: Google as perf/W trajectories across TPU generations, NVIDIA as effective tps/$ enabled by FP4 throughput gains.
 
+**SemiAnalysis now provides specific TCO numbers for the Ironwood vs Blackwell comparison** [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]], filling the gap flagged in earlier Sources. The economic argument has three layers: (1) *structural margin gap* — [[NVIDIA]]'s ~75% gross margin on full systems (chip + CPU + switches + NICs + cabling) vs [[Broadcom]]'s high silicon margin on a simpler BOM structure leaves ~44% lower all-in TCO for [[Ironwood]] from Google's procurement perspective; (2) *rental pricing* — at [[Anthropic]]'s GCP rate of $1.60/hr/chip, Google's margin reduces the advantage to ~30% vs GB200 / ~41% vs GB300; (3) *effective FLOPs inversion* — NVIDIA's marketed Blackwell peak FLOPs are systematically inflated by DVFS (actual in-workload utilization lands in the 70s%), while TPU FLOPs are conservatively rated, so effective $/PFLOP can favor Ironwood at ~40% Anthropic MFU vs GB300 at 30% MFU, yielding ~52% lower TCO per effective PFLOP. The breakeven is 19% extracted Anthropic MFU vs the 30% GB300 baseline — a very wide margin. The OpenAI discount signal is the most policy-relevant datapoint: ~30% NVIDIA fleet discount without deploying a single TPU, purely from competitive threat.
+
 **Where uncertainty remains**: the published TPU v4-vs-A100 comparisons predate H100 and B200. Whether the 1.2-1.7× throughput advantage at 53-77% power holds against Blackwell is an open question — NVIDIA's per-chip gains from Hopper to Blackwell are substantial, and the NVFP4 throughput doubling, if it holds at 70B+ scale, would materially narrow any remaining perf/W gap. The load-bearing signal is the Gemini 3 existence proof: Google committed entirely to TPU for a frontier model, which is a stronger signal than efficiency benchmarks on isolated workloads. Whether that generalizes to labs without Google's Pathways/JAX investment remains unresolved.
+
+**AMD has closed the raw-spec gap at the top of the market.** The Epoch.ai hardware dataset (175 accelerators, May 2026) [[2026-01-22-data-on-machine-learning-hardware]] shows AMD Instinct MI355X at 4.6 PFLOP/s FP8 / 8 TB/s / 288 GB at 1400 W — figures that are spec-equivalent to NVIDIA GB300 Blackwell Ultra. This changes the economics framing: hardware performance parity is now achievable outside NVIDIA silicon; the remaining differentiation axis is software ecosystem depth (CUDA vs ROCm) and supply chain, not chip specs. Whether this translates to deployment-level parity (TFLOP/s utilization rates, software library coverage, cloud availability) is not yet sourced.
+
+**The full-stack capex-per-GW number is now cited in the market.** [[OpenAI]]'s [[Broadcom]] custom chip deal and [[Oracle]] infrastructure contract establish $50–60B/GW as the benchmark for full-stack AI data center capacity. This converts the per-chip accelerator economics comparison into a per-GW infrastructure investment framing: at that capex intensity, the choice of accelerator directly determines the top-line of infrastructure investment required to field a given compute budget. [[2026-01-22-oracle-openai-s-300b-deal-ai-infrastruct]]
 
 ## Comparison
 
@@ -34,9 +40,9 @@ Axis × option table comparing TPU v7 Ironwood (Google's current-gen inference-f
 
 | Axis | TPU v7 Ironwood | NVIDIA GB200 / NVL72 |
 |---|---|---|
-| **Peak compute per chip (FP8)** | 4,614 TFLOPS ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | ? (cited sources give tps not raw TFLOPS) |
-| **Memory per chip** | 192 GB HBM (6× Trillium) ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | ? |
-| **HBM bandwidth per chip** | 7.37 TB/s (4.5× Trillium) ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | ? |
+| **Peak compute per chip (FP8)** | 4,614 TFLOPS ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | 5,000 TFLOPS (GB300 Blackwell Ultra) / 5,000 TFLOPS (GB200) ([[2026-01-22-data-on-machine-learning-hardware]]) |
+| **Memory per chip** | 192 GB HBM (6× Trillium) ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | 288 GB (GB300) / 186 GB (GB200) ([[2026-01-22-data-on-machine-learning-hardware]]) |
+| **HBM bandwidth per chip** | 7.37 TB/s (4.5× Trillium) ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | 8 TB/s (GB300 / GB200) ([[2026-01-22-data-on-machine-learning-hardware]]) |
 | **Max scale-up pod / system size** | 9,216 chips → 42.5 EFLOPS/pod ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | 72 GPUs / NVL72 rack ([[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]) |
 | **Scale-up interconnect** | ICI 3D torus; 1.2 TBps bidirectional/chip (1.5× Trillium); Optical Circuit Switches for cross-pod ([[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]) | NVLink (rack-scale NVL72) ([[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]) |
 | **Max-throughput inference (120B MoE)** | ? (no cited head-to-head number) | >1.5M tps system-wide on GB200 NVL72 ([[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]) |
@@ -56,10 +62,16 @@ Axis × option table comparing TPU v7 Ironwood (Google's current-gen inference-f
 
 - TPU v4 vs A100 perf-at-power numbers (1.2-1.7× at 53-77% power) date from 2023. Does the gap hold against H100 / B200? H100 is significantly faster than A100 per chip. — [[2026-01-09-google-tpus-explained-architecture-perfo]]
 - Power as competitive moat: does Ironwood + AI Hypercomputer become a structural advantage vs Nvidia, or does Nvidia + grid-power-PPA close the gap? — [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]]
+- Trainium3 perf-per-TCO claims vs GB200 NVL72 remain unquantified — SemiAnalysis references its paywalled TCO Model for granular numbers. Needed: actual tps/$ comparison Trn3 NL72x2 vs GB200 NVL72 at comparable model/batch. — [[2026-02-04-aws-trainium3-deep-dive-a-potential-chal]]
+- SemiAnalysis Ironwood analysis is behind a partial paywall — the Nvidia competitive analysis section and TPU v8 roadmap (Vera Rubin vs TPUv8AX/8X "Sunfish/Zebrafish") were not captured. The TCO model numbers ($1.60/hr Anthropic pricing, 44% all-in TCO delta) come from the public section but the full competitive framing may have nuance not visible here. — [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]]
 
 ## Sources drawn on
 
 - [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]] — concrete Blackwell deployment numbers (1.5M tps on GB200 NVL72); the dollar-per-token denominators for any TCO comparison.
 - [[2026-01-09-google-tpus-explained-architecture-perfo]] — IntuitionLabs cross-gen analysis with the 1.2-1.7× perf at 53-77% power claim and the Gemini-3-on-TPU existence-proof framing.
 - [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] — Google's primary-source Ironwood announcement; the 30× perf/W vs v2 + 2× vs Trillium positioning is canonical here.
+- [[2026-01-22-data-on-machine-learning-hardware]] — Epoch.ai's 175-accelerator dataset; fills AMD/Trainium/Ascend/MTIA spec gaps; establishes AMD-NVIDIA spec parity at the top tier.
+- [[2026-02-04-aws-trainium3-deep-dive-a-potential-chal]] — SemiAnalysis deep dive on Trainium3; perf-per-TCO framing, air-cooling TCO analysis, Astera Labs/Credo equity-warrant rebate structures, time-to-monetization as primary competitive axis vs Nvidia GB200.
+- [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]] — SemiAnalysis Ironwood externalization analysis; the cited source for the ~44% TCO delta, Anthropic deal structure, MFU breakeven math, DVFS FLOPs inflation argument, and OpenAI discount-without-deployment signal.
+- [[2026-01-22-oracle-openai-s-300b-deal-ai-infrastruct]] — IntuitionLabs Oracle–OpenAI $300B deal analysis; establishes $50–60B/GW as the full-stack AI data center capex benchmark; documents OpenAI–Broadcom custom silicon program and AMD 6 GW commitment as the supply diversification response.
 

@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
+updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 8
+refs: 10
 tier: active
 ---
 
@@ -26,3 +26,5 @@ SGLang is an open-source LLM inference framework with active contributions from 
 - **H20-96G DeepSeek production stack**: Ant Group's January 2026 meetup talk maps slide-level optimizations to upstream SGLang PRs — `#10568` TP scattered prefill, `#10953` MHA one-shot under chunked prefix, `#10567` FusedMoE TMA down-proj, `#16723` SwapAB, `#9660` SBO, `#11398/#11434` EAGLE spec-overlap + CUDA-graphed draft post-processing. Demonstrates a methodological pattern worth noting: **MoE tuning uses real-traffic `topk_ids`** rather than synthetic, and **EPLB uses co-activation matrices** rather than random init. — [[2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系]]
 - **Claude-Code SKILL ecosystem** (in-tree at `sglang/.claude/skills/` + external at `BBuf/AI-Infra-Auto-Driven-SKILLS`): 4 SKILLs for auto-driven development — remote-machine connection, CUDA crash debug (PR #20910, staged kernel-API logging at levels 1/3/5/10), auto-driven benchmark (PR #21736, YAML-driven server-flag search + SLA + resume), Torch profiler analysis (unified entry). Methodological theme: high-experience operator work becomes agent-executable SKILLs. — [[2026-04-01-面向-sglang-的自动驾驶开发-远程连接-cuda-crash-排查-自动b]]
 - **Daily-PR velocity tripled** mid-2025 → early-2026: 14-day moving average climbed from ~20-25 PRs/day (April-July 2025) to ~55-60 PRs/day by March 2026, with peak day 91 PRs (2026-01-05). Codex-generated chart, hand-verified. Combined with vLLM, the two-framework total averages ~130-150 PRs/day (peak 193 on 2026-03-04). Attributed to agent-amplified development (Claude Code + Codex). — [[2026-03-31-ygzr-xhumemrmzipbfsw]]
+- **GLM-4.7 production optimizations** (Novita AI, Jan 2026): four merged/pending SGLang PRs deliver 65% TTFT + 22% TPOT gains on H200 TP8 FP8 agentic workloads — PR #13873 Shared Experts Fusion (+23.7% TTFT / +20.8% ITL), PR #15141/#15305 Qknorm Fusion, PR #14782 Async Transfer (up to 1 s TTFT savings on 92-layer models without CUDA Graph by advancing transfer to fire immediately after its GPU op in a separate thread). Demonstrates that deep MoE models in PD-disaggregated deployments are especially sensitive to transfer scheduling. — [[2026-01-26-optimizing-glm4-moe-for-production-65-fa]]
+- **First open-source near-match of DeepSeek's reported inference throughput** (SGLang Team, May 2025): 12-node × 8 H100 deployment of DeepSeek-V3 with PD disaggregation + EP72 decode + EP32 prefill achieves **52.3k input / 22.3k output tokens/sec per node** for 2K inputs, 5× over TP16 baseline. Decode at 9 nodes matches DeepSeek's profile at 16 nodes. Key design decisions: DP Attention + DP dense FFN (eliminates KV cache duplication; cuts FFN all-reduce 50%), DeepEP normal dispatch for prefill + low-latency dispatch for decode (requires PD disagg for coexistence), EPLB (1.49× prefill / 2.54× decode speedup), Two-Batch Overlap (27–40% throughput gain; doubles prefill batch capacity). RDMA-based non-blocking KV transfer via Mooncake/NIXL. Cost estimate: \$0.20/1M output tokens. — [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]

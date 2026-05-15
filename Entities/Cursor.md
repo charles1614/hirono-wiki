@@ -1,0 +1,19 @@
+---
+created: 2026-05-12
+updated: 2026-05-15
+type: entity
+refs: 3
+tier: active
+---
+
+# Cursor
+
+AI-powered code editor with a CLI mode supported by vibe-replay for session capture and replay, accounting for 6% of demo activity.
+
+## Synthesis
+
+*Regenerated from Observations below as evidence accumulates.*
+
+## Observations
+
+- _(append cited bullets here as Sources reference this entity — one atomic claim per bullet, trailed with a Source wikilink)_

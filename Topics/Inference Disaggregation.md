@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 7
+source_count: 8
 ---
 
 # Inference Disaggregation
@@ -26,6 +26,8 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 
 **Architecture sensitivity is non-trivial.** The boundary where disaggregation wins moves with attention mechanism (MLA vs GQA) and model shape. The NVIDIA study shows disagg wins differ for DeepSeek-R1 vs Llama-3.1-70B at the same interactivity targets. Larger NVLink domains improve outcomes by widening EP/TP options for the decode pool. This makes disaggregation a decision that must be evaluated per-model-per-traffic-shape, not a blanket infrastructure choice ([[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]).
 
+**PD disaggregation is not merely beneficial but architecturally required for large-scale MoE serving with DeepEP.** SGLang's 96-GPU DeepSeek-V3 deployment ([[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]) surfaces a hard constraint: DeepEP's two dispatch modes — normal dispatch (prefill: throughput-optimized, symbolic shapes, incompatible with CUDA Graph) and low-latency dispatch (decode: latency-minimized, pre-allocated fixed memory, CUDA-Graph-compatible) — cannot coexist in the same communication group without disaggregation. A unified scheduling engine forces one mode for all requests, blocking DP Attention + CUDA Graph co-deployment. PD disaggregation dissolves the constraint by giving each phase its own communication group. Three additional unified-scheduling pathologies are diagnosed: prefill batches interrupt decode, DP Attention imbalance under mixed-phase batches, and the dispatch-mode conflict itself.
+
 **Observability for disaggregated deployments is now a distinct engineering concern**, and the two major frameworks are taking different shapes. SGLang ([[2025-11-17-feature-sglang-tracing-fine-grained-trac]]) goes **OpenTelemetry-spans-first** — PD-disaggregation (mini-LB, prefill nodes, decode nodes) is a first-class case in the tracing design, with Jaeger/Zipkin for request-centric views and Perfetto for thread-centric views. A notable implementation challenge was adapting OTel's single-context model to continuous batching's multi-request interleaving. vLLM ([[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]]) goes **Prometheus-metrics-first** — PR #26811 exposed KV-transfer metrics (sizes, durations, counts) via a generalized `KVConnectorStats` abstraction so NIXL and future KV backends plug into the same dashboard story. Before this PR, PD-disagg vLLM deployments had no visibility into the data-plane KV transfer path.
 
 ## Comparison
@@ -47,6 +49,7 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 ## Open threads
 
 - Are simulator-based design-space-exploration numbers translatable to dollars/W for capacity planning? Beyond-the-Buzz reports normalized Pareto frontiers; the missing translation is the cost-engineering step. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]
+- SGLang's MTP integration gap: simulated MTP recovers decode throughput to within 6.6% of DeepSeek's profile, but full MTP + DP Attention co-deployment is not yet implemented. Does MTP's attention overhead generalize to non-DeepSeek architectures in a disaggregated setup? — [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]
 
 ## Sources drawn on
 
@@ -54,4 +57,5 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 - [[2025-11-17-feature-sglang-tracing-fine-grained-trac]] — SGLang OpenTelemetry tracing with PD-disagg as a first-class case.
 - [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] — vLLM NIXL/KVConnectorStats observability for PD-disagg data plane.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li survey treating disaggregation as a first-class composition tier.
+- [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]] — SGLang 96-GPU DeepSeek-V3 deployment; surfaces DeepEP dispatch-mode incompatibility as hard constraint; EPLB + TBO as the two load-bearing optimizations at scale.
 

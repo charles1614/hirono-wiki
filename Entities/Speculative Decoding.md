@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 4
+refs: 5
 tier: active
 ---
 
@@ -19,4 +19,4 @@ Speculative decoding accelerates autoregressive inference by having a lightweigh
 
 ## Observations
 
-- _(append cited bullets here as Sources reference this entity — one atomic claim per bullet, trailed with a Source wikilink)_
+- **Suffix Decoding** (model-free speculative): pattern-matches request suffix against a cache of prior outputs; no draft model weights. Analysis of 22 Claude Code sessions (17,487 turns) found 39.3% output-pattern repetition, enabling 22% TPOT reduction on top of MTP baseline for GLM-4.7 (mean TPOT 25.13 ms → 19.63 ms). Effective specifically for agentic coding workloads with high structural repetition. — [[2026-01-26-optimizing-glm4-moe-for-production-65-fa]]

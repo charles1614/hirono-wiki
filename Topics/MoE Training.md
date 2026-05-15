@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
+updated: 2026-05-15
 synthesis_updated_at: 2026-05-13
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # MoE Training
@@ -25,6 +25,8 @@ Two distinct regimes exist for handling **expert capacity** (the maximum tokens 
 **Routing strategies** vary along two axes — *who is routed* and *how many experts*. Token-choice routing (each token picks its top-k experts) is the dominant design; expert-choice routing (each expert picks its top-k tokens) guarantees perfect load balance but breaks autoregressive generation. Auxiliary-loss-free alternatives (e.g. bias-based routing adjustments as in DeepSeek-V3) attempt to achieve balance without the loss term, trading the coefficient tuning problem for a heuristic update rule. Fine-grained MoE (many small experts, higher k) offers smoother load distribution at the cost of more all-to-all traffic.
 
 **Key open questions** in the field concern how expert specialization actually emerges (token frequency vs semantic clustering), whether router collapse can be fully prevented without auxiliary loss, optimal EP rank count for a given cluster topology, and how MoE training stability interacts with low-precision (FP8/INT8) training regimes.
+
+**Sparse activation as an architectural principle, not just an efficiency trick.** The [[Pathways]] announcement (2021) reframes sparse MoE routing as the mechanism for *generalization* — each task activates a different subnetwork, and the model learns to route tasks through whichever sub-circuits are most relevant. [[GShard]] and [[Switch Transformer]] are cited as efficiency evidence (sub-1/10th energy vs equivalent-capacity dense models), but the broader claim is that sparsity enables a single model to acquire specializations that can be dynamically composed for novel tasks [[2026-01-12-introducing-pathways-a-next-generation-a]]. This framing connects to the load-balancing and routing-collapse challenges above: if sparse routing is genuinely where specialization lives, then routing collapse isn't just an efficiency failure — it's a quality failure.
 
 ## Open threads
 

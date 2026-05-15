@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 5
+source_count: 6
 ---
 
 # LLM Training Systems
@@ -27,6 +27,8 @@ The dominant open frameworks as of early 2026 are **Megatron-LM** (NVIDIA; tenso
 **Memory** is the other primary constraint. The ZeRO (Zero Redundancy Optimizer) family (ZeRO-1/2/3) partitions optimizer states, gradients, and parameters across data-parallel ranks, trading extra communication for linear memory reduction. Activation recomputation (also called gradient checkpointing) trades FLOPs for memory by recomputing activations during the backward pass rather than storing them. Mixed precision (BF16 forward/backward, FP32 master weights and optimizer states) is now the default; FP8 training is emerging for frontier runs.
 
 Once Sources are attached, this section should be revised to anchor each claim to a specific `<source-slug>` and to surface any inter-source disagreements (e.g., differing MFU benchmarks, competing parallelism strategies, framework adoption claims).
+
+**Per-device memory structure** during a training step decomposes into five zones: parameters (static), activations (forward pass; retained until next forward overwrites them), gradients (backward), optimizer state ([[AdamW]]: 2NP bytes for two moments), and optimizer intermediates (transient during update). Peak memory depends on batch size — large batches peak during the forward pass; small batches during the optimizer step. [[PyTorch]]'s `torch.cuda.memory._record_memory_history` + pytorch.org/memory_viz provides per-event visibility into these zones. — [[2025-09-22-visualize-and-understand-gpu-memory-in-p]]
 
 ## Open threads
 
