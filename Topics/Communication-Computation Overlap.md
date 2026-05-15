@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 15
 ---
 
 # Communication-Computation Overlap
@@ -56,6 +56,11 @@ The core problem is that **tensor parallelism (TP)** — the only practical path
 - How much Flux retuning does Blackwell require? CUTLASS-based kernel fusion has per-target-arch cost; A100/H800 was the original tuning set. — [[2025-10-09-flux-fast-software-based-communication-o]]
 - Does Flux's fused-kernel approach degrade gracefully at lower-bandwidth interconnects (cross-node TP via Infiniband), or is it only viable intra-node on NVLink? — [[2025-10-09-flux-fast-software-based-communication-o]]
 
+## Observations
+
+- Megatron Interleaved 1F1B 可 overlap 的两个设计条件：(1) 循环中 send_forward_recv_forward 与 Backward 无依赖；(2) 发起通信时对端已准备好数据。计算负载不均衡（最后 Stage 额外 Logit/Loss 计算）破坏条件 2，实验（PP=4, VP=2, 4×A100）可测到周期性通信延迟。相比之下，Native 1F1B 因 send_backward_recv_forward 直接用于下一步计算而无法 overlap。 — [[2025-08-25-megatron-interleaved-1f1b流水线并行中的计算负载不均衡问]]
+- [[DeepEP]] 低时延 Kernel 通过 Receiving Hook 接口实现两个 Micro-Batch 的 Overlap：一个 Micro-Batch 的 RDMA 传输在另一个 Micro-Batch 的 Attention+MoE 计算期间异步执行，不占用任何计算 SM；Overlap 阶段可根据 Attention/Dispatch/MoE/Combine 实际执行时间灵活配置分界点。 — [[2025-10-09-deepseek-开源系列之-deepep-介绍]]
+
 ## Sources drawn on
 
 _(none yet — wikilinks from Sources will populate this on the next reindex pass)_
@@ -64,3 +69,8 @@ _(none yet — wikilinks from Sources will populate this on the next reindex pas
 
 - (auto-populated by reindex)
 
+## Observations
+
+- NCCL symmetric memory (NCCL 2.27) is the foundational primitive for low-latency intra-node collective kernels: by mapping shared VA layouts across all local ranks, custom GPU kernels can implement AllGather/AllReduce entirely within the kernel without separate NCCL host API calls, enabling tighter comm-compute overlap at the instruction level. — [[2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par]]
+- Alibaba [[RTP-LLM]] MicroBatch overlap for [[DeepSeek-V3]]: Dispatch (FP8) is shorter than Combine (FP16); Combine requires more compute to hide — Shared Expert compute covers Combine in Prefill; Decode uses Attention as the Dispatch-side cover and MoE MLP as the Combine-side cover; unified communication callback interface built to support DeepEP's two modes + Vanilla All2All + other hardware. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
+- [[DeepEP]] low-latency kernel three-stage flow: LOW_LATENCY_SEND_PHASE (SMs active, ~10 µs) → RDMA transit (SMs idle) → LOW_LATENCY_RECV_PHASE (SMs active, ~10 µs); `recv_hook=true` splits into two independent kernel launches, releasing SM resources between phases. — [[2025-10-09-xzwazsg-zjcksvuvksvw]]

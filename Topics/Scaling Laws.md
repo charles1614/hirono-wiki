@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 8
+source_count: 11
 ---
 
 # Scaling Laws
@@ -33,6 +33,8 @@ The corpus currently holds two concrete data points on scaling laws, both from t
 ## Observations
 
 - Karpathy (2025 review): RLVR introduced a new test-time compute scaling axis — longer reasoning traces = higher capability — and caused labs to redirect pretraining compute budget toward RL runs; compute-optimal pretraining is no longer the sole scaling axis. Combined with RLVR's domain-specific performance spikes ("jagged intelligence"), classical benchmark scores no longer reliably track capability. — [[2025-12-20-2025-llm-year-in-review]]
+- 小鹏汽车（2025年4月，香港AI技术分享会）首次在自动驾驶领域完成充分验证：在10B→30B→70B→720B参数规模上均观测到明显规模效应，参数越大能力越强，训练数据越多能力越强；该验证使用多模态驾驶数据（摄像头+导航等），而非单模态文本数据，证明规模法则在需要物理世界理解的多模态VLA领域同样持续生效。 — [[2025-12-08-小鹏汽车启动720亿参数自驾基模研发-初步验证自动驾驶规模法则-小鹏汽车官网]]
+- [[Meta]] [[ScaleRL]] (400K GPU-hours): RL compute scaling follows a sigmoid saturation curve with parameters A (asymptotic ceiling), B (efficiency), C_mid (midpoint); early-training curve fitting at 50% budget accurately predicts final performance; common tricks (loss aggregation, curriculum, length penalty, advantage normalization) improve B not A — they are efficiency levers, not ceiling-raisers. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]
 
 ## Sources drawn on
 

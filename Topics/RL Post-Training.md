@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 15
+source_count: 18
 ---
 
 # RL Post-Training
@@ -41,3 +41,7 @@ The dominant production pattern (as of early 2026) connects a distributed traini
 - Karpathy identified RLVR (Reinforcement Learning from Verifiable Rewards) as the defining capability driver of 2025: unlocks much longer optimization runs than SFT/RLHF (which are "thin" finetunes), allows test-time compute scaling via reasoning trace length, and caused labs to redirect pretraining compute toward RL runs. [[DeepSeek-R1]] is cited as the canonical example; OpenAI o1 (late 2024) was first, o3 (early 2025) was the inflection point. — [[2025-12-20-2025-llm-year-in-review]]
 - Seer ([[Moonshot AI]] + Tsinghua, arXiv:2511.14617) addresses the synchronous RL rollout long-tail problem with three mechanisms: divided rollout (chunk-based KV-cached generation with dynamic load balancing via [[Mooncake]] global KV pool), context-aware length scheduling (per-group length estimation from first-response oracle + LFS/SFS routing), and adaptive grouped speculative sampling (Compressed Suffix Trees shared across group responses for no-draft-model speculation). Vs VeRL: **74–97% throughput gain**, **75–93% tail-latency reduction** on Qwen2-VL-72B and [[Kimi K2]]. — [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]]
 - 地平线RAD的3DGS-env RL是AV-domain的RL后训练示例：从2000h真实驾驶数据做感知预训练+IL规控，然后选4305个危险场景用3DGS重建sensor-level env做RL；RL与IL混合比4:1最优，碰撞率降低约3倍；表明3DGS质量和危险场景覆盖度是AV-RL效果的关键瓶颈。 — [[2025-12-25-地平线rad-基于3dgs-大规模强化学习的端到端驾驶策略]]
+- ROLL Flash (Alibaba) demonstrates 2.72× Agentic (ALFWorld) and 2.24× RLVR throughput gain over synchronous RL training via per-prompt queue scheduling + prompt replication + environment-level async + redundant environments; AsyPPO shows full-scale critic is unnecessary — two mini-critics achieve comparable quality at 20s/step savings; Attention Rhythm credit-assignment boosts AIME25 +5pp and AMC23 +6.3pp vs GRPO baseline. — [[2025-11-10-3a大作-阿里roll团队从基建-算法-机理-推动rl4llm全栈协同优化]]
+- [[Meta]]'s [[ScaleRL]] framework (400K GPU-hours on GB200) provides the first systematic RL compute scaling study: performance follows a sigmoid saturation curve parameterized by asymptotic ceiling A and efficiency B; methods with high small-scale performance often have lower A; technical tricks (loss aggregation, curriculum, length penalty, advantage normalization) improve B not A. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]
+
+- [[Nsight Systems]] integration in [[verl]] (via NVIDIA engineer, Jul 2025): Ray-based RL programs require injecting Nsight via RayActor `runtime_env` at construction time (not via standard `nsys <app>` wrapper) because Ray schedules compute processes remotely; verl's single-controller design adds complexity requiring separate tracking of controller and worker processes; NVTX marks verl's step/gen/reward/update subtasks for per-subtask profiling. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]

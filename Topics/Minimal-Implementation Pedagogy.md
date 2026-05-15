@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-15T00:00:00.000Z
 type: topic
-source_count: 3
+source_count: 4
 ---
 
 # Minimal-Implementation Pedagogy

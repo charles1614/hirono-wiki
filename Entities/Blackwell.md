@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 35
+refs: 37
 tier: active
 ---
 
@@ -19,6 +19,7 @@ NVIDIA's Blackwell generation (B200/B300/GB200/GB300) is the first architecture 
 
 ## Observations
 
+- Blackwell MXFP8 训练开销分析：以典型 MoE 矩阵乘法为例，计算 1.16ms，但量化+写回需搬运约 2.9 GB 数据，耗时 0.44ms（占 38%）；反向传播中转置-量化开销翻倍至 0.88ms（占 76%），因 Blackwell FP8 张量核心吞吐翻倍但 CUDA core 仅提升约 33%，反量化速度严重滞后于计算速度。 — [[2025-08-28-深度解析-deepseek为什么要推ue8m0-fp8]]
 - Primary target architecture for gpt-oss-120b deployment in TensorRT-LLM 1.1.0rc1 (B200/GB200/H200 hardware). Headline benchmark: **GB200 NVL72 delivers >1.5M tps system-wide** at max-throughput. — [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]]
 - Vera Rubin NVL72 claims 1/4 the GPU count for MoE training and 1/10 cost per token for agentic inference (Kimi-K2-Thinking, 32K/8K ISL/OSL) relative to Blackwell NVL72; built on the same third-generation MGX NVL72 rack form factor, offering a "seamless transition" from prior generations. — [[2026-01-26-nvidia-vera-rubin-nvl72-co-designed-infr]]
 - Used as the hardware baseline for the disaggregation systematic study's 100k+ design-point sweep — DeepSeek-R1 / Llama-3.1-70B/405B simulated on Blackwell + FP4 precision. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]]

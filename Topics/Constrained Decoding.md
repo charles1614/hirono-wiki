@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # Constrained Decoding
@@ -28,3 +28,7 @@ A Trie-based approach is theoretically correct (prefix matching on the character
 ## Sources drawn on
 
 _(populated as Sources wikilink this Topic; cite each with one-line relevance.)_
+
+## Observations
+
+- [[Moonshot AI]] K2VV recommends adding guided encoding (constrained decoding) as Vendor Fix #3 for [[Kimi K2]] tool-call schema accuracy: large models generate tokens probabilistically and cannot enforce a hard JSON schema without guided encoding; vendors missing this step saw 5–27% schema_accuracy degradation vs the official API. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]

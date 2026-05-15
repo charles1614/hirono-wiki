@@ -1,8 +1,8 @@
 ---
 created: 2026-05-12
-updated: 2026-05-12
+updated: 2026-05-15
 type: entity
-refs: 0
+refs: 1
 tier: seen
 ---
 
@@ -16,4 +16,4 @@ Baidu's custom inference XPU used as the benchmark hardware for AttentionStore, 
 
 ## Observations
 
-- _(append cited bullets here as Sources reference this entity — one atomic claim per bullet, trailed with a Source wikilink)_
+- 昆仑芯 P800 超节点通过 XPU Link 将 NVLink 能力扩展至单超节点内 32 至 64 卡互联；百度混合云在其上实现 MoE 训练 MFU 超 50%，万卡有效训练率 98%。 — [[2025-09-16-超大规模-ai-基础设施建设实践-极致释放算力效能]]

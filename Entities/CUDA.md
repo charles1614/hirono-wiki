@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 21
+refs: 27
 tier: active
 ---
 
@@ -24,3 +24,5 @@ NVIDIA's GPU programming platform — language extensions, runtime, toolkit, and
 - CUDA-L2 (arXiv:2512.02551) demonstrates that LLM-generated CUDA kernels improve significantly with staged leveled prompting: Level 0 (correct), Level 1 (memory — tiling + shared memory), Level 2 (compute — warp + tensor cores), with level-appropriate learnable feedback, outperforming GPT-4o on HPC benchmarks without any reference code. — [[2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书]]
 - Three official CUDA container image variants cover distinct use cases: `base` (libcudart only — run pre-compiled binaries), `runtime` (base + cuBLAS/cuDNN — inference/training), `devel` (runtime + nvcc + headers — build custom CUDA operators); `libcuda.so` is always injected by [[NVIDIA]] Container Toolkit at runtime and must never be installed in the container image itself. — [[2026-01-20-nvidia-gpu-容器环境-原理与构建指南]]
 - Compute Capability (CC) defines the hardware features and supported instructions per GPU architecture: CC 9.0 = Hopper (H100/H200/GH200), CC 10.0 = [[Blackwell]] (GB200/B200), CC 10.3 = GB300/B300, CC 12.0 = RTX PRO Blackwell / GeForce RTX 5090–5050, CC 12.1 = GB10 (DGX Spark). Programs must be compiled for the target CC to use architecture-specific instructions such as `tcgen05.mma`. — [[2026-01-15-nvidia-cuda-gpu-compute-capability]]
+- User-triggered GPU core dump via CUDA driver named pipe (`CUDA_ENABLE_USER_TRIGGERED_COREDUMP=1`, `CUDA_COREDUMP_PIPE`) enables capturing hung-kernel state without killing the process; writing 1 MB of zeros to the pipe triggers the dump. The pipe path is discoverable via `/proc/<pid>/fd/`. Requires `NVCC_PREPEND_FLAGS=-lineinfo` + `nvdisasm -ndf -c -gi` on the extracted cubin to get the full multi-level inline call chain beyond what `cuda-gdb` alone shows. — [[2025-12-04-从gpu卡死到精准锁定出错代码-vllm-cuda-调试实战技巧]]
+- CUDA VMM (Virtual Memory Management, introduced CUDA 10.2) powers NCCL 2.27 symmetric memory: `cuMemAddressReserve` + `cuMemCreate` + `cuMemMap` decouples VA from physical allocation, enabling each rank to export its buffer handle, distribute via allgather, import peer handles, and map them at a deterministic offset in a shared VA layout; `cuMemSetAccess` grants per-region P2P access, replacing the less granular `cudaDeviceEnablePeerAccess`. — [[2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par]]

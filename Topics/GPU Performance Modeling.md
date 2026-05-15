@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 3
+source_count: 6
 ---
 
 # GPU Performance Modeling
@@ -31,3 +31,6 @@ The practical output of the modeling workflow is a prioritized list of bottlenec
 ## Sources drawn on
 
 _(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+
+- inference.ai GPU calculator provides parameterized transformer architecture model for VRAM estimation: total inference memory = model weights (precision × N params) + KV cache (2 × context × dim × batch × layers × precision_bytes ÷ 1024³); training memory = FP32 model + FP32 gradients + Adam states (2× model) + CUDA kernels ~2 GB; for a 3.77B-param model, inference fits in 12 GB (RTX 4070 Ti at 98
+- inference.ai GPU calculator provides parameterized transformer architecture model for VRAM estimation: total inference memory = model weights + KV cache; training = FP32 model + FP32 gradients + Adam states (2x model) + ~2 GB CUDA kernels overhead; for a 3.77B-param model, inference fits in 12 GB (RTX 4070 Ti at 98%) while FP32+Adam training requires 62 GB minimum (H100/A100 class). — [[2025-07-24-gpu-calculator]]

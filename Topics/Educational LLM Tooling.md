@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 4
+source_count: 5
 ---
 
 # Educational LLM Tooling
@@ -29,3 +29,7 @@ As sources accumulate, this section should be updated to record: which specific 
 ## Sources drawn on
 
 _(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+
+## Observations
+
+- Reddit r/ClaudeAI practitioner tip (score 498, Nov 2024): including KISS/YAGNI/SOLID principles in prompts reduces LLM-generated code bloat by ~50%, even on smaller models (Haiku 3.5). An ~800-token structured system prompt using pseudo-code behavioral syntax (`ENFORCE {}`, `VALIDATE_AGAINST {}`) can be more effective than natural language instructions — the prompt format was reportedly developed by asking [[Claude]] to optimize a prompt for LLM adherence. The lesson: prompt engineering for code quality is a learnable, teachable skill with measurable output size reduction. — [[2025-07-27-pro-tip-these-3-magic-words-will-make-cl]]

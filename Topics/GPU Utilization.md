@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 1
+source_count: 6
 ---
 
 # GPU Utilization
@@ -29,6 +29,12 @@ Profiling tools (NVIDIA Nsight Systems, PyTorch Profiler, `ncu` / `nvtx` markers
 There is broad agreement that **wall-clock MFU of 40–50% is a reasonable production target** for well-tuned large-model training; numbers below 30% usually indicate a fixable bottleneck (pipeline bubbles, data-loading, unoptimized attention). For inference, the relevant metric shifts to **tokens-per-second-per-dollar** or **time-to-first-token**, which fold in batching efficiency and hardware cost alongside raw compute utilization. The field has not yet converged on a single inference-utilization metric analogous to MFU.
 
 ## Open threads
+
+## Observations
+
+- `DCGM_FI_PROF_GR_ENGINE_ACTIVE` supersedes `DCGM_FI_DEV_GPU_UTIL`: higher precision, MIG-compatible; a 1-thread kernel reports 100% GPU Util yet only 2.5% SM Active on a 40-SM T4. `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` approximates HFU upper bound for BF16 LLM training; experimentally validated at ~48% Tensor Active vs 45.5% Megatron-LM MFU on a 2×8×H100 3B run. — [[2025-08-16-聊聊-gpu-监控那些事-利用率-故障等]]
+- DCGM three-dimensional utilization model: `PROF_GR_ENGINE_ACTIVE` (any kernel on any SM, fractional 0–1) → `PROF_SM_ACTIVE` (fraction of SMs active) → `PROF_SM_OCCUPANCY` (warps resident vs theoretical max of 2048/SM); `PROF_SM_ACTIVE * numSMs` estimates active SM count; SM is counted busy even when blocked on DRAM transfers. — [[2025-08-15-question-about-dcgm-fields-issue-64-nvid]]
+- Production case: transformer training with 100% GPU utilization measured only ~20% MFU because unfused Softmax/LayerNorm/residual kernels ran memory-bound at low SM efficiency; applying FlashAttention + fused MLP/dropout/LayerNorm raised MFU to 38% and cut training time 4× — confirms GPU utilization (any-kernel-executing) is misleading and SM Efficiency (fraction active SMs) is the actionable diagnostic. — [[2025-11-02-别被-100-骗了-gpu-利用率背后的真相]]
 
 ## Sources drawn on
 

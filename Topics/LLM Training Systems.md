@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 17
+source_count: 27
 ---
 
 # LLM Training Systems
@@ -40,3 +40,11 @@ Once Sources are attached, this section should be revised to anchor each claim t
 - [[2026-01-21-deepwiki-megatron-lm-12-attention-mechan]] — Megatron-LM attention mechanisms: MHA, GQA, MLA, FlashAttention backends, RoPE, TP sharding patterns.
 - [[2026-01-21-deepwiki-megatron-lm-13-feedforward-netw]] — Megatron-LM MLP block: standard vs GLU variants, TP partitioning, fused kernels, activation checkpointing.
 - [[2026-01-21-deepwiki-megatron-lm-08-context-parallel]] — Megatron-LM Context Parallelism: sequence-dimension sharding, communication strategies, hierarchical CP, TP orthogonality.
+
+## Observations
+
+- PyTorch `torch.compile` 2025-08 状态总结（Edward Yang）：大规模训练使用 `torch.compile` 最典型模式是 fork torchtitan；DTensor 是分片张量标准抽象，FSDP2 取代 FSDP1；AutoParallel 目标 GSPMD 风格自动分片（自动发现 DP/TP/EP）；SimpleFSDP 更小目标（仅 FSDP 模式插入集合操作 + domain-specific 优化 pass）；JAX 路径 vs PyTorch 路径的核心分叉：一个从通用求解器出发，一个从完全手动分布式出发。 — [[2025-09-04-torch-compile-训练的现状总结-2025年8月]]
+- NCCL 2.19.1 paper documents the end-to-end communication stack used by large-scale training: channel-based parallelism (each channel = one CUDA block on one SM), three protocols (Simple/LL/LL128), P2P_DIRECT (same-process bypass), SHM (host-relay for cross-socket), and IB Verbs (inter-node); tuning model selects algorithm–protocol at runtime per topology + message size. — [[2025-08-16-nccl发布论文啦-快来看看-part-1]]
+- Production GPU monitoring best practice: deploy dcgm-exporter per node → Prometheus scrape → Grafana dashboard; key training metrics are `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` (≈HFU), `DCGM_FI_PROF_SM_ACTIVE`, and `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL`; Tensor Active ~48% vs Megatron-LM MFU 45.5% validated on a 2×8×H100 3B run. — [[2025-08-16-聊聊-gpu-监控那些事-利用率-故障等]]
+- [[Meta]] [[ScaleRL]] (400K GPU-hours on GB200): first systematic RL compute scaling study for LLMs; CISPO loss, FP32 logits, No-Positive-Resampling, and PipelineRL-8 are the four non-negotiable components; larger batch sizes and longer context both raise the asymptotic performance ceiling A. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]
+- [[Microsoft]] redesigned [[Azure Blob Storage]] for OpenAI's EB-scale AI training: Scaled Storage Accounts eliminate per-account bandwidth ceilings; [[BlobFuse]] achieves 8.1 Tbps write / 13.5 Tbps read at 16,800 concurrent vCPUs with Direct IO + Pinned Memory; checkpoints written every 5–15 minutes and auto-tiered via last-access-time policies. — [[2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪]]

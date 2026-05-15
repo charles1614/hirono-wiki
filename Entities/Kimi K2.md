@@ -2,7 +2,7 @@
 created: 2026-05-12
 updated: 2026-05-15
 type: entity
-refs: 13
+refs: 19
 tier: active
 ---
 
@@ -24,3 +24,5 @@ Moonshot AI's 1T-parameter open-weights MoE model, the first 1T open-weights mod
 - Listed on Novita AI's inference API at $0.95/M input and $4.00/M output tokens (Kimi K2.6 variant, OpenAI-compatible API), 58.6% SWE-Bench Pro, 256K context; positioned for long-horizon agentic coding workloads. — [[2026-02-10-novita]]
 - AGI-Next summit (Jan 2026): [[Moonshot AI]] founder 杨植麟 framed the Kimi lineage as grounded in a "world-view" philosophy; Kimi's focus on long-context and reasoning reflects a deliberate architectural stance, not a benchmark-chasing strategy. — [[2026-01-10-姚顺雨对着唐杰杨植麟林俊旸贴大脸开讲-基模四杰中关村论英雄]]
 - Kimi K2 (DP32/EP32 configuration) is one of the three production models on which Seer's RL rollout system was evaluated, demonstrating that the divided-rollout + context-aware scheduling + grouped speculative sampling approach scales to 1T-parameter MoE models at high parallelism. — [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]]
+- MoonshotAI's K2 Vendor Verifier (K2VV) found significant vendor quality variance: official MoonshotAI API achieves 100% schema_accuracy; vLLM 87.22% (kimi-k2-thinking) / 76% (kimi-k2-0905), SGLang 95.52% / 73.13%; Groq trigger rate 69.52% (below threshold) and Nebius only 50.60%. Three vendor fixes: use correct vLLM/SGLang versions, rename tool call IDs to `functions.func_name:idx`, add guided encoding. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]
+- Datawhale/Raschka survey (Jul 2025): Kimi K2 uses Muon optimizer, more experts than DeepSeek V3, fewer MLA heads; training loss curve smooth and rapidly descending. Compared directly to DeepSeek V3 (671B, 37B active) vs Kimi K2 side-by-side architectural diagram in the survey. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]

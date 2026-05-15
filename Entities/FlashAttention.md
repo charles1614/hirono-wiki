@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 11
+refs: 17
 tier: active
 ---
 
@@ -26,4 +26,6 @@ FlashAttention established the online-softmax-plus-accumulation algorithm that b
 - [[Megatron-LM]]'s `DotProductAttention` selects FlashAttention as the default backend for production runs on A100/H100 (O(N) memory, 2–4× speedup); standard attention materializes an [B, H, S, S] tensor (example: 2.1 GB at batch=8, heads=32, seq=2048) which FlashAttention reduces to 134 MB — a 16× savings by tiling in SRAM. — [[2026-01-21-deepwiki-megatron-lm-12-attention-mechan]]
 - In [[SGLang]] Diffusion for Qwen-Image-Edit-2511: sgl-kernel FA3接口比上游flash-attention官方FA3接口慢 (1.7ms vs 1.2ms/step on H100)；差异可在Nsight Systems中通过固定同一step同一layer的flash attention kernel时间点来观察；切换到上游接口是PR #15812三个优化之一。 — [[2025-12-25-如何系统性定位并分析-pytorch-模型推理中的性能瓶颈]]
 - Meituan (Longcat) found FlashAttention backward gradient computation specifically sensitive to SDC in production LLM training
+- SWIFT's Ring-Attention backward recomputes flash_attn_forward during backward to retrieve block LSE and Attention-Out rather than storing them in ctx; the ring LSE/Out update equations are mathematically equivalent to FlashAttention's online-softmax block-update recurrence. — [[2025-11-10-超长序列并行之ulysses-ring-attention技术原理与实现]]
 - ThunderKittens（2024年10月，HazyResearch）以简化FlashAttention实现为主要设计目标之一：相比FA1/FA2/FA3，TK的FlashAttention实现load/compute/epilogue结构分离，大幅减少手写异步同步编排代码；文章还指出FlashAttention-2在H100上性能下降47%、FA-3耗时两年才适配H100是TK诞生的核心动机之一。 — [[2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易]], prompting addition of custom SDC detection probes to their training stack. — [[2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手]]
+- Pedagogical derivation explains how standard Attention materializes [SL, SL] intermediate tensors `s` and `p` to HBM — these dominate latency because SL >> D. FlashAttention eliminates them by (1) kernel fusion keeping intermediates in SRAM, (2) tiling so one GPU unit handles one query, (3) streaming K/V with a loop of length SL, and (4) deferring softmax division until after the K/V loop (insight: softmax division does not affect QK·V order). — [[2025-08-24-不会-cuda-也能轻松看懂的-flashattention-教程-算法原理篇]]

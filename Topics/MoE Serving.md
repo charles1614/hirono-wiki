@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 16
+source_count: 26
 ---
 
 # MoE Serving
@@ -61,6 +61,10 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 ## Observations
 
 - Tencent [[HPC-Ops]] FusedMoE module encapsulates the full pipeline (data reorder + GroupGEMM + Reduce-weighted-average): in TP mode up to 1.49× over [[TensorRT-LLM]] v1.1.0; in EP-simulated balanced mode up to 1.09×. Uses adaptive data-reordering strategy per input length. Compatible with [[vLLM]] and [[SGLang]] via seamless API. — [[2026-01-27-腾讯混元ai-infra核心技术重磅开源-推理吞吐提升30]]
+- [[DeepEP]] 低时延 Kernel 专为 Decoding 场景设计（每 Batch 128 Token，隐藏层 7168，Top-8 专家，FP8 Dispatch + BF16 Combine），借助 IBGDA 和 Receiving Hook 接口将 RDMA 传输异步掩藏在 Micro-Batch 计算期间，不占用计算 SM；在 H800 集群测试中带宽和时延均接近物理极限。 — [[2025-10-09-deepseek-开源系列之-deepep-介绍]]
+- Alibaba [[RTP-LLM]] [[DeepSeek-V3]] deployment (144 EP Decode): Combine (FP16) is ~2× longer than Dispatch (FP8) — Shared Expert compute covers Combine in Prefill; Decode inserts MoE MLP as the Combine-side cover; MTP halves effective batch size needed for GEMM arithmetic intensity; EPLB load balance sensitive to test data distribution. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
+- [[Moonshot AI]] K2VV shows that open-source vLLM/SGLang deployments of [[Kimi K2]] lose 5–27% schema accuracy vs official API; guided encoding (constrained decoding) is the recommended fix to enforce JSON tool-call schema. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]
+- [[DeepEP]] source code: three communication modes; intranode dispatch uses NVLink virtual addressing (PyTorch symmetric mem); internode uses NVSHMEM; low-latency path uses IBGDA with IB VL traffic isolation; queue-based buffer design enables memory-efficient operation at complexity cost. — [[2025-10-09-deepseek-deepep源码分析]]
 
 ## Sources drawn on
 
@@ -73,4 +77,7 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - [[2026-02-05-在-blackwell-上推动-vllm-wide-ep-与大规模推理走向成熟-]] — vLLM GB200 Wide-EP: NVFP4 dispatch cuts EP all-to-all traffic 4×; weight offloading v2 with NVLink-C2C async prefetch; prefill scale-down to 2 GPUs improves TPGS by halving NCCL overhead.
 - [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]] — vLLM gpt-oss-120b Pareto optimization: torch.compile-based MoE kernel fusion, FlashInfer trtllm-gen + cutlass backends, async scheduling + stream interval; 38% max-throughput uplift on Blackwell.
 - [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]] — SGLang vs vLLM 142 TFLOPS gap on B200 NVFP4 MoE: kernel fusion, Blackwell-native CUTLASS schedule, adaptive grid sizing; 1.84× at BS=1.
+- [[2025-08-18-腾讯太极团队实现deepseek模型业内h20最高性能15800-tokens-]] — Tencent Taiji 15,800+ tokens/s on 16×H20: PD separation with different parallelism for Prefill/Decode, EPLB load balancing, TRMT communication, multi-layer MTP, w4a8c8 quantization.
+- [[2025-08-20-ai-fundermentals-inference-solution-deep]] — DeepSeek-V3 671B deployment plan on 32×H20 (EP=32, TP=1, PP=1): VRAM accounting, KV cache bottleneck at 32K context, throughput projections, SLO gap analysis.
+- [[2025-08-20-deepseek-v3-在-32-张-h20-gpu-集群上的部署方案-理论分析]] — Original (pre-benchmark) theoretical analysis: same EP=32 config, more optimistic 35K–45K tokens/s estimate before Tencent real data revised it down.
 

@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-15
 type: entity
-refs: 18
+refs: 20
 tier: active
 ---
 
@@ -17,6 +17,7 @@ Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacen
 ## Observations
 
 - (auto-populated as Sources cite this entity)
+- Qwen3-32B 参数量逐层推导：hidden_size=5120，64 layers，GQA（num_attention_heads=64，num_key_value_heads=8，head_dim=128），intermediate_size=25600，vocab_size=151936；每层 Attention 约 94M，MLP 约 393M；总参数量约 32.76B；与 Qwen2.5-32B（无 head_dim 字段，需从 hidden_size/num_attention_heads 推导）参数量相当，尽管 Qwen3 词表更小、intermediate_size 更小。 — [[2025-09-03-https-zhuanlan-zhihu-com-p-1901923837408]]
 - Qwen 2.5 0.5B Instruct used as the model under test in a vibe coding interview challenge for attention-based hallucination detection; the 10% max-system-attention threshold was sufficient for demo-scale grounding detection. — [[2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器]]
 - Qwen2.5-1.5B used as the reference model in a [[PyTorch]] GPU memory profiling tutorial: 1.5B parameters at float32 → 6 GB model memory; 5,065,216 activations per input token measured via forward hooks. — [[2025-09-22-visualize-and-understand-gpu-memory-in-p]]
 - Qwen3 dense models (0.6B–32B) use GQA, QK-Norm, RoPE, and SwiGLU; Qwen3 MoE (235B-A22B) is structurally near-identical to DeepSeek V3 but drops the shared expert — developer confirmed no significant improvement found with 8+ routed experts, and shared expert added inference optimization complexity. — [[2026-01-28-the-big-llm-architecture-comparison]]
@@ -27,3 +28,4 @@ Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacen
 - Qwen研究主页（2026年4月–5月）快照：Qwen-Scope可解释性工具包（基于SAE，插入Qwen3/Qwen3.5隐藏层）；FlashQLA（GDN架构的CP-/Bwd-Friendly融合线性注意力核，覆盖Qwen3.5/Qwen3.6系列）；Qwen3.6-27B开源dense多模态模型（flagship-level Agentic Coding）；Qwen3.6-Max-Preview专有模型预览版（知识+指令+Coding全面提升）。 — [[2026-01-14-qwen-research]]
 - Alibaba Cloud paiMoE engine used Qwen3 full training (CPT/SFT) as the primary production benchmark: Tangram + ChunkFlow as default mechanisms achieved 3× end-to-end speedup and training MFU >61% for Qwen series. Qwen3-VL-2B is also used as the understanding expert in Tsinghua Motus's MoT architecture for embodied robot control. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
 - Qwen2.5-VL-72B-Instruct used as the teacher model in CF-VLA (NVIDIA/UCLA/Stanford) to label counterfactual reasoning traces for autonomous driving VLA training; demonstrates Qwen multimodal models as practical annotation engines in data pipelines for embodied AI. — [[2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观]]
+- Datawhale/Raschka survey (Jul 2025): Qwen3 dense models (0.6B–32B) use deeper architecture (more Transformer blocks, fewer attention heads) than Llama 3 — smaller VRAM footprint but slower generation speed. Qwen3 MoE 235B-A22B near-identical to DeepSeek V3 but drops the shared expert. QK-Norm adopted for training stability. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]

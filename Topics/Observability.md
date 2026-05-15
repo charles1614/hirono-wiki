@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 7
+source_count: 10
 ---
 
 # Observability
@@ -35,3 +35,7 @@ The corpus currently covers observability at three distinct layers of the LLM st
 ## Sources drawn on
 
 - [[2025-08-18-installation-guide-nsight-systems]] — install reference for [[Nsight Systems]], the system-level GPU/CPU profiler; covers CUPTI + NVTX as the underlying trace mechanisms for the GPU timeline layer
+
+## Observations
+
+- verl + [[Nsight Systems]] integration demonstrates a practical pattern for RL training observability: controller timeline (no GPU activity, full control-flow shape) + selective worker per-step + per-rank + per-subtask traces loaded together in Nsight multi-report view; NVTX markers provide the semantic overlay (step/gen/reward/update subtask boundaries) for interpreting the GPU activity timeline. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]

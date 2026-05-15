@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 13
+source_count: 20
 ---
 
 # KV Cache Management
@@ -31,6 +31,10 @@ KV cache management sits at the intersection of memory architecture and serving 
 ## Observations
 
 - [[FlashMLA]] paged KVCache layout: block table maps logical sequence positions to physical 64-token blocks; index encoding `block_idx × page_block_size + offset_in_block` enables direct sparse-attention KV access without table lookup. FP8 V32 format achieves 3.5× KVCache savings (656 bytes vs 2304 bytes BF16/token), enabling 122K context in 80 GB vs 35K for BF16. FP8 MODEL1 format achieves 4.5× savings (512 bytes/token, ~156K context). — [[2026-01-30-deepwiki-flashmla-04-memory-management]]
+
+- Alibaba Cloud Tair + SGLang HiCache (Dec 2025) demonstrates hierarchical KVCache offloading to GPU HBM → CPU DRAM → 3FS distributed storage, achieving cache hit rate 40%→80% and average TTFT −56% in Novita AI production; key technical contribution is Page-first CPU memory layout enabling zero-copy page-wise storage I/O paired with layer-wise GPU prefetch for computation overlap. GPU with 40GB HBM can effectively serve 200GB+ cache capacity via DRAM extension. — [[2025-12-14-阿里云-tair-联手-sglang-共建-hicache-构建面向-智能体式推]]
+- Alibaba Cloud Beluga (arXiv:2511.20172) demonstrates that replacing RDMA-based disaggregated KVCache (Mooncake) with CXL-based shared memory pool (XConn XC50256 switches, up to 8TB pool at 1TB/s) reduces cache-hit TTFT by 89.6% and improves QPS 7.35×. Fundamental reason: CXL provides load/store semantics to GPU via `cudaMemcpy` P2P, eliminating RDMA's CPU-driven multi-hop data path and cross-component synchronization. — [[2025-12-10-较mooncake首token延迟直降89-6-阿里云提出基于cxl的kv缓存管]]
+- DeepSeek-V3.2-Exp Latent Cache offload (ESS, Baidu AIAK): each entry is 656 bytes; scattered access via `cudaMemcpyAsync` achieves only 0.79 GB/s H2D; FlashTrans (UVA-based CUDA operator with address-driven on-demand transfer) achieves 37 GB/s H2D. LRU eviction + LRU-Warmup (last 32 Prefill windows' Top-2K indices) reduces early Decode Cache Miss. At 128K context, ESS achieves 123% throughput improvement at Sparse Memory Ratio 0.1. — [[2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac]]
 
 ## Sources drawn on
 

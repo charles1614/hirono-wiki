@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 3
+source_count: 6
 ---
 
 # Tensor Core Programming
@@ -33,6 +33,8 @@ Tensor Cores are NVIDIA's dedicated matrix-multiply-accumulate (MMA) units, firs
 ## Observations
 
 - SemiAnalysis Tensor Core Evolution 梳理了从 Volta（1st gen，8 TC/SM，quadpair 8 线程 MMA）→ Ampere（3rd gen，warp 32 线程）→ Hopper（4th gen，`wgmma` 128 线程，A/B 直接从 SMEM）→ Blackwell（5th gen，`tcgen05.mma`，单线程语义，A→SMEM，D→TMEM，MMA.2SM）的完整编程模型演进，并提供 TC 尺寸/数量增长策略、SMEM/TMEM 设计动机的系统性分析。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- 五代 [[Tensor Core]] 演进的通俗视角：每代针对前代遗留瓶颈设计；Volta 95% 能耗花在指令开销 → HMMA 8× 吞吐；Turing INT8/INT4+结构化稀疏解决推理能效；Ampere `cp.async` 绕开寄存器瓶颈；Hopper FP8+wgmma+TMA+CGA 解决内存墙；Blackwell TMEM+CTA对+NVFP4 终结寄存器压力并将 FP4 带宽减半。 — [[2025-09-20-tensor-core-从-volta-到-blackwell-的进化]]
+- [[H100]] SXM5 Tensor Core peak throughput = `freq_clk_max × num_tc × flop_per_tc_per_clk`; BF16 "speed of light" varies with actual clock frequency due to power throttling; practical SoL < spec due to throttling — kernel authors must profile actual clock, not spec frequency. — [[2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo]]
 
 ## Sources drawn on
 

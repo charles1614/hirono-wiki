@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 8
+refs: 10
 tier: active
 ---
 
@@ -23,3 +23,5 @@ Meta's open-weight LLM family and the de facto reference workload for ML-systems
 - The model on which EAGLE-3's **scaling-law discovery** was first observed: Llama-Instruct 3.1 8B as target on MT-bench, with draft-model speedup growing proportionally with training-data scale (a relation not present for EAGLE / EAGLE-2). EAGLE-3 also evaluated on Llama-Instruct 3.3 70B (mean 4.12× speedup) and DeepSeek-R1-Distill-LLaMA 8B. — [[2025-10-09-eagle-3-scalingupinference-acceleration-]]
 - Application-level benchmark in HKUST's Hopper microbenchmark study — Llama 7B (hidden=4096), 13B (5120), 70B (8192) hidden sizes used for `te.TransformerLayer` FP8 vs FP16 latency comparison. SwiGLU + RMSNorm replacements via `te.Linear` and `te.RMSNorm` to engage Transformer Engine. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
 - Raschka's survey uses Llama 3 as the canonical baseline architecture (Pre-Norm, GQA, RoPE, SwiGLU) against which 2025 models are compared. Llama 4 Maverick (400B, 17B active) adopted MoE with a classic setup: 2 active experts with hidden size 8192 (fewer, larger than DeepSeek V3's 8 active at 2048 hidden), and alternates MoE and dense blocks every other transformer layer (vs DeepSeek's MoE-in-nearly-all-layers). Uses GQA not MLA. — [[2026-01-28-the-big-llm-architecture-comparison]]
+- Llama-4 Scout 17B×16 MoE used to validate [[ScaleRL]]; at 100K GPU-hours it showed predictable sigmoid-saturation scaling curves and achieved far higher asymptotic RL reward than the 8B dense model with 1/6th the RL compute. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]
+- Datawhale/Raschka survey (Jul 2025): Llama 3 used as the canonical Pre-Norm+GQA+RoPE+SwiGLU baseline; Llama 4 Maverick (400B total, 17B active) uses MoE with 2 active experts of hidden=8192 (fewer, larger than DeepSeek V3's 8 active at 2048) and alternates MoE and dense blocks every other layer. Qwen3 dense models are architecturally deeper (more layers) but narrower than Llama 3. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]

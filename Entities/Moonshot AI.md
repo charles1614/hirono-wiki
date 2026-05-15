@@ -2,7 +2,7 @@
 created: 2026-05-12
 updated: 2026-05-15
 type: entity
-refs: 10
+refs: 15
 tier: active
 ---
 
@@ -20,3 +20,4 @@ Chinese AI lab that developed the Kimi K2 / K2.5 / K2.6 1T open-weights MoE mode
 - Kimi K2.5 deployed on Cloudflare Workers AI as the launch model for Cloudflare's frontier inference tier; used internally at Cloudflare for agentic coding (OpenCode) and automated security review at production scale. — [[2026-03-24-powering-the-agents-workers-ai-now-runs-]]
 - Founder 杨植麟 at AGI-Next summit (Jan 2026): "做模型，本质上是在创造一种世界观"；positioned Moonshot AI's work on long-context and reasoning (Kimi lineage) as a considered bet on model philosophy, not just capability metrics. — [[2026-01-10-姚顺雨对着唐杰杨植麟林俊旸贴大脸开讲-基模四杰中关村论英雄]]
 - Seer system (Moonshot AI + Tsinghua, arXiv:2511.14617): synchronous RL rollout optimization via divided rollout, context-aware length scheduling, and adaptive grouped speculative sampling using Compressed Suffix Trees across sibling responses; achieves 74–97% throughput improvement and 75–93% tail-latency reduction vs VeRL on production workloads including [[Kimi K2]] (DP32/EP32). — [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]]
+- Released K2 Vendor Verifier (K2VV): a continuous benchmark of [[Kimi K2]] API vendors measuring tool-call trigger accuracy (`tool_call_f1`) and JSON schema accuracy; MoonshotAI official API scores 100% on both; open-source engines (vLLM, SGLang) score 73–95% on schema accuracy; threshold for acceptance: ≥73% (kimi-k2-thinking) and ≥80% (kimi-k2-0905). — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]

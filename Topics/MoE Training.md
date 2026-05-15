@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 4
+source_count: 11
 ---
 
 # MoE Training
@@ -32,7 +32,9 @@ Two distinct regimes exist for handling **expert capacity** (the maximum tokens 
 
 ## Observations
 
+- 百度混合云在 MoE 训练中通过 batch-level 动态冗余专家编排将专家均衡度优化至 1.08，并最大化计算通信 overlap，使整体吞吐提升 20% 以上；同时优化 Alltoall 算子，相比开源方案大幅提升 Prefill 和 Decode 阶段 Alltoall 通信性能。 — [[2025-09-16-超大规模-ai-基础设施建设实践-极致释放算力效能]]
 - Alibaba Cloud PAI paiMoE engine targets large-scale MoE training: Tangram (supports diverse fine-grained MoE training tasks via a single scheduling mechanism) + ChunkFlow (chunk-centric mechanism for variable-length and ultra-long sequences; ICML 2025) are deployed as default mechanisms for [[Qwen]] series CPT/SFT stages, achieving 3× end-to-end speedup and MFU >61% on Qwen3 training. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
+- [[DeepEP]] 高吞吐 Kernel 在 H800（8×H800，2048 卡集群）训练/Prefill 场景下，以 FP8 Dispatch + BF16 Combine 将节点间通信量减半，测试配置：4096 Token/Batch、隐藏层 7168、Top-4 组 Top-8 专家，带宽接近物理极限；通过 IB VL/SL 流量隔离防止高吞吐/低时延 workload 相互干扰。 — [[2025-10-09-deepseek-开源系列之-deepep-介绍]]
 
 ## Sources drawn on
 

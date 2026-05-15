@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 14
+source_count: 15
 ---
 
 # Physical AI and Robotics
@@ -36,6 +36,7 @@ The architectural framing — "compute is data" — marks a shift in how NVIDIA 
 - Motus (Tsinghua/朱军) unifies five embodied modeling paradigms in a single UniDiffuser + MoT architecture, using optical-flow latent actions to bridge internet video (no action labels) and robot demonstrations; six-layer data pyramid with 90% unsupervised self-supervised reconstruction. Achieves >45% absolute improvement over π0.5 on RoboTwin2.0 random-disturbance tasks; validated on AC-One and Agilex-Aloha-2 platforms for 9 non-trivial task types. — [[2025-12-23-清华大学最新成果-将vla-世界模型和视频模型都统一了]]
 - Alibaba Cloud PAI and NVIDIA partnered for Physical AI at 2025 云栖大会: PAI integrates full NVIDIA Physical AI stack (Isaac Sim, Isaac Lab, NVIDIA Cosmos) for world-model and VLA training pipelines; partner 卓驭 deployed >3 EFLOPS on Alibaba Cloud for autonomous driving VLA + world model training. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
 - GAIR 2025世界模型圆桌（浙大彭思达、腾讯ARC胡文博等五位学者）共识：Genie 3达GPT-3级别；可交互性是世界模型的关键维度；数字人情绪价值被认为是下一阶段有潜力但被忽略的研究方向；视频Tokenizer是2026年核心技术赌注之一。 — [[2025-12-26-圆桌论坛-关于-世界模型-突破方向的六个猜想-gair-2025]]
+- Chinese autonomous driving community taxonomy (Aug 2025) organizes ~40 AV technology tracks into: perception (BEV, 3D detection, multi-sensor fusion, occupancy, tracking, segmentation), planning-control (traditional + RL-based + VLA/VLM), simulation (3DGS/NeRF closed-loop, Carla/Apollo/Autoware), and foundation models (end-to-end AD, world models, diffusion, VLA); community membership spans 60+ datasets, 40+ open-source projects, 100+ technical talks. — [[2025-08-15-汇总了自动驾驶几乎所有的技术栈]]
 
 ## Sources drawn on
 

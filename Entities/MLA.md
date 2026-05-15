@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 16
+refs: 19
 tier: active
 ---
 
@@ -32,3 +32,4 @@ Multi-Head Latent Attention (MLA) was DeepSeek's KV-compression mechanism, load-
 - **GLM 5采用相同的MLA + DSA参数配置**（kaiyuan配置对比，2026-03-21）：GLM 5（774B）与DeepSeek V3.2（671B）的MLA参数完全相同——`q_lora_rank=2048, kv_lora_rank=512, qk_nope_head_dim=192, qk_rope_head_dim=64, v_head_dim=256, heads=64`，Indexer参数也完全相同（`index_topk=2048, index_head_dim=128, index_n_heads=32`）。这是corpus中对DSA+MLA组合的最细粒度参数级配置记录，确认GLM 5是对该架构的独立实现而非仅概念借鉴。 — [[2026-03-21-2026大模型架构概览-二-glm-5-dsv3-2]]
 - [[Megatron-LM]]'s MLA implementation projects K,V to a lower-dimensional latent space for caching; example memory at seq=128K: standard GQA (8 KV heads, head_dim=128) uses 256 MB per layer vs MLA's 65 MB compressed latent cache (4× beyond GQA, 16× vs MHA). — [[2026-01-21-deepwiki-megatron-lm-12-attention-mechan]]
 - Doc 05 full math specification: h_q=128, h_kv=1 (MQA); d_qk=576 (512 NoPE + 64 RoPE), d_v=512; KVCache per token = 2×576 bytes BF16. FLOPs = 2×128×s_k×(576+512) = 278,528×s_k; memory = 2×576×s_k bytes; ratio ≈ 242 FLOPs/byte vs. H800 threshold ~258 — confirms compute-bound regime without TP. DeepSeek Sparse Attention (DSA) reuses MLA KV tensors with an `indices` tensor specifying top-k tokens per query, reducing attention compute from O(seq_len) to O(topk); attention sink mechanism scales output by `exp(lse)/(exp(lse)+exp(attn_sink))`. — [[2026-01-30-deepwiki-flashmla-05-attention-algorithm]]
+- Datawhale/Raschka survey (Jul 2025): DeepSeek V3's MLA compresses K/V into a low-dimensional latent before KV cache write (reducing memory vs MHA/GQA despite extra matrix multiplications at runtime); DeepSeek's ablations show MLA outperforms MHA in modeling quality, unlike GQA which slightly underperforms. Kimi K2 and GLM-4.5 both adopted MLA. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]

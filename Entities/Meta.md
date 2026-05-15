@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-15
 type: entity
-refs: 11
+refs: 16
 tier: active
 ---
 
@@ -22,3 +22,4 @@ Meta Platforms; AI Research; Llama models; Reality Labs; FAIR; PyTorch maintaine
 - "Meta Compute"计划宣布2028年前在美国AI基础设施投资6000亿美元，2025年支出超700亿美元；目标部署数十吉瓦算力（长期可能数百吉瓦），已与核能公司签协议供应超6吉瓦核电；同期裁减Reality Labs约1500人（占15000人10%），Reality Labs自2020年累计亏损超600亿美元；推出Checkpoint绩效体系，顶尖员工奖金系数最高300%。 — [[2026-01-13-烧光600亿-小扎再砍元宇宙1500人-6000亿豪赌算力帝国]]
 - FT-HSDP (Fault Tolerant HSDP) at 98K GPU scale: 12 DP replicas of 8,192 GPUs each; custom FTAR protocol (CPU control plane + GPU data plane) replaces NCCL for cross-DC gradient AllReduce; 2PC-style barrier before optimizer step allows intentional step-number divergence across replicas; effective training time improved from ~44% to ~80% vs. fully synchronous training. — [[2026-03-01-十万卡保障-meta-ft-hsdp-方案解析]]
 - SPDL (Scalable and Performant Data Loading) is a Meta Reality Labs open-source library for ML data pipelines; C++ core (libspdl, ~13k LoC) releases the Python GIL enabling 3–5x throughput and 50–70% lower memory vs multiprocessing; dual thread-pool architecture (I/O pool + compute pool), NVDEC/NVJPEG/NPP hardware acceleration; BSD 2-Clause, arXiv 2504.20067. — [[2026-01-20-deepwiki-spdl-01-overview]]
+- Spent 400K GPU-hours on NVIDIA GB200s to derive [[ScaleRL]], a predictive RL scaling framework for LLMs modeled as a sigmoid saturation curve; key finding: methods performing well at small compute often underperform at scale; [[ScaleRL]] validated on Llama-4 Scout 17B×16 MoE at 100K GPU-hours, achieving far higher asymptotic reward than 8B dense with 1/6th the compute. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]

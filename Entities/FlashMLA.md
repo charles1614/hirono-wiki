@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 17
+refs: 18
 tier: active
 ---
 
@@ -28,3 +28,4 @@ FlashMLA is DeepSeek's hand-tuned MLA decode-attention kernel for Hopper GPUs, d
 - Attention algorithm details from doc 05: MLA operates with `d_qk=576` (512 NoPE + 64 RoPE), `d_v=512`, h_q=128, h_kv=1; compute-memory ratio ≈ 242 FLOPs/byte (H800 crossover ≈ 258, confirming compute-bound operation). Seesaw scheduling achieves ~80% Tensor Core utilization. DSA reduces computation from O(seq_len) to O(topk) via token index gathering; variable topk per query and attention-sink scaling are first-class kernel parameters. — [[2026-01-30-deepwiki-flashmla-05-attention-algorithm]]
 - Memory management details from doc 04: FP8 V32 format enables ~122K context on 80 GB (vs. ~35K for BF16); dequantization on H800 requires 4-step type conversion (FP8→half→float32→BF16) because no native FP8→BF16 cast. DSM crossover technique splits dequantization across 2 CTAs per cluster, improving throughput 64% (250→410 TFlops); paged KVCache uses block table mapping logical positions to 64-token physical blocks. — [[2026-01-30-deepwiki-flashmla-04-memory-management]]
 - Kernel implementation details from doc 03: programmatic dependent launch overlaps the main splitkv kernel with the combine kernel, eliminating host-device sync. Scheduler distributes work via `DecodingSchedMeta` per-SM request/block-range assignments; combine kernel uses log-sum-exp: `final_out = Σ O_i × exp(LSE_i − global_lse)`. — [[2026-01-30-deepwiki-flashmla-03-kernel-implementati]]
+- Used as the decode-attention backend in Alibaba's [[RTP-LLM]] reproduction of [[DeepSeek-V3]] inference; achieves Prefill 42.6K TPS/node + Decode 14.7K TPS/node on Alibaba Cloud RoCE via PD-disaggregated EP (32 Prefill + 144 Decode), MTP speculative decoding, and MicroBatch overlap. — [[2025-10-09-如何重现-deepseek-推理性能突破]]

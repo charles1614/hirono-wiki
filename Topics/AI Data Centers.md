@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 8
+source_count: 10
 ---
 
 # AI Data Centers
@@ -31,7 +31,9 @@ Epoch.ai's open database of 43 frontier AI data centers (updated May 2026) is th
 
 ## Observations
 
+- 百度智能云超大规模智算集群 AIDC 工程实践：供电采用"一体化+储能"架构（750V 高压直流 + 绿电直供），PUE 1.199；制冷采用"度冰川"+"度灵溪"分布式架构；空间布局从传统并行改为以网络为核心的向心布局（平面→建筑→园区三级向心），支撑万卡以上规模的通信延迟均匀化。 — [[2025-09-16-超大规模-ai-基础设施建设实践-极致释放算力效能]]
 - [[xAI]] Colossus 2 (Memphis, TN) went operational 2026-01-17 as the world's first 1 GW AI training cluster, dedicated to training [[Grok]]; [[xAI]] plans a scale-up to 1.5 GW in April 2026. — [[2026-01-19-x-上的-elon-musk-the-colossus-2-supercompu]]
+- [[Microsoft]]'s "Thundering Herd" AI supercomputer architecture: single-purpose data centers with only GPU racks + [[Azure Blob Storage]] racks; RNG (Regional Network Gateway) interconnects multiple global facilities via RDMA forming a unified namespace; logical single storage account (Scaled Storage Account) physically distributes across all facilities. — [[2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪]]
 
 ## Open threads
 

@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 5
+source_count: 8
 ---
 
 # GPU Microarchitecture
@@ -33,7 +33,9 @@ The practical implication for workload designers: **pure FP16 compute workloads 
 ## Observations
 
 - SemiAnalysis Tensor Core Evolution（Dylan Patel）提供从 Volta 到 Blackwell 的 TC 架构演进全景：MMA 作用域（quadpair→warp→warpgroup→single-thread）、操作数位置（register→SMEM→TMEM）、精度（FP16→FP8→FP4/NVFP4）、异步化（同步→HGMMA commit/fence→tcgen05 完全异步）；关键量化：TC 吞吐每代翻倍但全局内存延迟未降，SMEM 每代增长以维持 staging buffer；Blackwell TMEM（256KB）功耗效率更高，因操作数 D 被访问 2Kt 次（A/B 各 1 次）。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- JAX Scaling Book Ch. 12 provides a comprehensive GPU-TPU component mapping and multi-generation spec table: H100 (132 SMs, 990 bf16 TFLOPs, 3.35 TB/s HBM) → B200 (148 SMs, 2.25 PFLOPs bf16, 8 TB/s HBM, 192GB). Critical intensity (FLOPs/BW) ≈ 295 for H100 fp16, 281 for B200 — need batch ~280 to be compute-bound. B200 adds TMEM (256kB/SM) because TC accumulator no longer fits in registers/SMEM. SIMT vs SIMD comparison: each CUDA core has its own instruction pointer enabling branch divergence, unlike TPU VPU where all ALUs must execute the same instruction. — [[2025-12-11-how-to-think-about-gpus-how-to-scale-you]]
 - NVIDIA 官方 Compute Capability 查询表（2026-01-15 快照）：CC 7.5=Turing，8.0=A100，8.6=A40/RTX 3090，8.9=L40S/RTX 4090，9.0=H100/H200/GH200，10.0=GB200/B200，10.3=GB300/B300，12.0=RTX PRO Blackwell/RTX 5090，12.1=GB10 DGX Spark。 — [[2026-01-15-nvidia-cuda-gpu-compute-capability]]
+- [[Aleksa Gordić]] deep-dive on [[H100]] SXM5: 132 SMs, each with 4 warp schedulers (4 quadrants × 32-thread warp, 128 true-parallel threads per SM cycle, 2048 concurrent threads per SM); TMA introduced in [[Hopper]] for async global↔shared transfers and swizzling; memory hierarchy: RMEM (fastest, same capacity as L1+SMEM) → L1/SMEM (configurable split) → L2 (two physical halves) → HBM; "speed of light" peaks vary with power throttling. — [[2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo]]
 
 ## Sources drawn on
 

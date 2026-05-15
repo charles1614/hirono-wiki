@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 10
+source_count: 18
 ---
 
 # Training Infrastructure
@@ -39,5 +39,7 @@ A substantive Current understanding here will require ingesting sources that cov
 - [[Meta]] FT-HSDP at 98K GPU scale treats each DP replica (8,192 GPUs) as the fault recovery unit: stall time per failure drops from ~10 min to ~3 min, effective training time improves from ~44% to ~80%. FTAR protocol uses CPU control plane + GPU data plane for cross-DC gradient AllReduce, overlapping with the backward pass. 2PC-style barrier before optimizer step allows intentional replica step-number divergence without degrading model quality. — [[2026-03-01-十万卡保障-meta-ft-hsdp-方案解析]]
 - [[xAI]] Colossus 2 launched as the world's first 1 GW training cluster (operational 2026-01-17, Memphis TN); planned upgrade to 1.5 GW by April 2026. — [[2026-01-19-x-上的-elon-musk-the-colossus-2-supercompu]]
 - SDC (Silent Data Corruption) causes 1–2 training interruptions per week in frontier clusters; paper arXiv:2502.12340 studies 15 unhealthy vs. 15 healthy nodes. Key findings: gradient noise is small (worst case 5.1% L2 norm), parameter drift is driven more by sharp loss surface geometry than SDC severity, SFT on SDC nodes mostly produces good models but late-stage loss spikes cause catastrophic accuracy collapse. Production incidents: Google Gemini (SDC every 1–2 weeks), Meta LLaMA 3 (6 interruptions / 54 days), ByteDance (8-hour offline stress test to find one faulty node), NVIDIA H100 `mma.sp` bug fixed in driver 535.288.01. — [[2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手]]
+- 小鹏汽车"云端模型工厂"（2025年4月披露）：万卡智能算力集群（10 EFLOPS，效率90%+，高峰98%）；Data Infra自主研发使数据上传规模提升22倍、训练数据带宽提升15倍、模型训练速度提升5倍；视频训练数据2000万clips；完整链路（基座预训练→后训练RL→蒸馏→车端部署）平均5天一次迭代。多模态模型训练瓶颈不仅是GPU，还包括数据访问效率（联合优化GPU/CPU/网络I/O）。 — [[2025-12-08-小鹏汽车启动720亿参数自驾基模研发-初步验证自动驾驶规模法则-小鹏汽车官网]]
 - Google [[AI Hypercomputer]] image stack (Jan 2026): JAX AI Images (JAII) bundle JAX + LibTPU/CUDA + Flax + Orbax + PyGrain; DLSL images bundle NeMo + PyTorch + Google NCCL gIB plugin per machine series (A4X Max through A3 High); Accelerator OS images ship NVIDIA 570/580 drivers + CUDA 12.2–13.0 for Rocky Linux 8/9 and Ubuntu 22.04/24.04. — [[2026-01-16-os-and-docker-images-ai-hypercomputer-go]]
 - [[SimAI]] (Alibaba Cloud, NSDI'25) provides three-level simulation fidelity for LLM training: Analytical (fast), NS-3 packet-level, and Physical (AIOB kernel profiling); supports Megatron/DeepSpeed/DeepSeek parallelism strategies and Vidur-based inference scheduling, enabling topology/bandwidth sensitivity analysis without live cluster allocation. — [[2026-01-06-deepwiki-simai]]
+- [[VeOmni]] (ByteDance, Aug 2025): unified multi-modal training framework for LLM/VLM/DiT with composable [[FSDP]]+Ulysses+EP; selective recompute by ROI reduces recompute ratio 60%→30%; achieves 40%+ throughput over OSS baselines on [[Wan 2.1]]-14B LoRA at 720P. — [[2025-08-06-字节跳动-veomni-框架开源-统一多模态训练效率飞跃]]

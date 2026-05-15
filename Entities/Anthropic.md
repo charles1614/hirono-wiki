@@ -2,7 +2,7 @@
 created: 2026-05-12
 updated: 2026-05-15
 type: entity
-refs: 15
+refs: 19
 tier: active
 ---
 
@@ -21,3 +21,8 @@ AI safety company whose two engineering blog posts on effective harnesses for lo
 - Published "The Complete Guide to Building Skills for Claude" (32 pages, Feb 2026): Skills are folder-based reusable instruction packages with a 3-layer progressive-disclosure load (YAML frontmatter ~100 tokens always-on → SKILL.md body on-demand → scripts/references on-demand). Targets 90% auto-trigger accuracy via well-authored `description` fields; primary use cases are document generation, workflow automation, and MCP-augmented orchestration. — [[2026-02-19-春节加餐-anthropic首个公开的skills构建指南来了]]
 - Epoch.ai data center database (May 2026): appears as tenant at four sites — Anthropic-Amazon New Carlisle (686k H100-eq / 1,092 MW / $34.9B, part of [[Project Rainier]]; largest frontier site globally), Amazon Madison Mega Site (214k / 341 MW, speculative Rainier), Colossus 1 (276k / 425 MW, [[xAI]] Memphis — Anthropic signed agreement with SpaceX May 2026 for full cluster), and Fluidstack Lake Mariner (72k / 68 MW, NY — Google TPUs). Anthropic owns none of these facilities. — [[2026-01-22-data-on-frontier-ai-data-centers]]
 - Cited as needing to rebuild its NVIDIA partnership because [[TPU]] v8's eroding TCO advantage (VR200/TPUv8p gap now 1.23×, down from GB200/TPUv7 1.52×) makes it impractical to rely exclusively on TPUs long-term as NVIDIA's iteration pace accelerates. — [[2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解]]
+- [[Claude Code]] bug (GitHub issue #4049): a pre-flight Haiku API call gates each Bash invocation; AWS Bedrock 403 from missing model-access permissions caused ~210-second hangs before any command ran; fixed by enabling Haiku 3.5 model access in Bedrock and adding a diagnostic log. — [[2025-10-29-significant-pre-execution-delay-210s-whe]]
+- Internal Anthropic blog (Jul 2025): teams across the company report Claude Code reducing incident response 3× (Security Engineering: stack trace analysis), compressing documentation research 80% (Inference team: 60 min → 10-20 min), enabling non-engineers to build custom tools (Legal: phone-tree systems; Marketing: hundred-variation ad generators), and replacing data catalog tools for new-hire onboarding (Infrastructure). Key pattern: best results when teams treat it as a thought partner not a code generator. — [[2025-07-25-how-anthropic-teams-use-claude-code-anth]]
+
+- Claude Code issue #4002 (Jul→Dec 2025): 25,000-token file read limit prevents single large files from consuming the full context window; the model can still read entire files via multiple offset/limit reads. MCP tool output limit is separately configurable via `MAX_MCP_OUTPUT_TOKENS`. Rationale confirmed by Anthropic contributor catherinewu. — [[2025-11-27-error-file-content-28375-tokens-exceeds-]]
+- Alibaba Cloud developer describes [[Claude Code]] as "master model + 15 tools" with superior context management vs. Cline; recommends pseudo-XML prompting structure for Claude models specifically; noted as the tool that enabled a full Hackathon project (design docs, diagrams, code) by one developer. — [[2025-07-30-如何用ai-coding和claude-code提升开发效率-看我的全流程复盘]]

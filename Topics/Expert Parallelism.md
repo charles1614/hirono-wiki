@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 8
+source_count: 17
 ---
 
 # Expert Parallelism
@@ -31,3 +31,11 @@ The load-bearing primitives, in order of architectural significance: (1) the All
 ## Sources drawn on
 
 _(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+
+## Observations
+
+- [[DeepEP]] low-latency kernel for decode All-to-All: uses NVSHMEM IBGDA, pre-allocated buffers, two-phase send/recv design; IBGDA achieves ~64 µs vs IBRC's 128–256 µs for <8 KiB messages; `recv_hook=true` releases SMs after send (~10 µs) for compute overlap during RDMA transit. — [[2025-10-09-xzwazsg-zjcksvuvksvw]]
+- [[DeepEP]] intranode uses NVLink peer memory access (virtual addressing, no cudaMallocManaged); internode uses NVSHMEM; supports three modes: high-throughput NVLink, high-throughput RDMA, low-latency RDMA with Adaptive Routing. — [[2025-10-09-deepseek-deepep源码分析]]
+- Alibaba [[RTP-LLM]] on RoCE: Prefill EP=32, Decode EP=144 (128+16 redundant); EPLB load balance test-data-sensitive; dual-uplink RoCE fix via NVSHMEM-level message/queue-level load balancing reduces Low Latency mode latency 60%+; Combine phase (FP16) is ~2× longer than Dispatch (FP8). — [[2025-10-09-如何重现-deepseek-推理性能突破]]
+- [[Moonshot AI]] K2VV reveals vendor tool-call accuracy variance for [[Kimi K2]] serving at EP scale: official API 100%, vLLM/SGLang open-source deployments 73–95% schema accuracy; root causes include wrong model versions, malformed tool IDs, and absent guided encoding. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]
+- [[DeepEP]] 在 H800 集群上将 EP AlltoAll 带宽推至接近物理极限（节点内 ~160 GB/s NVLink，节点间 ~50 GB/s IB），两种 Kernel 分别服务 Prefill/Training（高吞吐）和 Decoding（低时延）；在 RoCE 环境中由于 incast、Multi-Rail/Rail-Only 拓扑兼容性等问题仍存在实质性障碍，[[SGLang]] 目前在 RoCE 上用 AG+AR 规避 AlltoAll。 — [[2025-10-09-分析一下ep并行和deepseek开源的deepep代码]]

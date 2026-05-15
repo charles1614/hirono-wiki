@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 36
+source_count: 48
 ---
 
 # LLM Inference Systems
@@ -78,4 +78,9 @@ The **cs.DB framing** from the Pan+Li survey remains the most useful cross-cutti
 - [[2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向]] — Patterson & Ma (arXiv:2601.05047): LLM inference bottleneck is memory + interconnect latency, not FLOPS; four hardware research directions (HBF, PNM, 3D stacking, low-latency interconnect); critique of current "full-reticle + high-FLOPS + multi-HBM" design philosophy.
 - [[2026-01-12-analysis-of-nvidia-s-latest-hardware-b10]] — fibermall.com Blackwell hardware overview: B100/B200/GB200/NVL72/SuperPod specs, NVLink Gen 5, NVSwitch Gen 4, GTC performance benchmarks (3×/15× vs. HGX H100).
 - [[2025-12-25-如何系统性定位并分析-pytorch-模型推理中的性能瓶颈]] — 系统性性能对比方法论；[[SGLang]] Diffusion vs LightX2V性能分析：3个kernel-level优化（FA3库差异、FlashInfer RoPE、非contiguous tensor cat）将单step从0.77s降至0.63s。
+
+## Observations
+
+- Alibaba [[RTP-LLM]] reproduced [[DeepSeek-V3]] inference on RoCE: Prefill 42.6K TPS/node + Decode 14.7K TPS/node (vs DeepSeek's 32.2K/14.8K on IB) using 272 GPUs, PD-disaggregated, EP=32/144; key techniques: [[DeepEP]] integration with RoCE dual-uplink fix, MTP speculative decoding, MicroBatch overlap, PDL-enabled GEMM+Quantization overlap. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
+- [[Moonshot AI]] K2 Vendor Verifier reveals significant vendor accuracy variance for [[Kimi K2]] API deployments: official API 100% schema_accuracy; vLLM 76–87%, SGLang 73–95%; Groq tool-call trigger rate 69.52% (below threshold), Nebius 50.60%; three root-cause fixes documented. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]
 

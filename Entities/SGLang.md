@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 32
+refs: 38
 tier: active
 ---
 
@@ -36,4 +36,7 @@ SGLang is an open-source LLM inference framework with active contributions from 
 - **First open-source near-match of DeepSeek's reported inference throughput** (SGLang Team, May 2025): 12-node × 8 H100 deployment of DeepSeek-V3 with PD disaggregation + EP72 decode + EP32 prefill achieves **52.3k input / 22.3k output tokens/sec per node** for 2K inputs, 5× over TP16 baseline. Decode at 9 nodes matches DeepSeek's profile at 16 nodes. Key design decisions: DP Attention + DP dense FFN (eliminates KV cache duplication; cuts FFN all-reduce 50%), DeepEP normal dispatch for prefill + low-latency dispatch for decode (requires PD disagg for coexistence), EPLB (1.49× prefill / 2.54× decode speedup), Two-Batch Overlap (27–40% throughput gain; doubles prefill batch capacity). RDMA-based non-blocking KV transfer via Mooncake/NIXL. Cost estimate: \$0.20/1M output tokens. — [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]]
 - Two PyTorch Conference 2025 sessions featured SGLang: #11 "Open Source Model Performance Optimization With SGLang" (Together AI) and #74 "Optimizing Long-Tail and [[MoE]] Challenges in RL with SGLang" (Chenyang Zhao, UCLA). — [[2025-12-14-vllm-project-vllm-in-pytorch-conference-]]
 - AngelSlim v2（腾讯混元）训练的Eagle3草稿模型直接兼容SGLang部署（以及vLLM）；SGLang被列为AngelSlim的首选部署框架之一，支持全模态（LLM/VLM/Audio）推理加速1.4-1.9×。 — [[2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-]]
+- Alibaba Cloud Tair KVCache team and SGLang community co-built HiCache (HIRadixTree), a three-tier KVCache hierarchy (GPU HBM → CPU DRAM → 3FS distributed storage), extending SGLang's RadixTree prefix caching to near-unlimited capacity. In Novita AI production: cache hit rate 40%→80%, average TTFT down 56%, inference QPS up 2×. Key design: Page-first layout in CPU memory enables zero-copy transfer; layer-wise host→GPU prefetch with compute-overlap; three scheduling policies (Best_effort/Timeout/Wait_complete). Tair KVCache Manager extends management to SGLang, vLLM, RTP-LLM, TensorRT-LLM via unified interface. — [[2025-12-14-阿里云-tair-联手-sglang-共建-hicache-构建面向-智能体式推]]
 - On Blackwell B200 with [[NVFP4]] MoE (GPT-OSS-20B, 32 experts, top-4), SGLang achieves **1168 TFLOPS** vs vLLM's 1026 TFLOPS — a 142 TFLOPS gap driven by three kernel engineering choices: fusing shuffle+reduction into one kernel (21.9% less activation memory traffic), a Blackwell-native [[CUTLASS]] schedule (`KernelPtrArrayTmaWarpSpecialized1SmNvf4Sm100`) with TMA + FP4 warp specialization, and adaptive grid sizing that halves block size to maximize SM occupancy at batch sizes 1–16. At BS=1, SGLang is **1.84× faster** than [[vLLM]]. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]
+
+- Baidu AIAK ESS (Expanded Sparse Server) targets SGLang's DeepSeek-V3.2-Exp inference path: PagedAttention layout leads to highly scattered 656-byte Latent Cache accesses, capping `cudaMemcpyAsync` at 0.79 GB/s H2D; ESS introduces FlashTrans CUDA operator (UVA-based) and DA/DBA Overlap to compute-hide H2D transfer, achieving 123% throughput gain at 128K context. — [[2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac]]

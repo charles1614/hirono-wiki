@@ -2,7 +2,7 @@
 created: 2026-05-12
 updated: 2026-05-15
 type: entity
-refs: 17
+refs: 18
 tier: active
 ---
 
@@ -34,5 +34,6 @@ Vision-Language-Action model architecture used in autonomous driving that ground
 - DriveLaW (HUST & Xiaomi, arXiv:2512.23421) sets a new SOTA of **89.1 PDMS** on NAVSIM without RL fine-tuning by chaining a Video DiT's intermediate latents (DriveLaW-Video) into a flow-matching diffusion planner (DriveLaW-Act); video generation model features outperform BEV features (+5.0 PDMS) and VLM hidden states (+2.6 PDMS) as planner conditioning; 4.6 FID / 81.3 FVD on nuScenes. — [[2026-01-04-超越drivevla-w0-drivelaw-世界模型表征一统生成与规划-华科-]]
 - 地平线DiffusionDrive（HSD一段式端到端）采用anchor-based截断扩散生成轨迹：K-Means出N个常见人类驾驶行为anchor，对anchor加噪更弱，推理时去噪步骤更少；ResAD改进点在于预测惯性残差而非直接生成轨迹，残差正则化使各时刻分布一致，并配备多metric轨迹Ranker。 — [[2025-12-30-摸底地平线hsd一段式端到端的方案设计]]
 - 地平线RAD首个基于3DGS构建sensor-level RL环境的端到端驾驶策略：三阶段训练（感知预训练→IL规控→RL+IL混合），从4305个危险场景clip重建3DGS-env；RL+IL混合比4:1时最优，碰撞率比纯IL降低约3倍；3DGS-env局限：仅log replay，无交互，非刚性行人和低光场景渲染差。 — [[2025-12-25-地平线rad-基于3dgs-大规模强化学习的端到端驾驶策略]]
+- Li Auto's ICCV'25 training closed-loop stack: VLA Diffusion + world-model RL (RLHF + RLVR + RLAIF); world model provides simulation environment (scene reconstruction, scene editing/transfer/generation); interactive SimAgents identified as the key unsolved challenge for closing the training loop. — [[2025-12-05-理想iccv-25分享了世界模型-从数据闭环到训练闭环]]
 - 引望智能（原华为车BU）Percept-WAM以InternVL2-80B为基础，引入World-PV（栅格化PV特征，统一2D检测/分割/单目3D）和World-BEV token（显式建模道路与交通参与者空间关系），开环测试0.36分、仿真90.2分均属中等；缺乏RL和SFT后训练是主要瓶颈。 — [[2025-12-26-3d感知-vla-华为最新wam智能驾驶模型分析]]
 - GAIR 2025圆桌专家共识：单打独斗已触及天花板，世界模型联盟势在必行；多位学者将"基于查询的几何基础模型"和"视频Tokenizer突破"列为2026年核心赌注；Genie 3被认为达到GPT-3级别。 — [[2025-12-26-圆桌论坛-关于-世界模型-突破方向的六个猜想-gair-2025]]

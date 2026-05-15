@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 14
+source_count: 22
 ---
 
 # Inference Disaggregation
@@ -61,4 +61,9 @@ Splitting LLM serving into separate **prefill** (context processing, FTL-governe
 - [[2025-09-05-deploying-deepseek-with-pd-disaggregatio]] — SGLang 96-GPU DeepSeek-V3 deployment; surfaces DeepEP dispatch-mode incompatibility as hard constraint; EPLB + TBO as the two load-bearing optimizations at scale.
 - [[2026-02-08-deepwiki-vllm-10-distributed-prefill-con]] — vLLM distributed architecture doc; specifies [[Prefill Context Parallelism]] (PCP) as a distinct in-engine mechanism from CPP; PCP adds workers and shards token+expert weights; currently MoE-only.
 - PyTorch Conference 2025 session #78 ("Serving PyTorch LLMs at Scale: Disaggregated Inference With Kubernetes and llm-d") highlights disaggregated inference with Kubernetes as a production deployment pattern, alongside [[vLLM]] at scale. — [[2025-12-14-vllm-project-vllm-in-pytorch-conference-]]
+- [[2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac]] — Baidu AIAK ESS: Latent Cache offload in PD-disaggregated DeepSeek-V3.2-Exp; FlashTrans (UVA-based), DA/DBA Overlap; simulator results showing 123% throughput gain at 128K context.
+
+## Observations
+
+- Alibaba [[RTP-LLM]] PD-disaggregated [[DeepSeek-V3]] on RoCE: Prefill 4-node 32-card EP=32; Decode 18-node 144-card EP=144 (128+16 redundant); 4:1 PD ratio not production-optimal (dynamic elastic scaling needed in production); 4K/2K I/O achieves Prefill 42.6K TPS/node + Decode 14.7K TPS/node. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
 

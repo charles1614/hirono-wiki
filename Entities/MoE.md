@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-15
 type: entity
-refs: 22
+refs: 31
 tier: active
 ---
 
@@ -22,3 +22,6 @@ Mixture-of-Experts; sparse-activation architecture; current frontier-model defau
 - **GLM 5与DeepSeek V3.2的MoE配置相同**：独立专家+共享专家，单token仅路由至8个独立专家（top-8路由）。GLM 5（774B总参/40B激活）与DeepSeek V3.2（671B总参/37B激活）的主要差异不在MoE路由方案，而在总参规模与激活参数数量。 — [[2026-03-21-2026大模型架构概览-二-glm-5-dsv3-2]]
 - PyTorch Conference 2025 session #74 (Chenyang Zhao, UCLA) addressed long-tail and MoE challenges in reinforcement learning using [[SGLang]], signaling MoE-aware RL serving as an active research/engineering topic. — [[2025-12-14-vllm-project-vllm-in-pytorch-conference-]]
 - On [[Blackwell]] B200, grouped GEMM for MoE (GPT-OSS-20B, 32 experts, top-4, [[NVFP4]]) performance is determined almost entirely by kernel engineering: the 3 key knobs are kernel fusion (SGLang reduces 7 vLLM kernels to 5), architecture-specific [[CUTLASS]] schedules for FP4 warp specialization + TMA, and adaptive grid sizing for small-batch SM occupancy. At batch size = 1, the [[SGLang]] vs [[vLLM]] gap is 1.84×. Expert-first layouts ([[FlashInfer]] CuteDSL) amortize preprocessing overhead only at large batch sizes (≥256). — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]
+- Datawhale/Raschka survey (Jul 2025): MoE is now the dominant paradigm above ~30B parameters. DeepSeek V3 (256 experts, 9 active = 1 shared + 8 routed) became the 2025 reference; Kimi K2 extends this with more experts; Qwen3 235B-A22B drops the shared expert; Llama 4 alternates MoE and dense blocks. Contrary to common belief: all MoE experts must reside in VRAM for fast switching — MoE's VRAM advantage over dense is primarily through quantization, not architecture. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
+- [[RankMixer]]'s per-token SparseMoE (ByteDance, production 2025): gates each token to an independent FFN via ReLU routing (adapts active expert count to information density); DTSI ("Dense Training, Sparse Inference") trains all experts densely to avoid imbalance, applies sparse routing at inference only; deployed at Douyin scale as part of a 70× parameter scaling with flat latency cost. — [[2025-08-02-抖音全新推荐大模型rankmixer-参数翻70倍-推理成本不涨]]
+- [[VeOmni]] integrates Expert Parallel (EP) as a composable parallelism primitive alongside FSDP and Ulysses for training super-large MoE-based multi-modal models at thousand-GPU scale. — [[2025-08-06-字节跳动-veomni-框架开源-统一多模态训练效率飞跃]]

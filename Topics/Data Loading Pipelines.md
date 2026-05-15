@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 5
+source_count: 6
 ---
 
 # Data Loading Pipelines
@@ -40,6 +40,7 @@ Populate once Sources covering PyTorch `DataLoader` internals, distributed data 
 ## Observations
 
 - SPDL overview (arXiv 2504.20067): 54 Python files + 89 C++ files (~13k LoC each); supports FFmpeg 4–8, CUDA 7.5+ (Turing/Ampere/Ada/Hopper); hardware acceleration gives NVDEC 5–10x video speedup, NVJPEG 10–20x JPEG speedup vs CPU; per-stage Perfetto tracing + stats (avg/p95/throughput) create an iterative optimization loop; BSD 2-Clause. NOT a drop-in PyTorch DataLoader replacement — requires pipeline rearchitecture. — [[2026-01-20-deepwiki-spdl-01-overview]]
+- [[Microsoft]]/OpenAI EB-scale training on [[Azure Blob Storage]]: two data archetypes — raw training data (small files KB–MB, IOPS-bound, billions of objects) and checkpoints (large sequential GB files, written every 5–15 minutes); [[BlobFuse]] with Direct IO + CUDA Pinned Memory achieves 8.1 Tbps write / 13.5 Tbps read at 16,800 vCPUs; future roadmap: prefetching + InfiniBand-based distributed cache across GPU nodes. — [[2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪]]
 - SPDL's core architecture separates I/O-bound stages (needing 24–64 concurrent tasks to saturate network bandwidth) from compute-bound stages (8–12 tasks matching CPU core count) via per-stage `concurrency=` parameters on a shared thread pool; asyncio event loop in a background thread orchestrates queue coordination; dual-concurrency configuration (I/O=32, compute=8) achieves 3.2x throughput over uniform (I/O=8, compute=8) on 1080p H.264 from S3. — [[2026-01-20-deepwiki-spdl-03-core-architecture]]
 
 ## Open threads

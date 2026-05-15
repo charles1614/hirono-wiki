@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 9
+source_count: 13
 ---
 
 # LLM Architectures
@@ -54,3 +54,6 @@ The broader pattern Raschka identifies: the decisive differentiators in 2025 are
 
 - Qwen3.5-397B-A17B introduces a hybrid linear + sparse attention architecture: Gated Delta Networks (linear attention) fused with Gated Attention and a high-sparsity MoE, achieving 397B total / 17B activated parameters with 8.6×–19× decoding throughput over Qwen3-Max while matching its quality — the first major open-weight demonstration of linear attention hybrid at frontier scale. — [[2026-03-04-qwen3-5-blog]]
 - Mini3DV 2025 community consensus on unified multimodal architecture: "AR backbone + per-token Diffusion Head" is the target pattern — autoregressive for reasoning/planning/understanding, diffusion decoder for high-fidelity visual output; LLaDA (large language diffusion model) demonstrates discrete-text diffusion as viable without sequential prior, extending the unification possibility to language-only tasks. — [[2025-12-19-mini3dv-2025-观点总结-世界模型前沿进展与技术展望]]
+- arXiv 2508.09834 (82-page survey) taxonomizes efficient LLM architecture alternatives to standard Transformers into five families: (1) linear/sparse sequence modeling (SSMs, linear attention); (2) efficient full-attention variants (sparse, sliding-window, low-rank); (3) sparse MoE; (4) hybrid architectures interleaving dense and subquadratic layers; (5) diffusion LLMs for non-autoregressive generation. The survey frames efficiency as multi-dimensional: FLOPs, memory, latency, and deployment flexibility trade off differently per family. — [[2025-08-16-speed-always-wins-a-survey-on-efficient-]]
+
+- Datawhale/Raschka 2025-07-25 横向快照（八种架构比较）：NoPE（[[SmolLM3]]）在长度泛化上优于 RoPE；[[OLMo]] 2 的 Post-Norm + QK-Norm 训练更稳定；[[Gemma]] 3 的滑动窗口 4096→1024 显著降低 KV 缓存内存且困惑度损失极小；[[Kimi K2]] 使用 Muon 优化器训练损失曲线平滑迅速下降。所有架构基础（Pre-Norm Transformer + RoPE + SwiGLU）七年来惊人稳定，决定性差异来自训练流水线和推理扩展策略而非架构本身。 — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]

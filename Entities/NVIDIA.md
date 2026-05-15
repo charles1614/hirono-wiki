@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 39
+refs: 47
 tier: active
 ---
 
@@ -39,3 +39,5 @@ NVIDIA's 2025-26 strategic posture spans the full ML stack from silicon through 
 - [[OpenAI]]与[[NVIDIA]]签署合作，黄仁勋承诺投资1000亿美金；形成相互持股飞轮，与[[AMD]]、其他科技巨头共同构建"大而不倒"利益共同体。 — [[2026-01-14-openai将科技巨头手拉手-大而不倒]]
 - Alibaba Cloud PAI formally partnered with NVIDIA for Physical AI (announced at 2025 云栖大会): PAI integrates the full NVIDIA Physical AI software stack (Isaac Sim, Isaac Lab, NVIDIA Cosmos, Physical AI datasets) with Alibaba Cloud's data compute, training/inference, and big-data-AI pipelines; jointly with ByteDance-supplier veRoCE, NVIDIA is also cited as a collaborator for the new RDMA protocol. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
 - ByteDance's veRoCE RDMA protocol collaboration: NVIDIA is one of five hardware partners (alongside AMD, Broadcom, 云脉芯联, 比特智路) supporting veRoCE verification on NICs from 400G to 1.6T; collaboration announced at Force大会 December 2025. — [[2025-12-19-火山引擎-force-大会发布-veroce-传输协议]]
+- DCGM (Data Center GPU Manager) is NVIDIA's production GPU telemetry platform: dcgm-exporter integrates with Prometheus/Kubernetes; `DCGM_FI_PROF_GR_ENGINE_ACTIVE` (preferred utilization metric, MIG-compatible), `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` (≈HFU for BF16 training), `DCGM_FI_DEV_XID_ERRORS`/`DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS` (hardware fault monitoring); level-3 DCGM diagnostic required for GPU memory row remap detection (needs exclusive access). — [[2025-08-16-聊聊-gpu-监控那些事-利用率-故障等]]
+- [[Nsight Systems]] integration in [[verl]] (via NVIDIA 加速计算专家马立伟, Jul 2025): documents the Ray+Nsight profiling challenge — standard `nsys <app>` fails because Ray submits to remote workers; RayActor `runtime_env={"nsight": {...}}` is the canonical fix per Ray's official docs; verl v0.4.1 implemented it with NVTX marking all RL subtask boundaries. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]

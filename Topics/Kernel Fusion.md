@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 3
+source_count: 6
 ---
 
 # Kernel Fusion
@@ -31,6 +31,7 @@ No Sources have been cited for this topic yet. The understanding above reflects 
 ## Observations
 
 - [[JAX]]'s XLA backend performs compiler-driven kernel fusion as part of the Jaxpr → MLIR → StableHLO → XLA HLO lowering pipeline; XLA can fuse elementwise chains, reductions, and epilogue operations because the Jaxpr captures the full computation graph at trace time — a functionally pure IR enables more aggressive fusion than an eager-execution graph. — [[2026-01-20-deepwiki-jax-04-transformation-system]]
+- Practical fusion case study: a production LLM training run achieved 100% GPU utilization but only 20% MFU because Softmax, LayerNorm, dropout, and residual ops were unfused; replacing them with fused implementations (FlashAttention + custom MLP/LayerNorm/residual kernels) raised MFU from 20% → 38% and cut training time 4×; `torch.compile` was insufficient due to FSDP incompatibility and graph breaks. — [[2025-11-02-别被-100-骗了-gpu-利用率背后的真相]]
 
 ## Sources drawn on
 

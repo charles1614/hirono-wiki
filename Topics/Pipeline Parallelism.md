@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # Pipeline Parallelism
@@ -27,6 +27,10 @@ A practical consideration is **load balance**: stages must have roughly equal co
 No cited Sources have been ingested for this topic yet; the above reflects general consensus from the distributed-training literature. Update once Sources are linked.
 
 ## Open threads
+
+## Observations
+
+- Megatron Interleaved 1F1B（VP>1）可 overlap p2p 通信的两个条件：(1) 相邻计算与通信无依赖（循环中 send_forward_recv_forward 与 Backward 无依赖）；(2) 发起通信时对端已准备好数据（排布设计保证数据就绪）。计算负载不均衡（最后一个 Stage 含额外 Logit & Loss）破坏条件 2，引入周期性通信等待 bubble；实验（PP=4, VP=2, GBS=8, 4×A100）和扩大 GBS 至 16/32 均可验证周期性延迟。 — [[2025-08-25-megatron-interleaved-1f1b流水线并行中的计算负载不均衡问]]
 
 ## Sources drawn on
 

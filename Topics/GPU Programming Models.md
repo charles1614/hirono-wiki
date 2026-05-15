@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 16
+source_count: 18
 ---
 
 # GPU Programming Models
@@ -53,3 +53,4 @@ _(none yet — wikilinks from Sources will populate this on the next reindex pas
 - [[JAX]]'s Jaxpr IR compiles via MLIR → StableHLO → XLA HLO, giving [[XLA]] full visibility into the computation graph for kernel fusion, memory layout optimization, and hardware-specific code generation — a compiler-driven fusion path alongside Triton's tile-level model and CUTLASS's layout algebra. — [[2026-01-20-deepwiki-jax-03-core-architecture]]
 - [[JAX]]'s `jax.jit` three-stage pipeline (trace Python → lower Jaxpr to MLIR → XLA compilation + cache) demonstrates a functional-programming entry point to GPU performance: cache keys encode shape/dtype/sharding so same-shape repeated calls skip recompilation entirely; buffer donation (`donate_argnums`) enables in-place buffer reuse without explicit CUDA memory management. — [[2026-01-20-deepwiki-jax-04-transformation-system]]
 - PTX（Parallel Thread Execution）是 NVIDIA GPU 的虚拟 ISA，抽象于各代架构之上；SASS 是底层架构特定 ISA（由 PTX 编译得到）；SIMT（单指令多线程）是 GPU 执行模型，与 SIMD 的核心区别是指定单线程行为而非向量宽度；warp（32线程）是 SIMT 的基本调度单元。NVIDIA 有意隐藏 SASS 细节，使竞争对手难以逆向工程其架构优势。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- PyTorch Symmetric Memory (`torch.ops.symm_mem`, PyTorch 2.9 experimental) is a new GPU programming primitive: symmetric tensor allocation + `rendezvous()` to exchange CUDA VMM handles across a process group, enabling GPU kernels to directly read/write peer HBM via virtual addresses; barrier uses atomicCAS on signal pads for CUDA Graph compatibility; extends to multi-node RDMA via NVSHMEM backend. — [[2025-11-09-pytorch-symmetric-memory-解锁-nvlink-可编程性的]]

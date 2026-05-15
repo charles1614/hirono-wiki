@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 10
+source_count: 15
 ---
 
 # VLA for Autonomous Driving
@@ -25,6 +25,9 @@ _(stub — populate as sources accumulate. `topic-content-gaps` will lint-warn o
 - 地平线HSD一段式端到端：DiffusionDrive用anchor-based截断扩散生成轨迹（K-Means anchor+惯性残差+轨迹Ranker）；ResAD改进：预测惯性残差而非直接生成轨迹，残差正则化使各时刻分布一致；商量轨迹稳定性需求推动Ranker设计。 — [[2025-12-30-摸底地平线hsd一段式端到端的方案设计]]
 - 地平线RAD：3DGS sensor-level RL环境+三阶段训练，碰撞率比纯IL降低3倍；3DGS-env局限性（无交互、非刚性场景渲染差）限制了RL探索上限，强调3DGS质量对RL训练有效性的决定性作用。 — [[2025-12-25-地平线rad-基于3dgs-大规模强化学习的端到端驾驶策略]]
 - 引望智能Percept-WAM将3D感知token（World-PV/BEV/Action）与VLM基座融合，开环和仿真成绩中等偏上（0.36/90.2）；NAVSIM闭环测试中理想TransDiffuser以94.9分领先；华为方案缺乏RL和SFT后训练是主要短板。 — [[2025-12-26-3d感知-vla-华为最新wam智能驾驶模型分析]]
+- Li Auto at ICCV'25: data closed-loop alone (200+ triggers, 15–45s clips, 1-min upload) cannot solve long-tail scenarios; the next phase is a training closed-loop using world-model RL, with MPI now at 220+ (~19× improvement since July 2024). Training closed-loop tech stack: Feedforward 3DGS reconstruction, video/point-cloud generation, SimAgent RL with reward models. — [[2025-12-05-理想iccv-25分享了世界模型-从数据闭环到训练闭环]]
+- DGGT（清华+小米，2025-12-08）证明pose-free feed-forward 4D高斯重建可作为"可编辑4D场景资产生成器"：仅Waymo训练实现nuScenes/Argoverse2零样本泛化（LPIPS分别−61.4%/−52.5%）；输入视角4→8→16时性能稳定；lifespan head建模静态区域时间变化（去除后PSNR −3.2 dB）；支持实例级添加/删除/移动操作+扩散精修，可直接用于自动驾驶仿真和数据合成。 — [[2025-12-10-清华-小米最新dggt-0-4秒完成4d自驾高斯重建-性能提升50]]
+- The "自动驾驶之心" community taxonomy of 40+ autonomous driving technology tracks (2025-08) confirms RL as a necessary VLA component: community explicitly tracks RL foundations, popular RL algorithms, and VLM-RL integration as part of the VLA subdomain, alongside E2E AD variants (one-stage, two-stage, VLA algorithms, production deployment discussions). — [[2025-08-15-汇总了自动驾驶几乎所有的技术栈]]
 
 ## Sources drawn on
 

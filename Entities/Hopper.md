@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 14
+refs: 21
 tier: active
 ---
 
@@ -26,3 +26,4 @@ NVIDIA's Hopper architecture (H100/H200/H800/GH200) introduced four micro-archit
 - DSM (Distributed Shared Memory) is the mechanism behind [[FlashMLA]]'s crossover technique for FP8 decode: two CTAs in a cluster each load and dequantize half the KV, then `st.async` to each other's shared memory, synchronized via cluster transaction barrier. Result: 64% dequantization throughput improvement (250→410 TFlops). Dequantization is a Hopper-specific concern because H800 lacks native FP8→BF16 cast, requiring 4-step type conversion pipeline. — [[2026-01-30-deepwiki-flashmla-04-memory-management]]
 - TMA (Tensor Memory Accelerator) used by [[FlashMLA]] for fine-grained pipelining: each 64×576 K-block is split into 9 TMA copies (each 64×64), allowing GEMMs to begin as each copy completes. `EVICT_FIRST` cache hint tells L2 to de-prioritize KV data (accessed once per token generation). TMA pipelining is also available as a general-purpose copy-compute overlap primitive for any Hopper kernel dealing with large data tiles. — [[2026-01-30-deepwiki-flashmla-04-memory-management]]
 - Hopper（4th gen TC，`wgmma`）新增 Thread Block Cluster（GPC 粒度），允许 Distributed Shared Memory SM-to-SM 直接访问；FP8 TC 累加路径实为 22-bit 定点（非真 FP32），每 N_c 次需溢出到 CUDA core；INT4 自 Hopper 起废弃；后续 Blackwell Ultra INT8 吞吐也有下降——均源于整数精度数据类型普及滞后于硬件设计周期。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
+- [[DeepEP]] low-latency kernel uses Hopper-specific PTX `ld.global.nc.L1::no_allocate.L2::256B` (non-coherent cache, no-L1-allocate) for volatile reads that would otherwise require NVCC-unsupported intrinsics; works correctly on Hopper because nc and L1 are unified there (no dirty L1 issue); disabled via `DISABLE_AGGRESSIVE_PTX_INSTRS=1` for portability. — [[2025-10-09-deepseek-deepep源码分析]]
