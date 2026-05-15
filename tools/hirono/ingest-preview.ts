@@ -23,7 +23,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { refineEntity } from "./refine-entity.ts";
@@ -155,9 +155,11 @@ export function readSection(body: string, heading: string): string | null {
 
 function gatherIngestSignal(repoRoot: string, since: string): IngestSignal {
   // List NEW Sources added between <since> and HEAD via git diff --name-only.
+  // `-c core.quotepath=false` so non-ASCII filenames (CJK, etc.) aren't
+  // returned wrapped in quotes with octal-escaped bytes.
   const result = spawnSync(
     "git",
-    ["diff", "--name-only", "--diff-filter=A", since, "HEAD", "--", "Sources/"],
+    ["-c", "core.quotepath=false", "diff", "--name-only", "--diff-filter=A", since, "HEAD", "--", "Sources/"],
     { cwd: repoRoot, encoding: "utf8" },
   );
   if (result.status !== 0) {
@@ -168,16 +170,28 @@ function gatherIngestSignal(repoRoot: string, since: string): IngestSignal {
   const files = result.stdout.split("\n").map(s => s.trim()).filter(s => s.endsWith(".md"));
   const touchedEntities = new Set<string>();
   const touchedTopics = new Set<string>();
+  // Classify each wikilink target by filesystem presence (Entities/ vs
+  // Topics/). The dedicated `## Entities touched` / `## Topics touched`
+  // sections are convention but not universally followed (~half of
+  // current Sources use them), so we scan ALL body wikilinks to avoid
+  // undercounting the fan-out.
   for (const f of files) {
     let raw: string;
     try { raw = readFileSync(join(repoRoot, f), "utf8"); }
     catch { continue; }
-    // Strip frontmatter
     const body = raw.replace(/^---\n[\s\S]*?\n---\n/, "");
-    const ent = readSection(body, "Entities touched");
-    const top = readSection(body, "Topics touched");
-    if (ent) for (const link of extractWikilinks(ent)) touchedEntities.add(link);
-    if (top) for (const link of extractWikilinks(top)) touchedTopics.add(link);
+    for (const link of extractWikilinks(body)) {
+      if (existsSync(join(repoRoot, "Topics", `${link}.md`))) {
+        touchedTopics.add(link);
+      } else if (
+        existsSync(join(repoRoot, "Entities", `${link}.md`)) ||
+        existsSync(join(repoRoot, "Entities", "_seen", `${link}.md`))
+      ) {
+        touchedEntities.add(link);
+      }
+      // Wikilinks to Sources or unresolved targets are ignored — they
+      // don't drive entity/topic staleness fan-out.
+    }
   }
   return { newSources: files, touchedEntities, touchedTopics, invalidRef: false };
 }
