@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 7
+source_count: 9
 ---
 
 # LLM Training Systems
@@ -35,3 +35,4 @@ Once Sources are attached, this section should be revised to anchor each claim t
 ## Sources drawn on
 
 - [[2026-02-28-deepwiki-slime-01-overview]] — slime RL post-training framework: three-subsystem architecture (Megatron-LM + SGLang + Ray), colocated vs. dedicated GPU modes, async pipelining design.
+- [[2026-03-18-阶跃星辰开源全量-sft-数据集-欢迎使用-小红书]] — StepFun Step 3.5 Flash SFT dataset release: 17B tokens, multi-turn + CoT, SteptronOss training framework, preprocessed shards + tokenizer.

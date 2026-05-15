@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 6
+source_count: 9
 ---
 
 # KV Cache Management
@@ -34,4 +34,5 @@ KV cache management sits at the intersection of memory architecture and serving 
 - [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] — analytical KV-bandwidth equations + the "datacenter bandwidth is sufficient" finding.
 - [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] — vLLM NIXL/KVConnectorStats observability for the KV-transfer data plane.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li survey treating memory management as a first-class design axis with database-systems framing.
+- [[2026-03-16-我们撞车了kimi的注意力残差-但用在压缩上-小红书]] — context compression via residual attention over frozen LLM hidden states, avoiding the progressive layer-dilution problem shared with [[Kimi K2]] Attention Residuals.
 

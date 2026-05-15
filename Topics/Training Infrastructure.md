@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 3
 ---
 
 # Training Infrastructure
@@ -30,3 +30,7 @@ A substantive Current understanding here will require ingesting sources that cov
 ## Sources drawn on
 
 - (auto-populated by reindex)
+
+## Observations
+
+- [[Meta]] FT-HSDP at 98K GPU scale treats each DP replica (8,192 GPUs) as the fault recovery unit: stall time per failure drops from ~10 min to ~3 min, effective training time improves from ~44% to ~80%. FTAR protocol uses CPU control plane + GPU data plane for cross-DC gradient AllReduce, overlapping with the backward pass. 2PC-style barrier before optimizer step allows intentional replica step-number divergence without degrading model quality. — [[2026-03-01-十万卡保障-meta-ft-hsdp-方案解析]]

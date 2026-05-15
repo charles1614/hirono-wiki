@@ -1,14 +1,14 @@
 ---
-created: 2026-05-12
-updated: 2026-05-12
+created: 2026-05-15
+updated: 2026-05-15
 type: entity
-refs: 0
+refs: 1
 tier: seen
 ---
 
-# VLA
+# Triton
 
-Vision-Language-Action model architecture used in autonomous driving that grounds decisions in language, extended by Xiaomi into XLA with additional modalities.
+OpenAI's Python DSL + compiler for GPU kernels, lowering to PTX/AMDGCN
 
 ## Synthesis
 

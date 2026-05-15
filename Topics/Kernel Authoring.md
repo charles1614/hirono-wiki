@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 3
+source_count: 8
 ---
 
 # Kernel Authoring
@@ -38,4 +38,10 @@ Sources on specific kernels (FlashAttention variants, Triton tutorials, CUTLASS,
 
 ## Sources drawn on
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书]] — CUDA-L2 paper summary: leveled optimization (L0 naive → L1 memory → L2 compute) with learnable level-appropriate feedback; SOTA vs. GPT-4o baselines without reference code.
+- [[2026-03-30-cuda黑魔法-拦截ptx-小红书]] — PTX interception tool (dsl-learn/cuda-magic) capturing PTX from CUDA/Triton/CUTLASS/cuTile/CuteDSL for inspection at the deepest accessible optimization layer.
+
+
+## Observations
+
+- `nsight-python` enables automated profiling loops where Python scripts decorated with `@nsight.analyze.kernel` run `ncu` sweeps and return pandas DataFrames — the author proposes wrapping these as Claude Skills to give kernel-authoring agents programmatic benchmark feedback without manual `.ncu-rep` parsing. — [[2026-02-12-gvwwekyppgmtxdpex-qw]]

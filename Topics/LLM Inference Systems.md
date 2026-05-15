@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 16
+source_count: 26
 ---
 
 # LLM Inference Systems
@@ -65,5 +65,9 @@ The **cs.DB framing** from the Pan+Li survey remains the most useful cross-cutti
 - [[2026-01-09-google-tpus-explained-architecture-perfo]] — TPU/Gemini context for the hardware axis.
 - [[2026-01-12-ironwood-the-first-google-tpu-for-the-ag]] — Google's inference-first TPU.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li cs.DB-framed survey; the three-primitive lens.
+- [[2026-03-17-llm-para-大模型推理的多维度roofline分析-小红书]] — LLM-Para analytical framework: 13-operator Roofline with SRAM/DRAM/NAND-Flash tiers, Energy Roofline + TCO + CO₂e, 24-platform DSE.
 - [[2026-01-26-optimizing-glm4-moe-for-production-65-fa]] — Novita AI production SGLang optimizations for GLM-4.7 MoE on H200: Shared Experts Fusion, Qknorm Fusion, Async Transfer (up to 1 s TTFT savings on 92-layer model), Suffix Decoding.
+- [[2026-03-24-powering-the-agents-workers-ai-now-runs-]] — Cloudflare Workers AI serving Kimi K2.5 with prefix caching, session-affinity routing, and redesigned async API; production cost case study.
+- [[2026-02-05-在-blackwell-上推动-vllm-wide-ep-与大规模推理走向成熟-]] — vLLM GB200 Wide-EP Part I: NVFP4 GEMM + dispatch (4× comm reduction), kernel fusions, weight offloading v2 with async prefetch; 26.2K prefill TPGS + 10.1K decode TPGS, 3–5× over H200.
+- [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]] — vLLM + NVIDIA gpt-oss-120b Pareto frontier optimization on Blackwell: FlashInfer integration, torch.compile fusion, async scheduling, stream interval; 38% max-throughput uplift, 13% latency reduction.
 

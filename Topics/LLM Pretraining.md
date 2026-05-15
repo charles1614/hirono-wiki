@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 8
+source_count: 10
 ---
 
 # LLM Pretraining
@@ -48,6 +48,10 @@ Pretraining is the initial large-scale training phase in which a foundation mode
 **Tokenization** choices (vocabulary size, BPE vs. unigram, multilingual coverage) have outsized effects on downstream multilingual and code performance and are increasingly treated as a first-class design decision rather than an afterthought.
 
 No sources are yet attached to this topic. Claims above reflect cross-source consensus visible in the broader literature; they will be refined and attributed as Sources accumulate.
+
+## Observations
+
+- A 163M-parameter GPT-2 small equivalent trained from scratch on a consumer RTX 3090 in ~48 hours reached near-GPT-2-quality, using HuggingFace FineWeb-Edu 10B token sample. Demonstrates that GPT-2-scale base model pretraining is accessible on consumer hardware. — [[2026-02-07-writing-an-llm-from-scratch-part-28-trai]]
 
 ## Open threads
 

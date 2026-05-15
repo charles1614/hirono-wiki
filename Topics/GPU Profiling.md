@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 4
+source_count: 7
 ---
 
 # GPU Profiling
@@ -29,3 +29,8 @@ The [[Nsight Systems]] CLI workflow for distributed workloads follows a consiste
 
 - [[2025-08-18-installation-guide-nsight-systems]] — install reference: editions, platform support, CLI vs GUI, CUPTI + NVTX mechanisms
 - [[2025-08-17-user-guide-nsight-systems]] — usage reference: `nsys profile` CLI, focused profiling, multi-node MPI/NCCL/torchrun patterns, Python/PyTorch profiling, SQLite export
+
+## Observations
+
+- Brendan Gregg joined OpenAI in early 2026 to lead cross-organizational performance optimization for ChatGPT; plans to apply eBPF, Ftrace, and PMCs to AI data center contexts. His thesis: traditional performance engineering methods are insufficient at AI-datacenter scale; new approaches are needed at every layer. — [[2026-02-09-这不只是-gpu-的问题-而是关乎所有层面-brendan-gregg-从-in]]
+- `nsight-python` provides a Python decorator API over [[Nsight Compute]] CLI (`ncu`): `@nsight.analyze.kernel` runs parameter sweeps (`configs`) and returns a pandas DataFrame of metric values; `@nsight.analyze.plot` visualizes results (limited to one metric per call). Two-pass model: script runs as launcher, `ncu` re-executes it, parses `.ncu-rep`. Enables agentic profiling loops where benchmark scripts feed kernel-authoring agents. — [[2026-02-12-gvwwekyppgmtxdpex-qw]]

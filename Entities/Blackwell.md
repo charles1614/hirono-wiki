@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 16
+refs: 19
 tier: active
 ---
 
@@ -24,4 +24,5 @@ NVIDIA's Blackwell generation (B200/B300/GB200/GB300) is the first architecture 
 - CUDA 13.1 introduces Blackwell-specific platform features: **MLOPart** (Memory Locality Optimization Partition; compute capability 10.0/10.3 on B200/B300 today, GB200/GB300 planned) presents one underlying GPU as multiple memory-locality-optimized CUDA devices. cuBLAS FP32/FP64 Tensor-Core emulation targets GB200 + RTX PRO 6000. — [[2026-01-08-nvidia-cuda-13-1-powers-next-gen-gpu-pro]]
 - The native-FP4 platform that NVFP4 pretraining validates — Blackwell's FP4 Tensor Cores enable the 4-bit training path matching FP8 quality at 12B/10T-token scale. — [[2026-02-04-pretraining-large-language-models-with-n]]
 - Epoch.ai spec dataset (175 accelerators): Blackwell Ultra (GB300, Aug 2025) tops the chart at 5.0 PFLOP/s FP8 / 8 TB/s BW / 288 GB HBM at 1400 W; GB200 (Feb 2025) at 5.0 PFLOP/s FP8 / 8 TB/s / 186 GB at 1200 W; B200 (Nov 2024) at 4.5 PFLOP/s / 7.7 TB/s / 180 GB at 1000 W. FP8 now present on all Blackwell variants. — [[2026-01-22-data-on-machine-learning-hardware]]
+- FA4 kernel targets Blackwell (sm100/compute capability 10.0) using `tcgen05.mma.cta_group::1` PTX (5th-gen Tensor Core); uses single-CTA execution (not 2SM/2CTA TPC-based) to simplify scheduling, with StaticPersistentTileScheduler for at-most-one-CTA-per-SM dispatch. — [[2026-02-07-解析flash-attention-4-fa4-blackwell-核心实现与架]]
 - SemiAnalysis TCO comparison with [[Ironwood]]: GB200 server all-in cost ~44% higher than Ironwood (from Google's procurement cost perspective). Marketed Blackwell peak FLOPs are inflated by DVFS — actual utilization lands in the 70s% of rated peak. GB300 has 288 GB 12-Hi HBM3E vs Ironwood's 192 GB 8-Hi — the key remaining hardware advantage for large-KV-cache inference use cases. — [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]]

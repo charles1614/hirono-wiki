@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
 updated: 2026-05-15
-synthesis_updated_at: 2026-05-13
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 3
 ---
 
 # MoE Training
@@ -32,4 +32,4 @@ Two distinct regimes exist for handling **expert capacity** (the maximum tokens 
 
 ## Sources drawn on
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2026-03-04-qwen3-5-blog]] — Qwen3.5-397B-A17B training: disaggregated async RL framework (3×–5× speedup), native FP8 pipeline (~50% activation memory, >10% throughput), Gated DeltaNet + Gated Attention hybrid MoE architecture.

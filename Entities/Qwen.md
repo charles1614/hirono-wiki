@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-15
 type: entity
-refs: 6
+refs: 8
 tier: active
 ---
 
@@ -21,3 +21,5 @@ Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacen
 - Qwen2.5-1.5B used as the reference model in a [[PyTorch]] GPU memory profiling tutorial: 1.5B parameters at float32 → 6 GB model memory; 5,065,216 activations per input token measured via forward hooks. — [[2025-09-22-visualize-and-understand-gpu-memory-in-p]]
 - Qwen3 dense models (0.6B–32B) use GQA, QK-Norm, RoPE, and SwiGLU; Qwen3 MoE (235B-A22B) is structurally near-identical to DeepSeek V3 but drops the shared expert — developer confirmed no significant improvement found with 8+ routed experts, and shared expert added inference optimization complexity. — [[2026-01-28-the-big-llm-architecture-comparison]]
 - Qwen3-Next (80B-A3B, Sep 2025) adds three co-present efficiency mechanisms: Gated DeltaNet + Gated Attention hybrid (3:1 ratio), MTP for training + speculative decoding at inference, and 4× more experts plus a restored shared expert. Qwen3-Coder-Next (same architecture, Feb 2026) reaches near-Claude-Sonnet 4.5 SWE-Bench Pro performance on coding tasks. — [[2026-01-28-the-big-llm-architecture-comparison]]
+- Qwen3.5-397B-A17B (Feb 2026) uses a Gated DeltaNet + Gated Attention hybrid MoE with 397B total / 17B active parameters, achieving 8.6×–19× higher decoding throughput than Qwen3-Max while matching its base performance; 250k vocabulary (up from 150k), 201 languages (up from 119). — [[2026-03-04-qwen3-5-blog]]
+- Qwen3.5 pretraining uses a native FP8 pipeline across activations, MoE routing, and GEMM with runtime BF16 fallback in sensitive layers — ~50% activation memory reduction, >10% throughput gain. The asynchronous disaggregated RL training framework achieves 3×–5× end-to-end RL speedup at million-scale agent scaffolds. — [[2026-03-04-qwen3-5-blog]]

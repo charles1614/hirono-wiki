@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: topic
-source_count: 1
+source_count: 7
 ---
 
 # RL Post-Training
@@ -25,4 +25,6 @@ The dominant production pattern (as of early 2026) connects a distributed traini
 
 ## Sources drawn on
 
-_(populated as Sources wikilink this Topic; cite each with one-line relevance.)_
+- [[2026-03-22-训练rollout彻底解耦-小红书]] — ProRL Agent (arXiv:2603.18815): Rollout-as-a-Service architecture decoupling multi-turn agent execution from training; 3-layer design with async server + HTTP boundary + rootless HPC support.
+- [[2026-03-30-how-kimi-cursor-and-chroma-train-agentic]] — Kimi K2.5 PARL, Cursor Composer 2 real-time RL, and Chroma Context-1 CISPO: three distinct agentic RL systems converging on production-harness training + outcome rewards + large-scale async rollouts.
+- [[2026-03-29-周末到-看看最近的论文和技术博客-充充电-小红书]] — Reading list citing Kimi's Attention Residuals paper and Google's "Towards a Science of Scaling Agent Systems" (5 architectures × 4 benchmarks).

@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-13
-synthesis_updated_at: 2026-05-13
+updated: 2026-05-15
+synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 10
+source_count: 12
 ---
 
 # Attention Kernels
@@ -51,6 +51,10 @@ GPU kernels implementing the attention operator at production-grade efficiency �
 - FlashMLA's seesaw schedule is designed for 2 warpgroups + Hopper register budget. Does it generalize to 4 warpgroups on Blackwell (larger register file + different WGMMA shape)? — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
 - MLA piggyback overhead mitigation (cache up-projected KV from earlier chunks, per the NVIDIA Beyond-the-Buzz paper) — is this in any OSS serving stack yet? FlashMLA is the obvious candidate. — [[2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe]] [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
 - The custom mask + short sequence (< 1K) scenario is a known gap in OSS attention libraries; the AutoResearch result suggests it's a fruitful niche for LLM-driven kernel authoring, but no peer comparison against optimized sparse-mask implementations. — [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]]
+
+## Observations
+
+- FA4 (Blackwell/sm100) introduces 5-warp-role specialization (Load/MMA/Softmax/Correction/Epilogue), a polynomial software exp approximation via Horner's method to relieve SFU bottleneck, and a smarter online Softmax (90% fewer rescaling operations). ~20% improvement over cuDNN 9.11.0 on Blackwell. — [[2026-02-07-解析flash-attention-4-fa4-blackwell-核心实现与架]]
 
 ## Sources drawn on
 

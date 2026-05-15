@@ -1,14 +1,14 @@
 ---
-created: 2026-05-12
+created: 2026-05-15
 updated: 2026-05-15
 type: entity
 refs: 1
 tier: seen
 ---
 
-# FlashInfer
+# gpt-oss-20B
 
-Library whose API-logging pattern inspired the SGLang CUDA Debug Crash SKILL's staged verbosity approach.
+20B parameter open-source base model used by Chroma Context-1
 
 ## Synthesis
 

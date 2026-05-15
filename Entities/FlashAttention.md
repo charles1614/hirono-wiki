@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-15
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 5
+refs: 6
 tier: active
 ---
 
@@ -21,4 +21,5 @@ FlashAttention established the online-softmax-plus-accumulation algorithm that b
 
 - Used as the kernel-design reference point for FlashMLA's seesaw schedule. FlashMLA's writeup credits FlashAttention's online softmax + accumulation approach as the algorithmic basis the seesaw schedule extends; FA-3 specifically is the comparison for why the seesaw is needed (FA-3's ping-pong needs two output matrices per SM, blocked by Hopper's register budget for 64×512 MLA outputs). — [[2026-01-28-flashmla-docs-20250422-new-kernel-deep-d]]
 - HKUST Hopper microbench finding: Transformer Engine's `DotProductAttention` operator uses flash-attention instead of FP8 Tensor Cores. So attention doesn't get FP8 acceleration in TE — a non-obvious finding that explains why FP8 LLM speedups don't match the 2× peak rates suggest. — [[2026-01-15-benchmarking-and-dissecting-the-nvidia-h]]
+- FA4 (Blackwell-targeted) achieves ~20% improvement over cuDNN 9.11.0's best attention kernel. Key innovations: warp specialization with 5 warp roles (Load/MMA/Softmax/Correction/Epilogue), a software polynomial exp approximation replacing SFU calls via Horner's method, and an online Softmax that reduces rescaling operations by 90% by only triggering when the running max changes enough to affect numerical stability. — [[2026-02-07-解析flash-attention-4-fa4-blackwell-核心实现与架]]
 - Claude Code (Opus 4.6) autonomously produced a CUDA Flash Attention with custom mask kernel that outperforms the standard Triton FlashAttention baseline by 46.7% on RTX 3080 (25.17 TFLOPS, MFU 42%), via 25 AutoResearch-style iterations with self-directed ncu profiling and PTX analysis. Confirms that FlashAttention is the reference baseline for custom mask attention kernels on consumer hardware. — [[2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自]]
