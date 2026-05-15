@@ -30,6 +30,7 @@ Match your intent to the canonical doc; don't re-derive what's already written d
 | Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
 | External inspiration — Karpathy's "LLM Wiki" gist (the loose pattern this project rhymes with; not a binding spec) | [`Meta/references/karpathy-llm-wiki-gist.md`](Meta/references/karpathy-llm-wiki-gist.md) |
 | **How this wiki maps to Karpathy** — coverage map, deliberate deviations, acknowledged gaps. Re-run periodically. | [`Meta/references/karpathy-alignment.md`](Meta/references/karpathy-alignment.md) |
+| **Wiki ingest mechanics** — raw → `Sources/YYYY/<slug>.md` authoring (slug rule, schema, citation scope, image-path depth, scaffold-on-dead-link rule, validation gate). The rote rules subagents miss on first pass. **Read before any "ingest from raw" task.** | §10 of this file |
 | What this file (`CLAUDE.md`) covers | the section list immediately below — quality rules, fidelity check, output contract, formatting rules, fix recipes, regression set, code pointers |
 
 This file deliberately overlaps with the docs above on a few load-bearing topics (output contract, fidelity checks, fix recipes) — those are the rules that should fire on every commit, regardless of whether the operator opened the workflow / patterns docs first. When in doubt about a workflow or a per-site fix, defer to the dedicated doc.
@@ -376,6 +377,136 @@ Sources are summaries. When a question needs detail the Source doesn't carry (al
 When `shouldExtractImages` triggers (same 5 signals the `source-image-count` lint uses): **Sonnet subagent** extracts verbatim → cache at `<slug>-images-extract.md`. **Opus inline-verifies** any number / §-ref / parameter before citing — Sonnet blends adjacent numbers. **Never Haiku** for dense Chinese text (1568 px cap drops specifics + hallucinates). Prompt + caveat details: memory `feedback_image_extraction_hybrid.md` + `feedback_haiku_image_resolution.md`.
 
 **Image-ref rule (strict)**: 2-5 `![]()` refs only for **genuinely visual** images (diagrams, charts, heatmaps, schematics, dashboards, photos). Text-in-spatial-layout → use a canonical rationale phrase from Meta/schema.md's documented list — the lint enforces canonical-only via exact-string match; paraphrasing breaks the gate.
+
+## 10. Wiki ingest mechanics (raw → `Sources/YYYY/<slug>.md`)
+
+When the user says "ingest N raw sources" / "ingest from raw" / "continue ingesting", this is the canonical flow. There is **no single command** that converts raw → Source; the LLM IS the authoring layer. The rules below are what `lint.ts` enforces — get them right on the first pass, don't ship a cleanup round.
+
+### Flow
+
+```
+raindrop fetch-all  (already run)  →  pick candidates  →  per-item LLM authorship
+                                              ↓                    ↓
+                                     ingest_batch start <id>   write Sources/YYYY/<slug>.md
+                                                               + append Observations to
+                                                               touched Entities/Topics
+                                                               + scaffold missing entities
+                                              ↓                    ↓
+                                     ingest_batch mark-done    reindex + lint (gate)
+```
+
+### Picking candidates
+
+```bash
+npx tsx tools/bin/hirono.ts raindrop ingest-candidates --limit 50 > /tmp/cands.json
+npx tsx tools/bin/ingest_batch.ts plan /tmp/cands.json
+npx tsx tools/bin/ingest_batch.ts next --count N    # emits N NDJSON lines
+```
+
+For N ≥ 5: spawn parallel Sonnet subagents (5 items each). Subagent contexts are **independent** — they don't inherit CLAUDE.md, so the spawning prompt MUST embed §10 verbatim or the subagent re-derives bugs. For N ≤ 4: serial in the main context (cheaper — prompt cache amortizes, no duplicated `ls Entities/` reads).
+
+### Slug rule (load-bearing — most-missed)
+
+The filename in `Sources/YYYY/<slug>.md` MUST equal the raw folder name **EXACTLY**. The raw folder is `raw/raindrop/<host>/<slug>/`. Do not strip trailing `-小红书`, `-trai`, `-在`, or any other suffix. Do not trim trailing dashes. `checkRawOrphan` in lint emits a hard error on mismatch.
+
+**Resolution**: `grep -lr "<url>" raw/raindrop/*/*/source.json | head -1` → the **parent directory name IS the slug**. Use that literal string; copy-paste, don't retype.
+
+### Source schema (exact)
+
+```markdown
+---
+created: <today, YYYY-MM-DD>
+updated: <today, YYYY-MM-DD>
+type: source
+source_url: <verbatim from source.json>
+tags: [tag-1, tag-2, ...]
+---
+
+# [YYYY-MM-DD] <Clean Title>
+
+## TL;DR
+
+<1–3 sentence high-density abstract — what + why-it-matters>
+
+## Key claims
+
+- <claim with concrete numbers/specifics; wikilink [[Entity]] / [[Topic]]>
+- <...>
+
+## Visual observations
+
+*<canonical rationale phrase from Meta/schema.md's exact-string list, OR 2–5 `![](../../raw/...)` refs for genuinely visual images>*
+
+## What this changes
+
+<optional — 1–2 bullets on implications; skip if not load-bearing>
+
+## Entities touched
+
+[[E1]], [[E2]], ...
+
+## Topics touched
+
+[[T1]], [[T2]], ...
+
+## Raw source
+
+[host.tld/slug](<URL>) — <1-line provenance: author/date/format>. Read <today>.
+```
+
+### Bullet citation scope (subtle but load-bearing)
+
+- `## Key claims` bullets in a **Source** file have **NO `— [[<own-slug>]]` trailing citation**. The Source IS the citation; self-citing is a category error. (Every subagent gets this wrong on first read; it generated 41 of 50 cleanup edits in the 2026-05-15 batch.)
+- `## Observations` bullets in an **Entity/Topic** file DO end with `— [[<source-slug>]]` (just the slug, no `Sources/2026/` path prefix).
+
+### Image-path depth
+
+Source files live at `Sources/YYYY/<slug>.md` (2 levels deep). Image refs use `../../raw/raindrop/<host>/<slug>/<image>.ext`. Not `../raw/...` (1 level), not `../../../raw/...` (3 levels).
+
+### Dead wikilinks → scaffold inline
+
+If you write `[[Some Entity]]` and `ls Entities/ Entities/_seen/` shows no match, you MUST scaffold via `npx tsx tools/bin/hirono.ts new-entity "Some Entity" --kind "<one-liner>"` before declaring done. Topics: same pattern with `new-topic "<Name>" --what "<one-liner>"`. Leaving dead wikilinks for a follow-up pass is the bug shape that produces the most lint errors.
+
+Match existing names exactly — case + spelling. `ls Entities/ Entities/_seen/ Topics/` BEFORE writing the wikilink, not after.
+
+### Append observations
+
+For each `[[Entity]]` mentioned in the new Source: append a bullet to that Entity's `## Observations` section. Shape: `- <one-paragraph cited claim referencing the Source>. — [[<source-slug>]]`. Same for `[[Topic]]` → `Topics/<Name>.md`'s `## Observations`. Atomic Read-then-Edit; retry up to 3× on collision when sibling subagents touch the same file.
+
+### Stub-skip rule
+
+If `source.json.extraFlags` includes `intentional-stub`, OR `content.md` is auth-walled / empty / a stub template, do **NOT** write a Source page. Run `npx tsx tools/bin/ingest_batch.ts mark-errored <id> "stub-only"` and move on. Examples: x.com, qwen.ai blog, feishu (foreign tenant), most xhslink shortlinks pointing to xiaohongshu.
+
+### Validation gate (every ingest, no exceptions)
+
+Work is not done until:
+
+```bash
+npx tsx tools/bin/reindex.ts                # refs / tier / Meta indexes
+npx tsx tools/bin/build-sources-index.ts    # URL→slug index
+npx tsx tools/bin/lint.ts                   # must end "0 error(s)"
+```
+
+If lint fires errors, fix them before reporting done. `0 error(s)` is the gate — warnings and info are acceptable. Don't commit, don't claim success, don't post the summary until lint is green.
+
+### Parallel-subagent prompt template
+
+When spawning a Sonnet subagent for bulk ingest, the prompt must include:
+
+1. Pointer: "Follow CLAUDE.md §10 for ingest mechanics. Read it first if you haven't."
+2. The 5 items as `{id, url, title}` JSON.
+3. The per-item loop: `ingest_batch start` → resolve slug → Read raw + source.json → if stub mark-errored skip → write Source → append Observations / scaffold entities → `mark-done`.
+4. Report shape: "slugs created, slugs errored (with reason), entities/topics scaffolded. Under 300 words."
+
+The subagent has no CLAUDE.md in its context. If §10 isn't paraphrased in the prompt, the subagent re-derives bugs.
+
+### Post-ingest summary (what to report)
+
+After lint is green:
+```
+hirono ingest-preview --since HEAD~1
+```
+Shows new-Sources count + touched-Entities/Topics + stale-flag count + est refine cost. This is the headline number to report back to the user.
 
 ## Auto-capturing learnings (no reminder needed)
 

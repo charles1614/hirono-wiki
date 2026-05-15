@@ -2,6 +2,39 @@
 
 Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), adapted to a Raindrop + Lark + TypeScript stack. The repo is the **canonical source of truth**; everything else (Raindrop bookmarks, fetched raw archives, Lark Space 2 projection) is read or projected from it.
 
+## Daily commands (operator cheat sheet)
+
+| Intent | Command | Notes |
+|---|---|---|
+| Pull new bookmarks → raw | `npx tsx tools/bin/hirono.ts raindrop refresh-cache && npx tsx tools/bin/hirono.ts raindrop fetch-all` | Idempotent; only fetches new URLs |
+| Triage fetch failures | `npx tsx tools/bin/hirono.ts raindrop status --filter <kind>` | See `Meta/operator-workflows.md` §3 |
+| See what's ingestable | `npx tsx tools/bin/hirono.ts raindrop ingest-candidates --limit 50 --md` | Markdown table of pending |
+| **Ingest N sources** | *Ask Claude: "ingest 20 more from raw"* | LLM-authored — see CLAUDE.md §10 |
+| Preview refine cost after ingest | `npx tsx tools/bin/hirono.ts ingest-preview --since HEAD~1` | Shows new Sources + fan-out + est tokens/$ |
+| Refine stale Syntheses (when 7d lag fires) | `npx tsx tools/bin/hirono.ts refine-all-stale --preview` then `--limit N` | Cap each session; resumable across runs |
+| Top-level Synthesis regen | `npx tsx tools/bin/hirono.ts refine-synthesis` | When `stale-top-synthesis` lint fires |
+| Full curation loop | `npx tsx tools/bin/hirono.ts auto-curate` | Tier-1 auto-fix + Tier-2 propose-curation |
+| Periodic health check | `npx tsx tools/bin/hirono.ts health-check --scope drift` | Weekly; LLM-judgment audit |
+| Lint (the gate before commit) | `npx tsx tools/bin/lint.ts` | After any wiki edit |
+
+### Who does what
+
+| Step | Who | Why |
+|---|---|---|
+| Fetch raw HTML/markdown | `hirono raindrop fetch-all` | Mechanical |
+| Pick which raw to ingest | `hirono raindrop ingest-candidates` | Mechanical |
+| **Write `Sources/YYYY/<slug>.md`** | **Claude (no command)** | **LLM authorship — Key claims, wikilinks** |
+| Append `## Observations` to Entities/Topics | Claude (no command) | LLM authorship |
+| Scaffold missing entities | `hirono new-entity` / `new-topic` (Claude runs) | Mechanical, run by Claude inline |
+| Reindex / build-sources-index / lint | three CLIs (Claude runs at end) | Mechanical |
+| Refine Syntheses | `hirono refine-entity` / `refine-topic` (Sonnet subagent) | LLM-driven |
+
+### Discipline reminders
+
+- **Ingest frequently, refine rarely.** 7-day staleness lag is the natural batching mechanism. Resist running `refine-all-stale` reflexively — let drift accumulate so one refine batches multiple Sources' worth.
+- **Lint clean before commit, every time.** The pre-commit hook enforces it; don't `--no-verify` past failures.
+- **`approve.ts` for fixture refresh, never overwrite fixtures directly.** See CLAUDE.md §6b.
+
 ## What this repo holds
 
 ```
