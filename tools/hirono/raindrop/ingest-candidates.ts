@@ -25,7 +25,7 @@
  * Exit code: 0 always (zero candidates is a valid state, not an error).
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { RawIndexEntry } from "../../fetch-raw.ts";
@@ -35,6 +35,31 @@ import { normalizeUrl } from "../../bin/build-sources-index.ts";
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..", "..");
 const RAW_INDEX_PATH = join(REPO_ROOT, "raw", "raindrop", "_index.json");
+
+/**
+ * Build a set of slugs already present as `Sources/<year>/<slug>.md`.
+ *
+ * Why this exists: `loadIngestedUrlSet` dedups by normalized `source_url`,
+ * but Raindrop short share URLs (Reddit `/s/<id>`, xhslink, etc.) redirect
+ * to canonical URLs that the fetcher captures into Source frontmatter.
+ * Raw index keeps the short URL, Source keeps the canonical — so URL
+ * comparison misses these. Slug match is the authoritative signal
+ * because Source filenames equal raw folder names verbatim (CLAUDE.md §10).
+ */
+function loadIngestedSlugSet(sourcesRoot: string): Set<string> {
+  const out = new Set<string>();
+  if (!existsSync(sourcesRoot)) return out;
+  for (const year of readdirSync(sourcesRoot)) {
+    const yearDir = join(sourcesRoot, year);
+    let st;
+    try { st = statSync(yearDir); } catch { continue; }
+    if (!st.isDirectory()) continue;
+    for (const f of readdirSync(yearDir)) {
+      if (f.endsWith(".md")) out.add(f.slice(0, -3));
+    }
+  }
+  return out;
+}
 
 interface CandidateOut {
   id: string;
@@ -64,6 +89,7 @@ export function computeIngestCandidates(opts: IngestCandidatesOpts = {}): Candid
   }
 
   const ingestedUrls = loadIngestedUrlSet(opts.sourcesIndexPath);
+  const ingestedSlugs = loadIngestedSlugSet(join(REPO_ROOT, "Sources"));
   const out: { entry: RawIndexEntry; ts: string }[] = [];
 
   for (const entry of Object.values(parsed.slugs ?? {})) {
@@ -75,7 +101,10 @@ export function computeIngestCandidates(opts: IngestCandidatesOpts = {}): Candid
       const filt = opts.host.toLowerCase().replace(/^www\./, "");
       if (host !== filt && !host.endsWith("." + filt)) continue;
     }
-    // Skip if already ingested.
+    // Skip if already ingested. Check both URL and slug — slug catches
+    // share-link redirects where raw `link` and Source `source_url` differ
+    // (Reddit /s/<id>, xhslink shorteners, etc.).
+    if (entry.slug && ingestedSlugs.has(entry.slug)) continue;
     const norm = normalizeUrl(entry.link);
     if (ingestedUrls.has(norm)) continue;
     out.push({ entry, ts: entry.fetched_at ?? "0" });
