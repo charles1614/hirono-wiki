@@ -57,6 +57,7 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[GQA]]** _(11 refs)_ — Group Query Attention; multi-head attention variant where K/V are shared across query heads (Llama2/3 style); cheaper KV cache than MHA, …
 - **[[Nsight Compute]]** _(11 refs)_ — NVIDIA's kernel-level profiler; SM/warp metrics, source-line attribution; integrated with CUDA toolkit.
 - **[[NVSHMEM]]** _(11 refs)_ — NVIDIA's OpenSHMEM-based library for GPU-to-GPU communication, covered alongside NCCL in PMPP 5e's new Multi-GPU API chapter.
+- **[[OpenAI Triton]]** _(11 refs)_ — OpenAI-developed kernel-authoring DSL with compiler-managed Tensor-Core mapping; also OpenAI ships Triton-kernel optimizations for its Mo…
 - **[[Speculative Decoding]]** _(11 refs)_ — Inference technique class where a lightweight draft model generates candidate token sequences subsequently verified by the target model i…
 - **[[Cursor]]** _(10 refs)_ — AI-powered code editor with a CLI mode supported by vibe-replay for session capture and replay, accounting for 6% of demo activity.
 - **[[Microsoft]]** _(10 refs)_ — Hyperscaler; Azure cloud; AI infrastructure; OpenAI partner
@@ -67,7 +68,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[FlashInfer]]** _(9 refs)_ — Library whose API-logging pattern inspired the SGLang CUDA Debug Crash SKILL's staged verbosity approach.
 - **[[JAX]]** _(9 refs)_ — Google's array-programming framework with composable transforms (grad, vmap, jit, pmap); built on XLA; foundation for Pathways + Gemini t…
 - **[[NVIDIA Alpamayo]]** _(9 refs)_ — reasoning-based vision language action model for autonomous driving
-- **[[OpenAI Triton]]** _(9 refs)_ — OpenAI-developed kernel-authoring DSL with compiler-managed Tensor-Core mapping; also OpenAI ships Triton-kernel optimizations for its Mo…
 - **[[Pathways]]** _(9 refs)_ — Google's distributed ML runtime; lets one program span tens of thousands of TPU chips; powers Gemini.
 - **[[Quantization]]** _(9 refs)_ — Model weight and activation compression technique (e.g., FP8, INT4) for reducing memory and compute cost; covered under the survey's mode…
 - **[[Rubin]]** _(9 refs)_ — NVIDIA GPU architecture successor to Blackwell, paired with Vera CPU in Vera Rubin NVL72 platform
@@ -217,7 +217,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[SoftBank]]** _(2 refs)_ — Japanese conglomerate; Vision Fund; AI infrastructure investor; Stargate JV founder
 - **[[Stable Diffusion]]** _(2 refs)_ — text-to-image diffusion model architecture based on latent diffusion
 - **[[THUDM]]** _(2 refs)_ — Tsinghua University Department of Machine Learning; research group; develops GLM model series and slime framework
-- **[[Triton]]** _(2 refs)_ — OpenAI's Python DSL + compiler for GPU kernels, lowering to PTX/AMDGCN
 - **[[Tsinghua]]** _(2 refs)_ — Tsinghua University — author affiliation for the LLM Inference Systems survey.
 - **[[Vera Rubin NVL72]]** _(2 refs)_ — Next-gen NVIDIA rack platform — Vera CPU paired with Rubin GPU at NVL72 scale (~Stargate H2 2026)
 - **[[VS Code]]** _(2 refs)_ — Microsoft's extensible code editor with Remote SSH extension supporting offline server installation
@@ -411,7 +410,6 @@ Every entity page. Tier split: **active** (≥3 refs, `Entities/`) vs **seen** (
 - **[[ShareGPT]]** _(0 refs)_ — Public conversational dataset (68K examples) used as the base training corpus for EAGLE-3 draft models.
 - **[[Sliding Window Attention]]** _(0 refs)_ — Local attention mechanism used alongside global MHA and grouped GQA in DeepSeek V4's hybrid attention composition.
 - **[[Sparling]]** _(0 refs)_ — ICLR 2026 paper (Insight 2) proposing end-to-end spatial concept learning via extreme activation sparsity to force a neural network to le…
-- **[[Speculative Sampling]]** _(0 refs)_ — Inference-acceleration technique where a small draft model proposes tokens that a larger target model verifies in parallel, preserving th…
 - **[[SQLite]]** _(0 refs)_ — Row-oriented embedded database used as the baseline comparison in the DuckDB benchmark, showing 6×–56× slower performance on aggregation …
 - **[[Tencent Hy3]]** _(0 refs)_ — Tencent's Hy3-preview 295B-A21B MoE model catalogued as a 2026-frontier entry in Raschka's gallery.
 - **[[Token-to-Token Latency]]** _(0 refs)_ — TTL — the per-step latency between successive generated tokens; governs decode interactivity and is the inverse proxy for tokens/s/user.
