@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 18
+refs: 19
 tier: active
 ---
 
@@ -23,3 +23,4 @@ AI lab; ChatGPT; GPT models; Triton kernel language; recently OpenAI-MoE-kernels
 - Stargate site operations lead: manages operations across all Stargate campuses (SoftBank handles financing). Two Abilene buildings operational since September 2025; "OpenAI for Countries" initiative expanding to UAE, Norway, UK, Argentina, South Korea. $400B+ of $500B Stargate commitment claimed "in play" by late 2025; full $500B still requires ongoing bank/asset-manager fundraising. Tariff headwinds added estimated 5–15% to build costs mid-2025. — [[2026-01-22-openai-s-stargate-project-a-guide-to-the]]
 - [[OpenAI]]通过与[[NVIDIA]]（黄仁勋承诺投资1000亿美金）和[[AMD]]（6吉瓦算力合作+10%股权）签署相互持股合作，构建"大而不倒"飞轮：各方共担风险、资金循环、股市同涨，形成科技巨头深度绑定生态。 — [[2026-01-14-openai将科技巨头手拉手-大而不倒]]
 - OpenAI 自 2025 年 9 月起签订总价值超万亿美元的基础设施协议群：[[Oracle]] $300B（Stargate）、[[NVIDIA]] $100B 10GW、[[AMD]] 6GW+10%股权、[[Broadcom]] 10GW；SK Hynix 和 Samsung 供应 HBM；电商入口通过 ChatGPT Instant Checkout 接入 Shopify/Etsy/Walmart；合作伙伴股价单日涨幅：Oracle+36%、AMD+23%、Broadcom+10%、SK Hynix+10%。 — [[2026-01-15-economictimes-indiatimes-com]]
+- Andrej Karpathy在2025年6月的ChatGPT模型路由指南中将o3定义为"当前明显最强"的推理模型，适合专业场景（~40%使用）；4o为daily driver（~40%）；Deep Research基于o3但不等同于直接问o3；o4-mini定位不明确。用户决策判据：任务是否值得等待→二元切换。 — [[2025-06-04-andrej-karpathy-karpathy-on-x]]

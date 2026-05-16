@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 16
+refs: 18
 tier: active
 ---
 
@@ -23,3 +23,4 @@ Meta Platforms; AI Research; Llama models; Reality Labs; FAIR; PyTorch maintaine
 - FT-HSDP (Fault Tolerant HSDP) at 98K GPU scale: 12 DP replicas of 8,192 GPUs each; custom FTAR protocol (CPU control plane + GPU data plane) replaces NCCL for cross-DC gradient AllReduce; 2PC-style barrier before optimizer step allows intentional step-number divergence across replicas; effective training time improved from ~44% to ~80% vs. fully synchronous training. — [[2026-03-01-十万卡保障-meta-ft-hsdp-方案解析]]
 - SPDL (Scalable and Performant Data Loading) is a Meta Reality Labs open-source library for ML data pipelines; C++ core (libspdl, ~13k LoC) releases the Python GIL enabling 3–5x throughput and 50–70% lower memory vs multiprocessing; dual thread-pool architecture (I/O pool + compute pool), NVDEC/NVJPEG/NPP hardware acceleration; BSD 2-Clause, arXiv 2504.20067. — [[2026-01-20-deepwiki-spdl-01-overview]]
 - Spent 400K GPU-hours on NVIDIA GB200s to derive [[ScaleRL]], a predictive RL scaling framework for LLMs modeled as a sigmoid saturation curve; key finding: methods performing well at small compute often underperform at scale; [[ScaleRL]] validated on Llama-4 Scout 17B×16 MoE at 100K GPU-hours, achieving far higher asymptotic reward than 8B dense with 1/6th the compute. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]
+- Meta在SIGCOMM 2024发表的RoCEv2 AI训练网络论文：Grand Teton（H100）平台，单平面Spine-Leaf拓扑；路由演进ECMP→Path Pinning→E-ECMP（AllReduce +40%）→集中式TE（CSPF+精确匹配表）；传输层放弃DCQCN（400G固件Bug），改为集合通信库层接收端驱动准入控制（CTS消息）；优化后带宽收敛比从1:2降至1:1.125。 — [[2025-05-27-meta基于rocev2构建的大规模ai网络]]

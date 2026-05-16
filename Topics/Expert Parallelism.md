@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 17
+source_count: 23
 ---
 
 # Expert Parallelism
@@ -30,7 +30,8 @@ The load-bearing primitives, in order of architectural significance: (1) the All
 
 ## Sources drawn on
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2025-07-15-https-www-zhihu-com-question-19271405065]] — Kimi K2 EP analysis: at EP=128 each rank holds ~10 GB MoE weights (vs 7.5 GB for DSv3); n_group=1 (no expert grouping) makes EPLB dynamic reranking + redundant experts the primary load-balancing mechanism.
+- [[2025-07-05-rmt-lw-jwfgic9orkz-xx5cg00-gn-kc]] — EP communication: AllGather + AllToAll in both forward and backward for MoE layers; grad_norm uses AllGather/ReduceScatter across DP+EP combined.
 
 ## Observations
 
@@ -39,3 +40,4 @@ _(none yet — wikilinks from Sources will populate this on the next reindex pas
 - Alibaba [[RTP-LLM]] on RoCE: Prefill EP=32, Decode EP=144 (128+16 redundant); EPLB load balance test-data-sensitive; dual-uplink RoCE fix via NVSHMEM-level message/queue-level load balancing reduces Low Latency mode latency 60%+; Combine phase (FP16) is ~2× longer than Dispatch (FP8). — [[2025-10-09-如何重现-deepseek-推理性能突破]]
 - [[Moonshot AI]] K2VV reveals vendor tool-call accuracy variance for [[Kimi K2]] serving at EP scale: official API 100%, vLLM/SGLang open-source deployments 73–95% schema accuracy; root causes include wrong model versions, malformed tool IDs, and absent guided encoding. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]
 - [[DeepEP]] 在 H800 集群上将 EP AlltoAll 带宽推至接近物理极限（节点内 ~160 GB/s NVLink，节点间 ~50 GB/s IB），两种 Kernel 分别服务 Prefill/Training（高吞吐）和 Decoding（低时延）；在 RoCE 环境中由于 incast、Multi-Rail/Rail-Only 拓扑兼容性等问题仍存在实质性障碍，[[SGLang]] 目前在 RoCE 上用 AG+AR 规避 AlltoAll。 — [[2025-10-09-分析一下ep并行和deepseek开源的deepep代码]]
+- 大EP经济学约束：MoE部署甜点曲线形如浴盆（两端为一体机和大EP，中间因BSP不均衡形成效率陷坑）；256 expert是当前大EP甜点，1024 expert需4倍以上并发才能维持专家均衡满负荷；cold/hot专家分类是应对1024+ expert时大EP可扩展性天花板的候选方案。 — [[2025-06-04-https-zhuanlan-zhihu-com-p-1911899575096]]

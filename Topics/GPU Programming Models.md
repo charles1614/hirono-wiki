@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 18
+source_count: 26
 ---
 
 # GPU Programming Models
@@ -54,3 +54,7 @@ _(none yet — wikilinks from Sources will populate this on the next reindex pas
 - [[JAX]]'s `jax.jit` three-stage pipeline (trace Python → lower Jaxpr to MLIR → XLA compilation + cache) demonstrates a functional-programming entry point to GPU performance: cache keys encode shape/dtype/sharding so same-shape repeated calls skip recompilation entirely; buffer donation (`donate_argnums`) enables in-place buffer reuse without explicit CUDA memory management. — [[2026-01-20-deepwiki-jax-04-transformation-system]]
 - PTX（Parallel Thread Execution）是 NVIDIA GPU 的虚拟 ISA，抽象于各代架构之上；SASS 是底层架构特定 ISA（由 PTX 编译得到）；SIMT（单指令多线程）是 GPU 执行模型，与 SIMD 的核心区别是指定单线程行为而非向量宽度；warp（32线程）是 SIMT 的基本调度单元。NVIDIA 有意隐藏 SASS 细节，使竞争对手难以逆向工程其架构优势。 — [[2026-01-15-nvidia-tensor-core-evolution-from-volta-]]
 - PyTorch Symmetric Memory (`torch.ops.symm_mem`, PyTorch 2.9 experimental) is a new GPU programming primitive: symmetric tensor allocation + `rendezvous()` to exchange CUDA VMM handles across a process group, enabling GPU kernels to directly read/write peer HBM via virtual addresses; barrier uses atomicCAS on signal pads for CUDA Graph compatibility; extends to multi-node RDMA via NVSHMEM backend. — [[2025-11-09-pytorch-symmetric-memory-解锁-nvlink-可编程性的]]
+- CUDA Driver vs Runtime API design: Driver API (`cu` prefix) is handle-based, requires explicit `cuInit`/`cuCtxCreate`/`cuModuleLoad`; Runtime API (`cuda` prefix) abstracts context management, auto-creates primary context per device; CUDA 12.0 added context-independent `cuLibrary*`/`cuKernel*` APIs enabling framework-level one-shot module load/unload without per-context state tracking. — [[2025-06-09-再议-driver-和-runtime-apis]]
+- [[PyTorch]] 通过 `torch._C` 绑定调用CUDA Runtime/Driver API（延迟初始化策略）；[[OpenAI Triton]] 的 `GPUDriver` 复用PyTorch CUDA API进行设备/流管理，JIT编译后通过subprocess调用nvcc/clang生成PTX/CUBIN，由 `jit.py` 的 `JITFunction.run()` 最终执行 `cudaLaunchKernel`；Runtime/Driver/Firmware三层分工明确。 — [[2025-05-27-pytorch-triton与runtime的三角虐恋]]
+- H100 SASS对比：向量化kernel（`float4`/`LDG.E.128`）每指令传输128位而非32位，对N=1<<30向量复制任务将所需block数从1,048,576降至262,144，总指令数减少75%；SASS可通过Godbolt（`-arch sm_90`）或NVIDIA NCU获取，是分析内存受限kernel的有效手段。 — [[2025-05-27-通过查看gpu-assembly分析cuda程序]]
+- LeetGPU以浏览器内真实GPU硬件执行的方式降低GPU编程学习门槛：50+题目涵盖矩阵运算/内存优化/kernel fusion，PyTorch API入口可渐进到底层kernel，配套CLI工具支持终端提交，适合系统性学习GPU编程。 — [[2025-06-02-leetgpu]]

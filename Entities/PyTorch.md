@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 23
+refs: 32
 tier: active
 ---
 
@@ -25,3 +25,5 @@ Dominant ML framework for research and production; graph compilation via torch.c
 - PyTorch 2.1 enhanced memory snapshot API (`_record_memory_history` + `_dump_snapshot`): records per-tensor allocation events with Python/C++ call stacks, exports a `.pkl` file for pytorch.org/memory_viz; three views: Active Memory Timeline, Allocator State History (torch-allocator block/segment lifecycle — `block.free` ≠ `cudaFree`), and Active Cached Segment Timeline. Snapshot overhead is high; disable in production. — [[2025-11-12-pytorch显存可视化与snapshot数据分析]]
 - Memory snapshot 实战解读（AMP 混合精度训练）：forward 阶段 `autocast()` 上下文内 FP32 权重转 FP16，FP32 主权重保留；backward 阶段 `GradScaler.scale(loss).backward()` 累积 FP16 梯度，`scaler.step()` 更新前还原 FP32；每个步骤下的 segment 分配/复用/释放均可在 memory snapshot 堆栈信息中追溯到 Python 源码行号，侧重"如何解读记录内容"而非操作步骤。 — [[2025-09-22-如何利用pytorch-memory-snapshot进行显存分析]]
 - In verl's Nsight integration, `torch.cuda.profiler.start()` / `torch.cuda.profiler.stop()` are used to control Nsight capture-range activation per training step, enabling targeted profiling of specific steps within a long training run. This is the standard PyTorch interface to Nsight's capture-range mechanism for RL training frameworks. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]
+- [[PyTorch]] 通过 `torch._C` 扩展模块调用 CUDA Runtime API，采用延迟初始化（`_lazy_init`）；[[OpenAI Triton]] 的 `GPUDriver` 复用PyTorch CUDA API（`torch.cuda.set_device`等）进行设备管理，两者在完整推理流程中共享同一CUDA Runtime接口层。 — [[2025-05-27-pytorch-triton与runtime的三角虐恋]]
+- [[vLLM]] V1的 `load_model` 调用链（Executor→Worker→ModelRunner→DefaultModelLoader）中，`_get_all_weights` 生成不预切片的完整权重迭代器，每个TP rank的ModelRunner在 `model.load_weights()` 时自行切取所需分片；RLHF场景下Actor权重更新可直接构建为此格式的迭代器传入 `model_runner.model.load_weights()`。 — [[2025-05-27-图解vllm-v1系列4-加载模型权重-load_model]]

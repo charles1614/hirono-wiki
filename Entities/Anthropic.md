@@ -1,8 +1,8 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 19
+refs: 22
 tier: active
 ---
 
@@ -26,3 +26,5 @@ AI safety company whose two engineering blog posts on effective harnesses for lo
 
 - Claude Code issue #4002 (Jul→Dec 2025): 25,000-token file read limit prevents single large files from consuming the full context window; the model can still read entire files via multiple offset/limit reads. MCP tool output limit is separately configurable via `MAX_MCP_OUTPUT_TOKENS`. Rationale confirmed by Anthropic contributor catherinewu. — [[2025-11-27-error-file-content-28375-tokens-exceeds-]]
 - Alibaba Cloud developer describes [[Claude Code]] as "master model + 15 tools" with superior context management vs. Cline; recommends pseudo-XML prompting structure for Claude models specifically; noted as the tool that enabled a full Hackathon project (design docs, diagrams, code) by one developer. — [[2025-07-30-如何用ai-coding和claude-code提升开发效率-看我的全流程复盘]]
+- MCP（Model Context Protocol）由Anthropic于2024年11月25日发布，定位为LLM与外部数据源/工具之间的"USB-C万能转接头"；相比各平台独立function call实现，MCP提供统一协议层，使任何支持MCP的模型可无缝复用同一Server，核心优势是平台无关性和数据安全（敏感数据留本地）。 — [[2025-06-04-https-zhuanlan-zhihu-com-p-29001189476]]
+- [[Pine AI]]'s chief scientist cited an Anthropic research result demonstrating SFT+RLHF teaches a model to follow 51 arbitrary "strange" rules simultaneously (e.g., "always mention chocolate in recipes") without long-think-mode — the recommended path for domain-specific compliance on smaller open-source models. Claude 4 Sonnet is used by Pine as the Reasoner model for deep planning. Computer use by Anthropic/OpenAI is cited as the performance baseline Pine's RPA-based GUI system outperforms by 5×. — [[2025-06-14-能办成事的-agent-实时与环境交互-从经验中学习]]

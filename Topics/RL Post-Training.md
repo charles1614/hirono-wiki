@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 18
+source_count: 29
 ---
 
 # RL Post-Training
@@ -30,6 +30,7 @@ The dominant production pattern (as of early 2026) connects a distributed traini
 - [[2026-03-29-周末到-看看最近的论文和技术博客-充充电-小红书]] — Reading list citing Kimi's Attention Residuals paper and Google's "Towards a Science of Scaling Agent Systems" (5 architectures × 4 benchmarks).
 - [[2026-01-10-姚顺雨对着唐杰杨植麟林俊旸贴大脸开讲-基模四杰中关村论英雄]] — AGI-Next summit: practitioner confirmation of RLVR verifiable-domain exhaustion; full-async RL with SFT interleaving to prevent local optima; AutoGLM 9B as first open-source Agent-RL model.
 - [[2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观]] — CF-VLA rollout-filter-label self-improving loop: multi-round counterfactual RL training; adaptive reasoning reduces think rate 40-45% while maintaining/improving metrics.
+- [[2025-07-06-rasbt-llms-from-scratch-implement-a-chat]] — "Build A Reasoning Model (From Scratch)" sequel covers GRPO RLVR, distillation, LLM-as-judge, and inference-time scaling starting from a pretrained model.
 - [[2025-12-25-地平线rad-基于3dgs-大规模强化学习的端到端驾驶策略]] — 地平线RAD三阶段训练+3DGS-env RL；PPO+IL混合；辅助任务设计。
 
 ## Observations
@@ -45,3 +46,7 @@ The dominant production pattern (as of early 2026) connects a distributed traini
 - [[Meta]]'s [[ScaleRL]] framework (400K GPU-hours on GB200) provides the first systematic RL compute scaling study: performance follows a sigmoid saturation curve parameterized by asymptotic ceiling A and efficiency B; methods with high small-scale performance often have lower A; technical tricks (loss aggregation, curriculum, length penalty, advantage normalization) improve B not A. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]
 
 - [[Nsight Systems]] integration in [[verl]] (via NVIDIA engineer, Jul 2025): Ray-based RL programs require injecting Nsight via RayActor `runtime_env` at construction time (not via standard `nsys <app>` wrapper) because Ray schedules compute processes remotely; verl's single-controller design adds complexity requiring separate tracking of controller and worker processes; NVTX marks verl's step/gen/reward/update subtasks for per-subtask profiling. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]
+- [[vLLM]] V1 RLHF场景权重更新：Actor完整权重（去切片）构建为 `(权重名, tensor)` 迭代器，直接传入 `model_runner.model.load_weights()`，每个TP rank自行切取所需分片；`_initialize_model` 阶段建立HF类名→vLLM Python class映射（惰性注册），量化模型动态替换 `Linear` 为 `QuantLinear`。 — [[2025-05-27-图解vllm-v1系列4-加载模型权重-load_model]]
+- [[Seed-Coder]] Reasoning模型从Base模型（非Instruct）出发进行LongCoT预热+GRPO强化学习，避免SFT模式锁死影响RL探索；分阶段渐进式：16K序列/16样本90步→32K序列/32样本160步；Curriculum Learning过滤正确率>87.5%简单问题，移除KL损失项，剪裁比率0.28。 — [[2025-05-27-seed-coder-feishu-docs]]
+- [[AReaL]] async RL eliminates synchronous RL's two inefficiencies (within-rollout long-tail bubble and rollout-trainer serialization) by interrupting mid-sequence generation on weight updates and generating continued responses from prefill; decouple PPO maintains a stable trust region despite multi-checkpoint sequence composition. — [[2025-06-11-异步rl框架areal速览]]
+- Awesome-ML-SYS-Tutorial documents that RL "strengthens proficiency (熟练度), not intelligence" — RL can only reinforce outputs the base model has already produced at least once; its value is raising success rate from 10% to 90% on a task, not unlocking new capabilities. — [[2025-07-03-github-zhaochenyang20-awesome-ml-sys-tut]]

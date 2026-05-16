@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 19
+refs: 24
 tier: active
 ---
 
@@ -24,3 +24,4 @@ DeepSeek's open-source MoE expert-parallelism communication library (dispatch/co
 - Low-latency mode: two-phase (send/recv) CUDA kernel using NVSHMEM IBGDA for single-sided RDMA; pre-allocated buffers eliminate metadata sync; IBGDA latency ~64 µs vs IBRC 128–256 µs for <8 KiB messages; optional FP8 quantization on send reduces data 50%; two modes: `recv_hook=false` (single kernel, overlappable) vs `recv_hook=true` (send+recv split ~10 µs each). — [[2025-10-09-xzwazsg-zjcksvuvksvw]]
 - Source-code walkthrough: three communication modes (intranode NVLink, internode RDMA, low-latency RDMA+AR); intranode uses NVLink peer memory access via virtual addressing without cudaMallocManaged; internode dispatch via `nvshmem_int_put_nbi`; IB Virtual Lanes for traffic isolation; AR supported only on low-latency kernel. — [[2025-10-09-deepseek-deepep源码分析]]
 - Alibaba [[RTP-LLM]] integrated DeepEP for PD-disaggregated [[DeepSeek-V3]] inference on RoCE; Low Latency mode latency reduced 60%+ with dual-uplink load-balancing patches; Combine phase is ~2× longer than Dispatch (FP16 vs FP8 transfer), requiring asymmetric overlap budget. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
+- [[NVSHMEM]] IBRC transport underpins DeepEP's expert dispatch: one-sided RMA put/get replace NCCL's two-sided send/recv; AMO (`IBV_WR_ATOMIC_FETCH_AND_ADD`) on the single per-PE QP provides synchronization; NVSHMEM IBRC is distinct from [[IBGDA]] (IBRC uses CPU proxy for doorbell; IBGDA has GPU SM write doorbell directly). — [[2025-05-27-谈谈deepep中的nvshmem]]

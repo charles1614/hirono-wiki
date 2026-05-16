@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 41
+refs: 53
 tier: active
 ---
 
@@ -32,6 +32,11 @@ vLLM is the dominant open-source LLM inference engine, built on PagedAttention a
 - vLLM's [[NVFP4]] MoE forward launches **7 separate CUDA kernels** (shuffle → quant → GEMM1 → SiLU → quant → GEMM2 → shuffle), using a generic [[CUTLASS]] 3.x schedule without Blackwell-specific TMA alignment padding; at batch size 1–4, kernel launch overhead alone accounts for 10–20% of latency. Benchmarked at 1026 TFLOPS peak on [[Blackwell]] B200 for GPT-OSS-20B (32 experts, top-4, NVFP4), 142 TFLOPS below [[SGLang]]. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]
 - vLLM TP=2 profiling case study (v0.5.1, FP8, DeepSeek-6.7B on L20, batch=1): apparent AllReduce slowness (50% decode timeline) traced through three false leads — (1) allreduce lag was actually process-2 imbalance; (2) inter-kernel gaps were CPU Python scheduling blocking kernel launch, not launch overhead itself; (3) resolved with CUDA Graph. Step-to-step overhead fixed in v0.5.4 by async three-process architecture. FP8 dequant kernels need fusing with preceding operators. — [[2025-08-18-vllm性能分析案例]]
 - DeepSeek-V3 on 32×[[H20]] with EP=32 analysis: vLLM TP=1 in EP mode prevents KV-Cache sharding, limiting per-GPU available KV cache to ~6.8 GB at 32K context → 1 session/GPU bottleneck. Recommended EP backend for multi-node: `deepep_low_latency` (decode-dominant) or `deepep_high_throughput` (prefill-dominant). — [[2025-08-20-ai-fundermentals-inference-solution-deep]]
+- vLLM V1 engine (default from v0.8.x) splits CPU work into two processes: Process 0 handles tokenization/detokenization/param validation, Process 1 handles scheduling and model inference — running in parallel via ZMQ sockets to eliminate the sequential CPU idle time present in V0. — [[2025-05-27-vllm-v1-整体流程-从请求到算子执行]]
+- Used as rollout backend by [[OpenRLHF]] (v0.5.9.post1) and [[verl]] in Ray-based RLHF frameworks; supports DP (multiple engines) + TP (within each engine); logit divergence vs training engines is ~10% relative error, meaning eval modules requiring precise loss (Ref, Critic) still prefer training-engine forward passes. — [[2025-05-27-基于-ray-的分离式架构-verl-openrlhf-工程设计]]
 - CUDA core dump + `nvdisasm` multi-level inline chain debugging workflow was used to locate a CUTLASS MLA attention kernel hang in vLLM (PR #26026); root cause traced to upstream CUTLASS example code, fixed in CUTLASS v4.3.0. The technique extends `cuda-gdb` (which only shows the last inline frame) by running `nvdisasm -ndf -c -gi` on the extracted cubin. — [[2025-12-04-从gpu卡死到精准锁定出错代码-vllm-cuda-调试实战技巧]]
 - Alibaba Cloud Beluga-KVCache integrates into vLLM framework for KVCache management via CXL shared memory pool; in cache-hit scenario vs MoonCake (RDMA): TTFT −89.6%, QPS +7.35×; in PD disaggregation: QPS +3.41×–9.47×. Tair KVCache Manager provides a unified interface to vLLM, SGLang, RTP-LLM, TensorRT-LLM for global KVCache management. — [[2025-12-10-较mooncake首token延迟直降89-6-阿里云提出基于cxl的kv缓存管]]
 - `ray symmetric-run` simplifies multi-node vLLM deployment by running the same command on all cluster nodes and auto-managing Ray head/worker lifecycle — enabling MPI-style one-command startup for HPC or `mpssh` environments. — [[2025-11-27-ray-symmetric-run-让-vllm-多节点部署更轻盈]]
+- [[vLLM]] V1 `load_model` 调用链（Executor→Worker→ModelRunner→DefaultModelLoader）：`_get_all_weights` 生成 `(权重名, tensor)` 完整不切片迭代器，`model.load_weights()` 遍历时每个TP rank自行切取所需分片；量化模型在 `_initialize_model` 阶段替换为 `QuantLinear`；RLHF场景Actor权重更新可直接构建为此格式迭代器传入 `model_runner.model.load_weights()`。 — [[2025-05-27-图解vllm-v1系列4-加载模型权重-load_model]]
+- PR #6496 (merged Jul 18, 2024) introduced CPU offload by hooking `make_layers` in pipeline parallel to load layer weights from CPU pinned memory to GPU on demand via `torch.func.functional_call`; `--cpu-offload-gb N` conceptually extends each GPU's memory by N GB; compatible with CUDA graphs and `non_blocking=True` async copy; GH200 test with Meta-Llama-3-70B-Instruct at 70 GB offload: 61.3 GB loaded, ~8 min load time, TTFT matched non-offloaded, throughput slightly below PR #6317. — [[2025-05-30-core-model-yet-another-cpu-offload-imple]]
+- vLLM v0.8.5.post1 FP8 Qwen3-235B-A22B deployment pitfall: with `--tensor-parallel-size 8`, the MoE intermediate size 1536 / 8 = 192 is not divisible by the 128-element block-wise quantization granularity, causing an error at MoE layer FP8 weight creation; fix is TP4 (1536/4=384, divisible). Online throughput per device: FP8+TP4 = 901.2 tok/s vs BF16+TP8 = 515.2 tok/s (~1.75×). — [[2025-05-26-基于vllm-v1测试bfloat16-vs-fp8-qwen3-moe模型吞吐]]

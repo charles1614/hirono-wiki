@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 18
+refs: 33
 tier: active
 ---
 
@@ -24,4 +24,10 @@ DeepSeek's third-generation dense Transformer model, powering V3.1 and V3.2 vari
 - Datawhale/Raschka survey (Jul 2025): DeepSeek V3's MLA compresses K/V tensors to a low-dimensional latent before writing to KV cache, reducing memory vs MHA/GQA (despite extra matrix multiplications at runtime); MoE uses 256 experts, 9 active per token (1 shared + 8 router-selected). Kimi K2 and Llama 4 both derived from V3's blueprint with modifications. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
 - Alibaba [[RTP-LLM]] reproduced DeepSeek-V3 inference on Alibaba Cloud RoCE: Prefill 42.6K TPS/node and Decode 14.7K TPS/node at 4K/2K I/O constraints; 272 GPUs (PD-disaggregated, EP=32 Prefill + EP=144 Decode); key techniques: [[DeepEP]] integration, MTP speculative decoding, MicroBatch overlap, Kernel Fusion (Rotary Embedding transpose + Quantization+Transpose fused), PDL on Hopper for GEMM+Quantization overlap. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
 
+- 以DeepSeek V3（MoE+MLA架构）为例的NPU profiling实战：Huawei Ascend Insight工具显示MoE与MLA层间存在大段to/iterm流同步等待时序（区别于GPU场景），AllReduce拆解为ReduceScatter+AllGather并后移后通信计算掩盖改善可通过时序图直接验证，micro batch双流运算的OverlapAnalysis反映重叠度数值变化。 — [[2025-09-10-gpu-npu推理profiling阅读引导-下]]
 - DeepSeek-V3.2-Exp Latent Cache (656 bytes/token) has high temporal locality both intra- and inter-layer (measured on LongBench-v2); Baidu AIAK ESS offloads Latent Cache to CPU pinned memory using FlashTrans (UVA-based CUDA operator: 37 GB/s H2D, 43 GB/s D2H vs. 0.79/0.23 GB/s for `cudaMemcpyAsync` on scatter accesses). At 128K context with Sparse Memory Ratio 0.1, ESS achieves 123% throughput improvement. — [[2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac]]
+- DeepSeek-V3（256 expert，每次激活8个）的大EP部署在当前并发规模下处于效率甜点；但若专家数扩至1024，所需并发量需比V3高4倍以上才能让所有expert均衡满负荷，大EP的可扩展性将到达边界；Scale-Up（NVLink域）是保障单用户高token/s的必要路径，Scale-Out无法达到同等低延迟。 — [[2025-06-04-https-zhuanlan-zhihu-com-p-1911899575096]]
+- In the KCORES ball-bouncing heptagon benchmark, DeepSeek-V3 scored 68/90 (no friction, no elasticity, no number rotation) and DeepSeek-R1 scored 88/90 (penalized 2 pts for using the `random` library outside the allowed set); DeepSeek-V3-0324 scored 85/90. — [[2025-07-10-kcores-llm-arena-benchmark-ball-bouncing]]
+- Moonshot AI inference engineer confirmed that [[Kimi K2]]'s structural differences from DSv3 (more experts, fewer heads, fewer dense layers, no expert grouping) were arrived at after large-scale experiments in which all proposed alternative structures failed to outperform DSv3; DSv3 was kept as the template with only parameter tuning. — [[2025-07-15-https-www-zhihu-com-question-19271405065]]
+- DeepSeek-V3 technical report cites [[IBGDA]] for low-latency collective communication; the paper also uses block quantization (128×128 weight blocks, 1×128 activation blocks) for FP8 training, which FA3 adopts for QKV. — [[2025-05-27-浅析deepseek中提到的ibgda]]
+- [[SGLang]] distributed communication architecture (source-level): ZMQ IPC for process-level coordination between tokenizer/scheduler/detokenizer, `torch.dist` NCCL for GPU-level TP/DP/EP; [[DP Attention]] for MLA layers avoids KV-cache replication across TP ranks; EP uses [[DeepEP]] / NVSHMEM for low-latency expert dispatch. — [[2025-05-27-sglang-源码学习笔记-三-分布式和并行-以deepseek-为例-wip]]

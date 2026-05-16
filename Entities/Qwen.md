@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 20
+refs: 27
 tier: active
 ---
 
@@ -29,3 +29,5 @@ Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacen
 - Alibaba Cloud paiMoE engine used Qwen3 full training (CPT/SFT) as the primary production benchmark: Tangram + ChunkFlow as default mechanisms achieved 3× end-to-end speedup and training MFU >61% for Qwen series. Qwen3-VL-2B is also used as the understanding expert in Tsinghua Motus's MoT architecture for embodied robot control. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
 - Qwen2.5-VL-72B-Instruct used as the teacher model in CF-VLA (NVIDIA/UCLA/Stanford) to label counterfactual reasoning traces for autonomous driving VLA training; demonstrates Qwen multimodal models as practical annotation engines in data pipelines for embodied AI. — [[2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观]]
 - Datawhale/Raschka survey (Jul 2025): Qwen3 dense models (0.6B–32B) use deeper architecture (more Transformer blocks, fewer attention heads) than Llama 3 — smaller VRAM footprint but slower generation speed. Qwen3 MoE 235B-A22B near-identical to DeepSeek V3 but drops the shared expert. QK-Norm adopted for training stability. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
+- Qwen3-235B-A22B FP8 model uses e4m3 format with dynamic activation quantization + [128,128] block-wise static weight quantization; MoE intermediate_size=768 per expert means intermediate gate+up combined size 1536 — requires TP divisibility constraint: TP8 fails (1536/8=192 not divisible by 128-block), TP4 works (1536/4=384). — [[2025-05-26-基于vllm-v1测试bfloat16-vs-fp8-qwen3-moe模型吞吐]]
+- [[GTE-Qwen]] 从[[Qwen]] LLM Base微调为嵌入模型（gte-Qwen1.5/gte-Qwen2），三核心机制：推理时设 `is_causal=False` 启用双向注意力、额外Instruction Tuning、改进InfoNCE损失（4项分母，τ=0.01）；token表示取序列最后一个真实token；gte-Qwen2-7B-instruct曾登顶MTEB leaderboard第一。 — [[2025-05-27-gte-qwen系列-feishu-docs]]

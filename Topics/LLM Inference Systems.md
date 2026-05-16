@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 48
+source_count: 56
 ---
 
 # LLM Inference Systems
@@ -83,4 +83,6 @@ The **cs.DB framing** from the Pan+Li survey remains the most useful cross-cutti
 
 - Alibaba [[RTP-LLM]] reproduced [[DeepSeek-V3]] inference on RoCE: Prefill 42.6K TPS/node + Decode 14.7K TPS/node (vs DeepSeek's 32.2K/14.8K on IB) using 272 GPUs, PD-disaggregated, EP=32/144; key techniques: [[DeepEP]] integration with RoCE dual-uplink fix, MTP speculative decoding, MicroBatch overlap, PDL-enabled GEMM+Quantization overlap. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
 - [[Moonshot AI]] K2 Vendor Verifier reveals significant vendor accuracy variance for [[Kimi K2]] API deployments: official API 100% schema_accuracy; vLLM 76–87%, SGLang 73–95%; Groq tool-call trigger rate 69.52% (below threshold), Nebius 50.60%; three root-cause fixes documented. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]
+- [[vLLM]] V1 `load_model` 调用链（Executor→Worker→ModelRunner→DefaultModelLoader）：`_get_all_weights` 生成完整不切片权重迭代器，`model.load_weights()` 时每个TP rank自行切取所需分片；HF类名→vLLM Python class通过惰性注册映射（`registry.py`）；RLHF场景Actor权重更新可构建为此格式迭代器传入 `model_runner.model.load_weights()`。 — [[2025-05-27-图解vllm-v1系列4-加载模型权重-load_model]]
+- Linux.do社区免费Gemini API代理站（doi9.top）：OpenAI兼容格式，支持Gemini 2.5 Pro，2025-06-04帖累积406楼、781点赞，Cherry Studio/Roo Code均有配置教程；属于民间自发的LLM API访问基础设施。 — [[2025-06-04-https-linux-do-t-topic-698408]]
 

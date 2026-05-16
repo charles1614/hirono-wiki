@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 31
+refs: 40
 tier: active
 ---
 
@@ -24,4 +24,6 @@ Mixture-of-Experts; sparse-activation architecture; current frontier-model defau
 - On [[Blackwell]] B200, grouped GEMM for MoE (GPT-OSS-20B, 32 experts, top-4, [[NVFP4]]) performance is determined almost entirely by kernel engineering: the 3 key knobs are kernel fusion (SGLang reduces 7 vLLM kernels to 5), architecture-specific [[CUTLASS]] schedules for FP4 warp specialization + TMA, and adaptive grid sizing for small-batch SM occupancy. At batch size = 1, the [[SGLang]] vs [[vLLM]] gap is 1.84×. Expert-first layouts ([[FlashInfer]] CuteDSL) amortize preprocessing overhead only at large batch sizes (≥256). — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]
 - Datawhale/Raschka survey (Jul 2025): MoE is now the dominant paradigm above ~30B parameters. DeepSeek V3 (256 experts, 9 active = 1 shared + 8 routed) became the 2025 reference; Kimi K2 extends this with more experts; Qwen3 235B-A22B drops the shared expert; Llama 4 alternates MoE and dense blocks. Contrary to common belief: all MoE experts must reside in VRAM for fast switching — MoE's VRAM advantage over dense is primarily through quantization, not architecture. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
 - [[RankMixer]]'s per-token SparseMoE (ByteDance, production 2025): gates each token to an independent FFN via ReLU routing (adapts active expert count to information density); DTSI ("Dense Training, Sparse Inference") trains all experts densely to avoid imbalance, applies sparse routing at inference only; deployed at Douyin scale as part of a 70× parameter scaling with flat latency cost. — [[2025-08-02-抖音全新推荐大模型rankmixer-参数翻70倍-推理成本不涨]]
+- 大EP部署的前提是足够高的并发需求：MoE最优部署曲线形如浴盆，两端为一体机和大EP，中间因BSP不均衡的二阶放大效应形成深坑；DeepSeek-V3的256专家大EP在足够多并发下接近全负荷，但若专家数扩至1024，需要约4倍以上的V3并发量，此时cold/hot专家分类将成必要机制。 — [[2025-06-04-https-zhuanlan-zhihu-com-p-1911899575096]]
 - [[VeOmni]] integrates Expert Parallel (EP) as a composable parallelism primitive alongside FSDP and Ulysses for training super-large MoE-based multi-modal models at thousand-GPU scale. — [[2025-08-06-字节跳动-veomni-框架开源-统一多模态训练效率飞跃]]
+- Kimi K2's sparsity scaling law: increasing total MoE params at fixed activated params continues to improve loss without overfitting — holds for both training loss and validation loss; motivated the jump from DSv3's 256 to K2's 384 experts with the same top-8 routing. — [[2025-07-15-https-www-zhihu-com-question-19271405065]]

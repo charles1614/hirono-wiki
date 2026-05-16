@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 20
+refs: 23
 tier: active
 ---
 
@@ -26,3 +26,4 @@ NVIDIA's CUDA C++ template library for high-performance matrix multiplication an
 - A CUTLASS MLA attention hang in vLLM was traced via `cuda-gdb` + `nvdisasm -ndf -c -gi` inline chain analysis; the root cause was a bug in upstream CUTLASS example code, fixed in CUTLASS v4.3.0 (vLLM PR #26026). `cuda-gdb` only surfaces the last inline frame; `nvdisasm` exposes the full multi-level CUTLASS call chain. — [[2025-12-04-从gpu卡死到精准锁定出错代码-vllm-cuda-调试实战技巧]]
 - ThunderKittens技术解读将CUTLASS定位为高性能但嵌套模板复杂、编译体积大、开发门槛高的一极；MindGPT 3.0的LisaRT推理引擎基于CUTLASS定制GroupedGemm kernel实现MoE算子，性能提升2.8倍。 — [[2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易]]
 - Blackwell-native FP4 MoE schedule `KernelPtrArrayTmaWarpSpecialized1SmNvf4Sm100` (used by [[SGLang]]) provides: FP4 warp specialization (separate warp roles for load, dequantize, accumulate), TMA async loads with 128-byte alignment enforcement via padding, and 1-SM expert grouping. Generic CUTLASS 3.x (used by [[vLLM]]) skips alignment enforcement and misses FP4 warp specialization on `sm_100a`, resulting in 142 TFLOPS lower peak throughput. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]
+- CUTLASS UMMA interface for Blackwell: `SM100_MMA_F16BF16_SS` atom with template params for M, N, major ordering, negation; ThrID is `Layout<_1>` (CTA peer layout, not thread layout); `make_tmem_copy` with `SM100_TMEM_LOAD_32dp32b1x` extracts [[Tensor Memory]] accumulator to registers (hardcoded 4 warps/warpgroup); `cute::TMEM::Allocator1Sm` wraps `tcgen05.alloc`/`tcgen05.dealloc` for TMEM management. — [[2025-06-09-一起聊聊nvidia-blackwell-新特性之umma]]

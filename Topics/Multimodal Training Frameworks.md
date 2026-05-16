@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 1
+source_count: 2
 ---
 
 # Multimodal Training Frameworks

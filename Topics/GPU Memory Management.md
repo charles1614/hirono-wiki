@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 12
+source_count: 15
 ---
 
 # GPU Memory Management
@@ -39,3 +39,5 @@ where N = parameter count, P = bytes per parameter, A = activations per token, B
 - [[2025-11-12-pytorch显存可视化与snapshot数据分析]] — PyTorch 2.1 memory snapshot API usage, three visualization views, memory fragmentation mechanics, Profiler `export_memory_timeline`.
 
 - Two interactive GPU memory calculator tools added to corpus: inference.ai (calculator.inference.ai) provides configurable architecture parameters to estimate model VRAM, KV cache, and training memory requirements with GPU compatibility lists; apxml.com VRAM calculator adds Chinese-language estimates with MoE misconception clarification (all experts must reside in VRAM regardless of MoE sparse activation). Both use approximate formulas — not exact due to framework-specific optimizations. — [[2025-07-24-gpu-calculator]] [[2025-07-24-vram-计算器-nvidia-gpu-与-apple-silicon]]
+- CUDA 12.0 context-independent module loading (`cuLibrary*` / `cuKernel*` APIs): driver automatically manages module load/unload when contexts are created/destroyed; eliminates per-context `map<CUcontext, CUmodule>` state maintenance; shared memory used to pass TMEM base addresses across warps. Pre-12.0: each context required explicit `cuModuleLoad` per device. — [[2025-06-09-再议-driver-和-runtime-apis]]
+- [[vLLM]] CPU weight offload (PR #6496, Jul 2024) uses pinned CPU memory + `non_blocking=True` async H2D copy + `torch.func.functional_call` to swap layer weights on the fly; `--cpu-offload-gb N` extends effective GPU memory capacity by N GB per device; pinned memory works correctly within CUDA graphs. GH200 empirical: loading 70B model with 70 GB offload took 8 min (vs 4 min 20 sec for alternative PR #6317). — [[2025-05-30-core-model-yet-another-cpu-offload-imple]]

@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 19
+refs: 24
 tier: active
 ---
 
@@ -28,3 +28,4 @@ Chinese AI lab notable for publishing not just model weights but the operational
 - [[DeepEP]] source code uses three communication modes; intranode NVLink peer-memory access via virtual addressing (no `cudaMallocManaged`); internode via NVSHMEM `nvshmem_int_put_nbi`; queue-based buffer design (saves memory, adds complexity; fixed-buffer alternative in issue #39); Hopper-specific PTX `ld.global.nc.L1::no_allocate` for volatile reads exploiting Hopper's unified nc+L1 cache. — [[2025-10-09-deepseek-deepep源码分析]]
 - [[DeepEP]] 技术概述（AI闲谈版）：专为 DeepSeek-V3/R1 的 MoE EP 通信设计，高吞吐 Kernel 用于训练/Prefill（IB 关 AR，warp specialization，20 SM 默认），低时延 Kernel 用于 Decoding（IBGDA，纯 RDMA，Receiving Hook 异步 overlap），FP8 Dispatch 减半通信量，IB VL 流量隔离防止不同 Workload 相互干扰。 — [[2025-10-09-deepseek-开源系列之-deepep-介绍]]
 - [[DeepSeek-V3.2]] 引入 DeepSeek Sparse Attention（DSA），三算子实现：Lightning Indexer（FP8 GEMM 快速相似度筛选）、Top-k Selector（O(N) Radix Sort 两阶段，避免全序列排序）、Sparse MLA（仅对 top-k KV 位置计算注意力，O(seq_len×topk)）；[[TileLang]] 被用于这些算子的高效内核实现。 — [[2025-10-09-从deepseek-v3-2-dsa算子看tilelang编译器的细节]]
+- DeepSeek V3's [[MLA]] config (dim=7168, n_heads=128, q_lora_rank=1536, kv_lora_rank=512, qk_nope_head_dim=128, qk_rope_head_dim=64, v_head_dim=128) is fully detailed in a naive-to-optimized PyTorch walkthrough; V3 uses FP8 block-wise quantization for all linear layers, requiring CUTLASS block-wise GEMM rather than PyTorch 2.6's `torch._scaled_mm` which only supports tensor-wise and row-wise FP8 GEMM. — [[2025-06-16-细数deepseek-mla-layer从naive实现开始的5大优化策略]]

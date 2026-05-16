@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 5
+source_count: 11
 ---
 
 # Educational LLM Tooling
@@ -28,8 +28,13 @@ As sources accumulate, this section should be updated to record: which specific 
 
 ## Sources drawn on
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2025-07-23-karpathy-nn-zero-to-hero-neural-networks]] — Andrej Karpathy's video course: 8 lectures building neural nets from micrograd to GPT from scratch, with Jupyter notebooks open-sourced.
+- [[2025-07-06-rasbt-llms-from-scratch-implement-a-chat]] — Sebastian Raschka's book + GitHub repo: GPT from scratch → DPO finetuning, bonus MoE/MLA/GQA chapters, 7 chapters + sequel on reasoning models.
+- [[2025-07-09-tutorials-how-to-fine-tune-run-llms-unsl]] — Unsloth documentation tutorial index: 50+ model-specific fine-tuning guides, RL, vision, TTS, and a hosted Studio UI.
 
 ## Observations
 
 - Reddit r/ClaudeAI practitioner tip (score 498, Nov 2024): including KISS/YAGNI/SOLID principles in prompts reduces LLM-generated code bloat by ~50%, even on smaller models (Haiku 3.5). An ~800-token structured system prompt using pseudo-code behavioral syntax (`ENFORCE {}`, `VALIDATE_AGAINST {}`) can be more effective than natural language instructions — the prompt format was reportedly developed by asking [[Claude]] to optimize a prompt for LLM adherence. The lesson: prompt engineering for code quality is a learnable, teachable skill with measurable output size reduction. — [[2025-07-27-pro-tip-these-3-magic-words-will-make-cl]]
+- LeetGPU提供浏览器内真实GPU硬件执行（非仿真）的编程挑战平台，50+题目覆盖矩阵运算/内存优化/kernel fusion，提供Playground和CLI两种模式，面向从PyTorch入门到kernel竞赛的GPU编程学习梯队。 — [[2025-06-02-leetgpu]]
+- MCP（Model Context Protocol）实战教程面向使用者视角：从什么是MCP到为什么需要MCP，再到用Claude 3.7生成MCP Server代码并在Claude Desktop测试；提供MCP Servers生态目录（Awesome MCP Servers、mcpservers.org、官方servers repo），适合初学者零门槛上手。 — [[2025-06-04-https-zhuanlan-zhihu-com-p-29001189476]]
+- Zotero 7.x AI插件综述覆盖5款插件（Beaver/ZotAI/AskYourPDF/Zotero AI Bar/AIdea）及DIY RAG方案，包含支持模型、定价、目标用户信息，是研究者选型的参考地图。 — [[2025-06-02-patrick-o-brien]]

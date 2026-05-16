@@ -1,8 +1,8 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 19
+refs: 20
 tier: active
 ---
 
@@ -26,3 +26,4 @@ NVIDIA's high-bandwidth GPU-to-GPU interconnect; current gen (NVLink 5) ~1.8 TB/
 - NCCL LL128 protocol specifically targets NVLink's guaranteed 128-byte atomic write capability (120B data + 8B flag); achieves ~95% peak NVLink bandwidth at ~2 µs/hop; disabled automatically on PCIe-only systems that cannot guarantee atomic 128B write ordering. NCCL NVLS algorithm uses NVLink SHARP to offload AllReduce onto NVSwitch, achieving 480 GiB/s vs 363 GiB/s ring AllReduce. — [[2025-08-18-从rtx-6000和cx8的一个小问题-聊一下gpu的传输]]
 - [[DeepEP]] 高吞吐 Kernel 在 H800 环境（NVLink 单向实测 ~160 GB/s = 400 GB/s × 80% / 2）节点内通过 NVLink+NVSwitch 通信，节点间通过 IB（50 GB/s）；IB 为 NVLink 带宽的 1/3.2，高吞吐 Kernel 要求关闭 IB 自适应路由以避免死锁。 — [[2025-10-09-deepseek-开源系列之-deepep-介绍]]
 - NCCL 2.19.1 intra-node transport: NVLink P2P → PCIe P2P → SHM (host-memory relay); P2P_DIRECT mode (same-process ranks) skips IPC handle creation and FIFO buffers, using direct pointer arithmetic, reducing latency significantly. LL128 protocol exploits NVLink's 128B atomic granularity. — [[2025-08-03-nccl揭秘-一-协议与传输]]
+- Generational progression at GTC 2026: NVLink-2 (Volta/V100) → NVLink-3 (Ampere/A100) → NVLink-4 (Hopper/H100) → NVLink-5 ([[Blackwell]]/B200, 1.8TB/s, 130TB/s NVLink Spine) → NVLink-6 (Rubin, 3.6TB/s per GPU) → NVLink-7 (Rubin Ultra, same 3.6TB/s but more ports) → NVLink-8 CPO (Feynman). — [[2026-03-18-nvidia-gtc2026-详细解读和分析]]

@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 26
+source_count: 29
 ---
 
 # MoE Serving
@@ -80,4 +80,5 @@ Inference-time techniques for [[MoE]] (Mixture-of-Experts) models — routing, d
 - [[2025-08-18-腾讯太极团队实现deepseek模型业内h20最高性能15800-tokens-]] — Tencent Taiji 15,800+ tokens/s on 16×H20: PD separation with different parallelism for Prefill/Decode, EPLB load balancing, TRMT communication, multi-layer MTP, w4a8c8 quantization.
 - [[2025-08-20-ai-fundermentals-inference-solution-deep]] — DeepSeek-V3 671B deployment plan on 32×H20 (EP=32, TP=1, PP=1): VRAM accounting, KV cache bottleneck at 32K context, throughput projections, SLO gap analysis.
 - [[2025-08-20-deepseek-v3-在-32-张-h20-gpu-集群上的部署方案-理论分析]] — Original (pre-benchmark) theoretical analysis: same EP=32 config, more optimistic 35K–45K tokens/s estimate before Tencent real data revised it down.
+- [[2025-06-04-https-zhuanlan-zhihu-com-p-1911899575096]] — 大EP部署经济学分析：浴盆曲线最优点（一体机 or 大EP）、1024 expert时的扩展性天花板、Scale-Up vs Scale-Out对单用户token/s的影响。
 

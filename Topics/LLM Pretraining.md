@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 12
+source_count: 18
 ---
 
 # LLM Pretraining
@@ -52,6 +52,9 @@ No sources are yet attached to this topic. Claims above reflect cross-source con
 ## Observations
 
 - A 163M-parameter GPT-2 small equivalent trained from scratch on a consumer RTX 3090 in ~48 hours reached near-GPT-2-quality, using HuggingFace FineWeb-Edu 10B token sample. Demonstrates that GPT-2-scale base model pretraining is accessible on consumer hardware. — [[2026-02-07-writing-an-llm-from-scratch-part-28-trai]]
+- [[Fill-in-the-Middle]] (FIM) 让Decoder-only代码LLM学会双向补全：prefix/middle/suffix三段重构输入，保留全部三段损失；OpenAI消融实验显示引入FIM后左到右生成Perplexity不增反降（"FIM-for-free"）；SPM模式（Suffix-Prefix-Middle）优于PSM，原因可能是注意力位置偏差。 — [[2025-05-27-大模型-fim-预训练任务是什么-feishu-docs]]
+- [[Seed-Coder]] 用LLM代替人工规则自动化代码数据评分（1.3B Llama 2回归评分器，[0,1]分），构建6T token预训练语料库（~1T GitHub + 100B Commits + ~1.2T网页）；预训练三阶段（基础1T + 代码强化4T + 长上下文1T），FIM比例0.5→0.1；Reasoning模型用GRPO+DAPO从Base出发分阶段训练。 — [[2025-05-27-seed-coder-feishu-docs]]
+- [[GTE-Qwen]] 从[[Qwen]] LLM Base微调为嵌入模型，三核心机制：推理时设 `is_causal=False` 启用双向注意力、额外Instruction Tuning、改进InfoNCE损失（4项分母含反向对比，τ=0.01）；token表示取序列最后一个真实token的embedding；gte-Qwen2-7B-instruct曾登顶MTEB排行榜第一。 — [[2025-05-27-gte-qwen系列-feishu-docs]]
 
 ## Open threads
 
@@ -62,5 +65,6 @@ No sources are yet attached to this topic. Claims above reflect cross-source con
 
 <!-- merged from `Pretraining` on 2026-05-13 -->
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- [[2025-07-23-karpathy-nn-zero-to-hero-neural-networks]] — Pedagogical pretraining walkthrough: micrograd → makemore MLP → BatchNorm → GPT from scratch; covers BPE tokenization as a separate stage.
+- [[2025-07-06-rasbt-llms-from-scratch-implement-a-chat]] — From-scratch GPT pretraining via PyTorch; bonus chapters add Qwen3/Gemma3/Llama3.2 from scratch, LoRA, and DPO finetuning.
 

@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 18
+source_count: 20
 ---
 
 # Training Infrastructure
@@ -43,3 +43,4 @@ A substantive Current understanding here will require ingesting sources that cov
 - Google [[AI Hypercomputer]] image stack (Jan 2026): JAX AI Images (JAII) bundle JAX + LibTPU/CUDA + Flax + Orbax + PyGrain; DLSL images bundle NeMo + PyTorch + Google NCCL gIB plugin per machine series (A4X Max through A3 High); Accelerator OS images ship NVIDIA 570/580 drivers + CUDA 12.2–13.0 for Rocky Linux 8/9 and Ubuntu 22.04/24.04. — [[2026-01-16-os-and-docker-images-ai-hypercomputer-go]]
 - [[SimAI]] (Alibaba Cloud, NSDI'25) provides three-level simulation fidelity for LLM training: Analytical (fast), NS-3 packet-level, and Physical (AIOB kernel profiling); supports Megatron/DeepSpeed/DeepSeek parallelism strategies and Vidur-based inference scheduling, enabling topology/bandwidth sensitivity analysis without live cluster allocation. — [[2026-01-06-deepwiki-simai]]
 - [[VeOmni]] (ByteDance, Aug 2025): unified multi-modal training framework for LLM/VLM/DiT with composable [[FSDP]]+Ulysses+EP; selective recompute by ROI reduces recompute ratio 60%→30%; achieves 40%+ throughput over OSS baselines on [[Wan 2.1]]-14B LoRA at 720P. — [[2025-08-06-字节跳动-veomni-框架开源-统一多模态训练效率飞跃]]
+- [[Meta]] SIGCOMM 2024 [[RoCEv2]] AI训练集群：Grand Teton（H100）平台，单平面Spine-Leaf，GPU:NIC=1:1，Leaf用铜缆降成本；路由从ECMP→E-ECMP（+40%）→集中式TE；传输层放弃DCQCN改用[[NCCL]]层CTS准入控制；最优配置带宽收敛比1:1.125。 — [[2025-05-27-meta基于rocev2构建的大规模ai网络]]

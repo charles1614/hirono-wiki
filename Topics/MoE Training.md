@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 11
+source_count: 12
 ---
 
 # MoE Training
@@ -40,3 +40,4 @@ Two distinct regimes exist for handling **expert capacity** (the maximum tokens 
 
 - [[2026-03-04-qwen3-5-blog]] — Qwen3.5-397B-A17B training: disaggregated async RL framework (3×–5× speedup), native FP8 pipeline (~50% activation memory, >10% throughput), Gated DeltaNet + Gated Attention hybrid MoE architecture.
 - [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]] — Alibaba Cloud PAI paiMoE: Tangram + ChunkFlow as production MoE training primitives; 3× speedup and MFU >61% on Qwen3.
+- [[2025-07-15-https-www-zhihu-com-question-19271405065]] — Kimi K2 architecture: sparsity scaling law motivating 384 experts at fixed activated params; EPLB + redundant experts for load balance without grouping; prefill is compute-bound at long seq; decode is memory-bound with EP=128.

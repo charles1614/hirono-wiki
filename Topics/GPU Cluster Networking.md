@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 15
+source_count: 20
 ---
 
 # GPU Cluster Networking
@@ -32,9 +32,12 @@ _(stub — populate as sources accumulate. `topic-content-gaps` will lint-warn o
 - StepMesh (阶跃星辰, AF disaggregation): for Step-3 (61 layers, 2A2F, batch=128, hidden=7168), A2F round trip requires 161.3 Gbps effective throughput in 273 µs; chosen over NCCL and IBGDA for zero SM occupancy and bipartite communication pattern; CPU core affinity + `isolcpus` reduces TPOT jitter to ~5 ms. — [[2025-07-31-https-zhuanlan-zhihu-com-p-1934204758920]]
 - [[DeepEP]] NVSHMEM IBGDA for small-message All-to-All decode: ~64 µs vs IBRC 128–256 µs for <8 KiB; uses IB Virtual Lanes (VL) for traffic isolation — Normal kernel workloads, Low Latency kernel workloads, and other traffic must use separate VLs to avoid deadlock/corruption; Adaptive Routing supported only for Low Latency kernel. — [[2025-10-09-deepseek-deepep源码分析]]
 - Alibaba [[RTP-LLM]] RoCE dual-uplink fix for [[DeepEP]]: message-level load balancing for Normal kernel (large messages) + queue-level for Low Latency kernel (small messages) via NVSHMEM-layer patches; Low Latency mode latency reduced 60%+ vs unpatched; communication pattern optimization (rack-level flow alignment) avoids intra-cluster traffic collisions. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
+- NCCL 2.26.3-1 path computation (`ncclTopoComputePaths`): BFS from each GPU/NIC/NVSwitch builds optimal path table; PXN proxy routing injects intermediate GPU hops via `addInterStep` to avoid Spine Switch traffic (rail-level optimization); NVLink Sharp (NVLS, NCCL_ALGO=NVSL) requires nvidia-fabricmanager and is only supported on Hopper (H100) NVSwitch from NCCL 2.17+; GDR-disabled paths are forced to route through CPU. — [[2025-05-30-nccl-系列之深入解析-nccl-通信路径计算和优化]]
 
 ## Sources drawn on
 
 - [[2025-12-19-火山引擎-force-大会发布-veroce-传输协议]] — ByteDance veRoCE RDMA protocol announcement: multi-path, DDP, SACK retransmission, per-path congestion control; 128 GPU cluster benchmarks; hardware partner list.
 - [[2025-08-03-nccl揭秘-一-协议与传输]] — NCCL 2.19.1 internals: channel architecture, Simple/LL/LL128 protocols, intra-node P2P/SHM, inter-node IB Verbs with QP layout and GDR flush QP.
 - [[2025-07-31-https-zhuanlan-zhihu-com-p-1934204758920]] — StepMesh: bipartite AF disaggregation communication, 273 µs SLA derivation, CPU-only IBRC vs IBGDA tradeoffs, straggler telemetry.
+- [[2025-07-04-china-s-new-ish-sw26010-pro-supercompute]] — Sunway supercomputer network topology: 256-node supernodes with ~2.7 TB/s uplink; fat-tree to central switch with 48 ports/supernode; per-node global bandwidth ~10.54 GB/s vs Fugaku's 34 GB/s; bandwidth-bound HPL-MxP optimization required distributing sub-blocks across NUMA nodes.
+- [[Meta]] SIGCOMM 2024 [[RoCEv2]] AI训练网络：Grand Teton（H100）平台，单平面Spine-Leaf拓扑；路由演进ECMP→E-ECMP（AllReduce +40%）→集中式TE（CSPF+精确匹配表覆盖默认路由）；传输层放弃DCQCN改用集合通信库层CTS接收端准入控制；带宽收敛比最终降至1:1.125。 — [[2025-05-27-meta基于rocev2构建的大规模ai网络]]

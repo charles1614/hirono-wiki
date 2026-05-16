@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 28
+source_count: 30
 ---
 
 # Agentic AI Infrastructure
@@ -39,6 +39,7 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - [[2026-01-14-ai交互的革命-从操作现有软件-到生成未来软件]] — API/GUI/GenUI三重范式演进；[[Li Auto]]理想同学MCP+CUA混合架构落地案例；Google GenUI生成式UI范式。
 - [[2026-01-11-重磅-volcano发布agentcube-构建ai-agent时代的云原生基础]] — AgentCube (Volcano/CNCF): K8s extension for Agent workloads with Warm Pool + Claim-and-Go MicroVM pre-warming, Volcano Agent Scheduler, and AgentRuntime + CodeInterpreter CRDs.
 - [[2026-01-10-姚顺雨对着唐杰杨植麟林俊旸贴大脸开讲-基模四杰中关村论英雄]] — AGI-Next summit: Chat→Agent shift requires full-async RL, API+GUI hybrid interaction, and "three Scalings" (data/model + inference compute + self-learning environment).
+- [[2025-07-23-wavetermdev-waveterm-an-open-source-cros]] — Wave Terminal: open-source AI-integrated terminal with BYOK multi-model support, durable SSH sessions, and wsh CLI system for agentic workspace management.
 
 ## Observations
 
@@ -57,3 +58,4 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - wshobson/agents provides 185 specialized [[Claude Code]] agents in 80 single-purpose plugins with 153 progressive-disclosure skills; three-tier model strategy (Opus 4.7 / Sonnet 4.6 / Haiku 4.5) and average 3.6 components/plugin minimize token usage while delivering full-stack coverage; PluginEval framework offers three-layer quality certification with Elo ranking. — [[2025-10-30-wshobson-agents-intelligent-automation-a]]
 - [[Claude Code]] pre-flight Haiku call for Bash tool validation: Bash tool invocations are gated on a small-model API call; AWS Bedrock 403 from missing model access caused ~210-second hangs; debugging required `ANTHROPIC_LOG=debug`; fix is enabling Bedrock model access or setting `ANTHROPIC_SMALL_FAST_MODEL`. — [[2025-10-29-significant-pre-execution-delay-210s-whe]]
 - Alibaba Cloud practitioner retrospective on [[Claude Code]]: key behavioral patterns for high-quality output — CO-STAR + pseudo-XML prompting, task-boundary by competency level, step-by-step validation, defensive review posture, context compression with `/compact`, `git worktree` for parallel instances. Confirms that context management and task granularity are the primary bottlenecks beyond prompt quality. — [[2025-07-30-如何用ai-coding和claude-code提升开发效率-看我的全流程复盘]]
+- [[Pine AI]] production agent system demonstrates three knowledge-expression modalities for experience learning: (1) code-generated RPA tools (fixed sequences as atomic sub-tools); (2) knowledge base (per-company procedural memory); (3) SFT/RL into model parameters (high-frequency tasks as "muscle memory"). The RL constraint: it cannot create new outputs the base model has never produced — it only raises proficiency on known-good trajectories. On Tau-Bench Airline: Claude 4 Sonnet baseline 56% → sequential-revision 64%; 8/18 failures were ground-truth annotation errors. — [[2025-06-14-能办成事的-agent-实时与环境交互-从经验中学习]]

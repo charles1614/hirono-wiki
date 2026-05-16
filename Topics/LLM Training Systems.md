@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 27
+source_count: 34
 ---
 
 # LLM Training Systems
@@ -48,3 +48,6 @@ Once Sources are attached, this section should be revised to anchor each claim t
 - Production GPU monitoring best practice: deploy dcgm-exporter per node → Prometheus scrape → Grafana dashboard; key training metrics are `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` (≈HFU), `DCGM_FI_PROF_SM_ACTIVE`, and `DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL`; Tensor Active ~48% vs Megatron-LM MFU 45.5% validated on a 2×8×H100 3B run. — [[2025-08-16-聊聊-gpu-监控那些事-利用率-故障等]]
 - [[Meta]] [[ScaleRL]] (400K GPU-hours on GB200): first systematic RL compute scaling study for LLMs; CISPO loss, FP32 logits, No-Positive-Resampling, and PipelineRL-8 are the four non-negotiable components; larger batch sizes and longer context both raise the asymptotic performance ceiling A. — [[2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law]]
 - [[Microsoft]] redesigned [[Azure Blob Storage]] for OpenAI's EB-scale AI training: Scaled Storage Accounts eliminate per-account bandwidth ceilings; [[BlobFuse]] achieves 8.1 Tbps write / 13.5 Tbps read at 16,800 concurrent vCPUs with Direct IO + Pinned Memory; checkpoints written every 5–15 minutes and auto-tiered via last-access-time policies. — [[2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪]]
+- [[verl]]'s single-controller design inherits Google's Pathways (MLSys 2022): Pathways introduced master-controlled computation graphs where each node is a multi-GPU SPMD program, which verl applies to RLHF multi-model graphs; [[Ray]] Actors serve as the open-source dataflow node implementation. The Pathways authors (including ByteDance Seed lead Yonghui Wu) did not anticipate RL training as the primary MPMD use case. — [[2025-05-30-https-zhuanlan-zhihu-com-p-1911558458903]]
+- [[AReaL]]'s async RL framework addresses synchronous RL's rollout-trainer serialization by overlapping training with the next rollout; the decouple PPO algorithm maintains a trusted reference policy (π_behave) from the most recent checkpoint generating each response segment, producing a reliable trust region despite multi-checkpoint sequence composition. — [[2025-06-11-异步rl框架areal速览]]
+- Awesome-ML-SYS-Tutorial is the primary community learning resource for RL infra frameworks ([[slime]], [[verl]], [[AReaL]], [[OpenRLHF]]) and [[SGLang]] internals, authored by Zhao Chenyang (now at RadixArk/SGLang community); grew from ~30 GitHub stars (Aug 2024) to 4.5K+ (mid-2025). — [[2025-07-03-github-zhaochenyang20-awesome-ml-sys-tut]]

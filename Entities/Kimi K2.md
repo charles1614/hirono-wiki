@@ -1,8 +1,8 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 19
+refs: 25
 tier: active
 ---
 
@@ -26,3 +26,7 @@ Moonshot AI's 1T-parameter open-weights MoE model, the first 1T open-weights mod
 - Kimi K2 (DP32/EP32 configuration) is one of the three production models on which Seer's RL rollout system was evaluated, demonstrating that the divided-rollout + context-aware scheduling + grouped speculative sampling approach scales to 1T-parameter MoE models at high parallelism. — [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]]
 - MoonshotAI's K2 Vendor Verifier (K2VV) found significant vendor quality variance: official MoonshotAI API achieves 100% schema_accuracy; vLLM 87.22% (kimi-k2-thinking) / 76% (kimi-k2-0905), SGLang 95.52% / 73.13%; Groq trigger rate 69.52% (below threshold) and Nebius only 50.60%. Three vendor fixes: use correct vLLM/SGLang versions, rename tool call IDs to `functions.func_name:idx`, add guided encoding. — [[2025-10-12-moonshotai-k2-vendor-verifier-verify-pre]]
 - Datawhale/Raschka survey (Jul 2025): Kimi K2 uses Muon optimizer, more experts than DeepSeek V3, fewer MLA heads; training loss curve smooth and rapidly descending. Compared directly to DeepSeek V3 (671B, 37B active) vs Kimi K2 side-by-side architectural diagram in the survey. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
+- Moonshot AI inference engineer detailed K2's four structural differences from [[DeepSeek-V3]]: 384 experts (vs 256), 64 attention heads (vs 128), only 1 dense layer (vs 3), and no expert grouping (n_group=1); head reduction saves ~5 GB/rank in QKVO projections, more than offsetting the ~2.5 GB/rank extra MoE cost at EP=128, keeping decode cost below DSv3 despite 1.5× total parameters. — [[2025-07-15-https-www-zhihu-com-question-19271405065]]
+- In the KCORES ball-bouncing heptagon coding benchmark, kimi-k1.5-long-thinking scored 66/90, failing on friction (0), gravity correctness (0), number rotation (0), and heptagon rotation speed (−2); significantly below the top scorers (GPT-4.5-Preview 90, Claude-3.7-Sonnet 88). — [[2025-07-10-kcores-llm-arena-benchmark-ball-bouncing]]
+- Kimi K2.6 is listed in Unsloth's tutorial index as a dedicated fine-tuning guide, indicating open-source ecosystem adoption by mid-2025. — [[2025-07-09-tutorials-how-to-fine-tune-run-llms-unsl]]
+- Su Jianlin's first-person account of AttnRes design process: Kimi abandoned standard residuals entirely in favor of [[Attention Residual]] inter-layer attention; the abandonment is framed as a more radical departure than HC (Hyper-Connections) or mHC — HC expands residual flow, AttnRes replaces it with learned attention weights across all previous layers. — [[2026-03-22-kimi弃用残差连接背后-苏剑林第一视角解析attention-residual]]

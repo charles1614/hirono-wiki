@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 17
+refs: 18
 tier: active
 ---
 
@@ -29,3 +29,5 @@ FlashAttention established the online-softmax-plus-accumulation algorithm that b
 - SWIFT's Ring-Attention backward recomputes flash_attn_forward during backward to retrieve block LSE and Attention-Out rather than storing them in ctx; the ring LSE/Out update equations are mathematically equivalent to FlashAttention's online-softmax block-update recurrence. — [[2025-11-10-超长序列并行之ulysses-ring-attention技术原理与实现]]
 - ThunderKittens（2024年10月，HazyResearch）以简化FlashAttention实现为主要设计目标之一：相比FA1/FA2/FA3，TK的FlashAttention实现load/compute/epilogue结构分离，大幅减少手写异步同步编排代码；文章还指出FlashAttention-2在H100上性能下降47%、FA-3耗时两年才适配H100是TK诞生的核心动机之一。 — [[2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易]], prompting addition of custom SDC detection probes to their training stack. — [[2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手]]
 - Pedagogical derivation explains how standard Attention materializes [SL, SL] intermediate tensors `s` and `p` to HBM — these dominate latency because SL >> D. FlashAttention eliminates them by (1) kernel fusion keeping intermediates in SRAM, (2) tiling so one GPU unit handles one query, (3) streaming K/V with a loop of length SL, and (4) deferring softmax division until after the K/V loop (insight: softmax division does not affect QK·V order). — [[2025-08-24-不会-cuda-也能轻松看懂的-flashattention-教程-算法原理篇]]
+- FlashAttention-V3 reframes as a Hopper GPU adaptation of V2 rather than an algorithmic innovation: adopts TMA for async producer warpgroup data load (gmem→smem), WGMMA for consumer warpgroup matmul+softmax, and inter/intra-warpgroup GEMM-softmax overlap scheduling. FA-V2 achieves only ~35% utilization on H100 vs 80–90% for optimized GEMM kernels; V3 closes this gap via warp-specialized pingpong scheduling and FP8 support. — [[2025-05-26-flashattention-v3解读之hopper-gpu版flashatte]]
+- FA3 FP8 specifics: block quantization (128×128 blocks, each with its own scale); wgmma layout incompatibility between FP8 accumulator and FP8 operand A (non-contiguous vs contiguous thread ownership) fixed by CUTLASS 3.5+ `permutationLayout`; V matrix transpose on Hopper done via LDSM_T → STSM_N in shared memory. Inter-WG and intra-WG overlap apply to both FP8 and FP16/BF16. — [[2025-05-26-flashattention-v3解读之fp8-fp16-bf16关键细节实现-]]

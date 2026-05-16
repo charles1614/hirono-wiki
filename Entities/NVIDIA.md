@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 47
+refs: 48
 tier: active
 ---
 
@@ -37,6 +37,7 @@ NVIDIA's 2025-26 strategic posture spans the full ML stack from silicon through 
 - TPU competitive threat demonstrably shifting GPU economics: OpenAI hasn't deployed any TPUs yet but already secured ~30% discount on its entire NVIDIA fleet from credible switch threat. NVIDIA issued reassuring PR in response to [[Google]]/[[TPU]] momentum. ~75% gross margin on full GPU systems (chip + CPU + switches + NICs + cabling) creates pricing flexibility but also the room [[Ironwood]] exploits via [[Broadcom]]'s lower silicon margins — all-in Ironwood TCO ~44% below GB200 from Google's cost perspective. Marketed Blackwell peak FLOPs inflated by DVFS; actual Blackwell utilization lands in the 70s% of rated peak. — [[2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro]]
 - Launches Physical AI Data Factory Blueprint at GTC 2026 (March 2026) — open reference architecture unifying data curation ([[NVIDIA Cosmos]] Curator), synthetic augmentation (Cosmos Transfer), and automated evaluation (Cosmos Evaluator) for robotics / vision AI / AV development. [[NVIDIA OSMO]] orchestration integrates with coding agents (Claude Code, OpenAI Codex, Cursor). Cloud partners: Microsoft Azure + Nebius on Blackwell infrastructure. Internal use case: [[NVIDIA Alpamayo]], the world's first open reasoning-based VLA for autonomous driving. — [[2026-03-17-nvidia-announces-open-physical-ai-data-f]]
 - [[OpenAI]]与[[NVIDIA]]签署合作，黄仁勋承诺投资1000亿美金；形成相互持股飞轮，与[[AMD]]、其他科技巨头共同构建"大而不倒"利益共同体。 — [[2026-01-14-openai将科技巨头手拉手-大而不倒]]
+- GTC 2026 hardware roadmap: [[Blackwell]] (CX-8 800Gb/s IB / NVLink-5) → Rubin (CX-9 + NVLink-6 + BlueField-4 DPU at 800Gb/s / 128GB LPDDR5 + Spectrum-6 CPO 102.4Tb/s) → Feynman (NVLink-8 CPO + CX-10 1600Gb/s + Spectrum-7 204T + Rosa CPU replacing Vera). GPU demand grew from $0.5T (GTC 2025 estimate) to $1T by GTC 2026. — [[2026-03-18-nvidia-gtc2026-详细解读和分析]]
 - Alibaba Cloud PAI formally partnered with NVIDIA for Physical AI (announced at 2025 云栖大会): PAI integrates the full NVIDIA Physical AI software stack (Isaac Sim, Isaac Lab, NVIDIA Cosmos, Physical AI datasets) with Alibaba Cloud's data compute, training/inference, and big-data-AI pipelines; jointly with ByteDance-supplier veRoCE, NVIDIA is also cited as a collaborator for the new RDMA protocol. — [[2025-12-23-大数据-ai-平台-构筑-agentic-ai-的核心基石]]
 - ByteDance's veRoCE RDMA protocol collaboration: NVIDIA is one of five hardware partners (alongside AMD, Broadcom, 云脉芯联, 比特智路) supporting veRoCE verification on NICs from 400G to 1.6T; collaboration announced at Force大会 December 2025. — [[2025-12-19-火山引擎-force-大会发布-veroce-传输协议]]
 - DCGM (Data Center GPU Manager) is NVIDIA's production GPU telemetry platform: dcgm-exporter integrates with Prometheus/Kubernetes; `DCGM_FI_PROF_GR_ENGINE_ACTIVE` (preferred utilization metric, MIG-compatible), `DCGM_FI_PROF_PIPE_TENSOR_ACTIVE` (≈HFU for BF16 training), `DCGM_FI_DEV_XID_ERRORS`/`DCGM_FI_DEV_NVSWITCH_FATAL_ERRORS` (hardware fault monitoring); level-3 DCGM diagnostic required for GPU memory row remap detection (needs exclusive access). — [[2025-08-16-聊聊-gpu-监控那些事-利用率-故障等]]

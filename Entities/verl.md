@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: entity
-refs: 5
+refs: 16
 tier: active
 ---
 
@@ -19,3 +19,7 @@ Open-source RL training framework for LLMs (used for post-training)
 - 姜富春 published "verl源码解读&实操笔记" (2026-03-29), described as a clear source-code walkthrough recommended for those who haven't read the verl codebase. — [[2026-03-29-周末到-看看最近的论文和技术博客-充充电-小红书]]
 - Seer (Moonshot AI) uses VeRL as its baseline for synchronous RL training performance comparison; on production workloads (Qwen2-VL-72B, Kimi K2), Seer achieves 74–97% throughput improvement and 75–93% tail-latency reduction vs VeRL's synchronous rollout. — [[2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升]]
 - verl v0.4.1 integrated [[Nsight Systems]] for Ray-based RL profiling: injected via RayActor `runtime_env`, with NVTX markers on step/gen/reward/old_log_prob/ref/values/adv/update_critic/update_actor/testing; three fine-grained capture controls: per training step via `torch.cuda.profiler.start/stop`, per worker rank, per subtask. Controller process prints hostname+PID for locating its trace file in the non-configurable `/tmp/ray/` path. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]
+- verl's single-controller design directly inherits Pathways (MLSys 2022)'s architecture: a master Python process manages the full RLHF computation graph, with each graph node executing as a multi-GPU SPMD program. Pathways' authors (including Yonghui Wu, now ByteDance Seed lead) did not anticipate RLHF multi-model graphs as the primary MPMD use case — they predicted PP/MoE — but the design turned out to be prescient for RL training. [[Ray]] Actors serve as the open-source equivalent of Pathways' sharded dataflow nodes. — [[2025-05-30-https-zhuanlan-zhihu-com-p-1911558458903]]
+- Covered extensively in Awesome-ML-SYS-Tutorial with multi-part source-code walkthroughs (initialization, rollout, make-experience phases), AgentLoop multi-turn analysis, tokenization and masking for multi-turn training, DAPO dynamic filtering, profiling guide, and a parameter quick reference; also covers SGLang-verl server-based rollout interface and HybridFlow paper analysis. — [[2025-07-03-github-zhaochenyang20-awesome-ml-sys-tut]]
+- verl uses [[Ray]] Actor abstraction with placement-group bundles for multi-model RLHF (Actor/Rollout/Ref/Critic/Reward); Hybrid Engine shares GPU pool between training (FSDP/Megatron) and generation ([[vLLM]]) via in-place resharding, avoiding weight copy costs of separate-pool designs; SPMD is used for worker execution with no central controller at runtime. — [[2025-05-27-从零开始的verl框架解析]]
+- [[OpenRLHF]] (v0.5.9.post1) and [[verl]] both use Ray placement-group bundles with `num_gpus_per_actor=0.2` for up to 5-module colocate on one GPU; Actor↔Rollout colocate requires CUDA IPC for weight sync since NCCL cannot communicate between two processes on the same GPU. — [[2025-05-27-基于-ray-的分离式架构-verl-openrlhf-工程设计]]

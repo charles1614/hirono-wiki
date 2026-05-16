@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 15
+source_count: 25
 ---
 
 # Parallelism Strategies
@@ -36,6 +36,10 @@ The generalizable principle beyond MoE: **heterogeneous parallelism mappings bet
 - For 128K-context training: how does Context Parallelism interact with MoE Parallel Folding? CP only attaches to the attention side of the fold — implications for long-context MoE training are non-trivial. — [[2025-10-28-moeparallel-folding-heterogeneous-parall]]
 
 
+- Pathways (MLSys 2022) articulated single-controller vs. multi-controller as the fundamental axis for distributed ML programming: multi-controller (SPMD/MPI) suits homogeneous DP; single-controller suits heterogeneous MPMD graphs (RL training, PD disaggregated inference) where each graph node has distinct resource requirements. [[verl]] and Ray serve as the open-source realization of the single-controller pattern for RL post-training. — [[2025-05-30-https-zhuanlan-zhihu-com-p-1911558458903]]
+
 ## Sources drawn on
 
 - (auto-populated by reindex)
+- [[2025-07-05-rmt-lw-jwfgic9orkz-xx5cg00-gn-kc]] — Communication pattern table: TP=allreduce/allgather/reducescatter/alltoall, DP=allreduce/allgather/reducescatter, EP=allgather/reducescatter/alltoall, PP=send/recv; per-layer forward/backward assignments.
+- [[2025-07-15-https-www-zhihu-com-question-19271405065]] — Kimi K2 EP+DP attention architecture: DP Attention replicates QKVO projections across all ranks (not sharded); head reduction saves 5 GB/rank on every EP size — unlike TP where bandwidth savings scale with parallelism.

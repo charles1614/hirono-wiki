@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 18
+source_count: 23
 ---
 
 # GPU Profiling
@@ -41,8 +41,13 @@ The [[Nsight Systems]] CLI workflow for distributed workloads follows a consiste
 - ncu Tensor Pipe Utilization is systematically wrong on L20 (SM89 Ada) and H20 GPUs: it uses 16-cycle latency for `HMMA.16816.F32.BF16` (correct value is 32 cycles) and 8 cycles for `HMMA.1688.F32` (correct: 16 cycles). A BF16 GEMM at 96.81% Roofline peak reports only 48.46% Tensor Pipe Utilization. Workaround: derive expected utilization from peak FLOPS + measured instruction count rather than trusting Compute Workload Analysis on these GPU variants. — [[2025-12-03-关于nsight-compute中compute-workload-analys]]
 - CUDA user-triggered core dump workflow for hung kernels: set `CUDA_ENABLE_USER_TRIGGERED_COREDUMP=1`, `CUDA_COREDUMP_PIPE`; write 1 MB zeros to the pipe when kernel hangs; pipe path discoverable via `/proc/<pid>/fd/`. Then `cuda-gdb` identifies the hung kernel; for full inline chain (e.g., deep CUTLASS stacks), `nvdisasm -ndf -c -gi` on the extracted cubin + `grep -C20 <PC>` reveals all inline frames vs. `cuda-gdb`'s last-frame-only. — [[2025-12-04-从gpu卡死到精准锁定出错代码-vllm-cuda-调试实战技巧]]
 - PyTorch 2.1 CUDA memory snapshot API provides three analysis views: Active Memory Timeline (per-tensor lifetime + call stack), Allocator State History (segment→block alloc/free lifecycle), and Active Cached Segment Timeline. `_record_memory_history` + `_dump_snapshot` generates a `.pkl` for pytorch.org/memory_viz. PyTorch Profiler's `export_memory_timeline` offers labeled categories (parameter, optimizer_state, activation, gradient) at lower granularity but higher readability. — [[2025-11-12-pytorch显存可视化与snapshot数据分析]]
+- GPU Profiling introductory toolchain: [[Nsight Systems]] (`nsys`) for system-level GPU sampling, [[PyTorch Profiler]] for per-op attribution (JSON export for `chrome://tracing` or TensorBoard visualization), and AI flame graphs (CPU+GPU callstack mixing) for full-stack analysis; DeepSeek's open profiling data used as demonstration dataset. — [[2025-06-09-ai时代的性能分析-gpu-profiling初探]]
+- [[Flamescope]] extends flame graphs with temporal heatmaps: each column = 1 second, each cell = 20ms, color depth encodes sample density; user selects time range to render slice-specific flame graphs, exposing periodic performance perturbations invisible in aggregated profiles. [[iaprof]] is Intel's open-source AI flame graph tool built by [[Brendan Gregg]]'s team for Intel platforms. — [[2025-06-09-gpu火焰图的探索-iaprof]]
 - [[vLLM]] TP=2 profiling case study: AllReduce blame tracing across three false leads — (1) process-2 imbalance masked as AllReduce slowness, (2) inter-kernel gaps misdiagnosed as launch overhead, (3) root cause: CPU Python blocking kernel launch, visible as vertical CPU→GPU lines in torch profile. CUDA Graph eliminated issue; step-to-step gaps fixed in v0.5.4 by async three-process architecture. — [[2025-08-18-vllm性能分析案例]]
 - [[Nsight Systems]] 实战采集规则：采集 ≤60s；多节点共享存储输出文件名需含 hostname；非管理员权限需 `echo 0 | sudo tee /proc/sys/kernel/perf_event_paranoid`；平台调度建议 launch 模式（`nsys launch` + `nsys start/stop`）；版本需与 CUDA 发布时间一致，否则兼容性问题。NVTX 装饰器/上下文管理器是标注 forward/backward/optimizer 各阶段的核心手段。 — [[2025-09-19-nsight-systems工具原理与gpu性能优化实战详解]]
 - PyTorch memory snapshot（`_record_memory_history` + `_dump_snapshot`）记录显存 segment 分配/释放完整历史；两层模型（Segment vs 张量）；AMP 训练中 FP16 计算权重临时创建、`GradScaler` backward 后 FP32 梯度更新；堆栈信息可精确定位 `segment_alloc` 来源（文件/行号/函数）。 — [[2025-09-22-如何利用pytorch-memory-snapshot进行显存分析]]
 
 - verl integrates Nsight Systems for Ray-based RL training profiling via per-RayActor `runtime_env={"nsight": {...}}` injection; fine-grained control via three mechanisms: (1) capture-range per training step via `torch.cuda.profiler.start/stop`, (2) per-rank enablement, (3) per-subtask (gen/reward/update) enablement; NVTX marks all key verl steps; controller+worker multi-report view imported together in Nsight GUI; limitation: Ray saves traces to fixed `/tmp/ray/session_*/logs/` path. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]
+- [[Neutrino]] PTX插桩框架提供第三条路（前两条是browser tracing和Nsight Compute）：通过LD_PRELOAD劫持GPU驱动，在PTX层动态插入探针指令，支持Warp/Thread级条件触发和自定义指标采集，对实际性能开销较低；适合"某个Kernel中第N个warpid花了多少时间"这类细粒度个性化查询。 — [[2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针]]
+- [[Huawei Ascend]] NPU的profiling工具Insight（类比Nsight）以DeepSeek V3（MoE+MLA）为例展示三层时序图（Python/CANN/AscendHardware）；可观测AllReduce→ReduceScatter+AllGather拆解优化的时序变化，以及micro batch双流的OverlapAnalysis重叠度数值；采集profiling存在时间膨胀效应。 — [[2025-09-10-gpu-npu推理profiling阅读引导-下]]
+- CUDA SASS代码（`LDG.E`/`STG.E` vs `LDG.E.128`/`STG.E.128`）可通过Godbolt（选择nvcc+`-arch sm_90 -use_fast_math -O3`）或NVIDIA NCU工具获取；分析内存受限kernel时应首先查看load/store指令宽度，向量化（`float4`）可将H100上同一工作量的block数减少75%，在不增加指令数的情况下大幅提升吞吐。 — [[2025-05-27-通过查看gpu-assembly分析cuda程序]]
