@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 6
+source_count: 7
 ---
 
 # Data Loading Pipelines
@@ -54,5 +54,5 @@ Populate once Sources covering PyTorch `DataLoader` internals, distributed data 
 
 <!-- merged from `Data Loading` on 2026-05-13 -->
 
-_(none yet — wikilinks from Sources will populate this on the next reindex pass)_
+- LLM inference (vLLM-style) accesses model files via mmap (MAP_ANONYMOUS) only — no blocking read/pread or async I/O; each mmap/munmap pair closes in ~1.97ms despite model files being tens of GB; blktrace shows 86.2% random read by I/O count, 83.3% of block requests are 256KB. LLM training (ChatGLM2-6B PT fine-tune) uses lseek+read with heavy random seeks for model loading, then writev for checkpoints (512KB writes dominate at 90.36%); overall write volume 2× read volume across 2 epochs. — [[2025-09-08-llm-推理-训练-i-o-pattern初探]]
 

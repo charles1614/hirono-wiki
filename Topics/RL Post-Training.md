@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-16
 type: topic
-source_count: 29
+source_count: 33
 ---
 
 # RL Post-Training
@@ -47,6 +47,9 @@ The dominant production pattern (as of early 2026) connects a distributed traini
 
 - [[Nsight Systems]] integration in [[verl]] (via NVIDIA engineer, Jul 2025): Ray-based RL programs require injecting Nsight via RayActor `runtime_env` at construction time (not via standard `nsys <app>` wrapper) because Ray schedules compute processes remotely; verl's single-controller design adds complexity requiring separate tracking of controller and worker processes; NVTX marks verl's step/gen/reward/update subtasks for per-subtask profiling. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]
 - [[vLLM]] V1 RLHF场景权重更新：Actor完整权重（去切片）构建为 `(权重名, tensor)` 迭代器，直接传入 `model_runner.model.load_weights()`，每个TP rank自行切取所需分片；`_initialize_model` 阶段建立HF类名→vLLM Python class映射（惰性注册），量化模型动态替换 `Linear` 为 `QuantLinear`。 — [[2025-05-27-图解vllm-v1系列4-加载模型权重-load_model]]
+- NVIDIA profiling-driven recipe for [[verl]]+GRPO RL pipeline (NVIDIA salon, Sep 2025): complete step = Rollout(205.7s) + old_log_prob(85.2s) + reference(80.6s) + actor_update(126.1s) = 501s total; Rollout is bottleneck at 41%; three main optimization levers: (1) sequence packing + dynamic batching → MFU 30.3% → 45.96%; (2) CUDA Graph for rollout → 17% speedup (vLLM backend); (3) async DAPO for long-tail → 20–40% throughput gain. Qwen3 235B MoE SOTA: 256 GPUs, TP=2, PP=8, EP=32, VP=4. — [[2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔]]
 - [[Seed-Coder]] Reasoning模型从Base模型（非Instruct）出发进行LongCoT预热+GRPO强化学习，避免SFT模式锁死影响RL探索；分阶段渐进式：16K序列/16样本90步→32K序列/32样本160步；Curriculum Learning过滤正确率>87.5%简单问题，移除KL损失项，剪裁比率0.28。 — [[2025-05-27-seed-coder-feishu-docs]]
 - [[AReaL]] async RL eliminates synchronous RL's two inefficiencies (within-rollout long-tail bubble and rollout-trainer serialization) by interrupting mid-sequence generation on weight updates and generating continued responses from prefill; decouple PPO maintains a stable trust region despite multi-checkpoint sequence composition. — [[2025-06-11-异步rl框架areal速览]]
 - Awesome-ML-SYS-Tutorial documents that RL "strengthens proficiency (熟练度), not intelligence" — RL can only reinforce outputs the base model has already produced at least once; its value is raising success rate from 10% to 90% on a task, not unlocking new capabilities. — [[2025-07-03-github-zhaochenyang20-awesome-ml-sys-tut]]
+- Composer 2 (Cursor) finds both average reward and best-of-K performance improve together during RL training, contradicting the hypothesis that RL merely reweights a fixed pool of paths; key RL modifications: remove length standardization from GRPO, skip advantage std normalization within groups, switch KL estimator from k3 to k1 for variance stability; self-summarization chains multi-generation rollouts with shared rewards to enable long-horizon coherence. — [[2026-03-26-composer]]
+- MegaFlow (Alibaba, under review): large-scale agent RL training requires dedicated orchestration infrastructure separate from model compute; many-small-instances (8-core/16 GB/1 task per instance, up to 10,000) outperforms few-large-instances (208-core/3 TB/50 concurrent tasks) in cost (32% reduction), latency consistency (~100 min stable vs. degrading 100→110 min), and max concurrency; validated on 2 million+ production records. — [[2025-10-15-megaflow-large-scale-distributed-orchest]]

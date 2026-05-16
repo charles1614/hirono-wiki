@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 11
+source_count: 13
 ---
 
 # Low-Precision Training
@@ -58,4 +58,5 @@ On the **TPU side**, Google's Ironwood ([[2026-01-12-ironwood-the-first-google-t
 
 - DeepSeek-V3.1 UE8M0 FP8（MXFP8 变种）实测：梯度溢出率降低 99.7%，训练速度提升 3.15×；UE8M0 是针对国产芯设计的量化方案，其无符号 + 全指数 + 零尾数的设计使缩放因子可通过固定 GPU 指令解析，避免硬件指令不兼容问题。Cursor 团队 MXFP8 内核在 E4M3 + 块大小 32 配置下，训练损失在 10K 步后与 BF16 基准几乎完全重合。 — [[2025-08-28-深度解析-deepseek为什么要推ue8m0-fp8]]
 - Qwen3.5 applies FP8 natively across activations, MoE routing, and GEMM during both pretraining and RL post-training, with runtime monitoring preserving BF16 for sensitivity-critical layers; the result is ~50% activation memory reduction and >10% throughput increase, and is stable at tens-of-trillions-of-tokens scale. — [[2026-03-04-qwen3-5-blog]]
+- Composer 2 (Cursor) uses NVFP4 with FP8E4M3 per-block + FP32 per-token scales for MoE forward pass on NVIDIA B300/Blackwell to match inference precision; MXFP8 for backward (higher precision safe since it runs only on trainer); IEEE-compliant ops required for NVFP4 — fast approximation (`__fdividef`) causes divergence after ~100 RL steps; original per-tensor NVFP4 scales were fragile due to batch-variance and inter-token future-token info leakage. — [[2026-03-26-composer]]
 

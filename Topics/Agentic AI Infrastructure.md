@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-16
 type: topic
-source_count: 30
+source_count: 31
 ---
 
 # Agentic AI Infrastructure
@@ -35,6 +35,11 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - [[2026-03-23-k8s官方出手-agent沙箱来了-小红书]] — Kubernetes SIG Apps Agent Sandbox CRD addressing agent-native workload characteristics (singleton, long-running, bursty, untrusted code).
 - [[2026-03-24-new-released-overview-z-ai-developer-doc]] — Z.AI GLM series release notes showing industry progression toward 8-hour autonomous engineering agents.
 - [[2026-03-19-深入理解openclaw技术架构与实现原理-上]] — Architectural deep-dive into OpenClaw: Gateway control plane, Pi Agentic Loop, cron, channels, Docker sandbox isolation.
+- [[2025-10-15-megaflow-large-scale-distributed-orchest]] — MegaFlow three-service agent training infrastructure; many-small-instances over few-large; 32% cost reduction at 10,000 concurrent tasks.
+
+## Observations
+
+- MegaFlow demonstrates that in large-scale agent training (software engineering + computer use tasks), the primary bottleneck is not model compute but environment orchestration (container provisioning, security isolation, storage for 25+ TB of container images per benchmark); delegating container lifecycle to open-source frameworks (SWE-Agent, OpenHands) while MegaFlow handles scheduling, resource management, and event-driven monitoring is more effective than building monolithic infrastructure. — [[2025-10-15-megaflow-large-scale-distributed-orchest]]
 - [[2026-03-17-security-default-safety-posture-sandbox-]] — OpenClaw Issue #7827: default sandbox/session-isolation hardening proposals (closed completed Mar 7, 2026).
 - [[2026-01-14-ai交互的革命-从操作现有软件-到生成未来软件]] — API/GUI/GenUI三重范式演进；[[Li Auto]]理想同学MCP+CUA混合架构落地案例；Google GenUI生成式UI范式。
 - [[2026-01-11-重磅-volcano发布agentcube-构建ai-agent时代的云原生基础]] — AgentCube (Volcano/CNCF): K8s extension for Agent workloads with Warm Pool + Claim-and-Go MicroVM pre-warming, Volcano Agent Scheduler, and AgentRuntime + CodeInterpreter CRDs.

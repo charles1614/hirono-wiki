@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 16
+source_count: 18
 ---
 
 # Communication-Computation Overlap
@@ -74,3 +74,4 @@ _(none yet — wikilinks from Sources will populate this on the next reindex pas
 - NCCL symmetric memory (NCCL 2.27) is the foundational primitive for low-latency intra-node collective kernels: by mapping shared VA layouts across all local ranks, custom GPU kernels can implement AllGather/AllReduce entirely within the kernel without separate NCCL host API calls, enabling tighter comm-compute overlap at the instruction level. — [[2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par]]
 - Alibaba [[RTP-LLM]] MicroBatch overlap for [[DeepSeek-V3]]: Dispatch (FP8) is shorter than Combine (FP16); Combine requires more compute to hide — Shared Expert compute covers Combine in Prefill; Decode uses Attention as the Dispatch-side cover and MoE MLP as the Combine-side cover; unified communication callback interface built to support DeepEP's two modes + Vanilla All2All + other hardware. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
 - [[DeepEP]] low-latency kernel three-stage flow: LOW_LATENCY_SEND_PHASE (SMs active, ~10 µs) → RDMA transit (SMs idle) → LOW_LATENCY_RECV_PHASE (SMs active, ~10 µs); `recv_hook=true` splits into two independent kernel launches, releasing SM resources between phases. — [[2025-10-09-xzwazsg-zjcksvuvksvw]]
+- NCCL pipeline slot mechanism: each channel buffer is divided into NCCL_STEPS=8 slots, each slot progressing independently through Compute→Wait→Transmit→Consume stages; Warp-level role assignment within each Block enables slot-level pipeline concurrency; reducing chunkSize below stepSize increases pipeline parallelism across channels, particularly benefiting cross-node high-latency paths. — [[2025-09-01-nccl揭秘-二-通信pipeline分析]]

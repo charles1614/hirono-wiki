@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-16
 type: entity
-refs: 16
+refs: 17
 tier: active
 ---
 
@@ -23,3 +23,4 @@ Open-source RL training framework for LLMs (used for post-training)
 - Covered extensively in Awesome-ML-SYS-Tutorial with multi-part source-code walkthroughs (initialization, rollout, make-experience phases), AgentLoop multi-turn analysis, tokenization and masking for multi-turn training, DAPO dynamic filtering, profiling guide, and a parameter quick reference; also covers SGLang-verl server-based rollout interface and HybridFlow paper analysis. — [[2025-07-03-github-zhaochenyang20-awesome-ml-sys-tut]]
 - verl uses [[Ray]] Actor abstraction with placement-group bundles for multi-model RLHF (Actor/Rollout/Ref/Critic/Reward); Hybrid Engine shares GPU pool between training (FSDP/Megatron) and generation ([[vLLM]]) via in-place resharding, avoiding weight copy costs of separate-pool designs; SPMD is used for worker execution with no central controller at runtime. — [[2025-05-27-从零开始的verl框架解析]]
 - [[OpenRLHF]] (v0.5.9.post1) and [[verl]] both use Ray placement-group bundles with `num_gpus_per_actor=0.2` for up to 5-module colocate on one GPU; Actor↔Rollout colocate requires CUDA IPC for weight sync since NCCL cannot communicate between two processes on the same GPU. — [[2025-05-27-基于-ray-的分离式架构-verl-openrlhf-工程设计]]
+- NVIDIA GRPO training performance recipe in verl: a full step totals ~501s (Rollout 205.7s, old_log_prob 85.2s, reference 80.6s, actor update 126.1s); dynamic batch size (`use_dynamic_bsz=True`) + sequence packing raises MFU from 30.3% to 45.96% on Qwen2.5 7B; CUDA Graph for rollout (off by default in verl+vLLM) adds 17% E2E speedup at Qwen2-7B / response=512, 2× speedup at Qwen3-30B / prompt=2048 / response=8192; async DAPO (`verl/pull/2799`) addresses long-tail GPU idling (20–40% throughput gain). — [[2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔]]

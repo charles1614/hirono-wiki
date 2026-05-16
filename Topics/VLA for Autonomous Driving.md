@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 15
+source_count: 16
 ---
 
 # VLA for Autonomous Driving

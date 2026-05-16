@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: entity
-refs: 53
+refs: 56
 tier: active
 ---
 
@@ -28,6 +28,9 @@ vLLM is the dominant open-source LLM inference engine, built on PagedAttention a
 - Optimized `gpt-oss-120b` (OpenAI native MXFP4 MoE) on [[Blackwell]]: 38% higher max throughput and 13% lower min latency vs InferenceMAX baseline by integrating [[FlashInfer]] as primary kernel backend (`trtllm-gen` + `cutlass` MoE), using `torch.compile`-driven AllReduce+RMSNorm fusion, and deploying async scheduling + Stream Interval to eliminate host CPU overhead (57% improvement at 1024 concurrency). — [[2026-02-04-gpt-oss-在-nvidia-blackwell-上的性能优化-推动-par]]
 - At PyTorch Conference 2025, at least 53 of 117 sessions (~45%) mentioned vLLM, spanning dedicated talks (#3 vLLM & DeepSpeed keynote, #44 "Easy, Fast, and Cheap LLM Serving"), cross-accelerator deployment (AMD/Triton #69, Amazon NxD #81), post-training co-location with TRL (#60), and disaggregated inference (#78). Signals vLLM as the de facto inference backend across the [[PyTorch]] ecosystem. — [[2025-12-14-vllm-project-vllm-in-pytorch-conference-]]
 - AngelSlim v2（腾讯混元）训练的Eagle3草稿模型训练完成后直接兼容vLLM部署（以及SGLang），vLLM被列为AngelSlim的优先部署目标框架之一；测试设置num_speculative_tokens=2 or 4时接收长度1.8-3.5，加速1.4-1.9×。 — [[2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-]]
+- LLM inference I/O profiling: blktrace during vLLM-style inference shows 86.2% random read (by I/O count) and 83.3% of block requests are 256KB; total read volume ~12.9GB; model files accessed exclusively via mmap (MAP_ANONYMOUS pattern), not blocking read/pread — each mmap/munmap pair closes within ~1.97ms. — [[2025-09-08-llm-推理-训练-i-o-pattern初探]]
+- verl+vLLM rollout: CUDA Graph is off by default (on by default for verl+SGLang); enabling yields 17% E2E speedup at Qwen2-7B/response=512; increasing `gpu_memory_utilization` grows KV cache space; chunked prefill improves rollout throughput; smaller `tensor_parallel_size` often reduces communication overhead. — [[2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔]]
+- GPU profiling via PyTorch Profiler + Perfetto: a single GQA+FFN layer in Qwen2.5-7B with 4-way tensor parallelism takes ~700μs at the Python-layer level; CUTLASS kernels handle FFN linear ops; silu kernel metadata exposes input tensor dtype. — [[2025-09-09-gpu-npu推理profiling阅读引导-上]]
 - vLLM V1 引擎深度解剖（Aleksa Gordić，基于 commit 42172ad 2025-08-09）：KV Cache Manager 维护 `free_block_queue` 数十万 block 链表；每个 block 默认 16 tokens；Worker init 分 3 步（init device → load model → init KV cache），init KV cache 通过 dummy forward pass 计算可用 VRAM 再分配 KV tensor 并捕获 CUDA Graph；V1 Scheduler 每 step 可混合 prefill 和 decode。 — [[2025-09-04-inside-vllm-anatomy-of-a-high-throughput]]
 - vLLM's [[NVFP4]] MoE forward launches **7 separate CUDA kernels** (shuffle → quant → GEMM1 → SiLU → quant → GEMM2 → shuffle), using a generic [[CUTLASS]] 3.x schedule without Blackwell-specific TMA alignment padding; at batch size 1–4, kernel launch overhead alone accounts for 10–20% of latency. Benchmarked at 1026 TFLOPS peak on [[Blackwell]] B200 for GPT-OSS-20B (32 experts, top-4, NVFP4), 142 TFLOPS below [[SGLang]]. — [[2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-]]
 - vLLM TP=2 profiling case study (v0.5.1, FP8, DeepSeek-6.7B on L20, batch=1): apparent AllReduce slowness (50% decode timeline) traced through three false leads — (1) allreduce lag was actually process-2 imbalance; (2) inter-kernel gaps were CPU Python scheduling blocking kernel launch, not launch overhead itself; (3) resolved with CUDA Graph. Step-to-step overhead fixed in v0.5.4 by async three-process architecture. FP8 dequant kernels need fusing with preceding operators. — [[2025-08-18-vllm性能分析案例]]

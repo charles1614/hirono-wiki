@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-16
 type: topic
-source_count: 23
+source_count: 26
 ---
 
 # GPU Profiling
@@ -51,3 +51,5 @@ The [[Nsight Systems]] CLI workflow for distributed workloads follows a consiste
 - [[Neutrino]] PTX插桩框架提供第三条路（前两条是browser tracing和Nsight Compute）：通过LD_PRELOAD劫持GPU驱动，在PTX层动态插入探针指令，支持Warp/Thread级条件触发和自定义指标采集，对实际性能开销较低；适合"某个Kernel中第N个warpid花了多少时间"这类细粒度个性化查询。 — [[2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针]]
 - [[Huawei Ascend]] NPU的profiling工具Insight（类比Nsight）以DeepSeek V3（MoE+MLA）为例展示三层时序图（Python/CANN/AscendHardware）；可观测AllReduce→ReduceScatter+AllGather拆解优化的时序变化，以及micro batch双流的OverlapAnalysis重叠度数值；采集profiling存在时间膨胀效应。 — [[2025-09-10-gpu-npu推理profiling阅读引导-下]]
 - CUDA SASS代码（`LDG.E`/`STG.E` vs `LDG.E.128`/`STG.E.128`）可通过Godbolt（选择nvcc+`-arch sm_90 -use_fast_math -O3`）或NVIDIA NCU工具获取；分析内存受限kernel时应首先查看load/store指令宽度，向量化（`float4`）可将H100上同一工作量的block数减少75%，在不增加指令数的情况下大幅提升吞吐。 — [[2025-05-27-通过查看gpu-assembly分析cuda程序]]
+- PyTorch Profiler for LLM inference (GPU scene, vLLM + Qwen2.5-7B + 4-way TP): Chrome trace exported to Perfetto reveals Python-layer and GPU-stream timelines simultaneously; GQA+FFN layer takes ~700μs Python-side; TP all-reduces visible as NCCL ops; CUTLASS kernels handle linear ops; silu kernel exposes input dtype metadata. Companion Part 2 covers NPU (Huawei Ascend) + DeepSeek-V3 MoE profiling. — [[2025-09-09-gpu-npu推理profiling阅读引导-上]]
+- NVIDIA RL training profiling (verl+GRPO): `DISCRETE=True` in Nsight configuration creates per-sub-phase nsys files (rollout/log_prob/reference/actor); `PROFILE_RANKS` enables selective rank-level coverage; files named `worker_process_{pid}.nsys-rep` with phase suffix; reassembled in Nsight GUI via "New multi-report view" to reconstruct a full step timeline. — [[2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔]]

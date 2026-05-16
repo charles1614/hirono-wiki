@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-16
 type: topic
-source_count: 13
+source_count: 15
 ---
 
 # LLM Architectures
@@ -57,3 +57,5 @@ The broader pattern Raschka identifies: the decisive differentiators in 2025 are
 - arXiv 2508.09834 (82-page survey) taxonomizes efficient LLM architecture alternatives to standard Transformers into five families: (1) linear/sparse sequence modeling (SSMs, linear attention); (2) efficient full-attention variants (sparse, sliding-window, low-rank); (3) sparse MoE; (4) hybrid architectures interleaving dense and subquadratic layers; (5) diffusion LLMs for non-autoregressive generation. The survey frames efficiency as multi-dimensional: FLOPs, memory, latency, and deployment flexibility trade off differently per family. — [[2025-08-16-speed-always-wins-a-survey-on-efficient-]]
 
 - Datawhale/Raschka 2025-07-25 横向快照（八种架构比较）：NoPE（[[SmolLM3]]）在长度泛化上优于 RoPE；[[OLMo]] 2 的 Post-Norm + QK-Norm 训练更稳定；[[Gemma]] 3 的滑动窗口 4096→1024 显著降低 KV 缓存内存且困惑度损失极小；[[Kimi K2]] 使用 Muon 优化器训练损失曲线平滑迅速下降。所有架构基础（Pre-Norm Transformer + RoPE + SwiGLU）七年来惊人稳定，决定性差异来自训练流水线和推理扩展策略而非架构本身。 — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
+- gpt-oss-20B/120B ([[OpenAI]], Aug 2025, Apache 2.0): [[MoE]] (32/128 experts, 4 active), [[GQA]] alternating with sliding-window-128 GQA every other layer, [[SwiGLU]], [[RoPE]], [[RMSNorm]], attention bias + learned-logit sinks; width-first design (embedding dim 2880, 24 transformer blocks) vs [[Qwen3]]-30B-A3B depth-first (2048 dim, 48 blocks); MXFP4 MoE expert quantization fits 20B in 16GB VRAM (RTX 50-series) and 120B on a single H100 80GB; training: 2.1M H100-hours (SFT+RL), focused on STEM/coding. — [[2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch]]
+- Raschka's GPT-2→gpt-oss evolution: dropout removed (single-epoch regime makes it harmful); SwiGLU replaces GELU (3 half-size layers → fewer params but better expressivity via multiplicative gating); GQA reduces KV memory bandwidth; RMSNorm eliminates mean centering, reducing cross-feature reductions from 2→1; attention bias terms reappear (empirically minimal difference per arXiv 2302.08626); gpt-oss sliding window fixed at 128 tokens vs Gemma 3's 1024 and Gemma 2's 4096. — [[2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch]]

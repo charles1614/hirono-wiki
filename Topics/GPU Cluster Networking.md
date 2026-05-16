@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-16
 type: topic
-source_count: 20
+source_count: 21
 ---
 
 # GPU Cluster Networking
@@ -33,6 +33,7 @@ _(stub — populate as sources accumulate. `topic-content-gaps` will lint-warn o
 - [[DeepEP]] NVSHMEM IBGDA for small-message All-to-All decode: ~64 µs vs IBRC 128–256 µs for <8 KiB; uses IB Virtual Lanes (VL) for traffic isolation — Normal kernel workloads, Low Latency kernel workloads, and other traffic must use separate VLs to avoid deadlock/corruption; Adaptive Routing supported only for Low Latency kernel. — [[2025-10-09-deepseek-deepep源码分析]]
 - Alibaba [[RTP-LLM]] RoCE dual-uplink fix for [[DeepEP]]: message-level load balancing for Normal kernel (large messages) + queue-level for Low Latency kernel (small messages) via NVSHMEM-layer patches; Low Latency mode latency reduced 60%+ vs unpatched; communication pattern optimization (rack-level flow alignment) avoids intra-cluster traffic collisions. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
 - NCCL 2.26.3-1 path computation (`ncclTopoComputePaths`): BFS from each GPU/NIC/NVSwitch builds optimal path table; PXN proxy routing injects intermediate GPU hops via `addInterStep` to avoid Spine Switch traffic (rail-level optimization); NVLink Sharp (NVLS, NCCL_ALGO=NVSL) requires nvidia-fabricmanager and is only supported on Hopper (H100) NVSwitch from NCCL 2.17+; GDR-disabled paths are forced to route through CPU. — [[2025-05-30-nccl-系列之深入解析-nccl-通信路径计算和优化]]
+- NCCL's stepSize/chunkSize/chunkDataSize pipeline hierarchy: stepSize is the theoretical per-step maximum (buffSizes/NCCL_STEPS); chunkSize is adjusted based on message size for finer-grained pipeline parallelism across channels; cross-node communication uses larger chunk sizes to avoid small-packet inefficiency while single-node can use stepSize/8 due to low NVLink latency; each CUDA Block handles exactly one channel, with Warp 0/1 loading metadata and remaining Warps executing data movement across NCCL_STEPS=8 concurrent slots. — [[2025-09-01-nccl揭秘-二-通信pipeline分析]]
 
 ## Sources drawn on
 

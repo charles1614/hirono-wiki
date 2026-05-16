@@ -3,7 +3,7 @@ created: 2026-05-12
 updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 34
+source_count: 37
 ---
 
 # LLM Training Systems
@@ -51,3 +51,4 @@ Once Sources are attached, this section should be revised to anchor each claim t
 - [[verl]]'s single-controller design inherits Google's Pathways (MLSys 2022): Pathways introduced master-controlled computation graphs where each node is a multi-GPU SPMD program, which verl applies to RLHF multi-model graphs; [[Ray]] Actors serve as the open-source dataflow node implementation. The Pathways authors (including ByteDance Seed lead Yonghui Wu) did not anticipate RL training as the primary MPMD use case. — [[2025-05-30-https-zhuanlan-zhihu-com-p-1911558458903]]
 - [[AReaL]]'s async RL framework addresses synchronous RL's rollout-trainer serialization by overlapping training with the next rollout; the decouple PPO algorithm maintains a trusted reference policy (π_behave) from the most recent checkpoint generating each response segment, producing a reliable trust region despite multi-checkpoint sequence composition. — [[2025-06-11-异步rl框架areal速览]]
 - Awesome-ML-SYS-Tutorial is the primary community learning resource for RL infra frameworks ([[slime]], [[verl]], [[AReaL]], [[OpenRLHF]]) and [[SGLang]] internals, authored by Zhao Chenyang (now at RadixArk/SGLang community); grew from ~30 GitHub stars (Aug 2024) to 4.5K+ (mid-2025). — [[2025-07-03-github-zhaochenyang20-awesome-ml-sys-tut]]
+- LLM training (ChatGLM2-6B PT fine-tune) storage I/O: model loading uses lseek+read with random seeks (not sequential), driven by safetensor index file byte-offset mappings; writev dominates checkpoint writes at 512KB (90.36% of write bytes); blktrace shows 93.2% sequential read and 91.5% sequential write by byte volume across 2 epochs; total write 23.8GB ≈ 2× read 12.5GB consistent with 2-epoch checkpoint behavior. — [[2025-09-08-llm-推理-训练-i-o-pattern初探]]

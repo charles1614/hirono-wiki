@@ -2,7 +2,7 @@
 created: 2026-05-11
 updated: 2026-05-16
 type: entity
-refs: 19
+refs: 21
 tier: active
 ---
 
@@ -24,3 +24,4 @@ AI lab; ChatGPT; GPT models; Triton kernel language; recently OpenAI-MoE-kernels
 - [[OpenAI]]通过与[[NVIDIA]]（黄仁勋承诺投资1000亿美金）和[[AMD]]（6吉瓦算力合作+10%股权）签署相互持股合作，构建"大而不倒"飞轮：各方共担风险、资金循环、股市同涨，形成科技巨头深度绑定生态。 — [[2026-01-14-openai将科技巨头手拉手-大而不倒]]
 - OpenAI 自 2025 年 9 月起签订总价值超万亿美元的基础设施协议群：[[Oracle]] $300B（Stargate）、[[NVIDIA]] $100B 10GW、[[AMD]] 6GW+10%股权、[[Broadcom]] 10GW；SK Hynix 和 Samsung 供应 HBM；电商入口通过 ChatGPT Instant Checkout 接入 Shopify/Etsy/Walmart；合作伙伴股价单日涨幅：Oracle+36%、AMD+23%、Broadcom+10%、SK Hynix+10%。 — [[2026-01-15-economictimes-indiatimes-com]]
 - Andrej Karpathy在2025年6月的ChatGPT模型路由指南中将o3定义为"当前明显最强"的推理模型，适合专业场景（~40%使用）；4o为daily driver（~40%）；Deep Research基于o3但不等同于直接问o3；o4-mini定位不明确。用户决策判据：任务是否值得等待→二元切换。 — [[2025-06-04-andrej-karpathy-karpathy-on-x]]
+- gpt-oss-20B and gpt-oss-120B (Aug 2025, Apache 2.0): first open-weight LLMs since GPT-2 (2019); MoE (32/128 experts, 4 active), GQA with alternating full-context + sliding-window-128 layers, SwiGLU, RoPE, RMSNorm, MXFP4 MoE expert quantization; 2.1M H100-hours total training (SFT+RL on STEM/coding/general); 120B fits on single H100 80GB with MXFP4, 20B in 16GB RTX 50-series VRAM; gpt-oss-120B on par with Qwen3-235B-A22B-Thinking-2507 on reasoning benchmarks at ~half the parameter count. — [[2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch]]

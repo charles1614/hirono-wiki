@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-16
 type: topic
-source_count: 10
+source_count: 11
 ---
 
 # AI Coding Workflows
@@ -33,3 +33,4 @@ _(stub — populate as sources accumulate. `topic-content-gaps` will lint-warn o
 - [[2025-06-11-https-linux-do-t-topic-715282]] — RaycastAI-Proxy: Docker Compose setup routing Raycast's built-in AI to custom OpenAI-compatible endpoints via models.json config.
 - [[2025-06-09-https-share-google-link-https-linux-do-t]] — Cursor account sharing change (2025-04-06): website login sessions now single-user; access tokens or `curs0r` client as workarounds.
 - [[2025-06-09-tak-bro-aicommit2-a-reactive-cli-that-ge]] — aicommit2 CLI: AI commit message generation supporting Git/YADM/Jujutsu, multiple LLM providers, diff compression, LazyGit integration.
+- [[2026-03-26-composer]] — Composer 2 technical report: CursorBench methodology, self-summarization for long-horizon agents, RL infrastructure with Anyrun/Firecracker VMs, nonlinear length penalty rewards.

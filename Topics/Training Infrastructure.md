@@ -3,7 +3,7 @@ created: 2026-05-11
 updated: 2026-05-16
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 20
+source_count: 23
 ---
 
 # Training Infrastructure
@@ -44,3 +44,4 @@ A substantive Current understanding here will require ingesting sources that cov
 - [[SimAI]] (Alibaba Cloud, NSDI'25) provides three-level simulation fidelity for LLM training: Analytical (fast), NS-3 packet-level, and Physical (AIOB kernel profiling); supports Megatron/DeepSpeed/DeepSeek parallelism strategies and Vidur-based inference scheduling, enabling topology/bandwidth sensitivity analysis without live cluster allocation. — [[2026-01-06-deepwiki-simai]]
 - [[VeOmni]] (ByteDance, Aug 2025): unified multi-modal training framework for LLM/VLM/DiT with composable [[FSDP]]+Ulysses+EP; selective recompute by ROI reduces recompute ratio 60%→30%; achieves 40%+ throughput over OSS baselines on [[Wan 2.1]]-14B LoRA at 720P. — [[2025-08-06-字节跳动-veomni-框架开源-统一多模态训练效率飞跃]]
 - [[Meta]] SIGCOMM 2024 [[RoCEv2]] AI训练集群：Grand Teton（H100）平台，单平面Spine-Leaf，GPU:NIC=1:1，Leaf用铜缆降成本；路由从ECMP→E-ECMP（+40%）→集中式TE；传输层放弃DCQCN改用[[NCCL]]层CTS准入控制；最优配置带宽收敛比1:1.125。 — [[2025-05-27-meta基于rocev2构建的大规模ai网络]]
+- ByteCheckpoint (ByteDance, NSDI'25) eliminates offline checkpoint resharding scripts via parallelism-agnostic ShardMeta representation; achieves 54.20× reduction in checkpoint stalls and 12.13–161.50× improvement vs PyTorch DCP/Megatron DCP; production platform logged 34,794 resharding events across training resumption/cross-stage/evaluation over six months; scales to 405B model on 8,960 GPUs with zero-redundancy balanced plan generation. — [[2025-03-06-2407-20143]]

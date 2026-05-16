@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-16
 type: entity
-refs: 14
+refs: 16
 tier: active
 ---
 
@@ -29,3 +29,4 @@ NVIDIA's system-level statistical profiler + tracer for GPU/CPU workloads
 - 系统性定位两框架性能差异的方法论：用`nsys profile --trace-fork-before-exec=true --cuda-graph-trace=node --force-overwrite=true`采集profile，在Windows/Mac端GUI打开，固定同一step同一layer的两个FlashAttention kernel作为时间线左右端点，逐一对比中间每个kernel；AI无法有效阅读Nsight profile结果，需人工基于经验分析。 — [[2025-12-25-如何系统性定位并分析-pytorch-模型推理中的性能瓶颈]]
 - [[Nsight Systems]] 实战采集要点：采集时长控制在 60s 以内；多节点共享存储需在输出文件名中嵌入 hostname 防覆盖；非管理员权限采集 CPU 详细信息需先执行 `echo 0 | sudo tee /proc/sys/kernel/perf_event_paranoid`；平台调度场景建议使用 Launch 模式（`nsys launch`+`nsys start/stop`）防 pod 被杀；nsys 版本需与当前 CUDA 环境发布时间基本一致，版本不匹配有兼容性问题。 — [[2025-09-19-nsight-systems工具原理与gpu性能优化实战详解]]
 - Ray-based RL framework integration (verl, NVIDIA): standard `nsys <app>` fails for Ray programs because the application argument is just a submit command — actual compute runs on remote nodes. Solution: inject `runtime_env={"nsight": {...}}` at RayActor construction time. Ray saves traces to non-configurable `/tmp/ray/session_*/logs/{profiler_name}`; verl prints controller hostname+PID for location. Multi-report view enables importing controller + all workers together with auto-time-alignment. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]
+- NVIDIA salon recipe for verl+GRPO profiling: `DISCRETE=True` creates one nsys file per sub-phase per worker (named `worker_process_{pid}.nsys-rep` with `{1-4}` suffix for rollout/log_prob/reference/actor_training); `PROFILE_RANKS_ALL=False` + `PROFILE_RANKS=[0,4]` for selective rank coverage; use Nsight GUI "New multi-report view" to reassemble a complete step from discrete files. — [[2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔]]
