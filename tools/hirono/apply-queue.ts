@@ -151,11 +151,13 @@ function dispatchOne(item: QueueItem, repoRoot: string, dryRun: boolean): ApplyR
   if (!item.command) {
     return { idx: item.idx, heading: item.heading, outcome: "failed", reason: "no command parsed" };
   }
+  // Strip leading `hirono ` and trailing inline shell comment
+  // (`hirono X  # explain` → `X`). The queue renderer emits comments for
+  // human-readable hints; they'd be parsed as args otherwise.
+  const cmd = item.command.replace(/^hirono\s+/, "").replace(/\s+#.*$/, "");
   if (dryRun) {
-    return { idx: item.idx, heading: item.heading, outcome: "dry-run", reason: item.command };
+    return { idx: item.idx, heading: item.heading, outcome: "dry-run", reason: `hirono ${cmd}` };
   }
-  // Run via `npx tsx tools/bin/hirono.ts ...` — strip leading `hirono ` from the command
-  const cmd = item.command.replace(/^hirono\s+/, "");
   const argv = ["tsx", "tools/bin/hirono.ts", ...splitArgv(cmd)];
   const result = spawnSync("npx", argv, { cwd: repoRoot, encoding: "utf8" });
   if (result.status === 0) {
