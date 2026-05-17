@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 24
 tier: active
@@ -14,7 +14,13 @@ NVIDIA's CUDA C++ templates for high-performance matmul/conv; building blocks fo
 ## Synthesis
 
 
-NVIDIA's CUDA C++ template library for high-performance matrix multiplication and convolution, CUTLASS serves as the substrate for multiple frontier kernel projects. Flux (ByteDance/PKU) is built directly on CUTLASS — its auto-tunable, fine-grained kernel-fusion of compute and communication tiles into a single thread block is modular across GPU generations and interconnects, and CUTLASS was chosen over Triton specifically because Tensor-Core-heavy auto-tunable kernels are better suited to it. FlashMLA acknowledges CUTLASS as one of its primary inspirations alongside FlashAttention's online softmax and Flash-Decoding's split-K, crediting its kernel-fusion and tile-level scheduling primitives. At the deployment layer, TensorRT-LLM's max-throughput configuration for gpt-oss-120b on B200/GB200 uses the CUTLASS MoE backend, but with an architectural constraint: CUTLASS supports only pure expert parallelism (no mixed TP/EP), which forces max-throughput deployments to set `--ep ${num_gpus}` while the TRTLLM backend retains mixed TP/EP flexibility for low-latency configurations.
+
+
+
+CUTLASS is NVIDIA's open-source CUDA C++ template library for high-performance GEMM and convolution, functioning as the substrate on which multiple frontier kernel projects are built. Flux (ByteDance/PKU) is built directly on CUTLASS for its tile-level fusion of compute and communication, with ByteDance picking CUTLASS over Triton for Tensor-Core-heavy auto-tunable kernels; the modular per-generation tuning enables A100/H800 and PCIe/NVLink variants without altering the high-level algorithm. FlashMLA credits CUTLASS alongside FlashAttention's online softmax and Flash-Decoding's split-K as primary inspirations for its kernel-fusion and tile-scheduling primitives. On Blackwell, the gap between generic CUTLASS 3.x and architecture-specific schedules is measurable: SGLang's `KernelPtrArrayTmaWarpSpecialized1SmNvf4Sm100` (FP4 warp specialization, TMA, 128-byte alignment padding) reaches 1168 TFLOPS versus vLLM's 1026 TFLOPS on the same B200 — a 142 TFLOPS gap driven entirely by kernel engineering rather than hardware. At the deployment layer, TensorRT-LLM's max-throughput configuration for gpt-oss-120b on B200/GB200 uses the CUTLASS MoE backend with the architectural constraint that CUTLASS supports only pure EP (no mixed TP/EP), so max-throughput requires `--ep ${num_gpus}`. CUTLASS v4.3.0 also fixed an upstream example-code bug that had caused a MLA attention hang in vLLM (PR #26026), and the Blackwell UMMA interface (`SM100_MMA_F16BF16_SS`, `make_tmem_copy`, `cute::TMEM::Allocator1Sm`) wraps `tcgen05.alloc`/`tcgen05.dealloc` for Tensor Memory management.
+
+
+
 
 
 ## Observations

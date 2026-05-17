@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 9
 tier: active
@@ -12,7 +13,11 @@ reasoning-based vision language action model for autonomous driving
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+NVIDIA Alpamayo is the company's open-source reasoning Vision-Language-Action model line for autonomous driving — the world's first open reasoning-based VLA, with Alpamayo 1 as a 10B-parameter model and Alpamayo-R1 designed as a research-platform release including the AlpaSim modular lightweight perception simulator and the PhysicalAI-AV open dataset (HuggingFace). At GTC 2026 Alpamayo 1.5 demonstrated natural-language instruction following (turn left/right, stop, avoid preceding vehicle, identify nearby buildings), navigation-informed path decisions, and verbal commands, with NVIDIA targeting consumer L4 deployment in 2028 and scale testing in 2027; Alpamayo will ship in mass production on Mercedes CLA and additional vehicle platforms, marking NVIDIA's first volume AV deployment. Alpamayo-R1 supports three visual encoding strategies — single-image tokenizer (default), Triplane multi-camera (~4× compression, fixed token count independent of camera/resolution), and Flex video (~20× compression while maintaining or improving driving performance) — enabling flexible deployment from offline analysis to 99 ms real-time inference on RTX 6000 Pro. Benchmark gains versus baselines: open-loop minADE6@6s improved 12%, closed-loop off-road rate reduced 35% (17% → 11%), close-encounter rate reduced 25% (4% → 3%), and RL post-training raised reasoning-quality LRM score 45% (3.1 → 4.5) with reasoning-action consistency 37% (0.62 → 0.85). The Chain of Causation framework enforces three properties absent from prior reasoning VLAs — decision grounding (single explicit closed-set driving decision per trace), causal locality (evidence only from observed history not future frames), and annotation economy — across 16 closed-set decision categories spanning longitudinal and lateral control.
+
+
 
 ## Observations
 

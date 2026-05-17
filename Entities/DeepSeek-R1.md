@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 19
 tier: active
@@ -9,6 +10,12 @@ tier: active
 # DeepSeek-R1
 
 DeepSeek reasoning model, late 2024 / early 2025; emphasizes inference-time test/think capability.
+
+## Synthesis
+
+
+DeepSeek-R1 is the dedicated reasoning model built on the DeepSeek V3 architecture (MLA + sparse MoE, 671B total / 37B active), with its January 2025 release the catalyst that brought broader attention to DeepSeek V3 itself — Raschka's survey uses R1/V3 as the opening reference architecture, noting that public architectural detail combined with capability drove the impact. R1 was trained via RLVR with GRPO using a triple reward (format reward + language consistency reward + verifier reward) and is a pure reasoning model rather than a hybrid, contrasting with the V3.1/V3.2 lineage that moves toward unified instruct/reasoning in a single model. Karpathy named the R1 paper as the canonical demonstration of Reinforcement Learning from Verifiable Rewards: R1 spontaneously developed reasoning-like strategies — problem decomposition, iterative refinement — via optimization against verifiable rewards, strategies difficult to specify directly through SFT or RLHF. NVIDIA Alpamayo-R1's Cosmos-Reason backbone was pre-trained on 24,700 driving-scene VQA samples distilled from DeepSeek-R1 to instill reasoning traces, and R1 also serves as the evaluation model in Alpamayo-R1's GRPO reasoning-quality reward (scoring logical consistency, causal correctness, contextual accuracy of generated Chain-of-Causation traces). The R1-0528 update released open weights with public reasoning tokens at performance on par with OpenAI o1 and was available same-day from 7 providers via OpenRouter; community notes characterize it as open-weight rather than reproducible from source since training data is undisclosed.
+
 
 ## Observations
 

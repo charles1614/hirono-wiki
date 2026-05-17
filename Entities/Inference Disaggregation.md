@@ -1,7 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 24
 tier: active
@@ -14,7 +14,15 @@ LLM serving architecture that separates prefill (context) and decode (generation
 ## Synthesis
 
 
-Inference disaggregation separates prefill (context ingestion) and decode (token generation) onto distinct GPU pools so each phase can be parallelized and scaled independently, since the two phases have fundamentally different computational profiles: prefill is compute-bound and dominated by First-Token Latency, while decode is memory-bandwidth-bound and governed by per-token Token-to-Token Latency. A systematic NVIDIA simulation study across DeepSeek-R1 and Llama-3.1 models finds that disaggregation's benefits are concentrated rather than universal — it meaningfully improves throughput-interactivity Pareto frontiers for prefill-heavy traffic and large models (above ~10B parameters), while co-located piggybacked serving is competitive for small models or generation-heavy workloads. The load-bearing system primitive for disaggregated deployments is dynamic rate matching: the optimal ratio of prefill-pool to decode-pool GPUs varies with model architecture and target latency, and fixing it statically at any single value leaves substantial performance on the table across latency regimes. Hardware asymmetry is a practical forcing function: Ant Group's H20-96G production deployment adopted prefill/decode disaggregation specifically because the H20's lopsided compute-to-bandwidth ratio makes a co-located mapping Pareto-suboptimal, and DeepSeek's published profiler traces confirm that prefill and decode require different SM-to-communication splits (108+24 vs freed-SM AllToAll at EP128), structurally justifying separate pools. Production observability for disaggregated clusters is an active area: vLLM's KVConnector metrics landed connector-agnostic Prometheus instrumentation for KV-cache transfer, and SGLang's tracing framework treats PD-disaggregation as a first-class case with per-node span visibility across the mini-LB, prefill, and decode tiers.
+
+
+
+
+Inference disaggregation separates prefill (compute-bound, FTL-dominated) and decode (memory-bandwidth-bound, TTL-dominated) onto distinct GPU pools so each phase can be scaled with independently chosen parallelism. NVIDIA's systematic 100k+ design-point study (Beyond the Buzz) finds disaggregation's benefits concentrated in prefill-heavy traffic on larger (>10B) models, while co-located piggybacked serving with chunked prefill is competitive for small models or generation-heavy workloads — and that dynamic Ctx:Gen rate matching is the load-bearing system primitive (fixed static ratios degrade sharply across latency regimes). KV cache egress bandwidth is not the bottleneck commonly assumed: NVIDIA's analytical equations show egress drops as ISL grows (FTL scales superlinearly via quadratic attention while KV scales linearly) and ingress is inversely proportional to OSL, confirming provisioned datacenter bandwidth is sufficient. Hardware asymmetry forces disaggregation in practice — Ant Group's H20-96G deployment adopted PD separation because the H20's ~15% of H800 FP8/BF16 compute paired with 2.25× NVLink bandwidth makes co-located mapping Pareto-suboptimal, and at large EP scale on DeepSeek-V3, DeepEP's normal (prefill, symbolic shapes) and low-latency (decode, CUDA-Graph-compatible) dispatch modes cannot coexist in one engine. Production observability is maturing: vLLM's PR #26811 added connector-agnostic KVConnector Prometheus metrics (2KB→8GB log-scale × 4 histograms) and SGLang's OpenTelemetry tracing treats PD-disaggregation as first-class across mini-LB, prefill, and decode tiers.
+
+
+
+
 
 
 ## Observations

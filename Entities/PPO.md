@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 6
 tier: active
@@ -12,7 +13,11 @@ Proximal Policy Optimization; cited in Insight 9 as the RL algorithm by which tw
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+PPO is the foundational on-policy policy-gradient algorithm for RLHF, with the trust-region clipping mechanism (`eps_clip`) controlling how far each update can move from the behavior policy; in modern RL4LLM frameworks like slime it appears as one of several `--advantage-estimator` options alongside GRPO, GSPO, and REINFORCE++, with KL divergence penalties (`--kl-coef`, `--kl-loss-coef`) layered on top and a separate critic value network optionally enabled via `--use-critic`. AsyPPO (Alibaba ROLL team) demonstrates that PPO's full-scale critic is unnecessary for resource-constrained RL4LLM — two small critics on non-overlapping prompt partitions match or exceed value-estimation quality, saving ~20 seconds per training step and eliminating one server node, rehabilitating critic-based PPO as competitive with critic-free alternatives. AReaL's "decouple PPO" reformulates the trust region around π_behave (the most recent θ generating each segment) rather than the mixed-θ old policy produced by async rollout; the reformulation is algebraically equivalent to standard PPO in gradient direction and magnitude when unclipped but produces a tighter, more reliable trust region — addressing the staleness problem characteristic of async RL pipelines. In autonomous-driving RL, Horizon Robotics' RAD uses PPO to optimize policy in mixed RL+IL training at a 4:1 ratio, with auxiliary tasks contributing meaningfully even without the full PPO loss machinery — suggesting that for some applications the critical value lies in behavior-direction shaping rather than algorithmic specificity.
+
+
 
 ## Observations
 

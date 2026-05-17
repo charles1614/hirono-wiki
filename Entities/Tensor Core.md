@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 8
 tier: active
@@ -12,7 +13,11 @@ NVIDIA's matrix-multiply accelerator unit on Volta+ GPUs; 4 generations (Volta, 
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+Tensor Core evolution across five NVIDIA generations encodes an explicit scaling strategy: matrix-multiply arithmetic intensity grows O(n) with problem size (compute O(n³) over data O(n²)), motivating expansion of TC size rather than count, but larger TCs exacerbate wave quantization on small matrices. Volta's 1st gen has 8 TCs per SM at 8-thread quadpair scope performing 8×8×4 matmul (1024 FLOPs/cycle/SM), with HMMA introduced to amortize ~30 pJ per-instruction emission overhead (versus 1.5 pJ for HFMA, a 20× gap); Ampere's 3rd gen raised MMA to warp scope (32 threads) at 512 FLOPs/cycle/core, added `ldmatrix` and `cp.async` to bypass register-file pressure, and introduced BF16, TF32, and 2:4 structured sparsity. Hopper's 4th gen raises MMA to warpgroup scope (128 threads) via `wgmma` with operand B read directly from SMEM, adds Thread Block Cluster and Distributed Shared Memory for SM-to-SM access, and introduces native FP8 — though `wgmma` FP8 accumulation is actually 22-bit fixed-point, requiring periodic CUDA-core spill. Blackwell's 5th gen (`tcgen05.mma`) uses single-thread semantics with operands fully migrated to SMEM/TMEM, adds MMA.2SM CTA-pair mode spanning 2 SMs to share B and effectively double SMEM, and introduces 256 KB Tensor Memory plus 4:8 pair-wise structured sparsity. The cross-generation rule: TC throughput doubles each generation while global memory latency rises — staging buffer (SMEM) must grow, with Blackwell's flat SMEM compensated by 2-SM equivalence and the new TMEM holding accumulator D for energy-efficient reuse.
+
+
 
 ## Observations
 

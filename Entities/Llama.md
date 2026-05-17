@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 14
 tier: active
@@ -14,7 +14,11 @@ Meta's open-weight LLM family; LLaMA 1 (2023) -> LLaMA 2 -> Llama 3 / 3.1 / 3.3 
 ## Synthesis
 
 
-Meta's open-weight LLM family and the de facto reference workload for ML-systems papers across inference, hardware, and speculative-decoding research. In disaggregated serving studies, Llama-3.1-70B illustrates how decode tensor-parallelism scales from 2× to 64× as TTL tightens, while cross-model comparison across the 8B/70B/405B sizes establishes the principle that larger models benefit more from disaggregation due to the richer parallelism search space available when prefill and decode mappings are chosen independently. EAGLE-3's scaling-law discovery — that draft-model speedup grows proportionally with training-data scale, a relation absent in prior EAGLE generations — was first observed using Llama-Instruct 3.1 8B as the target on MT-bench, with the family further evaluated at Llama-Instruct 3.3 70B (4.12× mean speedup) and DeepSeek-R1-Distill-LLaMA 8B. The HKUST Hopper microbenchmark study uses Llama hidden sizes (7B: 4096, 13B: 5120, 70B: 8192) as the application-level benchmark for comparing FP8 versus FP16 performance through Transformer Engine's te.TransformerLayer, with SwiGLU and RMSNorm operators replaced by te.Linear and te.RMSNorm to engage FP8 Tensor Cores.
+
+
+Meta's open-weight LLM family and the de facto reference workload for ML-systems papers across inference, hardware, and speculative-decoding research. In disaggregated-serving studies, Llama-3.1-70B illustrates how decode TP scales from 2× to 64× as TTL tightens, while 8B/70B/405B cross-comparison establishes that larger models benefit more from disaggregation due to the richer parallelism search space when prefill and decode mappings are chosen independently. EAGLE-3's scaling-law discovery — draft-model speedup growing proportionally with training-data scale, a relation absent in earlier EAGLE generations — was first observed using Llama-Instruct 3.1 8B as the target on MT-bench, with further evaluation on Llama-Instruct 3.3 70B (4.12× mean speedup) and DeepSeek-R1-Distill-LLaMA 8B. HKUST's Hopper microbenchmark study uses Llama hidden sizes (7B: 4096, 13B: 5120, 70B: 8192) for FP8 vs FP16 comparison through Transformer Engine's `te.TransformerLayer`. Llama 4 Maverick (400B, 17B active) adopts MoE with a classic setup — 2 active experts at hidden 8192, alternating MoE and dense blocks — and uses GQA rather than MLA, contrasting with the DeepSeek-V3 8-routed-at-2048-hidden design. Llama-4 Scout 17B×16 MoE was also the validation target for Meta's ScaleRL sigmoid-saturation framework, achieving higher asymptotic RL reward than 8B dense at one-sixth the compute.
+
+
 
 
 ## Observations

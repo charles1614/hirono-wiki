@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 30
 tier: active
@@ -9,6 +10,16 @@ tier: active
 # NCCL
 
 NVIDIA Collective Communications Library — standard GPU-to-GPU collective primitive implementations (AllReduce, AllGather, ReduceScatter, etc.).
+
+## Synthesis
+
+
+
+
+NCCL is the dominant GPU collective communications library for multi-GPU training and inference, performing topology discovery, channel pre-building, and algorithm/protocol pre-selection during Communicator initialization so subsequent calls dispatch quickly. It ships three communication protocols tuned to message size: Simple (memory-fence sync, near-peak bandwidth, ~6 µs/hop), LL (4B+4B flag-based atomic store, ~1 µs/hop at 25–50% peak bandwidth), and LL128 (120B+8B atomics exploiting NVLink's 128-byte atomic guarantee, ~2 µs/hop at ~95% peak, auto-disabled on PCIe). Transport selection is intra-node NVLink P2P → PCIe P2P → SHM, with P2P_DIRECT bypassing IPC handles for same-process ranks; inter-node uses IB Verbs with two RC QPs per rank pair plus a self-directed RDMA_READ flush QP to enforce PCIe write ordering. NCCL's competitive moat is software-hardware co-design with NVLink/NVSwitch/CUDA, including 2.27 symmetric memory that maps identical VA layouts across local ranks via CUDA VMM for near-physical-limit small-message latency on NVL72, and NVLS AllReduce that offloads reduction onto NVSwitch reaching 480 GiB/s versus 363 GiB/s for ring AllReduce (per-GPU NVLink bandwidth drops as the tradeoff). Known operational hazards include fabricmanager OOM on H100 hanging NCCL AllReduce because NVLS is the default (workaround `NCCL_ALGO=Ring`); domestic alternatives (HCCL, BKCL, CNCL, MCCL, ICCL) face the deeper challenge of lacking NVLink/NVSwitch-class scale-up ecosystems.
+
+
+
 
 ## Observations
 

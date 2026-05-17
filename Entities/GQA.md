@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 11
 tier: active
@@ -12,7 +13,11 @@ Group Query Attention; multi-head attention variant where K/V are shared across 
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+Grouped-Query Attention is the default K/V-sharing mechanism in modern open-weight LLMs — adopted by Llama 3/4, Gemma 3/4, Qwen3, Mistral Small 3.1, GPT-OSS, and MiniMax M2 — implemented by setting `num_query_groups < num_attention_heads` so multiple query heads share a single KV head (e.g., Llama-3 70B uses 64 query heads with 8 KV heads for 8× KV cache reduction). Per DeepSeek-V2 ablations cited by Raschka, GQA slightly underperforms standard MHA in modeling quality while MLA outperforms MHA — explaining DeepSeek's decision to use MLA rather than GQA despite GQA's lower implementation complexity. gpt-oss applies GQA in an alternating pattern (full-context GQA every other layer, sliding-window-128 GQA between), with the 128-token window unusually small versus Gemma 2's 4096 and Gemma 3's 1024; Gemma ablations show minimal modeling impact from sliding window at 4096 (Gemma 2) and 1024 (Gemma 3) tokens. In Megatron-LM's implementation, query and KV heads shard independently across tensor-parallel ranks via `num_query_groups_per_partition` and `num_attention_heads_per_partition`, and Qwen3 additionally introduces q_norm and k_norm parameters per head (absent in Qwen2.5) that contribute to QK-Norm training stability.
+
+
 
 ## Observations
 

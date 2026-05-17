@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 6
 tier: active
@@ -12,7 +13,11 @@ Group Relative Policy Optimization; RL algorithm variant; reward-normalized adva
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Group Relative Policy Optimization is one of the dominant RL4LLM advantage estimators alongside PPO, GSPO, REINFORCE++, and REINFORCE++-baseline, exposed in production frameworks like slime via `--advantage-estimator grpo` with optional dynamic sampling filters that accept only samples where rewards have nonzero variance across a prompt group (as in DAPO). In NVIDIA's verl-GRPO performance recipe, a full step totals ~501s with Rollout the largest bottleneck (~41%, 205.7s), and sequence packing + dynamic batching raise MFU from 30.3% to 45.96% on Qwen2.5-7B. ROLL Flash integrates GRPO with other off-policy algorithms (Decoupled PPO, TOPR, TIS, CISPO) to compensate for staleness from async training (asynchronous ratio α ≤ 2); experiments show plain GRPO is sufficient to mitigate stale-sample degradation and preserve synchronous-training-equivalent final performance. Composer 2 (Cursor) modifies GRPO in two specific ways: removing length standardization (which introduces length bias) and skipping advantage normalization by std deviation (which causes degenerate upweighting when all rollouts achieve identical correctness), and uses the k1 = -log r KL estimator instead of the more common k3 = (r-1) - log r because k3 variance blows up as p and q diverge. GRPO also functions as the RLVR algorithm in DeepSeek-R1's reasoning-model training and in EasyDistill's AI-feedback distillation pipeline for DistilQwen2.5-R1.
+
+
 
 ## Observations
 

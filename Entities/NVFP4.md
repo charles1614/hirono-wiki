@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 16
 tier: active
@@ -14,7 +14,11 @@ NVIDIA's 4-bit floating-point format introduced with Blackwell; positioned as th
 ## Synthesis
 
 
-NVFP4 is NVIDIA's 4-bit floating-point format introduced on Blackwell (B200/GB200) tensor cores, distinct from generic E2M1 FP4 through its specific block-scale and scale-factor encoding. A September 2025 NVIDIA paper (89 authors, arXiv:2509.25149) provides the first publicly documented 12B-parameter LLM pretrained end-to-end on 10 trillion tokens in 4-bit precision, matching FP8 training loss and downstream accuracy — the longest 4-bit pretraining run ever published. The method rests on four ingredients: Random Hadamard transforms applied per-block to bound outliers before quantization, a two-dimensional quantization scheme that keeps forward and backward representations consistent (prior FP4 approaches failed on the backward path because matmul transposes alter scale structure), stochastic rounding to keep gradient updates unbiased across millions of steps, and selective retention of high-precision BF16/FP8 for stability-critical operators such as embedding, layer-norm, and final softmax. Because FP4 doubles arithmetic density on tensor-core hardware relative to FP8, a successful pretraining path at this scale directly reshapes throughput-per-dollar projections for frontier training runs on Blackwell.
+
+
+NVFP4 is NVIDIA's 4-bit floating-point format introduced on Blackwell (B200/GB200) tensor cores, distinct from generic E2M1 FP4 through its specific block-scale and scale-factor encoding — likely a smaller block size, different scale-factor format, and two-level quantization, paired with Blackwell's 4:8 pair-wise structured sparsity (8 elements split into 4 pairs with exactly 2 non-zero pairs). The 89-author September 2025 NVIDIA paper provides the first publicly documented 12B-parameter LLM pretrained end-to-end on 10 trillion tokens in 4-bit precision, matching FP8 training loss and downstream accuracy via four ingredients: Random Hadamard transforms per-block to bound outliers, 2D quantization preserving forward/backward consistency (prior FP4 schemes failed on the backward path because matmul transposes alter scale structure), stochastic rounding for unbiased gradient updates across millions of steps, and selective BF16/FP8 retention for stability-critical operators (embedding, layer-norm, final softmax). The training-vs-inference throughput asymmetry on Rubin (35 vs 50 PFLOPS NVFP4) is recipe-driven not GEMM-driven: inference uses calibrated static tensor-wide scaling enabling aggressive kernel fusion, while training computes dynamic per-call scaling factors that limit fusions, with Random Hadamard Transformations applying only in training's backward pass. On B200 NVFP4 MoE workloads (GPT-OSS-20B, 32 experts, top-4), SGLang reaches 1168 TFLOPS versus FlashInfer CuteDSL 1156 and vLLM 1026 — the 142 TFLOPS gap attributable to kernel fusion (21.9% activation memory reduction), Blackwell-native CUTLASS schedule with TMA + FP4 warp specialization, and adaptive grid sizing.
+
+
 
 
 ## Observations

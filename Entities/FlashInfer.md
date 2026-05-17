@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 9
 tier: active
@@ -12,7 +13,11 @@ Library whose API-logging pattern inspired the SGLang CUDA Debug Crash SKILL's s
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+FlashInfer is the kernel library serving as primary inference backend in vLLM's Blackwell optimizations — providing TRTLLM-Gen kernels optimized for GB200 FP4 tensor cores (MoE expert GEMM + O-proj), FP8 GEMM for MLA query projections, the `concat_mla_k` kernel with warp-based processing and vectorized memory access, and JIT-compiled auto-tuned `trtllm-gen` and `cutlass` MoE backends. In vLLM's gpt-oss-120b optimization on Blackwell, FlashInfer enables systematic `torch.compile`-based kernel fusion rather than hand-coded per-op fusions. The FlashInfer CuteDSL MoE design uses an expert-first layout (tokens sorted by expert ID into `[num_experts, max_tokens_per_expert, hidden_dim]` tensors) that enables better per-expert batching at large batch sizes but incurs heavy preprocessing (bincount, argsort, scatter) that dominates at batch sizes 1–16: on Blackwell B200 with NVFP4 MoE GPT-OSS-20B, FlashInfer peaks at 1156 TFLOPS at BS=4096 (versus SGLang's 1168) but is 1.6–2.4× slower than SGLang at BS=1 because the expert-first amortization only pays off at high batch. FlashInfer's RoPE implementation is also notably faster than Triton equivalents (~3×: 82 µs vs 241 µs per step in the SGLang Diffusion Qwen-Image-Edit-2511 case), making it one of three key optimizations identified via Nsight kernel-timeline comparison.
+
+
 
 ## Observations
 

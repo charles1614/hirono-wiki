@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 8
 tier: active
@@ -12,7 +13,11 @@ architectural mechanism — cross-layer attention over historical block represen
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Attention Residual (AttnRes) is the architectural innovation behind Kimi K2's near-zero-inference-overhead inter-layer attention, replacing standard equal-weight residual sums with a learned weighted sum across all previous layers — two constraints make it tractable: non-negative weights (same-direction contributions) and weight normalization (lossless via RMSNorm scale-invariance). Su Jianlin's first-person account frames the design as more radical than Hyper-Connections or mHC — those expand residual flow, while AttnRes replaces it; the Hyper-Connections variant (DeepSeek mHC) is shown to be a special case of inter-layer attention, validating AttnRes as the more principled general route. Block AttnRes is Moonshot's engineering compromise under inference-latency hard constraints and training cross-PP communication limits: query and hidden state per layer are decoupled into learnable parameters, enabling batch precomputation of inter-block attention across all layers in a block (two-phase computation), compressing per-layer extra memory access to ~2.5D versus baseline 4D and measuring <2% decode latency overhead. Full AttnRes was shown feasible at inference via two-phase computation (memory access O(L) → O(√L), VRAM ~2 GB/card after TP sharding at 128K) but training-side cross-PP communication blocked its deployment, with block_num=8 chosen as the joint optimum across training efficiency, algorithm quality, and inference latency on current hardware. The same "progressive dilution" / "progressive representation overwriting" intuition was independently reached by a context-compression paper using residual attention over frozen LLM hidden states to bypass layer dilution.
+
+
 
 ## Observations
 

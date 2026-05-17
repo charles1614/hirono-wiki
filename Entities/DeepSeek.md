@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 24
 tier: active
@@ -14,7 +14,13 @@ Chinese AI lab; produces open-weight frontier-grade MoE and dense models; publis
 ## Synthesis
 
 
-Chinese AI lab notable for publishing not just model weights but the operational internals of its inference stack — kernel source, profiler traces, and architectural tech reports — at a depth unusual among frontier-model developers. Its V3/R1 serving infrastructure reflects deliberate co-design choices: no tensor parallelism on decode keeps h_q at 128, making MLA decoding compute-bound rather than memory-bound on H800, which in turn justifies CUTLASS-level kernel optimization (the seesaw schedule in FlashMLA) and SM-lane partitioning where 112 SMs run compute disjoint from 20 SMs handling communication. The V4 architectural pivot — retiring MLA in favor of MHA+GQA with Compression Sparse Attention and on-disk KV cache stored on local SSD — signals that long-context efficiency at the million-token scale, not per-token KV compression, has become the dominant design axis; the inventor of MLA walking away from MLA is itself the story. V4 also treats post-training compute as a co-equal scaling axis to pre-training, and fuses Chat and Agent infrastructure into one model rather than forking the architecture per use-case. The published PyTorch Profiler traces for V3/R1 training, prefill, and decode provide an inspectable 2026 baseline for production MoE overlap strategy, including the SM-freeing AllToAll mechanism via DeepEP that makes EP128 decode viable.
+
+
+
+DeepSeek is a Chinese AI lab distinguished by publishing not just model weights but the operational internals of its inference stack — kernel source, profiler traces (deepseek-ai/profile-data: `train.json` 112 SMs compute / 20 comm, `prefill.json` 108/24, `decode.json` SM-freeing AllToAll via DeepEP), and detailed architectural tech reports — at a depth unusual among frontier developers. Its V3/R1 serving infrastructure reflects deliberate co-design: no tensor parallelism on decode keeps h_q at 128, making MLA decoding compute-bound on H800 and justifying FlashMLA's seesaw schedule. The V3/R1 architecture (671B total, 37B active, MLA plus sparse MoE) became the 2025 reference architecture for large MoE, adopted directly by Kimi K2 (1T, 384 experts) and Mistral 3 Large; SGLang reproduced near-parity inference throughput at half the node count via PD disaggregation, EP72/EP32, EPLB, and DeepEP. V3.2-Exp (Sep 2025) added DeepSeek Sparse Attention (lightning-indexer + token-selector reducing attention from O(L²) to O(Lk=2048)) reusing MLA's compressed latents. The V4 architectural pivot (2026-04-24, image-receipts via an xhs interpretation piece pending direct verification against the V4 paper) retires MLA in favor of MHA+GQA with Compression Sparse Attention plus on-disk KV cache, claiming V4-Pro at 27% of single-token inference FLOPs and 10% of KV cache versus V3.2 at 1M-token context — encoding both a shift from per-token KV compression toward sequence-dimension sparsity and a decision to fuse Chat and Agent infrastructure into one model rather than fork by use-case.
+
+
+
 
 
 ## Observations

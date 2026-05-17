@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 8
 tier: active
@@ -12,7 +13,11 @@ PyTorch's built-in performance profiler; traces Python stack + CUDA events; limi
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+PyTorch Profiler is the framework-native CPU+GPU tracing and memory-analysis toolchain, accessible via context-manager or HTTP control plane and integrating with Nsight Systems via the auto-annotation path (`--pytorch=autograd-nvtx`). SGLang exposes profiler control via HTTP `/start_profile` and `/stop_profile` endpoints, generating per-rank traces named `{prefix}-{id}-TP{tp}-DP{dp}-PP{pp}-EP{ep}.trace.json.gz` with `merge_profiles: true` auto-merging across ranks — enabling interactive profiling without server restart and aligned trace capture against specific workload phases. Profiler output can be merged with Nsight Systems traces for two-layer analysis: Python-layer call comparison (suited to LLM-assisted code-level diffing) plus CUDA kernel-layer comparison via Nsight (which requires human expertise to read), as in the SGLang Diffusion Qwen-Image-Edit-2511 case where this two-layer workflow located three kernel-level regressions. The memory snapshot API (`torch.cuda.memory._record_memory_history` + `_dump_snapshot`) records complete CUDA segment allocation/release history with Python/C++ call stacks to a `.pkl` file consumable by pytorch.org/memory_viz; segment lifecycle differs from raw `cudaFree` because the torch allocator caches segments until `empty_cache()` is called explicitly. PyTorch 2.1's `export_memory_timeline` adds labeled zones (parameter, optimizer_state, input, temporary, activation, gradient, autograd_detail) — more readable than raw snapshots but less granular, and requiring a warm-up iteration before the measured run to avoid incorrect data.
+
+
 
 ## Observations
 

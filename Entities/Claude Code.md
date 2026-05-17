@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 21
 tier: active
@@ -12,7 +13,11 @@ Anthropic's CLI-based AI coding agent, which accounts for 94% of activity in the
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Claude Code is Anthropic's official agentic-coding CLI and the tool Karpathy named as the first convincing demonstration of an LLM agent — a localhost loop of tool use and reasoning that leverages existing computer context, data, secrets, and config with low-latency interaction. Opus 4.6 autonomously produced a CUDA Flash Attention with custom mask kernel via 25 AutoResearch-style iterations (self-directed ncu profiling and PTX analysis), outperforming the Triton FlashAttention baseline by 46.7% on RTX 3080 at 42% MFU. Internal Anthropic adoption spans engineering and non-engineering: Security Engineering cut incident resolution 3× via stack-trace analysis, Legal built phone-tree routing tools, Marketing built sub-agent workflows generating hundreds of ad variations, and data scientists shipped TypeScript React visualizations without knowing TypeScript — the key pattern being "thought partner, not code generator." Operational details that matter to users: a pre-flight Haiku API call gates every Bash invocation (Bedrock 403 silently retries and hangs ~210 seconds, fix by enabling Haiku model access or setting `ANTHROPIC_SMALL_FAST_MODEL`); the 25,000-token file-read limit is intentional (prevents single large files from triggering compaction) with `MAX_MCP_OUTPUT_TOKENS` separately configurable; sub-agents belong in `.claude/agents/` not in CLAUDE.md, and config changes require restart. The wshobson/agents ecosystem (185 specialized agents, 153 skills, 16 workflow orchestrators) demonstrates the SKILL pattern at scale — progressive skill disclosure loads ~1,000 tokens per plugin install rather than the full marketplace — and community proxy projects route Claude Code through OpenAI-compatible endpoints (Gemini, GPT-4o) via `ANTHROPIC_BASE_URL`.
+
+
 
 ## Observations
 

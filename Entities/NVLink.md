@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 21
 tier: active
@@ -12,7 +13,15 @@ NVIDIA's high-bandwidth GPU-to-GPU interconnect; current gen (NVLink 5) ~1.8 TB/
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+
+
+NVLink has evolved across five generations from V100's NVLink-2 (50 GB/s per port) through Blackwell's NVLink-5 (100 GB/s per lane, 1.8 TB/s per GPU, 130 TB/s rack Spine in NVL72) to Rubin's NVLink-6 (3.6 TB/s per GPU, 260 TB/s full-rack), with each generation unlocking qualitatively different capabilities: NVSwitch-based NVLS AllReduce on H100 (NVLink Sharp), coherent asymmetric CPU-GPU interconnect via NVLink-C2C on GB200 (enabling async weight prefetch from CPU memory with near-zero throughput loss), and planned NVLink-8 CPO for Feynman. NCCL's LL128 protocol is designed around NVLink's 128-byte atomic write guarantee — 120B data + 8B flag — achieving ~95% peak NVLink bandwidth at ~2 µs/hop, while NVLS AllReduce offloads reduction onto NVSwitch reaching 480 GiB/s versus 363 GiB/s for ring at the cost of dropping per-GPU NVLink bandwidth from 170–190 to 100–130 GiB/s. PyTorch Symmetric Memory (2.9 experimental) exposes NVLink's virtual address mapping to custom kernels, with one-shot AllReduce via NVLS multicast reaching ~500 GB/s on 8×H100 for 1 GB tensors and a fused AllGather+matmul Triton kernel yielding 1.3–1.5× speedup at Llama-70B scale. NVLink-C2C's 1.8 TB/s coherent CPU-GPU link in the Vera Rubin platform — 7× PCIe Gen 6 — removes PCIe as the orchestration bottleneck and is what makes weight offloading v2 in vLLM practical on GB200 by eliminating the latency gap between on-device and offloaded weights.
+
+
+
+
 
 ## Observations
 

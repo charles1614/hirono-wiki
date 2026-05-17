@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 17
 tier: active
@@ -12,7 +13,11 @@ Open-source RL training framework for LLMs (used for post-training)
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+verl is the dominant Ray-based RLHF training framework, inheriting its single-controller architecture directly from Pathways (MLSys 2022) — a master Python process manages the full RLHF computation graph with each node executing as a multi-GPU SPMD program, using Ray Actors as the open-source equivalent of Pathways' sharded dataflow nodes (a design that, ironically, the Pathways authors did not anticipate would serve RLHF rather than PP/MoE). verl uses Ray placement-group bundles for multi-model orchestration (Actor/Rollout/Ref/Critic/Reward), with the Hybrid Engine sharing a GPU pool between training (FSDP/Megatron) and generation (vLLM) via in-place resharding to avoid weight-copy costs. verl v0.4.1 integrated Nsight Systems for Ray-based profiling: `runtime_env={"nsight": {...}}` at RayActor construction works around the `nsys <app>` submit-command limitation, with NVTX markers on step/gen/reward/old_log_prob/ref/values/adv/update_critic/update_actor/testing and three capture controls (per training step via `torch.cuda.profiler.start/stop`, per worker rank, per subtask) outputting to the non-configurable `/tmp/ray/` path. NVIDIA's GRPO performance recipe on verl documents a ~501s per-step decomposition (Rollout 205.7s as the largest bottleneck at ~41%, old_log_prob 85.2s, reference 80.6s, actor update 126.1s); dynamic batch size plus sequence packing raises MFU from 30.3% to 45.96%, CUDA Graph for rollout (off by default in verl+vLLM) adds 17% E2E at Qwen2-7B and 2× at Qwen3-30B, and async DAPO (PR #2799) addresses long-tail GPU idling for 20–40% throughput gain. Seer (Moonshot AI) uses verl as its synchronous-RL baseline, reporting 74–97% throughput improvement and 75–93% tail-latency reduction.
+
+
 
 ## Observations
 

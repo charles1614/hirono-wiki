@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 45
 tier: active
@@ -12,7 +13,15 @@ Mixture-of-Experts; sparse-activation architecture; current frontier-model defau
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+
+
+Mixture of Experts is the dominant paradigm for frontier models above roughly 30B total parameters, with DeepSeek V3's 256-expert / 9-active design (1 shared + 8 routed of 671B total) becoming the 2025 reference adopted by Kimi K2 (384 experts), Mistral 3 Large, and others; GLM-4.5 and Grok 2.5 retain the shared expert while Qwen3-235B-A22B and MiniMax M2 drop it, the developer-reported rationale being no significant gain from shared experts at 8+ routed experts. At large EP scale, EPLB (Expert Parallelism Load Balancer) is the dominant optimization lever — SGLang's 96-GPU DeepSeek-V3 deployment shows 1.49× prefill and 2.54× decode speedups via 32 redundant experts (288 total) used as flexibility budget to replicate hot experts and enable non-power-of-2 EP sizes. On Blackwell B200 NVFP4 MoE workloads, kernel engineering — fusion of shuffle+reduction, Blackwell-native CUTLASS schedules with TMA + FP4 warp specialization, and adaptive grid sizing — drives the bulk of the gap, producing SGLang's 1.84× small-batch advantage over vLLM at batch size 1. The bathtub-shaped optimal-deployment curve for large EP requires sufficient concurrent demand to keep all experts loaded; at 1024 experts (next-generation scale), required concurrency grows ~4× over DeepSeek-V3, motivating cold/hot expert classification as a future mechanism. Variants beyond conventional routing include per-token SparseMoE (RankMixer at Douyin scale, ReLU routing with Dense-Training-Sparse-Inference for production-flat latency at 70× parameter scaling) and Shared Experts Fusion, where top-(k+1) of (N+1) routed selection eliminates a separate dispatch and reclaims SM utilization under TP+FP8 at small intermediate size.
+
+
+
+
 
 ## Observations
 

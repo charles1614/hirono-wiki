@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 25
 tier: active
@@ -12,7 +13,11 @@ Moonshot AI's 1T-parameter open-weights MoE model, the first 1T open-weights mod
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Kimi K2 (1T total, 32B active) is structurally a scaled-up DeepSeek V3 with four deliberate departures: 384 experts (vs 256), 64 attention heads (vs 128), only 1 dense layer (vs 3), and no expert grouping — the head reduction saves ~5 GB/rank in QKVO projections, more than offsetting the ~2.5 GB/rank extra MoE cost at EP=128 and keeping decode cost below DSv3 despite 1.5× total parameters. It is the first production model to adopt the Muon optimizer at this scale, with exceptionally smooth training loss, and Kimi's sparsity-scaling-law experiments (loss continues improving with total params at fixed activated params, without overfitting) motivated the jump from 256 to 384 experts at the same top-8 routing. The Kimi Linear variant (48B, Oct 2025) hybridizes Kimi Delta Attention with MLA-based full-attention in a 3:1 ratio, using NoPE in the full-attention layers to avoid RoPE retuning for long context. K2 introduces Attention Residual (Block AttnRes) as a core architectural innovation engineered for near-zero inference overhead, with block_num=8 chosen jointly for training efficiency, algorithm quality, and inference latency; Moonshot's infra team confirmed Full AttnRes is technically viable at inference (<2 GB/card at 128K context with TP sharding) but training-side cross-PP communication forced the Block design. Moonshot's K2 Vendor Verifier found significant quality variance — official API at 100% schema accuracy versus vLLM 87.22% and SGLang 95.52% for kimi-k2-thinking — with vendor fixes including tool-call ID renaming and guided encoding; Kimi K2.5 became the launch model for Cloudflare Workers AI's frontier tier.
+
+
 
 ## Observations
 

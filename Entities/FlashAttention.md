@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 18
 tier: active
@@ -14,7 +14,13 @@ The original IO-aware fused attention kernel (Dao et al.); v1/v2/v3; foundation 
 ## Synthesis
 
 
-FlashAttention established the online-softmax-plus-accumulation algorithm that became the standard reference for fused attention kernels, and its third-generation variant (FA-3) introduced the ping-pong scheduling technique — interleaving two output matrices across warpgroups to overlap CUDA-core and Tensor-Core work — that defines the current baseline for Hopper-era attention kernel design. FlashMLA's seesaw schedule is a direct response to FA-3: the 64x512 MLA output matrix requires 32,768 registers (half the SM's file), making a second output buffer impossible, so DeepSeek's kernel vertically splits the output instead while preserving mathematical equivalence to FlashAttention's online softmax. A less obvious finding from the HKUST Hopper microbenchmark study is that Transformer Engine's DotProductAttention operator routes through flash-attention rather than FP8 Tensor Cores, meaning attention does not benefit from FP8 acceleration in the standard TE path — one concrete reason why FP8 LLM speedups fall short of the 2x peak rates that tensor-core specs would suggest. Together, these two sources position FlashAttention less as a finished artifact and more as the algorithmic substrate that newer kernels extend or route around, depending on the hardware constraints of the target regime.
+
+
+
+FlashAttention established the online-softmax-plus-tiled-accumulation algorithm that fuses attention into a single SRAM-resident kernel, reducing intermediate memory from O(N²) to O(N) — in Megatron-LM's measured example, from 2.1 GB to 134 MB at batch=8, heads=32, seq=2048. The third-generation variant adapted this for Hopper via TMA async loads and WGMMA warpgroup MMA but still achieves only ~35% H100 utilization (versus 80–90% for tuned GEMM), partly because its ping-pong schedule requires two output matrices per SM — a register budget FlashMLA's 64×512 MLA output cannot afford. FA-4, targeting Blackwell, extends the design with five warp specialization roles, software polynomial exp approximation via Horner's method to reduce the SFU bottleneck, and online softmax that cuts rescaling operations by 90%, achieving ~20% improvement over cuDNN 9.11.0's best attention kernel. A non-obvious finding from HKUST's Hopper microbenchmark is that Transformer Engine's `DotProductAttention` routes through flash-attention rather than FP8 tensor cores, so attention doesn't benefit from FP8 acceleration in the standard TE path — explaining why FP8 LLM speedups fall short of the 2× peak rates the spec sheet implies. ThunderKittens' motivation document cites FA-2's 47% performance drop on H100 and FA-3's two-year adaptation lag as the primary friction driving a new abstraction layer; across the corpus, FlashAttention functions less as a finished artifact than as the algorithmic substrate that newer kernels either extend (FlashMLA's seesaw schedule) or route around (TE's FP8 bypass) depending on hardware register and bandwidth constraints.
+
+
+
 
 
 ## Observations

@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 50
 tier: active
@@ -14,7 +14,15 @@ Open-source LLM inference system; built on top of model-serving infrastructure; 
 ## Synthesis
 
 
-SGLang is an open-source LLM inference framework with active contributions from Tencent, LMSYS-affiliated developers, and production users including Ant Group, whose January 2026 H20-96G deployment against DeepSeek-R1/V3 traced every optimization — scattered prefill, FusedMoE TMA, Expert Affinity EPLB using real-traffic co-activation matrices, and Single-Batch Overlap over Two-Batch Overlap — back to specific upstream SGLang pull requests. The project ships production-grade EAGLE-3 speculative decoding with a 40% throughput improvement at batch size 64, directly refuting the prior assumption that speculative methods degrade large-batch throughput. Its 2025 H2 roadmap (issue #8210) prioritized distributed-serving observability, delivering a built-in OpenTelemetry-based tracing framework (issue #8965, shipped as PR #9962) that resolves continuous-batching's multi-context misalignment problem and exposes dual views: request-centric Jaeger and thread-centric Perfetto, with the ability to merge Perfetto traces with PyTorch Profiler data. Development velocity accelerated sharply from August 2025 onward — a 14-day moving average climbing from roughly 20-25 PRs/day to 55-60 by March 2026, with a peak of 91 PRs on 2026-01-05, attributed to agent-amplified development via Claude Code and Codex — a trend operationalized inside the project itself through in-tree Claude Code SKILLs for CUDA crash debugging, YAML-driven benchmark search, and Torch Profiler analysis. SGLang is covered as a named system in Pan and Li's 2025 survey of LLM inference systems alongside vLLM, Mooncake, and DeepFlow, filed under a database-systems framing that positions inference as a systems-optimization problem rather than a modeling one.
+
+
+
+
+SGLang is the open-source LLM inference framework that has become the highest-throughput alternative to vLLM for MoE serving, achieving 1168 TFLOPS on Blackwell B200 for NVFP4 MoE workloads (versus vLLM's 1026) through kernel fusion, Blackwell-native CUTLASS scheduling with TMA + FP4 warp specialization, and adaptive grid sizing — yielding a 1.84× advantage at batch size 1. Its most consequential production result is matching DeepSeek's reported V3 throughput at half the node count: 12 nodes of 8×H100 delivering 52.3K input / 22.3K output tokens/sec per node under PD disaggregation, EP72 decode + EP32 prefill, EPLB load balancing, and Two-Batch Overlap, at an estimated $0.20 per 1M output tokens. Daily PR velocity tripled from mid-2025 to early 2026 (14-day MA climbing from ~20–25 to ~55–60, peak 91 on 2026-01-05), attributed to Claude Code and Codex amplification — a trend operationalized via in-tree SKILL documents covering remote-machine connection, CUDA crash debug, YAML-driven benchmark search, JIT kernel authoring, and Torch Profiler analysis. The observability layer is first-class: OpenTelemetry-based tracing (PR #9962) resolves continuous-batching's multi-context misalignment with dual Jaeger/Perfetto views and the ability to merge PyTorch Profiler data, while `/start_profile` and `/stop_profile` HTTP endpoints enable interactive per-rank capture. SGLang also ships production-grade EAGLE-3 speculative decoding (40% throughput gain at batch 64, refuting the assumption that speculative methods degrade large-batch throughput) and underpins slime's RL post-training inference path via Ray-actor launched engines with weight updates streamed in without server restarts.
+
+
+
+
 
 
 ## Observations

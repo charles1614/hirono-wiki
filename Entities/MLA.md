@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 31
 tier: active
@@ -14,7 +14,13 @@ Multi-Head Latent Attention; DeepSeek's KV-compression attention variant in Deep
 ## Synthesis
 
 
-Multi-Head Latent Attention (MLA) was DeepSeek's KV-compression mechanism, load-bearing through V3/V3.2 (2024–2026), with two corpus lenses characterizing its inference behavior: at the systems level, prefill chunking in piggybacked co-located serving causes redundant down/up-projection per chunk, with the proposed mitigation being to cache up-projected KV from earlier chunks; at the kernel level, DeepSeek's choice not to tensor-parallel decode keeps h_q = 128, placing MLA squarely in compute-bound territory on H800 and forcing the FlashMLA seesaw schedule — which achieves ~80% Tensor Core utilization by vertically splitting the 64×512 output matrix across two alternating warpgroups. MLA was retired in DeepSeek V4 (released 2026-04-24), with its inventor replacing per-token KV compression with Compression Sparse Attention plus on-disk KV cache storage; the claimed economics are 27% of single-token inference FLOPs and 10% of KV cache relative to DeepSeek-V3.2 at 1M-token context (sourced from an xhs interpretation piece citing V4 §3.6.2 — treat specific numbers as receipts pending the V4 paper). Sebastian Raschka's LLM Architecture Gallery corroborates the retirement at the diagram level: V4-Pro and V4-Flash render with CSA + HCA composition rather than MLA, providing architecture-diagram-level confirmation independent of the xhs narrative. The bigger pattern: the field is shifting attention compression from "compress each token's KV" (MLA's axis) toward "compress which tokens participate at all" (sequence-dimension compression), which relativizes FlashMLA's per-token-KV decode kernel design point and opens the question of what the analogous CSA-decode kernel looks like.
+
+
+
+Multi-Head Latent Attention was DeepSeek's KV-compression mechanism through V3/V3.2 (2024–2026), caching a compressed latent (kv_lora_rank=512) plus a shared RoPE key (64 dims) instead of full KV heads — a 28× compression versus MHA's 128 heads × 2 × 64 = 16,384 dims, with W_UK absorbed into q_nope by matrix absorption so only the compressed latent is needed at decode. At the kernel level, DeepSeek's choice not to tensor-parallel decode keeps h_q = 128, placing MLA's compute-memory ratio (≈ 2 × h_q × s_q ≈ 256 FLOPs/byte) above H800's ~258 FLOPs/byte crossover — making MLA decoding compute-bound, which justified FlashMLA's seesaw schedule and its ~80% Tensor Core utilization at 660 TFlops on H800 SXM5. At the systems level, MLA's num_kv_heads=1 means standard TP replicates the KV cache tp_size times; SGLang's DP Attention solves this by sharding requests rather than KV heads, and is load-bearing for coexisting with DeepEP's CUDA-Graph-compatible low-latency dispatch. MLA's quality dominance over MHA (per DeepSeek-V2 ablations cited by Raschka) drove cross-lab adoption in Kimi K2, GLM-4.5, GLM 5, and Kimi Linear's full-attention layers, and V3.2's DSA composites with MLA by reusing the compressed latents as token-relevance scoring inputs. MLA was reportedly retired in DeepSeek V4 (released 2026-04-24, image-receipts via xhs interpretation pending direct V4-paper verification), replaced by MHA+GQA with Compression Sparse Attention plus on-disk KV cache — claimed V4-Pro at 27% of single-token inference FLOPs and 10% of KV cache versus V3.2 at 1M-token context, signaling a field-level shift from per-token KV compression toward sequence-dimension sparsity.
+
+
+
 
 
 **V4 retirement (2026-04-24).** MLA's inventor (DeepSeek) walked away from per-token KV compression in favor of **Compression Sparse Attention + on-disk KV cache storage**. V4-Pro / V4-Flash architectures render with CSA + HCA composition, not MLA. The claimed economics (panel-extracted, pending V4-paper-direct verification): V4-Pro at **27% of single-token inference FLOPs and 10% of KV cache compared with DeepSeek-V3.2** at 1M-token context. Bigger pattern: the field is shifting attention compression from "compress each token's KV" toward "compress which tokens participate at all" — sequence-dimension compression supplanting per-token compression. Implications: [[FlashMLA]]'s kernel design point (optimizing the per-token-KV decode pathway) is relativized; the analogous CSA-decode kernel doesn't yet have a published implementation in the corpus.

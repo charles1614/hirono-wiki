@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 10
 tier: active
@@ -12,7 +13,11 @@ Cloud provider; Stargate JV partner; GPU cloud
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Oracle is the cloud-infrastructure JV partner anchoring the Stargate buildout for OpenAI, owning the Abilene TX flagship campus (255k H100-eq / 295 MW / $8.1B — first Stargate site with 1.2 GW capacity, 450k GB200 GPUs purchased for ~$40B on a 15-year lease) and leading three of the five September 2025 US campus additions (Shackelford County TX ~1.4 GW, Doña Ana County NM, Midwest) for combined Oracle-led capacity around 5.5 GW. Oracle is also the JV partner for Stargate UAE (1 GW with G42/NVIDIA/Cisco/SoftBank), Stargate Norway/UK via Nscale, and owns Batam Indonesia (84k H100-eq, built and operated by DayOne). The September 2025 $300B five-year cloud-compute contract with OpenAI provides 4.5 GW/year of OCI capacity starting 2027 (~$60B/year implied), driving RPO to $523B by Q3 FY2026 (+438% YoY); Q3 FY2026 cloud revenue grew 44% to $8.9B with IaaS +68% to $4.1B — best organic quarter in 15+ years. FY2026 capex was raised to ~$50B with $30B in debt and equity raised early 2026, and Moody's issued a negative outlook over potential 4× EBITDA leverage. The stock surged 36% on announcement (Ellison briefly the world's wealthiest individual) before -24% YTD by April 2026; Oracle now serves all top five AI models on OCI.
+
+
 
 ## Observations
 

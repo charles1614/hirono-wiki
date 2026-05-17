@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 56
 tier: active
@@ -14,7 +14,15 @@ Open-source LLM inference engine; PagedAttention; continuous batching; the domin
 ## Synthesis
 
 
-vLLM is the dominant open-source LLM inference engine, built on PagedAttention and continuous batching, and serves as the production baseline the broader inference ecosystem benchmarks against. Its v1 metrics story matured in late 2025 when PR #26811 landed connector-agnostic KV-cache observability via a KVConnectorStats abstraction, exposing NIXL transfer metrics to Prometheus so that prefill-decode-disaggregated deployments gain first-class dashboard coverage and future backends like Mooncake inherit the same metric shape for free. Kernel-fusion research from ByteDance's Flux project quantifies headroom above vanilla vLLM: 1.66x prefill and 1.30x decoding speedups on 8-GPU tensor-parallel clusters by fusing communication and compute tiles into a single CUTLASS kernel, eliminating the SM-underutilization penalty of prior stream-scheduled overlap methods. A 2025 LLM inference systems survey (Pan and Li, arXiv:2506.21901) situates vLLM alongside SGLang, Mooncake, and DeepFlow as one of the anchor systems for the field, framing the space through a database-systems lens of load prediction, adaptive mechanisms, and cost reduction. The pedagogical companion Nano-vLLM (~1,200 lines of Python) reproduces the core engine — paged attention, prefix caching, tensor parallelism, Torch compile, CUDA graphs — and matches or slightly exceeds vLLM throughput on a laptop-class benchmark (1,434 vs 1,361 tok/s on Qwen3-0.6B), making the internals accessible without requiring readers to navigate the full production codebase.
+
+
+
+
+vLLM is the dominant open-source LLM inference engine and the de facto production baseline cited across the corpus — appearing in roughly 45% of PyTorch Conference 2025 sessions and featured alongside SGLang, Mooncake, and DeepFlow in Pan and Li's 2025 survey of LLM inference systems. Its V1 architecture (default from v0.8.x) splits CPU work into two ZMQ-connected processes to eliminate V0's sequential idle time, while the KV cache manager maintains hundreds of thousands of 16-token free blocks sized via a dummy forward pass; the V1 distributed stack supports six parallelism axes (TP, PP, EP, DP, PCP, DCP). On Blackwell, vLLM's Wide-EP reaches 26.2K prefill TPGS and 10.1K decode TPGS for DeepSeek MoE workloads on GB200 via NVFP4 GEMM, kernel fusion, and NVLink-C2C weight offloading — but a documented 142 TFLOPS gap versus SGLang on the same B200 NVFP4 MoE kernel reflects vLLM's generic CUTLASS 3.x schedule launching seven separate CUDA kernels without Blackwell-native TMA alignment padding. The pedagogical Nano-vLLM project re-implements paged attention, prefix caching, TP, Torch compile, and CUDA graphs in roughly 1,200 lines of Python and marginally beats vLLM on a laptop benchmark (1,434 vs 1,361 tok/s on Qwen3-0.6B). vLLM also serves as the primary rollout backend for OpenRLHF and verl in Ray-based RLHF stacks, where ~10% logit divergence against training engines means loss-sensitive eval modules still defer to training-engine forward passes, and the PR #26811 KVConnectorStats abstraction (Oct 2025) generalized NIXL-specific Prometheus metrics into a connector-agnostic surface so future KV-transfer backends inherit the dashboard story.
+
+
+
+
 
 
 ## Observations

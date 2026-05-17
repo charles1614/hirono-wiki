@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 28
 tier: active
@@ -12,7 +13,15 @@ Alibaba's open-weight LLM family; widely used as cost-efficient frontier-adjacen
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+
+
+Qwen is Alibaba's LLM family spanning dense and MoE models from 0.6B to 480B+ parameters, with Qwen3 dense models adopting GQA, QK-Norm, RoPE, and SwiGLU, and Qwen3-235B-A22B structurally near-identical to DeepSeek V3 except it drops the shared expert — a deliberate choice after developers found no significant gain from shared experts in 8+ routed-expert configurations. Qwen3-Next (80B-A3B) introduced a Gated DeltaNet + Gated Attention hybrid (3:1 ratio) plus MTP and a restored shared expert, and Qwen3.5-397B-A17B extends that line to 8.6×–19× higher decoding throughput than Qwen3-Max while matching base performance, with a 250k vocabulary across 201 languages and a native FP8 pretraining pipeline yielding ~50% activation memory reduction and >10% throughput gain. A load-bearing deployment pitfall for Qwen3-235B-A22B FP8 is that MoE intermediate_size 1536 / TP8 = 192 is not divisible by the 128-element block-wise quantization granularity, forcing TP4 (1536/4=384) and yielding ~1.75× FP8+TP4 throughput over BF16+TP8. RTPurbo validated 5× attention compute compression on Qwen3-480B by retaining ~15% long-range heads and truncating the rest, with hours-scale self-distillation on ~10K samples recovering long-text performance. The GTE-Qwen embedding line fine-tunes Qwen LLM base weights into a dual-tower retriever via bidirectional attention (`is_causal=False`), an improved 4-term InfoNCE denominator, and last-token pooling, with gte-Qwen2-7B-instruct formerly topping the MTEB leaderboard.
+
+
+
+
 
 ## Observations
 

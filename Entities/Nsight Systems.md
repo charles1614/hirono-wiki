@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 16
 tier: active
@@ -12,7 +13,13 @@ NVIDIA's system-level statistical profiler + tracer for GPU/CPU workloads
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+
+Nsight Systems is NVIDIA's system-wide statistical sampling profiler and tracer, shipping in two editions: Workstation (x86_64 and Arm SBSA, for clusters and cloud) and Embedded Platforms (Tegra/DRIVE QNX via JetPack). Its primary collection entry-point is `nsys profile`, which traces CUDA Runtime/Driver APIs, NVTX annotations, OS runtime, and optionally MPI, NCCL, and UCX; post-collection analysis operates on `.nsys-rep` or `.sqlite` files without rerunning the application and exports to Arrow, Parquet, HDF5, or JSON Lines. Focused profiling uses NVTX capture ranges (`--capture-range=nvtx`) or `cudaProfilerStart/Stop`, with `--delay`/`--duration` as time-based alternatives; collection windows should typically stay under 60 seconds to keep traces manageable. The critical Ray-based RL integration — primary use case in the verl corpus — is that standard `nsys <app>` fails because the argument is a submit command, with the fix being `runtime_env={"nsight": {...}}` at RayActor construction and verl's `DISCRETE=True` generating one nsys file per sub-phase per worker. CUDA 13.1 (version 2025.6.1) made hardware-based CUDA tracing the default, added system-wide trace across process trees via `--cuda-trace-scope`, and added green context timeline rows showing SM allocation. Nsight Systems pairs with Nsight Compute in a two-tool workflow — timeline placement and communication-computation overlap from Nsight Systems, SM-level warp/memory attribution from Nsight Compute — and interoperates with SGLang's HTTP `/start_profile` and `nsys start/stop --session=<id>` interactive capture for in-server profiling without restart.
+
+
+
 
 ## Observations
 

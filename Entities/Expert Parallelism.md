@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 19
 tier: active
@@ -12,7 +13,13 @@ A parallelism strategy for MoE models where different experts are placed on diff
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+
+Expert Parallelism distributes MoE expert weights across GPUs so each GPU hosts a subset, with tokens dispatched via all-to-all, local GEMM, and all-to-all combine. The economics follow a "specialist hospital" analogy: at DeepSeek-V3's 256-expert scale sufficient concurrent traffic is needed to keep every expert loaded, and scaling to 1024 experts would require at least 4× the concurrency to maintain balanced utilization, creating a practical user-scale ceiling — Scale-Up via NVLink domains, not Scale-Out, is the necessary path for single-user high-token/sec. Optimal EP for DeepSeek-V3 671B on 32×H20 is EP=32 with TP=1 and PP=1 (8 experts per GPU), while on GB200 reducing prefill EP from 4 to 2 GPUs per instance actually improved throughput because MLA/MoE compute was already saturated at 64K tokens and halving EP halved NCCL all_gather/reduce_scatter overhead; NVFP4 dispatch further reduces inter-GPU all-to-all volume 4× versus FP16. Hot-expert imbalance is persistent — Tencent Taiji recorded hot-expert activation 5× cold, and EPLB plus redundant experts reduces the ratio to 1.2–1.5 (1.49× prefill / 2.54× decode at SGLang's 96-GPU scale). On RoCE networks, EP's fundamental constraint is incast from all-to-all; DeepEP was designed for InfiniBand with NVSHMEM and warp-specialized kernels, and SGLang currently falls back to AllGather+AllReduce on RoCE while alternatives like Tencent's TRMT cut EP communication time from 40%+ to ~16%.
+
+
+
 
 ## Observations
 

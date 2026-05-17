@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 21
 tier: active
@@ -12,7 +13,9 @@ AI lab; ChatGPT; GPT models; Triton kernel language; recently OpenAI-MoE-kernels
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+OpenAI transitioned from a nonprofit to a Public Benefit Corporation in late 2025, with the nonprofit Foundation retaining a $130B stake and Microsoft holding ~27%; revenue grew from $6B (2024) to $20B (2025) to $25B ARR ($2B/month) by February 2026, with a projected $14B net loss in 2026 and $115B cumulative spend through 2029. The Stargate buildout — a JV with Oracle and SoftBank targeting $500B over four years — is the largest AI infrastructure commitment in the corpus, with Oracle's Abilene TX campus (450k GB200 GPUs, 1.2 GW, $40B) as the first live site and follow-on campuses in Michigan, New Mexico, UAE, Norway, UK, and Argentina under the "OpenAI for Countries" program. Infrastructure financing has shifted to bank project-finance (the New Mexico campus carries an $18B loan from a 20+ bank consortium at SOFR+2.5%), establishing data center campuses as infrastructure assets rather than tech capex. Custom silicon strategy diversifies away from NVIDIA dependency via a Broadcom partnership (TSMC 3nm "Titan" inference chip, mass production H2 2026, 10 GW by 2029) and a ~6 GW AMD MI300-series commitment, complemented by a March 2026 $122B round at $852B valuation with Amazon as $50B lead investor. The August 2025 release of gpt-oss-20B and gpt-oss-120B under Apache 2.0 — MoE with MXFP4 quantization, alternating sliding-window-128 attention, and 2.1M H100-hours of SFT+RL — marks OpenAI's first public model weights since GPT-2 in 2019, with gpt-oss-120B matching Qwen3-235B-A22B-Thinking on reasoning benchmarks at roughly half the parameter count.
+
 
 ## Observations
 

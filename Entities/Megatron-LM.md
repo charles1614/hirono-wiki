@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-15
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 22
 tier: active
@@ -14,7 +14,11 @@ NVIDIA's original tensor + pipeline + data parallelism training framework; found
 ## Synthesis
 
 
-NVIDIA's open-source large-model training framework and canonical reference implementation for hybrid parallelism — it defines the tensor, pipeline, and data parallelism partitioning patterns that the broader ecosystem benchmarks against. Flux (ByteDance + PKU) uses Megatron-LM as its non-overlap baseline, achieving a 1.24× speedup over it on 128-GPU clusters (A100/H800, PCIe/NVLink) via kernel-fusion-based communication overlap — measuring the gap Megatron-LM's stream/event scheduling leaves on the table. Megatron-Core, the production-grade subpackage within the same repo, is where MoE Parallel Folding ships: NVIDIA's technique for decoupling the parallelism mappings of attention and MoE layers independently, achieving 49.3% MFU on Mixtral 8×22B at 1,024 H100 GPUs. Practitioners treating distributed training infrastructure seriously treat Megatron source-reading as effectively mandatory — pairing the codebase bottom-up with the DeepMind "How to Scale Your Model" book for the top-down cost-model framing.
+
+
+Megatron-LM is NVIDIA's open-source large-model training framework and the canonical reference implementation for hybrid parallelism — its tensor, pipeline, and data parallelism partitioning patterns are the benchmarks the broader ecosystem compares against. Flux (ByteDance + PKU) uses Megatron-LM as its non-overlap baseline, achieving a 1.24× speedup on 128-GPU clusters (A100/H800, PCIe/NVLink) via kernel-fusion-based communication overlap. Megatron-Core, the production-grade subpackage within the same repo, ships MoE Parallel Folding — NVIDIA's technique for decoupling attention and MoE parallelism mappings — achieving 49.3% MFU on Mixtral 8×22B and 39.0% on Qwen2-57B-A14B at 1,024 H100 GPUs across 5-D hybrid parallelism (TP × EP × CP × DP × PP). Megatron's attention module (`megatron/core/transformer/attention.py`) implements MHA, GQA (4–8× KV cache reduction), and MLA (16× vs MHA via compressed latents) with pluggable backends (flash_attn, Transformer Engine, cuDNN SDPA, Triton, native), and the MLP block supports SwiGLU/GEGLU variants with column-parallel + row-parallel + AllReduce achieving 4× parameter reduction at TP=4. Context Parallelism splits the sequence dimension across CP_size GPUs for quadratic memory reduction (CP²), with four communication strategies — P2P ring (memory-efficient at large CP), All-to-All (parallel at CP=2–8), AllGather (simplest), hybrid intra-node NVLink + inter-node IB — orthogonal to TP. Megatron Interleaved 1F1B (VP>1) supports computation-communication overlap in steady state but the last stage's Logit & Loss break this condition, producing communication bubbles at PP=4/VP=2. Megatron also serves as slime's default training backend, handling TP, PP, CP, EP, FP8, and weight conversion to HuggingFace format for SGLang consumption.
+
+
 
 
 ## Observations

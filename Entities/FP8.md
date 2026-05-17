@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 14
 tier: active
@@ -12,7 +13,11 @@ tier: active
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+FP8 is the qualitative LLM-acceleration jump on Hopper, with industry convention assigning E4M3 (4-bit exponent + 3-bit mantissa, range ±448) to forward activations and weights and E5M2 (5-bit exponent + 2-bit mantissa, range ±57,344) to gradients, paired with delayed scaling using amax history to avoid repeated data scans. DeepSeek V3 uses FP8 block-wise quantization for all linear layers, requiring CUTLASS block-wise GEMM directly because PyTorch 2.6's `torch._scaled_mm` only supports tensor-wise and row-wise FP8 GEMM. FlashMLA's V32 FP8 KVCache format stores each token in 656 bytes (512 FP8_e4m3 NoPE values + 4 float32 tile-level scales + 64 BF16 RoPE values, RoPE kept in BF16 for quantization sensitivity) versus 2304 bytes for BF16, with the DSM crossover technique sharing dequantized KV across two CTAs because H800 lacks native FP8→BF16 cast (requiring a 4-step FP8→half→float32→BF16 pipeline). On Hopper, `wgmma` FP8 accumulation is actually 22-bit fixed-point rather than true FP32 (13-bit mantissa + sign + exponent), so every N_c accumulations must spill to CUDA core to avoid precision loss; on Blackwell, FP8 and FP6 share theoretical throughput because they likely share the same physical circuit. A practical Qwen3-235B-A22B FP8 deployment constraint is that the MoE 1536 intermediate dim / TP8 = 192 is not divisible by 128-element block-wise quantization, forcing TP4 (1536/4=384) and yielding a 1.5–1.75× device-throughput gain over BF16+TP8 rather than the 2× theoretical from halving model size.
+
+
 
 ## Observations
 

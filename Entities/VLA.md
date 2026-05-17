@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 18
 tier: active
@@ -12,7 +13,11 @@ Vision-Language-Action model architecture used in autonomous driving that ground
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Vision-Language-Action models for autonomous driving and embodied robotics are converging with world-model approaches: at GTC 2026, VLA models (Li Auto MindVLA-o1, NVIDIA Alpamayo) are adding predictive latent world-model heads while world-model-first approaches face real-time and engineering constraints, with Yushu Tech's CEO arguing VLA has a "lower ceiling" against world models on generalization. NVIDIA Alpamayo-R1 — the world's first open-source reasoning VLA — uses three visual encoding strategies (single-image, Triplane multi-camera ~4× compression, Flex video ~20× compression) and a Chain of Causation framework enforcing decision grounding, causal locality, and annotation economy across 16 closed-set decision categories, achieving 99 ms end-to-end inference on RTX 6000 Pro and a 35% closed-loop off-road rate reduction. Counterfactual self-reflection (CF-VLA from NVIDIA/UCLA/Stanford) improves MinADE/FDE 9–17.6% and reduces collision rate 20.5% versus non-reflective baselines, with adaptive think rate <0.25 outperforming always-reasoning variants. EvoDriveVLA (PKU + XPeng) addresses visual encoder degradation during SFT via self-anchored distillation with a frozen pre-SFT student encoder providing token-level anchoring weighted by trajectory relevance. Unified VLA+world-model architectures are emerging: RynnVLA-002 (Alibaba DAMO) merges both branches in a single autoregressive LLM with a modified attention mask preventing actions from attending to prior actions, raising LIBERO success to 97.4%; Motus (Tsinghua) unifies five paradigms (VLA, WM, IDM, VGM, Video+Action) via UniDiffuser + MoT with optical-flow latent actions bridging internet video and robot control, achieving >45 absolute-point gains over π0.5 on RoboTwin2.0 random-disturbance tasks.
+
+
 
 ## Observations
 

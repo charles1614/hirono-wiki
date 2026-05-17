@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 8
 tier: active
@@ -12,7 +13,11 @@ Chinese EV and smart-car maker; develops MindGPT in-car AI assistant (理想汽�
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Li Auto (理想汽车) is the Chinese EV manufacturer whose VLA program has emerged as one of the most public production AV stacks in the corpus. At ICCV 2025 the VLA lead (詹锟) reported MPI exceeded 220+ (a 19× improvement since July 2024) on 1.5 billion km of driving data, framing the next phase as transition from data closed-loop (insufficient for long-tail events like traffic control, fireworks, sudden lane changes) to training closed-loop via VLA+RL+World Model using scene reconstruction (Feedforward 3DGS), synthetic data generation, and RL with SimAgents. MindVLA-o1 at GTC 2026 adds a 3D ViT encoder (self-supervised next-frame prediction joining geometry, semantics, and motion), a predictive latent world model, parallel trajectory decoding with diffusion optimization for smooth action output, an MoE parallel action decoder for efficient inference, and RL with world-model rollouts — framed as addressing "mainstream VLA paradigm limitations." MindGPT-4o-Audio launched as a full-duplex low-latency end-to-end voice model: 260 ms understanding+generation inference latency, 800 ms full-link peak, 96.5% turn-switch accuracy, 99% interruption response, and ~1100 ms E2E (beating Doubao at 2100 ms and GPT-4o at 1900 ms), deployed across in-car infotainment and the mobile app. The mobile assistant adopts a hybrid Agent architecture combining MCP (API Agent) for millisecond-latency vehicle hardware control and CUA (GUI Agent) operating third-party apps via screenshot + multimodal recognition + coordinate click, with 72.7% ScreenSpot capability (Gemini 3 Pro baseline) — a representative deployment of the mixed-Agent paradigm.
+
+
 
 ## Observations
 

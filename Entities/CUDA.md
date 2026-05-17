@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 34
 tier: active
@@ -14,7 +14,11 @@ NVIDIA's GPU programming platform — language extensions, runtime, toolkit, lib
 ## Synthesis
 
 
-NVIDIA's GPU programming platform — language extensions, runtime, toolkit, and libraries — received its largest update since launch with CUDA 13.1 (December 2025). The headline addition is CUDA Tile, a new programming model above SIMT that lets developers write tile-level algorithm operations and have the compiler map them to threads, Tensor Cores, and future GPU architectures; it ships today as cuTile Python (with a C++ implementation planned) targeting Ampere, Ada, and Blackwell. Supporting the Tile model, Nsight Compute 2025.4 adds a dedicated Tile Statistics profiling surface — launch configuration, TMA utilization, and cuTile source mapping — while Compute Sanitizer 2025.4 gains compile-time patching via nvcc for faster, more precise memory-error detection. The release also promotes green contexts from the driver API to the runtime API for flexible SM partitioning, introduces MLOPart on Blackwell B200/B300 for memory-locality optimization, adds static SM partitioning for MPS, and carries forward cuBLAS FP32/FP64 emulation on Tensor Cores from CUDA 13.0. The CUDA programming guide was rewritten end-to-end, signaling that NVIDIA expects Tile programming to substantially broaden the developer audience.
+
+
+NVIDIA's GPU programming platform — language extensions, runtime, toolkit, and libraries — received its largest update since launch with CUDA 13.1 (December 2025). The headline addition is CUDA Tile, a new programming model above SIMT that lets developers write tile-level algorithm operations and have the compiler map them to threads, Tensor Cores, and future GPU architectures; it ships today as cuTile Python (with a C++ implementation planned) targeting Ampere, Ada, and Blackwell, and Nsight Compute 2025.4 adds a dedicated Tile Statistics profiling surface mapping metrics back to high-level cuTile Python source. The release promotes green contexts from the driver API to the runtime API for flexible SM partitioning, introduces MLOPart on Blackwell B200/B300 for memory-locality optimization, adds static SM partitioning for MPS in 8-SM chunks on Hopper-and-later, and carries forward cuBLAS FP32/FP64 emulation on Tensor Cores. Compute Capability defines hardware features per architecture (CC 9.0 Hopper, CC 10.0 Blackwell B200/GB200, CC 10.3 GB300/B300, CC 12.0 RTX PRO Blackwell, CC 12.1 GB10 DGX Spark) and gates architecture-specific instructions like `tcgen05.mma`. CUDA VMM (introduced CUDA 10.2) underlies NCCL 2.27 symmetric memory via `cuMemAddressReserve` + `cuMemCreate` + `cuMemMap`, decoupling virtual address from physical allocation for shared-VA layouts across local ranks. Operational tooling includes user-triggered GPU core dump via named pipe (`CUDA_ENABLE_USER_TRIGGERED_COREDUMP`, `CUDA_COREDUMP_PIPE`) paired with `nvdisasm -ndf -c -gi` for multi-level inline call-chain analysis beyond what `cuda-gdb` alone provides, and the CUPTI interface that powers Nsight Systems' CUDA tracing.
+
+
 
 
 ## Observations

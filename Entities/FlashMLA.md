@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 20
 tier: active
@@ -14,7 +14,11 @@ DeepSeek's MLA-decoding attention kernel for H100/H800; second-generation hits ~
 ## Synthesis
 
 
-FlashMLA is DeepSeek's hand-tuned MLA decode-attention kernel for Hopper GPUs, designed around a structural constraint that rules out FlashAttention-3's ping-pong schedule: the 64x512 output matrix consumes half the SM's register file, allowing only one output per SM. The solution is a "seesaw" schedule that vertically splits the output into O_L and O_R across two warpgroups operating on alternating KV blocks, achieving CUDA-Core and Tensor-Core overlap without a second output buffer. The second-generation kernel reaches 660 TFlops on H800 SXM5 (up from 580), roughly 80% Tensor Core utilization at roughly 3 TB/s memory bandwidth; it extended to FP8 precision via PR #82 and has been validated in Ant Group's H20-96G production stack as the decode-attention backend alongside DeepEP and Single-Batch Overlap. FlashMLA forms part of DeepSeek's open-infra "publish-the-receipts" series alongside DualPipe and DeepEP, with PyTorch Profiler traces in the profile-data repo confirming how these kernels compose in the deployed serving stack. Its design point — optimizing the per-token-KV decode pathway — is directly challenged by DeepSeek V4's reported shift to Compression Sparse Attention and on-disk KV reuse, leaving open whether FlashMLA evolves to serve that new attention shape or yields to a different kernel family. Separately, NVIDIA's AVO system beat FlashAttention-4 by up to 10.5% on B200 via autonomous agent-driven kernel search, raising the question of whether an analogous evolution pipeline could outpace the hand-tuned seesaw schedule for MLA decode.
+
+
+FlashMLA is DeepSeek's hand-tuned MLA decode-attention kernel for Hopper GPUs, designed around a structural constraint that rules out FlashAttention-3's ping-pong schedule: the 64×512 output matrix consumes half the SM's register file (32,768 of 65,536 registers), allowing only one output per SM. The solution is a "seesaw" schedule that vertically splits the output into O_L and O_R across two warpgroups operating on alternating KV blocks K0/K1, with fine-grained TMA-GEMM pipelining (9 64×64 TMA copies per 64×576 K-block) and `EVICT_FIRST` cache hints — achieving 660 TFlops on H800 SXM5 at ~80% Tensor Core utilization and ~3 TB/s bandwidth. The MLA configuration h_q=128, d_qk=576 (512 NoPE + 64 RoPE), d_v=512 yields a compute-memory ratio ≈ 242 FLOPs/byte, just under H800's ~258 crossover and confirming compute-bound operation without TP. FP8 FlashMLA shipped via PR #82 with V32 KVCache (656 bytes/token) and DSM crossover technique sharing dequantized KV across two CTAs because H800 lacks native FP8→BF16 cast (improving dequantization throughput 64% from 250 to 410 TFlops); validated in Ant Group's H20-96G production stack as the decode-attention backend alongside DeepEP and Single-Batch Overlap. FlashMLA forms part of DeepSeek's open-infra publish-the-receipts series alongside DualPipe and DeepEP, with profile-data PyTorch traces showing how these kernels compose in deployment. Its design point optimizing the per-token-KV decode pathway is directly challenged by DeepSeek V4's reported shift to Compression Sparse Attention with on-disk KV reuse — leaving open whether FlashMLA evolves or yields to a different kernel family. Separately, NVIDIA's AVO system beat FlashAttention-4 by up to 10.5% on B200 via autonomous agent-driven kernel search, raising the question whether analogous evolution could outpace the hand-tuned seesaw schedule for MLA decode.
+
+
 
 
 ## Observations

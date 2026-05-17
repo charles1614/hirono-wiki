@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 11
 tier: active
@@ -12,7 +13,11 @@ NVIDIA's kernel-level profiler; SM/warp metrics, source-line attribution; integr
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+Nsight Compute is NVIDIA's kernel-level GPU profiler that complements Nsight Systems' timeline view with SM-level warp, memory, and pipeline metrics. Its 2025.4 release alongside CUDA 13.1 adds CUDA Tile profiling: a "Result Type" column distinguishing Tile from SIMT kernels, a "Tile Statistics" section covering Tile dimensions, launch config, and pipeline utilization, plus source-page mapping back to high-level cuTile Python; also adds profiling of CUDA graph nodes from device-launched graphs and clickable label links for source navigation. The `nsight-python` library wraps the `ncu` CLI with a Python decorator API (`@nsight.analyze.kernel`, `@nsight.analyze.plot`) enabling parameter sweeps, metric collection to pandas DataFrames, and matplotlib output via a two-pass model where the script runs as launcher, `ncu` re-executes it, and the resulting `.ncu-rep` is parsed. Nsight Compute's collection range and triggers are fixed at hardware-counter level pre-profiling, so user control is limited — it cannot answer conditional queries like "how long did the 128th warpid take," and Neutrino-style PTX instrumentation fills that gap. A documented limitation: ncu incorrectly reports Tensor Pipe Utilization on L20 (SM89 Ada) and H20 GPUs due to wrong HMMA instruction latency assumptions (16 cycles for `HMMA.16816.F32.BF16` actual 32; 8 cycles for `HMMA.1688.F32` actual 16), with a BF16 GEMM at 96.81% Roofline peak showing only 48.46% Tensor Pipe Utilization as a result — workaround is to derive expected utilization from peak FLOPS and measured instruction count rather than trust Compute Workload Analysis directly.
+
+
 
 ## Observations
 

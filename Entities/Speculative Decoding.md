@@ -1,7 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 11
 tier: active
@@ -13,7 +13,11 @@ Inference technique class where a lightweight draft model generates candidate to
 
 ## Synthesis
 
-<!-- TODO: re-regenerate Synthesis from merged Observations (post-merge 2026-05-16) -->
+
+
+Speculative decoding accelerates autoregressive inference by having a lightweight draft model propose candidate tokens that the target model verifies in a single parallel forward pass, preserving the output distribution while reducing wall-clock latency. The EAGLE family represents the dominant iterative-refinement line: EAGLE-3 abandons feature-prediction loss for direct token prediction with multi-layer feature fusion and introduces a training-time test that feeds the draft model its own prior outputs, closing the gap with inference-time conditions and producing a scaling law where draft-model speedup grows proportionally with training-data volume — a relation that earlier methods saturated quickly because their feature-prediction constraint capped expressive capacity. EAGLE-3 reaches up to 6.5× speedup over greedy decoding (HumanEval, Llama-Instruct 3.1 8B) and a 40% throughput gain at batch size 64 in SGLang, refuting the prior assumption that speculative decoding degrades large-batch throughput. Beyond draft-model methods, model-free variants are emerging: Suffix Decoding pattern-matches request suffix against a cache of prior outputs and exploits 39.3% output-pattern repetition in 22 Claude Code sessions to cut GLM-4.7 mean TPOT from 25.13 ms to 19.63 ms on top of MTP baseline. Seer's adaptive grouped speculative sampling uses a Distributed Grouped Draft Server with Compressed Suffix Trees per RL prompt group, aggregating in-flight sibling responses as the speculation source with draft length adapting to current concurrency — speculation tokens derive from peer responses rather than a separate model.
+
+
 Speculative decoding accelerates autoregressive inference by having a lightweight draft model propose a sequence of candidate tokens that the target model then verifies in a single parallel forward pass, preserving output distribution while reducing wall-clock latency. The EAGLE family (EAGLE, EAGLE-2, EAGLE-3) represents the dominant iterative-refinement line: EAGLE-3 abandons feature-prediction loss in favor of direct token prediction with multi-layer feature fusion, and introduces a training-time test that feeds the draft model its own prior outputs during training to close the gap with inference-time conditions. A key finding from EAGLE-3 is that draft-model speedup now scales proportionally with training-data volume — a scaling law that earlier methods saturated quickly because their feature-prediction constraint capped expressive capacity. Empirically, EAGLE-3 reaches up to 6.5x speedup over greedy decoding (HumanEval, LLaMA-Instruct 3.1 8B) and a 40% throughput gain at batch size 64 in SGLang, directly refuting the prior assumption that speculative decoding degrades large-batch throughput. The lossless guarantee is preserved throughout: speculative sampling acceptance criteria ensure the target model's output distribution is unchanged, making the technique a drop-in serving optimization rather than a quality trade-off.
 
 

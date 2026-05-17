@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 34
 tier: active
@@ -12,7 +13,11 @@ DeepSeek's third-generation dense Transformer model, powering V3.1 and V3.2 vari
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+DeepSeek-V3 is the 671B-total / 37B-active reference architecture for large MoE models in 2025–2026: 61 layers (58 MoE + 3 dense), 257 experts per MoE layer (256 routed + 1 shared) with 9 active per token, d_model=7168, and MLA with d_c=512 compressed KV — total BF16 VRAM 1,342 GB. The architecture became the 2025 reference adopted by Kimi K2 (1T, 384 experts), Mistral 3 Large (675B), and others, with cross-lab diffusion enabled by DeepSeek's publish-weights-and-architecture pattern. DeepSeek-V3.1 introduced UE8M0 FP8 (MXFP8 variant with unsigned 8-bit exponent scaling), reducing gradient overflow 99.7% and improving training speed 3.15×, designed for next-generation domestic chips. Production deployments establish the throughput ceiling: Tencent Taiji reached 15,800+ tokens/s on 16×H20-96G via PD separation, large EP, w4a8c8 quantization, multi-layer MTP, and EPLB, with EP communication overhead cut 60% by the TRMT library and imbalance reduced to 1.2–1.5; Alibaba RTP-LLM reproduced 42.6K prefill TPS/node and 14.7K decode TPS/node on RoCE with DeepEP, MTP, MicroBatch overlap, and fused RotaryEmbedding+Transpose+Quant kernels. On B200, the 256-expert top-8 configuration narrows the SGLang-vs-vLLM gap at large batches because the 2048 natural token-slot parallelism better saturates SMs regardless of launch heuristic. The V3.2-Exp Latent Cache (656 bytes/token) has high temporal locality both intra- and inter-layer, enabling Baidu AIAK ESS to offload to CPU pinned memory via UVA-based FlashTrans (37 GB/s H2D vs 0.79 GB/s for `cudaMemcpyAsync`) for 123% throughput improvement at 128K context.
+
+
 
 ## Observations
 

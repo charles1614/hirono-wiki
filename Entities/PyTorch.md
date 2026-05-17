@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 32
 tier: active
@@ -12,7 +13,15 @@ Dominant ML framework for research and production; graph compilation via torch.c
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+
+
+
+PyTorch is the dominant deep learning framework for LLM training and inference, with a layered architecture spanning the Python API (torch.Tensor, torch.nn, torch.optim), the Compiler Stack (TorchDynamo → FX → AOT Autograd → Inductor generating Triton or C++ kernels), and the C++ Core (autograd → ATen → c10, where TensorImpl, Storage, and DispatchKey live). Its first-party memory profiler (`torch.cuda.memory._record_memory_history` + `_dump_snapshot`) records per-tensor allocation events with Python/C++ call stacks and exports a `.pkl` for the memory_viz visualizer, supporting Active Memory Timeline, Allocator State History (where `block.free` ≠ `cudaFree` because the torch allocator caches segments until `empty_cache()`), and Active Cached Segment Timeline views. A practical performance hazard is non-contiguous tensors from `torch.chunk`: downstream `cat` kernels select non-aligned memory templates, causing ~2.5× latency regression (155 µs vs 62 µs in documented cases) that is invisible without Nsight kernel-level comparison. PyTorch Conference 2025 had vLLM mentioned in ~45% of 117 sessions, Ray in the #4 keynote as "A Distributed Compute Engine for AI," and SGLang in dedicated MoE/RL sessions — signaling PyTorch's role as the ecosystem lingua franca. PyTorch and OpenAI Triton share a CUDA Runtime interface layer: Triton's `GPUDriver` reuses `torch.cuda.set_device` and related APIs, and `torch._C` provides the `cudaLaunchKernel` path for both frameworks under lazy CUDA-context initialization.
+
+
+
+
 
 ## Observations
 

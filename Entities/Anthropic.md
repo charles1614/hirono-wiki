@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 22
 tier: active
@@ -12,7 +13,9 @@ AI safety company whose two engineering blog posts on effective harnesses for lo
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+Anthropic signed the largest external TPU deal to date — 1M Ironwood TPUv7 units split 400k direct purchase (~$10B in finished racks sold by Broadcom) plus 600k GCP rental (estimated $42B RPO) — with Fluidstack handling on-site setup and TeraWulf and Cipher Mining supplying DC infrastructure. SemiAnalysis estimates ex-Google compiler engineers enable Anthropic to reach ~40% MFU on Ironwood, yielding ~52% lower TCO per effective PFLOP versus Blackwell GB300 NVL72; Opus 4.5 was trained on TPU and the subsequent ~67% API price cut is attributed in part to that infrastructure cost reduction. Anthropic appears as tenant at four Epoch.ai-tracked sites including the Anthropic-Amazon New Carlisle Project Rainier campus (686k H100-eq, 1,092 MW, $34.9B — the largest frontier site globally) and a May 2026 agreement with SpaceX for the full Colossus 1 cluster, but owns none of these facilities. The Complete Guide to Building Skills for Claude (Feb 2026) formalized Skills as folder-based reusable instruction packages with a 3-layer progressive-disclosure load (YAML frontmatter ~100 tokens always-on → SKILL.md body on-demand → scripts/references on-demand), targeting 90% auto-trigger accuracy via well-authored `description` fields. Anthropic also released MCP (Model Context Protocol) in November 2024 as a unified "USB-C" layer between LLMs and external data/tools, positioning it as platform-agnostic in contrast to per-platform function calling. SemiAnalysis flags that TPU v8's narrowing TCO advantage (VR200/TPUv8p gap now 1.23×, down from GB200/TPUv7's 1.52×) makes long-term TPU-exclusive reliance impractical, requiring NVIDIA partnership rebuilds.
+
 
 ## Observations
 

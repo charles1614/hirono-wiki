@@ -1,6 +1,7 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 16
 tier: active
@@ -12,7 +13,15 @@ open-source distributed computing framework; provides actor model + placement gr
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+
+
+Ray is the dominant distributed compute framework for multi-model RL training pipelines, providing the Actor model that gives Actor/Rollout/Ref/Critic/Reward components independent resources, async execution, and Object Store-based data exchange — with placement-group bundles supporting up to five modules per GPU (`num_gpus_per_actor=0.2`) and CUDA IPC required for weight synchronization when Actor and Rollout colocate on the same physical GPU since NCCL cannot communicate between two processes on one device. Production RL frameworks including verl, OpenRLHF, and slime all use Ray as their orchestration backbone; slime's three-subsystem split (Megatron training, SGLang inference, Ray orchestration) enforces strict process isolation with `RayTrainGroup` allocating 0.4 GPUs per actor for inference co-scheduling. A characteristic Ray profiling constraint is that `nsys <app>` captures only the submit command and not the remote-worker compute, with the canonical fix being `runtime_env={"nsight": {...}}` at RayActor construction (verl's `marked_timer` adds NVTX across step/gen/reward/actor-update phases). The new `ray symmetric-run` command collapses the traditional four-step multi-node setup into a single identical invocation on every node with auto-detected head/worker roles, and Ray was recently donated to the PyTorch Foundation. A known scaling limitation is Object Store's lack of RDMA for large-file transfers, creating tension between the "transparent data movement" convenience and the scratchpad-vs-cache performance tradeoff first characterized by the Oneflow team's 2022 analysis — especially relevant for video/image-heavy RL pipelines in verl.
+
+
+
+
 
 ## Observations
 

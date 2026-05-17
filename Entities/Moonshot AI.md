@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 15
 tier: active
@@ -12,7 +13,11 @@ Chinese AI lab that developed the Kimi K2 / K2.5 / K2.6 1T open-weights MoE mode
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Moonshot AI is the Beijing-based lab producing the Kimi model family, with founder Yang Zhilin framing Kimi's work on long-context and reasoning at the AGI-Next summit as a deliberate "world-view" architectural stance rather than a benchmark-chasing strategy. The infra team's stance on latency-bound operators is load-bearing for their architectural choices: topk and small-batch GEMM in small-batch decode cannot be solved by new hardware (Blackwell) or more parallelism, only by IO fusion, operator overlap, or overhead amortization — a constraint that directly drove the Attention Residual Block AttnRes two-phase computation design in K2. Moonshot's Seer system (arXiv:2511.14617, with Tsinghua) optimizes synchronous RL rollout via divided rollout, context-aware length scheduling, and adaptive grouped speculative sampling using Compressed Suffix Trees across sibling responses, achieving 74–97% throughput improvement and 75–93% tail-latency reduction versus VeRL on Kimi K2 (DP32/EP32) and Qwen2-VL-72B workloads. The K2 Vendor Verifier (K2VV) is the team's continuous benchmark of API vendors measuring tool-call trigger accuracy and JSON schema accuracy: the official MoonshotAI API scores 100% on both axes while open-source engines (vLLM, SGLang) score 73–95% on schema accuracy, with documented vendor fixes including correct vLLM/SGLang versions, tool-call ID renaming, and guided encoding. Kimi K2.5 became the launch model on Cloudflare Workers AI's frontier tier and is used internally at Cloudflare for OpenCode and automated security review at production scale.
+
+
 
 ## Observations
 

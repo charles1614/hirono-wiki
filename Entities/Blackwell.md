@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 48
 tier: active
@@ -14,7 +14,15 @@ NVIDIA's 2024 GPU architecture; B100/B200/B300/GB200; first NVFP4 native silicon
 ## Synthesis
 
 
-NVIDIA's Blackwell generation (B200/B300/GB200/GB300) is the first architecture with native FP4 Tensor Cores, enabling NVFP4 pretraining — a 12B-parameter model trained on 10 trillion tokens in 4-bit floating-point that matches FP8 training loss, the longest 4-bit pretraining run publicly documented. In inference, Blackwell is the primary target for TensorRT-LLM 1.1.0rc1's gpt-oss-120b deployment, with a GB200 NVL72 system delivering over 1.5 million tokens per second system-wide at max-throughput (>20k tps/gpu on 4× GB200 with DP4EP4). It also serves as the hardware baseline for NVIDIA's systematic 100k+ design-point disaggregation study, where DeepSeek-R1 and Llama-3.1-70B/405B are simulated on Blackwell FP4 to map the Pareto frontier between disaggregated and co-located serving. On the software side, CUDA 13.1 introduces two Blackwell-specific platform features: MLOPart (Memory Locality Optimization Partition, presenting one GPU as multiple memory-locality-optimized CUDA devices on compute capability 10.0/10.3 B200/B300 today, with GB200/GB300 planned) and cuBLAS FP32/FP64 Tensor-Core emulation targeting GB200 NVL72 and RTX PRO 6000 Blackwell Server Edition.
+
+
+
+
+NVIDIA's Blackwell generation (B200/GB200/B300/GB300) is the first architecture with native FP4 Tensor Cores via the 5th-generation UMMA instruction (`tcgen05.mma`), eliminating register pressure by routing accumulator storage through 256 KB Tensor Memory per SM and supporting CTA-pair mode that spans two SMs to share B-matrix operands. The 89-author NVFP4 pretraining paper provides the first publicly documented 12B-parameter, 10-trillion-token pretraining run in 4-bit precision matching FP8 training loss via Random Hadamard transforms, 2D quantization, stochastic rounding, and selective high-precision layers — the technical backbone of Blackwell's efficiency narrative. In inference, GB200 NVL72 delivers over 1.5M tokens/sec system-wide for gpt-oss-120b and vLLM Wide-EP reaches 26.2K prefill TPGS / 10.1K decode TPGS for DeepSeek MoE, but a distinctive Blackwell characteristic is that the host CPU becomes the bottleneck — async scheduling and Stream Interval are required to eliminate kernel-launch gaps, with Stream Interval alone yielding 57% E2E improvement at 1024 concurrency. FlashAttention 4 targets sm100 via `tcgen05.mma.cta_group::1` single-CTA execution, software polynomial exp via Horner's method, and online softmax with 90% fewer correction operations, achieving ~20% improvement over cuDNN 9.11.0's best attention kernel. Epoch.ai's accelerator dataset places Blackwell Ultra (GB300, 5.0 PFLOP/s FP8 / 8 TB/s / 288 GB at 1400 W) at the top of the chart, with AMD MI355X now spec-equivalent at 4.6 PFLOP/s / 8 TB/s — closing the top-tier hardware gap and shifting the competitive surface toward software stacks and TCO.
+
+
+
+
 
 
 ## Observations

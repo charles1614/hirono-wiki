@@ -1,6 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 18
 tier: active
@@ -12,7 +13,9 @@ Meta Platforms; AI Research; Llama models; Reality Labs; FAIR; PyTorch maintaine
 
 ## Synthesis
 
-*Regenerated from Observations below.*
+
+Meta's AI infrastructure posture shifted decisively from metaverse to compute buildout: the "Meta Compute" plan targets $600B in US infrastructure investment through 2028 ($70B+ in 2025 alone), with agreements for over 6 GW of nuclear power supply and a long-term goal of hundreds of gigawatts. Epoch.ai's frontier database places Meta Prometheus (New Albany OH) as the #3 site globally at 494k H100-equivalents / 531 MW / $15.6B, while the Hyperion site (Richland Parish LA) is permitted for a 2.25 GW gas-turbine buildout but not yet operational; concurrently, Reality Labs cut ~1,500 staff (10%) after accumulated losses exceeding $60B since 2020. MTIA 300 (March 2026) is Meta's first public custom AI silicon: 600 TFLOP/s FP16 / 1.2 PFLOP/s FP8 / 216 GB / 6.1 TB/s at 800 W — an unusually high memory footprint optimized for inference-at-Meta-scale rather than raw compute density. At 98K-GPU scale, FT-HSDP (Fault Tolerant Hybrid Shared Data Parallelism) treats each DP replica of 8,192 GPUs as the fault-recovery unit, replacing NCCL for cross-DC gradient AllReduce with a custom CPU+GPU FTAR protocol and allowing intentional step-number divergence across replicas — raising effective training time from ~44% to ~80%. LLaMA 3 pretraining experienced 6 SDC-caused interruptions over 54 days, placing Meta alongside Google Gemini (SDC every 1–2 weeks) in the corpus evidence that silent data corruption is a systemic production concern at frontier scale; the SIGCOMM 2024 RoCEv2 paper further documents Meta abandoning PFC+DCQCN for receiver-driven admission control at the NCCL layer.
+
 
 ## Observations
 

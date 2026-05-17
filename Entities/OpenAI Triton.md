@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 11
 tier: active
@@ -9,6 +10,14 @@ tier: active
 # OpenAI Triton
 
 OpenAI-developed kernel-authoring DSL with compiler-managed Tensor-Core mapping; also OpenAI ships Triton-kernel optimizations for its MoE models.
+
+## Synthesis
+
+
+
+OpenAI Triton is a Python-based DSL and compiler for GPU kernels that targets SIMT programming at a higher abstraction level than CUDA C++, compiling to PTX/CUBIN via nvcc or clang through a subprocess-based build path. Its runtime reuses PyTorch's CUDA device-management APIs directly (`torch.cuda.get_device_capability`, `torch.cuda.set_device`, `current_stream`), and the `JITFunction.run()` path retrieves the current CUDA stream before calling `cudaLaunchKernel`, making Triton a consumer of PyTorch's lazy-initialized CUDA context rather than an independent runtime. The auto-tuner benchmarks multiple tile configurations via CUDA events or the `triton.testing` harness to select the optimal launch shape per hardware target. In SGLang's kernel architecture Triton plays a dual role — both an authoring DSL for JIT kernels not depending on CUTLASS (the `jit_kernel` system) and the benchmarking layer via `triton.testing.Benchmark` for comparing JIT kernel throughput against torch baselines. Limited evidence so far on Triton's broader training-stack role; the strongest corpus citations concern its inference-kernel and benchmarking roles in SGLang and TensorRT-LLM, with the Triton MoE backend specifically required on H200 for gpt-oss-120b deployment because the TRTLLM backend doesn't support Hopper.
+
+
 
 ## Observations
 

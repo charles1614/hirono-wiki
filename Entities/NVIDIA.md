@@ -1,7 +1,7 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
-synthesis_updated_at: 2026-05-13T00:00:00.000Z
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 48
 tier: active
@@ -14,7 +14,13 @@ Dominant ML accelerator vendor; CUDA platform owner; GPU architectures: Ampere �
 ## Synthesis
 
 
-NVIDIA's 2025-26 strategic posture spans the full ML stack from silicon through serving: Blackwell-era hardware (B200/GB200/B300) introduces native NVFP4 tensor cores, and an 89-author NVIDIA paper establishes the first publicly documented 12B-parameter, 10-trillion-token pretraining run in 4-bit precision — matching FP8 quality via Random Hadamard transforms, 2D quantization, stochastic rounding, and selective high-precision layers, effectively doubling arithmetic density on Blackwell. On the training side, MoE Parallel Folding (shipped in Megatron-Core) decouples the parallelism mappings of attention and MoE layers across a 5-D hybrid-parallel scheme, achieving 49.3% MFU on Mixtral 8x22B and 39.0% on Qwen2-57B-A14B at 1,024 H100 GPUs. The inference stack is anchored by TensorRT-LLM 1.1.0rc1, with an official two-mode deployment recipe for gpt-oss-120b hitting 420 tps/user at low latency and over 1.5M tps system-wide on a GB200 NVL72; an 18-author disaggregation study further calibrates when disaggregated serving wins — concentrated in prefill-heavy, large-model workloads — and identifies dynamic Ctx:Gen rate matching as the load-bearing system primitive. The platform layer received its largest update in CUDA 13.1, introducing CUDA Tile (Tile IR + cuTile Python) as a portable, architecture-agnostic programming model above SIMT, alongside green contexts, MLOPart for Blackwell, and FP32/FP64 emulation on tensor cores. Google's IntuitionLabs analysis positions TPU v4 at 1.2-1.7x throughput versus A100 at 53-77% of the power, with Gemini 3 trained entirely on TPU; NVIDIA's counter-narrative centers on NVFP4 doubling effective throughput on Blackwell hardware, making the efficiency gap a moving target.
+
+
+
+NVIDIA's 2025–26 strategic posture spans the full ML stack from silicon to serving frameworks: Blackwell-era hardware (B200/GB200/B300) introduces native NVFP4 tensor cores, and the 89-author NVFP4 paper delivers the first publicly documented 12B-parameter, 10-trillion-token pretraining run in 4-bit precision matching FP8 training loss via Random Hadamard transforms, 2D quantization, stochastic rounding, and selective high-precision layers — the technical backbone of its efficiency counter-narrative against Google TPU. On the training side, MoE Parallel Folding (shipped in Megatron-Core) decouples attention and MoE parallelism mappings across a 5-D hybrid-parallel scheme, achieving 49.3% MFU on Mixtral 8×22B and 39.0% on Qwen2-57B-A14B at 1,024 H100 GPUs by removing the classical EP-degree-cannot-exceed-DP-degree constraint. The inference stack is anchored by TensorRT-LLM 1.1.0rc1 with an official two-mode deployment for gpt-oss-120b (420 tps/user low-latency, 1.5M tps system-wide on GB200 NVL72), and the 18-author disaggregation study calibrates that disagg wins concentrate in prefill-heavy large-model workloads with dynamic Ctx:Gen rate matching as the load-bearing primitive. CUDA 13.1 — described as the largest platform update in two decades — introduces CUDA Tile, green contexts, MLOPart on Blackwell, FP32/FP64 emulation on tensor cores, and a fully rewritten programming guide; H100 shipped with an `mma.sp` defect causing intermittent SDC (fixed in driver 535.288.01). Competitively, NVIDIA now faces Google TPUv7/Ironwood, AMD MI355X (spec-equivalent at 4.6 PFLOP/s / 8 TB/s), and AWS Trainium3 simultaneously, with the TPU threat alone driving OpenAI to negotiate ~30% fleet discounts without yet deploying a single TPU.
+
+
+
 
 
 ## Observations

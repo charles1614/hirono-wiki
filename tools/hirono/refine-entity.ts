@@ -192,22 +192,26 @@ Save your response as plain text (4–6 sentences, no preamble) to:
 function buildReplacement(entityRaw: string, newSynthesis: string, dateISO: string): string {
   const { fm, body } = splitFM(entityRaw);
 
-  // 1. Replace the ## Synthesis section content
+  // 1. Replace the ## Synthesis section content.
+  // Use function-form replace so `$10B`, `$30B` etc. in the Sonnet/Opus
+  // response prose are NOT interpreted as capture-group backrefs (the
+  // String#replace string form treats `$<digit>` specially).
+  const trimmedSynth = newSynthesis.trim();
   let newBody: string;
   if (/^## Synthesis\s*$/m.test(body)) {
     newBody = body.replace(
       /^(## Synthesis\s*\n)([\s\S]*?)(?=\n## |\n# |$)/m,
-      `$1\n${newSynthesis.trim()}\n`,
+      (_match, header: string) => `${header}\n${trimmedSynth}\n`,
     );
   } else {
     // No Synthesis section — insert before Observations (or at end)
     if (/^## Observations\s*$/m.test(body)) {
       newBody = body.replace(
         /^(## Observations\s*$)/m,
-        `## Synthesis\n\n${newSynthesis.trim()}\n\n$1`,
+        (_match, obs: string) => `## Synthesis\n\n${trimmedSynth}\n\n${obs}`,
       );
     } else {
-      newBody = body.replace(/\s*$/, `\n\n## Synthesis\n\n${newSynthesis.trim()}\n`);
+      newBody = body.replace(/\s*$/, () => `\n\n## Synthesis\n\n${trimmedSynth}\n`);
     }
   }
 

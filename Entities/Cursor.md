@@ -1,6 +1,7 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
+synthesis_updated_at: 2026-05-17
 type: entity
 refs: 10
 tier: active
@@ -12,7 +13,11 @@ AI-powered code editor with a CLI mode supported by vibe-replay for session capt
 
 ## Synthesis
 
-*Regenerated from Observations below as evidence accumulates.*
+
+
+Cursor is the AI coding agent that Karpathy identified in 2025 as the canonical instance of a new thick "LLM app" layer — bundling context engineering, multi-LLM DAG orchestration, application-specific GUI, and an "autonomy slider," spawning "Cursor for X" patterns where LLM labs provide capable college-student-level reasoning and LLM apps deploy them as vertical professionals. Cursor's technical moat (per Pine AI's chief scientist) is three specialized models — Tab completion, apply-code-diff, and codebase search — that together create a proprietary barrier competitors cannot replicate from prompts alone. Composer 2 (March 2026) bases on Kimi K2.5 (1.04T/32B active), continues pretraining on code in MXFP8 on NVIDIA B300s, then trains async RL inside the exact production Cursor harness (same tools, prompt, system message) via shadow deployment on Firecracker VMs (Anyrun, 500+ pods/sec, filesystem snapshotting); Multi-Token Prediction layers provide 2–3× inference speedup via self-distillation. The real-time RL loop runs end-to-end in ~5 hours (collect production tokens → distill reward → train → CursorBench eval → deploy), enabling multiple checkpoint deploys per day. CursorBench-3 (median 181 lines changed, 390-char prompts) replaced SWE-bench as primary internal eval; the GRPO variant removes length standardization and skips advantage std normalization, and both average and best-of-K rewards improve together — suggesting RL expands solution coverage rather than merely reweighting known paths.
+
+
 
 ## Observations
 
