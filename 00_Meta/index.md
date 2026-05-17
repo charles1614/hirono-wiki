@@ -10,7 +10,7 @@ One-page overview. Detailed catalogs live in the sharded indexes below.
 
 ## Thesis
 
-- **[[Synthesis]]** — what this corpus collectively argues. Start here for the through-line; come back to the catalogs below for specific pages.
+- **[[00_Synthesis]]** — what this corpus collectively argues. Start here for the through-line; come back to the catalogs below for specific pages.
 
 ## Catalogs
 

@@ -577,7 +577,7 @@ Does NOT insert wikilinks into Source body — that's your job. Consults `00_Met
 ```bash
 hirono refine-entity "<N>" [--response <r> --apply]
 hirono refine-topic "<N>" [--response <r> --apply]
-hirono refine-synthesis [--response <r> --apply]      # corpus-wide top Synthesis.md
+hirono refine-synthesis [--response <r> --apply]      # corpus-wide top 00_Synthesis.md
 ```
 
 Use cache-friendly preamble + curated Source excerpts (`tools/hirono/_shared/source-excerpt.ts`). Measure sidecar at `<prompt>-measure.json`.

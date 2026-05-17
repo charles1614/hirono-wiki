@@ -42,7 +42,7 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 .
 ├── README.md                    ← you are here
 ├── CLAUDE.md                    ← rules + recipes for the LLM agent
-├── Synthesis.md                 ← corpus-wide thesis (what this wiki argues, across all Topics)
+├── 00_Synthesis.md                 ← corpus-wide thesis (what this wiki argues, across all Topics)
 │
 ├── Sources/                     ← THE WIKI: one summary per ingested source
 │   └── YYYY/
@@ -104,7 +104,7 @@ Three distinct usage modes, each reads (and writes) different folders.
 ```
 Open 00_Meta/index.md  ─►  catalog overview, total counts
        │
-       ├──►  Synthesis.md             ─►  corpus-wide thesis (what this wiki argues)
+       ├──►  00_Synthesis.md             ─►  corpus-wide thesis (what this wiki argues)
        │
        ├──►  00_Meta/index-topics.md     ─►  Topics/<X>.md
        │                                    ├── "Current understanding" synthesis
@@ -181,10 +181,10 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 | Whole-Source NER pass | `hirono auto-detect-entities <slug>` | Sonnet subagent extracts entities → creates `_seen/` stubs atomically; uses `00_Meta/entity-aliases.md` to dedupe spelling variants |
 | Synthesis drifted vs new Observations | `hirono refine-entity <name>` | Sonnet regenerates `## Synthesis` from cited Sources; bumps `synthesis_updated_at` |
 | Topic's Current understanding drifted | `hirono refine-topic <name>` | same shape, for `## Current understanding` |
-| Corpus-wide thesis drifted (top-level `Synthesis.md`) | `hirono refine-synthesis` | Sonnet regenerates the repo-root `Synthesis.md` body from all Topic syntheses; bumps `updated:`. Fires on the `stale-top-synthesis` lint (>7d behind newest Topic `synthesis_updated_at`). |
+| Corpus-wide thesis drifted (top-level `00_Synthesis.md`) | `hirono refine-synthesis` | Sonnet regenerates the repo-root `00_Synthesis.md` body from all Topic syntheses; bumps `updated:`. Fires on the `stale-top-synthesis` lint (>7d behind newest Topic `synthesis_updated_at`). |
 | Batch refresh | `hirono refine-all-stale` | runs lint, prepares prompts for every flagged entity. `--preview` shows cost only; `--limit N` caps to top-N most-stale |
 | Post-bulk-ingest cost preview | `hirono ingest-preview` | After `fetch-all` + `auto-detect-entities`, prints the headline: new Sources, stale fan-out, est tokens/$. **Discipline: ingest frequently, refine rarely** — let staleness accumulate so each refine batches multiple Sources' worth of drift |
-| Zero-touch autonomous repairs | `hirono auto-fix` | Auto-applies alias merges from `00_Meta/entity-aliases.md` + preps refine prompts for stale entity Syntheses **and the top-level [[Synthesis]]** + refreshes indexes. **Never deletes anything.** Safe for cron / pre-commit. |
+| Zero-touch autonomous repairs | `hirono auto-fix` | Auto-applies alias merges from `00_Meta/entity-aliases.md` + preps refine prompts for stale entity Syntheses **and the top-level [[00_Synthesis]]** + refreshes indexes. **Never deletes anything.** Safe for cron / pre-commit. |
 | Unified curation loop (one command) | `hirono auto-curate` → Sonnet → `hirono auto-curate --continue` | Wraps the full pipeline: auto-fix + propose-curation in Phase 1, finalize + apply-queue in Phase 2. Default Phase 2 is full-auto (`--auto-apply high`); pass `--review` for the one-tap variant where you tick `[x]` boxes first. **When to run it**: lint emits a `curation-needed` info-advisory when accumulated stale-synthesis + orphans + tier-mismatch ≥ 5. Threshold + tuned `stale-synthesis` cadence (7d-lag rule + 30d/3-obs accumulation rule) documented in [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) §13c. |
 | Operator-judged ingest mistake (rare) | `hirono raindrop forget <url>` | deletes Source + raw archive + adds to `00_Meta/sources-ingest-skips.md` |
 
@@ -384,7 +384,7 @@ npx tsx tools/bin/hirono.ts raindrop reindex-raw # raw/_index.json (state field)
 # 6. Periodic: grow the entity graph + refresh stale Syntheses
 npx tsx tools/bin/hirono.ts auto-detect-entities <slug>   # per-Source NER pass
 npx tsx tools/bin/hirono.ts refine-all-stale              # batch-prepare refine prompts
-npx tsx tools/bin/hirono.ts refine-synthesis              # corpus-wide thesis (top-level Synthesis.md)
+npx tsx tools/bin/hirono.ts refine-synthesis              # corpus-wide thesis (top-level 00_Synthesis.md)
 npx tsx tools/bin/hirono.ts health-check --scope drift    # raw-archive drift audit
 npx tsx tools/bin/hirono.ts health-check --scope sources  # 0-wikilink Sources, age-stale, etc.
 

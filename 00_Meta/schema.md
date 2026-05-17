@@ -17,7 +17,7 @@ Every page declares its `type` in frontmatter. Four types:
 | `source` | `03_Sources/YYYY/` | Summary of one ingested raw source (Raindrop bookmark, Space 1 node, URL) |
 | `entity` | `02_Entities/` or `02_Entities/_seen/` | A person, project, paper, product, model, company |
 | `topic` | `01_Topics/` | Synthesis across multiple sources; answers to questions; cross-cutting themes |
-| `meta` | `00_Meta/` | Schema, index, log, linting notes, and the top-level [[Synthesis]] page |
+| `meta` | `00_Meta/` | Schema, index, log, linting notes, and the top-level [[00_Synthesis]] page |
 
 ### Comparison sections inside Topics
 
@@ -39,7 +39,7 @@ Comparisons are an optional **section inside a Topic**, not a separate page type
 
 ### Top-level Synthesis
 
-[[Synthesis]] (root, not `00_Meta/`) is a `type: meta` page that states what the corpus collectively argues across all Topics. One page, regenerated per-batch (not per-ingest). It is the entry point for "what is this wiki *about*", complementing [[index]]'s catalog role. Regeneration cadence and triggers are documented in [[operator-workflows]] §11.4.
+[[00_Synthesis]] (root, not `00_Meta/`) is a `type: meta` page that states what the corpus collectively argues across all Topics. One page, regenerated per-batch (not per-ingest). It is the entry point for "what is this wiki *about*", complementing [[index]]'s catalog role. Regeneration cadence and triggers are documented in [[operator-workflows]] §11.4.
 
 ## Frontmatter spec
 

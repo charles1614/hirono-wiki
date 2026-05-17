@@ -298,7 +298,7 @@ function proposalHeading(p: Proposal): string {
     case "delete-orphan":  return `Delete orphan \`${p.args.slug}\``;
     case "refine-entity":  return `Refine Entity \`${p.args.name}\` Synthesis`;
     case "refine-topic":   return `Refine Topic \`${p.args.name}\` Current understanding`;
-    case "refine-synthesis": return `Refine top-level Synthesis.md (corpus-wide thesis)`;
+    case "refine-synthesis": return `Refine top-level 00_Synthesis.md (corpus-wide thesis)`;
     case "add-comparison-heading": return `Add \`## Comparison\` heading to Topic \`${p.args.name}\``;
     case "skip":           return `Skip: ${p.args.finding}`;
   }

@@ -321,7 +321,7 @@ export function autoFix(repoRoot: string, opts: ParsedArgs): AutoFixResult {
       if (staleTop) {
         const result = prepareTopSynthesisPrompt(repoRoot, opts.dryRun);
         const sym = result.ok ? (opts.dryRun ? "·" : "✓") : "✖";
-        console.log(`  ${sym} Synthesis.md (top-level)${result.ok ? "" : `\n    ↳ ${result.msg}`}`);
+        console.log(`  ${sym} 00_Synthesis.md (top-level)${result.ok ? "" : `\n    ↳ ${result.msg}`}`);
         if (result.ok && !opts.dryRun) r.refinePromptsPrepared++;
       }
       console.log(`\n  Next: spawn Sonnet subagents on the .refine-prompts/ files, save responses, then \`hirono refine-entity <name> --response <path> --apply\` (or \`refine-topic\` / \`refine-synthesis\` per file).`);

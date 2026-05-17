@@ -92,7 +92,7 @@ Dense, opinionated, citation-heavy. Mirror existing Topic pages.
 
 export const REFINE_SYNTHESIS_PREAMBLE = `# refine-synthesis — Corpus-wide thesis regeneration
 
-You are regenerating the body of \`Synthesis.md\` — the corpus-wide thesis
+You are regenerating the body of \`00_Synthesis.md\` — the corpus-wide thesis
 page that states what an LLM-maintained wiki collectively argues across
 all its Topics.
 
@@ -188,7 +188,7 @@ approval.
   - \`refine-entity\` — active entity's Synthesis has drifted (stale or
     contradicted by Observations). args: { name, reason }
   - \`refine-topic\` — same for a Topic's Current understanding. args: { name, reason }
-  - \`refine-synthesis\` — top-level Synthesis.md older than newest Topic
+  - \`refine-synthesis\` — top-level 00_Synthesis.md older than newest Topic
     \`synthesis_updated_at\` (lint: stale-top-synthesis). args: { reason }
   - \`add-comparison-heading\` — \`comparison-opportunity\` lint suggests a
     Topic might warrant a \`## Comparison\` section. Propose this kind

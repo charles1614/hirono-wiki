@@ -1022,24 +1022,24 @@ export function checkStaleTopicSynthesis(docs: DocMeta[]): Issue[] {
 }
 
 /**
- * stale-top-synthesis: warn when the repo-root `Synthesis.md` is meaningfully
+ * stale-top-synthesis: warn when the repo-root `00_Synthesis.md` is meaningfully
  * older than the newest Topic `synthesis_updated_at`.
  *
- * Synthesis.md is the corpus-wide thesis page. It lives outside the four
+ * 00_Synthesis.md is the corpus-wide thesis page. It lives outside the four
  * standard buckets (it's at repo root, not Meta/), so this check reads it
  * directly rather than going through walkWikiDocs.
  *
- * Trigger: any Topic with `synthesis_updated_at > Synthesis.md updated`
+ * Trigger: any Topic with `synthesis_updated_at > 00_Synthesis.md updated`
  * by more than STALE_LAG_DAYS (7) → flag with the newest contributing Topic.
- * Missing Synthesis.md → INFO (don't enforce existence; not all wikis want it).
+ * Missing 00_Synthesis.md → INFO (don't enforce existence; not all wikis want it).
  *
  * Severity: warn — operator (or `hirono auto-curate`) runs
  * `hirono refine-synthesis` to regenerate.
  */
 export function checkStaleTopSynthesis(docs: DocMeta[], repoRoot: string): Issue[] {
-  const synthRel = "Synthesis.md";
+  const synthRel = "00_Synthesis.md";
   const synthAbs = join(repoRoot, synthRel);
-  // Missing Synthesis.md is fine — not every wiki uses a top-level thesis.
+  // Missing 00_Synthesis.md is fine — not every wiki uses a top-level thesis.
   // The check only fires when the file exists AND is stale.
   if (!existsSync(synthAbs)) return [];
   const raw = readFileSync(synthAbs, "utf8");
@@ -1071,7 +1071,7 @@ export function checkStaleTopSynthesis(docs: DocMeta[], repoRoot: string): Issue
 
   return [{
     kind: "stale-top-synthesis", severity: "warn", path: synthRel,
-    detail: `Synthesis.md updated=${synthDate} is ${lag}d older than newest Topic synthesis_updated_at=${newest.date} ([[${newest.name}]])`,
+    detail: `00_Synthesis.md updated=${synthDate} is ${lag}d older than newest Topic synthesis_updated_at=${newest.date} ([[${newest.name}]])`,
     hint: "Run `hirono refine-synthesis` (or `hirono auto-fix` to batch-prep) to regenerate the corpus-wide thesis.",
   }];
 }
