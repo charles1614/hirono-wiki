@@ -1,11 +1,11 @@
 /**
  * `hirono refine-synthesis` — LLM-driven regenerator for the top-level
- * 00_Synthesis.md (the corpus-wide thesis page).
+ * Synthesis.md (the corpus-wide thesis page).
  *
  * Corpus-level parallel of refine-entity / refine-topic. Regenerates the
  * thesis body (everything between the H1 title and the "## How this page
  * stays current" footer) from accumulated context:
- *   - the current 00_Synthesis.md (so the LLM can preserve through-line
+ *   - the current Synthesis.md (so the LLM can preserve through-line
  *     where the corpus hasn't shifted)
  *   - every active Topic's `## What` + `## Current understanding`
  *     (the synthesis layer below)
@@ -36,7 +36,7 @@ const STUB_CU_RE = /_\(stub —/;
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..");
-const SYNTHESIS_PATH = "00_Synthesis.md";
+const SYNTHESIS_PATH = "Synthesis.md";
 const FOOTER_HEADING = "## How this page stays current";
 
 interface ParsedArgs {
@@ -47,7 +47,7 @@ interface ParsedArgs {
 function usage(): never {
   console.error(`usage: hirono refine-synthesis [--response <path>] [--apply]
 
-Regenerate the top-level 00_Synthesis.md from all active Topic syntheses.
+Regenerate the top-level Synthesis.md from all active Topic syntheses.
 
 Modes:
   (no flags)              Generate prompt package; operator spawns Opus subagent (top-Synthesis policy).
@@ -135,7 +135,7 @@ function buildPrompt(currentSynth: string, topics: TopicContext[]): string {
 
 ---
 
-## Current 00_Synthesis.md (preserve through-line where corpus unchanged)
+## Current Synthesis.md (preserve through-line where corpus unchanged)
 
 \`\`\`
 ${currentSynth}
@@ -159,7 +159,7 @@ function buildReplacement(synthRaw: string, newBody: string, dateISO: string): s
 
   // Find H1 line (first "# " line)
   const h1Idx = lines.findIndex(l => /^#\s/.test(l));
-  if (h1Idx < 0) throw new Error("00_Synthesis.md has no H1 title");
+  if (h1Idx < 0) throw new Error("Synthesis.md has no H1 title");
 
   // Find footer line
   const footerIdx = lines.findIndex(l => l.trim() === FOOTER_HEADING);
@@ -205,7 +205,7 @@ export function refineSynthesis(
 ): RefineSynthesisResult {
   const synthAbs = join(repoRoot, SYNTHESIS_PATH);
   if (!existsSync(synthAbs)) {
-    throw new Error(`00_Synthesis.md not found at ${SYNTHESIS_PATH}`);
+    throw new Error(`Synthesis.md not found at ${SYNTHESIS_PATH}`);
   }
   const synthRaw = readFileSync(synthAbs, "utf8");
   const oldBody = bodyBetweenTitleAndFooter(synthRaw);
@@ -249,8 +249,8 @@ export function refineSynthesis(
   const ops: PendingOp[] = [{ kind: "write", path: SYNTHESIS_PATH, body: newRaw }];
   const opId = `refine-synthesis-${Date.now()}`;
   applyAtomically(repoRoot, opId, ops);
-  appendLogEntry(repoRoot, "refactor", `Refine top-level [[00_Synthesis]]`, [
-    `Regenerated 00_Synthesis.md body from accumulated Topic syntheses.`,
+  appendLogEntry(repoRoot, "refactor", `Refine top-level [[Synthesis]]`, [
+    `Regenerated Synthesis.md body from accumulated Topic syntheses.`,
     `\`updated:\` bumped to ${dateISO}.`,
   ]);
   cleanupStaging(repoRoot, opId);
@@ -280,7 +280,7 @@ export function main(argv: string[]): void {
       console.log(`(dry-run — no files written.)`);
     } else {
       printDiff(r.oldBody!, r.newBody!);
-      console.log(`✓ wrote new body to 00_Synthesis.md; updated: bumped; log entry appended.`);
+      console.log(`✓ wrote new body to Synthesis.md; updated: bumped; log entry appended.`);
     }
   } catch (e) {
     console.error(`error: ${(e as Error).message}`);

@@ -86,7 +86,7 @@ Top-level:
   ingest-preview [--since <ref>]          headline cost preview after bulk ingest:
                                           new Sources + flagged stale + est tokens/$
   refine-synthesis [--response <p>] [--apply]
-                                          regenerate top-level 00_Synthesis.md via Sonnet subagent
+                                          regenerate top-level Synthesis.md via Sonnet subagent
   add-comparison-heading <name> [--reason "<one-liner>"]
                                           insert opt-in \`## Comparison\` heading into a Topic
                                           (idempotent); next refine-topic populates the table

@@ -36,7 +36,7 @@ The gist names six artifact kinds the wiki should produce: "Summaries, entity pa
 | Concept pages | `01_Topics/*.md` — 50+ pages on systems concepts (Attention Kernels, Context Parallelism, FP8 Computation, …) | ✅ |
 | Comparisons | Lives inside Topic prose (`AI Accelerators`, `FP Emulation`, …). Schema now formalizes a Comparison sub-shape (filename `<X> vs <Y>.md` + `## Comparison` table) — see [[../schema\|schema]] §"Topic sub-shapes". | ⚠️ Optional convention; no Comparison-shape Topic has been created yet. |
 | Overview | [[../index\|00_Meta/index.md]] — catalog overview, total counts, navigation | ✅ |
-| Synthesis | [[../../Synthesis\|00_Synthesis.md]] at repo root — corpus-wide thesis page | ✅ (added 2026-05-13; previously absent) |
+| Synthesis | [[../../Synthesis\|Synthesis.md]] at repo root — corpus-wide thesis page | ✅ (added 2026-05-13; previously absent) |
 
 ## Deliberate deviations
 

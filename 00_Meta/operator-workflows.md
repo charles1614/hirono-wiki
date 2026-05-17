@@ -1034,16 +1034,16 @@ Output:
 
 **Discipline**: ingest frequently, refine rarely. Let staleness accumulate so each refine batches multiple Sources' worth of drift. The 7-day lag is a feature, not a deadline. Manual refines reset the per-item counter cleanly — no drift, no race conditions.
 
-### 11.4 Top-level [[00_Synthesis]] regeneration
+### 11.4 Top-level [[Synthesis]] regeneration
 
-[[00_Synthesis]] (repo root) is the corpus-wide thesis page — what the wiki *collectively* argues across all Topics. It is regenerated **per-batch, not per-ingest**: most ingests refine claims, they don't shift them, so per-ingest regeneration is noise.
+[[Synthesis]] (repo root) is the corpus-wide thesis page — what the wiki *collectively* argues across all Topics. It is regenerated **per-batch, not per-ingest**: most ingests refine claims, they don't shift them, so per-ingest regeneration is noise.
 
-**Trigger detection — fully automated.** The lint check `stale-top-synthesis` (in `tools/bin/lint.ts`) flags `00_Synthesis.md` when its `updated:` is > 7 days older than the newest Topic `synthesis_updated_at`. Symmetric with the per-entity `stale-synthesis` check; same threshold.
+**Trigger detection — fully automated.** The lint check `stale-top-synthesis` (in `tools/bin/lint.ts`) flags `Synthesis.md` when its `updated:` is > 7 days older than the newest Topic `synthesis_updated_at`. Symmetric with the per-entity `stale-synthesis` check; same threshold.
 
 **Regeneration flow — three commands, mirrors `refine-entity`/`refine-topic`**:
 
 ```bash
-# 1. Prepare prompt (gathers 00_Synthesis.md + every Topic's What+Current understanding):
+# 1. Prepare prompt (gathers Synthesis.md + every Topic's What+Current understanding):
 hirono refine-synthesis
 #   → writes .refine-prompts/synthesis-prompt.md
 
@@ -1061,7 +1061,7 @@ Dry-run with `--response <path>` (without `--apply`) prints the diff before comm
 
 **Auto-curate integration.** `hirono propose-curation` exposes `refine-synthesis` as a Sonnet-dispatchable proposal kind. When the Sonnet judge sees the `stale-top-synthesis` lint finding, it can emit a proposal that `apply-queue` executes as `hirono refine-synthesis` (which prepares the prompt). The Sonnet+apply loop for the regeneration itself is the operator's next iteration — same shape as how `refine-entity` regenerations close.
 
-**Quality bar**: every claim in [[00_Synthesis]] must be backed by ≥1 `[[01_Topics/X]]` or `[[03_Sources/YYYY/X]]` or `[[<Entity>]]` wikilink. Orphan assertions (claims with no link) are a regression — the lint doesn't catch them, so eye-read every regeneration before approving.
+**Quality bar**: every claim in [[Synthesis]] must be backed by ≥1 `[[01_Topics/X]]` or `[[03_Sources/YYYY/X]]` or `[[<Entity>]]` wikilink. Orphan assertions (claims with no link) are a regression — the lint doesn't catch them, so eye-read every regeneration before approving.
 
 ## 12. Drift detection (Phase B)
 
@@ -1112,7 +1112,7 @@ hirono auto-fix [--dry-run]
 
 **Step 1 — alias merges**: for each `variant → canonical` in `00_Meta/entity-aliases.md` where BOTH `02_Entities/_seen/{variant,canonical}.md` exist, run `hirono merge-entities` automatically. Safe because the alias is operator-declared: if `bfloat16 → BF16` is in the file, the operator already stated they're the same thing. The merge concatenates Observations (no information loss), rewrites wikilinks, appends a refactor log entry.
 
-**Step 2 — refine-prompt prep**: for each entity flagged stale by `lint --check stale-synthesis`, write a refine prompt package to `.refine-prompts/`. Also, when `lint --check stale-top-synthesis` fires (top-level `00_Synthesis.md` >7d behind newest Topic `synthesis_updated_at`), prep `.refine-prompts/synthesis-prompt.md` via `hirono refine-synthesis`. No mutations. Operator then spawns Sonnet → apply per the normal refine workflow (per-entity or top-level).
+**Step 2 — refine-prompt prep**: for each entity flagged stale by `lint --check stale-synthesis`, write a refine prompt package to `.refine-prompts/`. Also, when `lint --check stale-top-synthesis` fires (top-level `Synthesis.md` >7d behind newest Topic `synthesis_updated_at`), prep `.refine-prompts/synthesis-prompt.md` via `hirono refine-synthesis`. No mutations. Operator then spawns Sonnet → apply per the normal refine workflow (per-entity or top-level).
 
 **Step 3 — index refresh**: run `reindex.ts` + `build-sources-index.ts` to keep catalogs current. Mechanical, no content rewrites.
 
@@ -1217,7 +1217,7 @@ hirono apply-queue --auto-apply high --dry-run
 | `delete-orphan` | `hirono bulk-delete-orphans --confirm <slug>` | refs=0 stubs with no semantic value |
 | `refine-entity` | `hirono refine-entity <name>` | active entity Synthesis stale or contradicted |
 | `refine-topic` | `hirono refine-topic <name>` | Topic Current understanding drifted |
-| `refine-synthesis` | `hirono refine-synthesis` | top-level `00_Synthesis.md` flagged by `stale-top-synthesis` |
+| `refine-synthesis` | `hirono refine-synthesis` | top-level `Synthesis.md` flagged by `stale-top-synthesis` |
 | `add-comparison-heading` | `hirono add-comparison-heading <name>` | `comparison-opportunity` lint surfaces a Topic with ≥3 active-tier entity wikilinks + contrast markers in prose; Sonnet judges whether the contrast is load-bearing |
 | `skip` | (no-op) | finding is a false positive (SKU distinction, intentional naming) |
 
