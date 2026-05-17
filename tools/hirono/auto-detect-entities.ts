@@ -97,11 +97,11 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 /** Locate the Source markdown file in Sources/<year>/<slug>.md. */
 function findSourceFile(repoRoot: string, slug: string): { repoPath: string; year: string } | null {
-  const sourcesDir = join(repoRoot, "Sources");
+  const sourcesDir = join(repoRoot, "03_Sources");
   if (!existsSync(sourcesDir)) return null;
   const years = readdirSync(sourcesDir).filter(y => /^\d{4}$/.test(y));
   for (const year of years) {
-    const p = join("Sources", year, `${slug}.md`);
+    const p = join("03_Sources", year, `${slug}.md`);
     if (existsSync(join(repoRoot, p))) return { repoPath: p, year };
   }
   return null;
@@ -120,7 +120,7 @@ function findRawDir(repoRoot: string, slug: string): string | null {
 
 /** Read all entity slugs from Entities/*.md + Entities/_seen/*.md. */
 function listEntitySlugs(repoRoot: string): { active: string[]; seen: string[] } {
-  const entitiesDir = join(repoRoot, "Entities");
+  const entitiesDir = join(repoRoot, "02_Entities");
   const active: string[] = [];
   const seen: string[] = [];
   if (existsSync(entitiesDir)) {
@@ -265,7 +265,7 @@ export function autoDetect(
 
   const ops: PendingOp[] = newEntities.map(c => ({
     kind: "write" as const,
-    path: `Entities/_seen/${c.name}.md`,
+    path: `02_Entities/_seen/${c.name}.md`,
     body: renderEntityStub(c.name, c.description),
   }));
   const opId = `auto-detect-${slug.replace(/[^a-zA-Z0-9-]/g, "_")}-${Date.now()}`;

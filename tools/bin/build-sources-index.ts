@@ -13,7 +13,7 @@
  *   {
  *     "<normalized_url>": {
  *       "slug": "<source slug>",
- *       "repo_path": "Sources/2026/2026-04-19-foo.md",
+ *       "repo_path": "03_Sources/2026/2026-04-19-foo.md",
  *       "source_url": "<original source_url value from frontmatter>",
  *       "ingested_at": "<frontmatter created date>"
  *     },
@@ -135,7 +135,7 @@ export function buildIndex(repoRoot: string): SourceIndex {
   const out: SourceIndex = {};
   const paths = walkWikiDocs(repoRoot);
   for (const p of paths) {
-    if (bucketOf(p) !== "Sources") continue;
+    if (bucketOf(p) !== "03_Sources") continue;
     const raw = readFileSync(join(repoRoot, p), "utf8");
     const { data } = matter(raw);
     const rawSource = String(data.source_url ?? "").trim();

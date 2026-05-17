@@ -1,6 +1,6 @@
 /**
  * `hirono new-entity <Name>` — scaffold a new Entity stub at
- * `Entities/_seen/<Name>.md` with schema-conformant frontmatter and
+ * `02_Entities/_seen/<Name>.md` with schema-conformant frontmatter and
  * the standard `## Synthesis` / `## Observations` skeleton.
  *
  * The LLM still makes two judgment calls per new entity:
@@ -14,7 +14,7 @@
  * LLM doesn't have to remember it on every ingest.
  *
  * On-disk layout: new entities go to seen tier by default. `reindex.ts`
- * auto-promotes to `Entities/<Name>.md` once incoming refs cross 3.
+ * auto-promotes to `02_Entities/<Name>.md` once incoming refs cross 3.
  *
  * Exits non-zero if the target file already exists, the name contains
  * invalid characters, or the wiki root can't be found.
@@ -127,9 +127,9 @@ ${kindLine}
  */
 export function createEntityStub(repoRoot: string, name: string, kind: string): string {
   validateName(name);
-  const dir = join(repoRoot, "Entities", "_seen");
+  const dir = join(repoRoot, "02_Entities", "_seen");
   const path = join(dir, `${name}.md`);
-  const activePath = join(repoRoot, "Entities", `${name}.md`);
+  const activePath = join(repoRoot, "02_Entities", `${name}.md`);
   if (existsSync(path)) {
     throw new Error(`${path} already exists`);
   }

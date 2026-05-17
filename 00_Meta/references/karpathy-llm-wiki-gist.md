@@ -16,18 +16,18 @@ persistent compounding artifact, file-based markdown over RAG) but
 diverges in the concrete shape — frontmatter conventions, tier model
 (seen/active), Raindrop-fed corpus pipeline with a hard 3-state
 machine, per-site fetcher architecture, etc. When this file and the
-project's own docs (CLAUDE.md, Meta/schema.md, Meta/corpus-pipeline.md,
-Meta/operator-workflows.md) disagree, the project docs win.
+project's own docs (CLAUDE.md, 00_Meta/schema.md, 00_Meta/corpus-pipeline.md,
+00_Meta/operator-workflows.md) disagree, the project docs win.
 -->
 
 > **Reader note**: this is the original inspiration, preserved verbatim.
 > For what *this project* actually does today, the spec is
-> [`Meta/schema.md`](../schema.md) — including the three-tier image
+> [`00_Meta/schema.md`](../schema.md) — including the three-tier image
 > rule (load-bearing / supporting / decorative). Karpathy's gist
 > recommends downloading images via an Obsidian Attachment Folder; this
 > project localizes images at fetch time into
 > `raw/raindrop/<host>/<slug>/` and references them by relative path
-> from `Sources/`. Same spirit, different mechanics.
+> from `03_Sources/`. Same spirit, different mechanics.
 
 # LLM Wiki
 

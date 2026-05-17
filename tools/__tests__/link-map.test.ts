@@ -15,26 +15,26 @@ import {
 } from "../link-map.ts";
 
 test("slugOf strips .md and returns basename", () => {
-  assert.equal(slugOf("Meta/schema.md"), "schema");
-  assert.equal(slugOf("Sources/2026/2026-04-19-aws-trainium3.md"), "2026-04-19-aws-trainium3");
-  assert.equal(slugOf("Entities/_seen/Megatron.md"), "Megatron");
-  assert.equal(slugOf("Topics/Training Infrastructure.md"), "Training Infrastructure");
+  assert.equal(slugOf("00_Meta/schema.md"), "schema");
+  assert.equal(slugOf("03_Sources/2026/2026-04-19-aws-trainium3.md"), "2026-04-19-aws-trainium3");
+  assert.equal(slugOf("02_Entities/_seen/Megatron.md"), "Megatron");
+  assert.equal(slugOf("01_Topics/Training Infrastructure.md"), "Training Infrastructure");
 });
 
 test("bucketOf detects top-level bucket", () => {
-  assert.equal(bucketOf("Meta/schema.md"), "Meta");
-  assert.equal(bucketOf("Sources/2026/x.md"), "Sources");
-  assert.equal(bucketOf("Entities/_seen/y.md"), "Entities");
-  assert.equal(bucketOf("Topics/z.md"), "Topics");
+  assert.equal(bucketOf("00_Meta/schema.md"), "00_Meta");
+  assert.equal(bucketOf("03_Sources/2026/x.md"), "03_Sources");
+  assert.equal(bucketOf("02_Entities/_seen/y.md"), "02_Entities");
+  assert.equal(bucketOf("01_Topics/z.md"), "01_Topics");
   assert.equal(bucketOf("README.md"), null);
   assert.equal(bucketOf("tools/x.ts"), null);
 });
 
 test("typeForBucket returns the right type", () => {
-  assert.equal(typeForBucket("Meta"), "meta");
-  assert.equal(typeForBucket("Sources"), "source");
-  assert.equal(typeForBucket("Entities"), "entity");
-  assert.equal(typeForBucket("Topics"), "topic");
+  assert.equal(typeForBucket("00_Meta"), "meta");
+  assert.equal(typeForBucket("03_Sources"), "source");
+  assert.equal(typeForBucket("02_Entities"), "entity");
+  assert.equal(typeForBucket("01_Topics"), "topic");
 });
 
 test("sha256 is stable and differs for different input", () => {
@@ -67,8 +67,8 @@ test("saveMap + loadMap round-trip", () => {
       parents: { Meta: { doc_id: "p1", url: "https://example/p1" } },
       docs: {
         Megatron: {
-          repo_path: "Entities/Megatron.md",
-          bucket: "Entities",
+          repo_path: "02_Entities/Megatron.md",
+          bucket: "02_Entities",
           type: "entity",
           doc_id: "d1",
           url: "https://example/d1",
@@ -88,17 +88,17 @@ test("saveMap + loadMap round-trip", () => {
 test("walkWikiDocs finds .md in buckets; skips .gitkeep, README, tools", () => {
   const root = mkdtempSync(join(tmpdir(), "walk-test-"));
   try {
-    mkdirSync(join(root, "Meta"));
-    mkdirSync(join(root, "Sources/2026"), { recursive: true });
-    mkdirSync(join(root, "Entities/_seen"), { recursive: true });
-    mkdirSync(join(root, "Topics"));
+    mkdirSync(join(root, "00_Meta"));
+    mkdirSync(join(root, "03_Sources/2026"), { recursive: true });
+    mkdirSync(join(root, "02_Entities/_seen"), { recursive: true });
+    mkdirSync(join(root, "01_Topics"));
     mkdirSync(join(root, "tools"));
-    writeFileSync(join(root, "Meta/schema.md"), "x");
-    writeFileSync(join(root, "Meta/index.md"), "x");
-    writeFileSync(join(root, "Sources/2026/2026-04-19-foo.md"), "x");
-    writeFileSync(join(root, "Entities/_seen/.gitkeep"), "");
-    writeFileSync(join(root, "Entities/Megatron.md"), "x");
-    writeFileSync(join(root, "Topics/A.md"), "x");
+    writeFileSync(join(root, "00_Meta/schema.md"), "x");
+    writeFileSync(join(root, "00_Meta/index.md"), "x");
+    writeFileSync(join(root, "03_Sources/2026/2026-04-19-foo.md"), "x");
+    writeFileSync(join(root, "02_Entities/_seen/.gitkeep"), "");
+    writeFileSync(join(root, "02_Entities/Megatron.md"), "x");
+    writeFileSync(join(root, "01_Topics/A.md"), "x");
     writeFileSync(join(root, "README.md"), "x");
     writeFileSync(join(root, "tools/foo.ts"), "x");
 
@@ -106,11 +106,11 @@ test("walkWikiDocs finds .md in buckets; skips .gitkeep, README, tools", () => {
     assert.deepEqual(
       paths,
       [
-        "Entities/Megatron.md",
-        "Meta/index.md",
-        "Meta/schema.md",
-        "Sources/2026/2026-04-19-foo.md",
-        "Topics/A.md",
+        "00_Meta/index.md",
+        "00_Meta/schema.md",
+        "01_Topics/A.md",
+        "02_Entities/Megatron.md",
+        "03_Sources/2026/2026-04-19-foo.md",
       ],
     );
   } finally {
@@ -123,9 +123,9 @@ test("walkWikiDocs throws on slug collision at caller site", () => {
   // This test just confirms duplicate slug names appear as two distinct paths.
   const root = mkdtempSync(join(tmpdir(), "walk-collide-"));
   try {
-    mkdirSync(join(root, "Entities/_seen"), { recursive: true });
-    writeFileSync(join(root, "Entities/Foo.md"), "x");
-    writeFileSync(join(root, "Entities/_seen/Foo.md"), "x");
+    mkdirSync(join(root, "02_Entities/_seen"), { recursive: true });
+    writeFileSync(join(root, "02_Entities/Foo.md"), "x");
+    writeFileSync(join(root, "02_Entities/_seen/Foo.md"), "x");
 
     const paths = walkWikiDocs(root);
     const slugs = paths.map(slugOf);

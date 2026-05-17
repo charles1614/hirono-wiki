@@ -14,8 +14,8 @@ import { createHash } from "node:crypto";
 // types
 // ---------------------------------------------------------------------------
 
-export type Bucket = "Meta" | "Sources" | "Entities" | "Topics";
-export const BUCKETS: readonly Bucket[] = ["Meta", "Sources", "Entities", "Topics"] as const;
+export type Bucket = "00_Meta" | "03_Sources" | "02_Entities" | "01_Topics";
+export const BUCKETS: readonly Bucket[] = ["00_Meta", "03_Sources", "02_Entities", "01_Topics"] as const;
 
 export type DocType = "source" | "entity" | "topic" | "meta";
 
@@ -81,10 +81,10 @@ export function bucketOf(repoPath: string): Bucket | null {
 
 export function typeForBucket(b: Bucket): DocType {
   switch (b) {
-    case "Meta":     return "meta";
-    case "Sources":  return "source";
-    case "Entities": return "entity";
-    case "Topics":   return "topic";
+    case "00_Meta":     return "meta";
+    case "03_Sources":  return "source";
+    case "02_Entities": return "entity";
+    case "01_Topics":   return "topic";
   }
 }
 

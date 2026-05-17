@@ -37,7 +37,7 @@ const REPO_ROOT = resolve(dirname(THIS_FILE), "..", "..", "..");
 const RAW_INDEX_PATH = join(REPO_ROOT, "raw", "raindrop", "_index.json");
 
 /**
- * Build a set of slugs already present as `Sources/<year>/<slug>.md`.
+ * Build a set of slugs already present as `03_Sources/<year>/<slug>.md`.
  *
  * Why this exists: `loadIngestedUrlSet` dedups by normalized `source_url`,
  * but Raindrop short share URLs (Reddit `/s/<id>`, xhslink, etc.) redirect
@@ -89,7 +89,7 @@ export function computeIngestCandidates(opts: IngestCandidatesOpts = {}): Candid
   }
 
   const ingestedUrls = loadIngestedUrlSet(opts.sourcesIndexPath);
-  const ingestedSlugs = loadIngestedSlugSet(join(REPO_ROOT, "Sources"));
+  const ingestedSlugs = loadIngestedSlugSet(join(REPO_ROOT, "03_Sources"));
   const out: { entry: RawIndexEntry; ts: string }[] = [];
 
   for (const entry of Object.values(parsed.slugs ?? {})) {

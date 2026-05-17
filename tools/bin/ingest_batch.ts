@@ -81,7 +81,7 @@ export interface Paths {
    */
   rawIndex?: string;
   /**
-   * Repo root for resolving `Meta/sources-ingest-skips.md`. Optional;
+   * Repo root for resolving `00_Meta/sources-ingest-skips.md`. Optional;
    * defaults to the wiki root computed from this file's location.
    */
   repoRoot?: string;
@@ -205,7 +205,7 @@ export interface PlanResult {
   skippedFlagged: number;
   /**
    * Candidates rejected because their URL is in
-   * `Meta/sources-ingest-skips.md`. Operator-permanent exclusion.
+   * `00_Meta/sources-ingest-skips.md`. Operator-permanent exclusion.
    */
   skippedBySkipList: number;
   totalPending: number;
@@ -284,7 +284,7 @@ export function cmdPlan(
       result.dedupedById++;
       continue;
     }
-    // Skip-list gate: operator-permanent exclusion via Meta/sources-ingest-skips.md.
+    // Skip-list gate: operator-permanent exclusion via 00_Meta/sources-ingest-skips.md.
     if (skipEntries.length > 0) {
       const matched = isInSkipList(c.url, skipEntries) ?? isInSkipList(c.id, skipEntries);
       if (matched) {

@@ -25,7 +25,7 @@
  *   - `marker_single` (Datalab) — paper-shape body + figures when
  *                                 `HIRONO_USE_MARKER=1` is set.
  *
- * See P-36 in `Meta/site-handling-patterns.md` for the full pattern
+ * See P-36 in `00_Meta/site-handling-patterns.md` for the full pattern
  * write-up + design rationale.
  */
 

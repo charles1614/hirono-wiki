@@ -56,7 +56,7 @@ The key operator decision chart — quantifies how much MFU headroom Anthropic h
 ## What this changes
 
 - **Puts concrete numbers on the TPU economic thesis**: the "systems matter more than microarchitecture" claim now has a cited TCO figure (~44% lower) and a specific MFU crossover point (19% vs 30%). Previous Sources had architecture arguments; this Source adds the financial model.
-- **Establishes the externalization shift as real**: Anthropic 1M-TPU deal + Meta/SSI/xAI pipeline signals that Google's TPU is now a merchant-silicon competitor, not just a Google-internal platform.
+- **Establishes the externalization shift as real**: Anthropic 1M-TPU deal + 00_Meta/SSI/xAI pipeline signals that Google's TPU is now a merchant-silicon competitor, not just a Google-internal platform.
 - **Identifies PyTorch native backend as the key software unlock**: the RFC #9684 move to native TPU dispatch is the lever that could open TPU to the majority of ML researchers currently locked in to CUDA/PyTorch. Timing and completeness remain unresolved.
 - **Flags the open-source gap as the primary remaining moat risk**: Google's closed XLA:TPU compiler and MegaScale runtime are the barriers named in this Source — not silicon, not TCO.
 

@@ -1,5 +1,5 @@
 /**
- * `excerptSource` — read a Sources/YYYY/<slug>.md and return only the
+ * `excerptSource` — read a 03_Sources/YYYY/<slug>.md and return only the
  * curated sections (TL;DR, Key claims, What this changes, plus the
  * Entities/Topics-touched cross-link blocks).
  *
@@ -91,16 +91,16 @@ export function excerptSource(repoRoot: string, sourcePath: string, mode: Excerp
 }
 
 /**
- * Resolve a Source slug to its repo-relative path. Searches Sources/YYYY/.
+ * Resolve a Source slug to its repo-relative path. Searches 03_Sources/YYYY/.
  * Returns null if not found.
  */
 export function resolveSourceSlug(repoRoot: string, slug: string): string | null {
   const fs = require("node:fs") as typeof import("node:fs");
-  const sourcesDir = join(repoRoot, "Sources");
+  const sourcesDir = join(repoRoot, "03_Sources");
   if (!fs.existsSync(sourcesDir)) return null;
   for (const year of fs.readdirSync(sourcesDir)) {
     if (!/^\d{4}$/.test(year)) continue;
-    const candidate = `Sources/${year}/${slug}.md`;
+    const candidate = `03_Sources/${year}/${slug}.md`;
     if (fs.existsSync(join(repoRoot, candidate))) return candidate;
   }
   return null;

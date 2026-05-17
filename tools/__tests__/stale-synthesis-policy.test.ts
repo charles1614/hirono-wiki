@@ -29,9 +29,9 @@ function todayMinusDays(d: number): string {
 function makeEntity(slug: string, synthesisDate: string, observations: number, includeStubBody = false): DocMeta {
   const obsBullets = Array.from({ length: observations }, (_, i) => `- Atomic claim ${i + 1} — [[some-source]]`).join("\n");
   return {
-    repo_path: `Entities/${slug}.md`,
+    repo_path: `02_Entities/${slug}.md`,
     slug,
-    bucket: "Entities",
+    bucket: "02_Entities",
     frontmatter: { synthesis_updated_at: synthesisDate, type: "entity", refs: 3, tier: "active" },
     body: `# ${slug}\n\nKind line.\n\n## Synthesis\n\n${includeStubBody ? "*Regenerated from Observations below.*" : `Substantive synthesis paragraph for ${slug}.`}\n\n## Observations\n\n${obsBullets}\n`,
     wikilinks: new Set(),
@@ -40,9 +40,9 @@ function makeEntity(slug: string, synthesisDate: string, observations: number, i
 
 function makeSource(slug: string, updatedDate: string, wikilinks: string[]): DocMeta {
   return {
-    repo_path: `Sources/2026/${slug}.md`,
+    repo_path: `03_Sources/2026/${slug}.md`,
     slug,
-    bucket: "Sources",
+    bucket: "03_Sources",
     frontmatter: { updated: updatedDate, type: "source" },
     body: "Source body",
     wikilinks: new Set(wikilinks),
@@ -116,7 +116,7 @@ test("stub-Synthesis entities are not flagged (other rules catch them)", () => {
 
 test("_seen/ tier entities are not flagged", () => {
   const entity = makeEntity("Seen", todayMinusDays(60), 5);
-  entity.repo_path = "Entities/_seen/Seen.md";
+  entity.repo_path = "02_Entities/_seen/Seen.md";
   const issues = checkStaleSynthesis([entity] as never);
   assert.equal(issues.length, 0);
 });
@@ -127,19 +127,19 @@ test("_seen/ tier entities are not flagged", () => {
 
 test("curation-needed: silent below threshold", () => {
   const issues = checkCurationNeeded([
-    { kind: "stale-synthesis", severity: "warn", path: "Entities/A.md", detail: "" },
-    { kind: "orphans", severity: "warn", path: "Entities/_seen/B.md", detail: "" },
+    { kind: "stale-synthesis", severity: "warn", path: "02_Entities/A.md", detail: "" },
+    { kind: "orphans", severity: "warn", path: "02_Entities/_seen/B.md", detail: "" },
   ] as never);
   assert.equal(issues.length, 0);
 });
 
 test("curation-needed: fires when stale + orphans + tier-mismatch ≥ 5", () => {
   const fakeIssues = [
-    { kind: "stale-synthesis", severity: "warn", path: "Entities/A.md", detail: "" },
-    { kind: "stale-synthesis", severity: "warn", path: "Entities/B.md", detail: "" },
-    { kind: "orphans", severity: "warn", path: "Entities/_seen/C.md", detail: "" },
-    { kind: "orphans", severity: "warn", path: "Entities/_seen/D.md", detail: "" },
-    { kind: "tier-mismatch", severity: "error", path: "Entities/E.md", detail: "" },
+    { kind: "stale-synthesis", severity: "warn", path: "02_Entities/A.md", detail: "" },
+    { kind: "stale-synthesis", severity: "warn", path: "02_Entities/B.md", detail: "" },
+    { kind: "orphans", severity: "warn", path: "02_Entities/_seen/C.md", detail: "" },
+    { kind: "orphans", severity: "warn", path: "02_Entities/_seen/D.md", detail: "" },
+    { kind: "tier-mismatch", severity: "error", path: "02_Entities/E.md", detail: "" },
   ];
   const issues = checkCurationNeeded(fakeIssues as never);
   assert.equal(issues.length, 1);

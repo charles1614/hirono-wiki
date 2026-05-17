@@ -39,7 +39,7 @@ function sandbox(opts: { withRawIndex?: boolean } = {}): {
       writeFileSync(paths.rawIndex!, JSON.stringify({ version: 1, updated_at: "2026-05-09T00:00:00Z", slugs: entries }));
     },
     writeSkipsFile(content) {
-      const metaDir = join(dir, "Meta");
+      const metaDir = join(dir, "00_Meta");
       mkdirSync(metaDir, { recursive: true });
       writeFileSync(join(metaDir, "sources-ingest-skips.md"), content);
     },
@@ -86,7 +86,7 @@ test("plan: dedups against .wiki-sources-index.json by normalized URL", () => {
   const s = sandbox();
   try {
     writeFileSync(s.paths.sourcesIndex, JSON.stringify({
-      "https://example.com/already": { slug: "already", repo_path: "Sources/2026/already.md", source_url: "https://example.com/already", ingested_at: "2026-04-20" },
+      "https://example.com/already": { slug: "already", repo_path: "03_Sources/2026/already.md", source_url: "https://example.com/already", ingested_at: "2026-04-20" },
     }));
     const file = s.candidatesFile([
       // trailing slash + tracking params → normalizes to the already-ingested URL

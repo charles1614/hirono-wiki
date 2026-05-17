@@ -130,7 +130,7 @@ function loadDocs(repoRoot: string): Doc[] {
 function computeRefs(docs: Doc[]): Map<string, number> {
   const refs = new Map<string, number>();
   for (const doc of docs) {
-    if (doc.path.startsWith("Meta/")) continue;
+    if (doc.path.startsWith("00_Meta/")) continue;
     for (const target of doc.wikilinks) {
       if (target === doc.slug) continue;
       refs.set(target, (refs.get(target) ?? 0) + 1);
@@ -169,7 +169,7 @@ interface ContradictionItem { slug: string; quote: string; sourceSlug: string }
 function auditOrphans(docs: Doc[], refs: Map<string, number>): OrphanItem[] {
   const out: OrphanItem[] = [];
   for (const doc of docs) {
-    if (!doc.path.startsWith("Entities/_seen/")) continue;
+    if (!doc.path.startsWith("02_Entities/_seen/")) continue;
     if ((refs.get(doc.slug) ?? 0) === 0) {
       out.push({ slug: doc.slug, path: doc.path });
     }
@@ -182,12 +182,12 @@ function auditStaleSynthesis(docs: Doc[]): StaleItem[] {
   // Build slug→updated for Sources
   const sourceUpdated = new Map<string, string>();
   for (const d of docs) {
-    if (!d.path.startsWith("Sources/")) continue;
+    if (!d.path.startsWith("03_Sources/")) continue;
     const u = String(d.frontmatter.updated ?? "");
     if (u) sourceUpdated.set(d.slug, u);
   }
   for (const d of docs) {
-    if (!d.path.startsWith("Entities/") || d.path.startsWith("Entities/_seen/")) continue;
+    if (!d.path.startsWith("02_Entities/") || d.path.startsWith("02_Entities/_seen/")) continue;
     // Get the entity's synthesis_updated_at, or fall back to `updated`
     const synthDate = (d.frontmatter.synthesis_updated_at as string | undefined)
       ?? (d.frontmatter.updated as string | undefined)
@@ -196,7 +196,7 @@ function auditStaleSynthesis(docs: Doc[]): StaleItem[] {
     // Find citing Sources via wikilinks
     let newest: { slug: string; updated: string } | null = null;
     for (const otherDoc of docs) {
-      if (!otherDoc.path.startsWith("Sources/")) continue;
+      if (!otherDoc.path.startsWith("03_Sources/")) continue;
       if (!otherDoc.wikilinks.has(d.slug)) continue;
       const su = sourceUpdated.get(otherDoc.slug);
       if (!su) continue;
@@ -210,7 +210,7 @@ function auditStaleSynthesis(docs: Doc[]): StaleItem[] {
 }
 
 function auditDuplicateEntities(docs: Doc[], refs: Map<string, number>): DuplicateItem[] {
-  const entities = docs.filter((d) => d.path.startsWith("Entities/"));
+  const entities = docs.filter((d) => d.path.startsWith("02_Entities/"));
   const out: DuplicateItem[] = [];
   for (let i = 0; i < entities.length; i++) {
     for (let j = i + 1; j < entities.length; j++) {
@@ -234,7 +234,7 @@ function auditDuplicateEntities(docs: Doc[], refs: Map<string, number>): Duplica
 }
 
 function auditTopicCollisions(docs: Doc[]): CollisionItem[] {
-  const topics = docs.filter((d) => d.path.startsWith("Topics/"));
+  const topics = docs.filter((d) => d.path.startsWith("01_Topics/"));
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
   const buckets = new Map<string, string[]>();
   for (const t of topics) {
@@ -257,7 +257,7 @@ const RETRACTION_RE = /\b(retired|superseded|walks? away from|returns? to|no lon
 function auditContradictions(docs: Doc[]): ContradictionItem[] {
   const out: ContradictionItem[] = [];
   for (const d of docs) {
-    if (!d.path.startsWith("Entities/") || d.path.startsWith("Entities/_seen/")) continue;
+    if (!d.path.startsWith("02_Entities/") || d.path.startsWith("02_Entities/_seen/")) continue;
     // Extract Synthesis + Observations sections
     const synthMatch = d.body.match(/^## Synthesis\s*$([\s\S]*?)(?=^## |\Z)/m);
     const obsMatch = d.body.match(/^## Observations\s*$([\s\S]*?)(?=^## |\Z)/m);
@@ -364,7 +364,7 @@ function loadRaindropUrlCache(repoRoot: string): Set<string> {
 
 /** Load sources-health-overrides.md and return pinned URLs by pin-kind. */
 function loadHealthOverrides(repoRoot: string): Map<string, string[]> {
-  const path = join(repoRoot, "Meta", "sources-health-overrides.md");
+  const path = join(repoRoot, "00_Meta", "sources-health-overrides.md");
   if (!existsSync(path)) return new Map();
   const out = new Map<string, string[]>();
   let content: string;
@@ -401,7 +401,7 @@ function auditDrift(repoRoot: string, docs: Doc[], opts: { maxAgeDays?: number }
   // Index Sources by slug (the slug of a Source matches the raw-archive slug)
   const sourceBySlug = new Map<string, Doc>();
   for (const d of docs) {
-    if (!d.path.startsWith("Sources/")) continue;
+    if (!d.path.startsWith("03_Sources/")) continue;
     sourceBySlug.set(d.slug, d);
   }
 
@@ -481,7 +481,7 @@ function auditSources(docs: Doc[]): SourcesAudit {
   const topicOnlyCited: TopicOnlyCitedItem[] = [];
 
   // Gather Source docs + their tag sets
-  const sources = docs.filter(d => d.path.startsWith("Sources/"));
+  const sources = docs.filter(d => d.path.startsWith("03_Sources/"));
   const sourceBySlug = new Map<string, Doc>();
   for (const s of sources) sourceBySlug.set(s.slug, s);
 
@@ -514,8 +514,8 @@ function auditSources(docs: Doc[]): SourcesAudit {
   const entitiesCitingSource = new Map<string, Set<string>>();   // source slug → entity slugs
   const topicsCitingSource = new Map<string, Set<string>>();
   for (const d of docs) {
-    const isEntity = d.path.startsWith("Entities/");
-    const isTopic = d.path.startsWith("Topics/");
+    const isEntity = d.path.startsWith("02_Entities/");
+    const isTopic = d.path.startsWith("01_Topics/");
     if (!isEntity && !isTopic) continue;
     for (const link of d.wikilinks) {
       if (!sourceBySlug.has(link)) continue;
@@ -616,7 +616,7 @@ function renderMarkdown(scope: Scope, audit: {
         lines.push(`- \`${c.slug}\` — Observation cites retraction:`);
         lines.push(`  - "${c.quote}…"`);
         lines.push(`  - source: \`${c.sourceSlug}\``);
-        lines.push(`  - action: rewrite \`Entities/${c.slug}.md\` \`## Synthesis\` to acknowledge; bump \`synthesis_updated_at:\`.`);
+        lines.push(`  - action: rewrite \`02_Entities/${c.slug}.md\` \`## Synthesis\` to acknowledge; bump \`synthesis_updated_at:\`.`);
       }
       lines.push("");
     }
@@ -629,7 +629,7 @@ function renderMarkdown(scope: Scope, audit: {
     else {
       for (const i of d.shaDrift) {
         lines.push(`- \`${i.slug}\` — old SHA \`${i.oldSha}\` → new \`${i.newSha}\` (latest fetch ${i.latestRevAt}, Source updated ${i.sourceUpdated})`);
-        lines.push(`  - action: re-read raw, update \`Sources/.../${i.slug}.md\` body + bump \`updated:\`.`);
+        lines.push(`  - action: re-read raw, update \`03_Sources/.../${i.slug}.md\` body + bump \`updated:\`.`);
       }
       lines.push("");
     }
@@ -639,7 +639,7 @@ function renderMarkdown(scope: Scope, audit: {
     else {
       for (const i of d.deadUrls) lines.push(`- \`${i.slug}\` (${i.rawDir}) — ${i.reason}`);
       lines.push("");
-      lines.push("If you want to keep the Source despite a dead upstream, pin in `Meta/sources-health-overrides.md` with `pin-kind=dead-link-accepted`.", "");
+      lines.push("If you want to keep the Source despite a dead upstream, pin in `00_Meta/sources-health-overrides.md` with `pin-kind=dead-link-accepted`.", "");
     }
 
     lines.push(`## Raindrop-deleted URLs (still in raw/, no longer in raindrop): ${d.raindropDeleted.length}`, "");

@@ -7,13 +7,13 @@ type: meta
 # Corpus pipeline — Raindrop bookmark to ingested wiki page
 
 How a URL flows from a Raindrop bookmark, through the fetch pipeline,
-into a `Sources/<year>/<slug>.md` wiki summary. Three states, two
+into a `03_Sources/<year>/<slug>.md` wiki summary. Three states, two
 forward transitions, one protected backward edge.
 
 This is the high-level design view. For per-command operator
-runbooks see [`Meta/operator-workflows.md`](operator-workflows.md).
+runbooks see [`00_Meta/operator-workflows.md`](operator-workflows.md).
 For per-host extraction patterns see
-[`Meta/site-handling-patterns.md`](site-handling-patterns.md).
+[`00_Meta/site-handling-patterns.md`](site-handling-patterns.md).
 
 ---
 
@@ -57,7 +57,7 @@ jq '[.slugs[].state] | group_by(.) | map({state: .[0], count: length})' raw/rain
 |---|---|---|
 | `not-yet-good` | `quality_status !== "good"` in `source.json`. Extraction has problems — auth-walled, paywalled, SPA empty after browser-eval, content too short, etc. Cannot be ingested as-is. | ~204 |
 | `ingest-ready` | `quality_status === "good"` AND URL is NOT in `.wiki-sources-index.json`. Clean raw archive, no wiki summary yet — this is the LLM-ingest queue. | ~369 |
-| `ingested` | `quality_status === "good"` AND URL IS in `.wiki-sources-index.json` (i.e. a `Sources/<year>/<slug>.md` page references it). | ~6 (early days) |
+| `ingested` | `quality_status === "good"` AND URL IS in `.wiki-sources-index.json` (i.e. a `03_Sources/<year>/<slug>.md` page references it). | ~6 (early days) |
 
 ### §1.1 At a glance — the full pipeline
 
@@ -160,7 +160,7 @@ fixes:
 | `upstream-paywall` | Hard paywall (economictimes, scribd, elsevier) | Accept stub |
 | `upstream-deleted` | Page returned 404 / deleted-page body | `rm -rf` slug OR find archive.org snapshot |
 | `upstream-not-html` | PDF / app-store / binary | P-36 PDF render OR accept stub |
-| `content-too-short` | Body below host-expected size | Eyeball + pin via `Meta/sources-health-overrides.md` |
+| `content-too-short` | Body below host-expected size | Eyeball + pin via `00_Meta/sources-health-overrides.md` |
 | `content-incomplete-images` | Some images failed to download | Set `GITHUB_TOKEN`; v2ex Wayback fallback (P-43) |
 | `content-incomplete-images-zero` | All images failed | Investigate the image-host; possibly a CDN throttle |
 | `intentional-stub-app-only` | Calculator / dashboard / search-results URL | Stub by design — accept |
@@ -187,7 +187,7 @@ done
 
 Look for the pattern. If they all genuinely ARE short by design (small
 README, deleted note, a tweet), the right action is to pin them as
-`clean` via `Meta/sources-health-overrides.md`:
+`clean` via `00_Meta/sources-health-overrides.md`:
 
 ```markdown
 ## 2026-05-09
@@ -210,7 +210,7 @@ Slugs that pass classification flip to `ingest-ready` automatically.
 ## §3 Transition B: INGEST-READY → INGESTED
 
 LLM-driven. The operator picks candidates, asks the LLM to summarize
-each into a `Sources/<year>/<slug>.md` page, and tracks state via
+each into a `03_Sources/<year>/<slug>.md` page, and tracks state via
 `ingest_batch`.
 
 ### The pipeline
@@ -235,7 +235,7 @@ protects it (§4 below).
 
 ### Sources page conventions
 
-A `Sources/<year>/<slug>.md` page has:
+A `03_Sources/<year>/<slug>.md` page has:
 
 ```yaml
 ---
@@ -257,7 +257,7 @@ URL → slug map by. It MUST be the same URL the raw archive was
 fetched against (or a share-aggregator wrapper that unwraps to the
 same target — P-32 unwrap is symmetric).
 
-See [`Meta/schema.md`](schema.md) for full page conventions.
+See [`00_Meta/schema.md`](schema.md) for full page conventions.
 
 ---
 
@@ -646,11 +646,11 @@ through the test-capture workflow.
 | What's this slug's quality status? | `raw/raindrop/<host>/<slug>/source.json` | `jq '.quality_status' …source.json` |
 | Same, corpus-wide | `raw/raindrop/_index.json` (mirror) | `jq '.slugs[].quality_status' …` |
 | What's this slug's pipeline state? | `_index.json[slug].state` (derived; commit `8914d1c`) | `jq '.slugs.<slug>.state' …` |
-| Has this slug been ingested? | `Sources/<year>/<slug>.md` exists OR URL ∈ `.wiki-sources-index.json` | `ls Sources/*/<slug>.md` OR `jq 'has("<url>")' .wiki-sources-index.json` |
+| Has this slug been ingested? | `03_Sources/<year>/<slug>.md` exists OR URL ∈ `.wiki-sources-index.json` | `ls Sources/*/<slug>.md` OR `jq 'has("<url>")' .wiki-sources-index.json` |
 | What candidates are ready for ingest? | derived from `_index.json` ∩ `.wiki-sources-index.json` | `hirono raindrop ingest-candidates` |
 | What slugs need work? | `quality_status !== "good"` rows | `hirono raindrop status` |
-| What slugs are deliberately accepted as-is? | `Meta/fetch-decisions.md` (slug-level) | grep |
-| What kinds are deliberately overridden? | `Meta/sources-health-overrides.md` (kind pins) | grep |
+| What slugs are deliberately accepted as-is? | `00_Meta/fetch-decisions.md` (slug-level) | grep |
+| What kinds are deliberately overridden? | `00_Meta/sources-health-overrides.md` (kind pins) | grep |
 
 ---
 

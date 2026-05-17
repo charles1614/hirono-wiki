@@ -13,7 +13,7 @@
  *
  * Raindrop bookmark stays upstream (we don't have write API); skip-list
  * permanently shields against re-fetch / re-ingest regardless. To un-skip
- * later: delete the line from `Meta/sources-ingest-skips.md`.
+ * later: delete the line from `00_Meta/sources-ingest-skips.md`.
  *
  * NOT a default path. The Karpathy-aligned default for any URL in raw is
  * to ingest it (and run auto-detect-entities to grow the graph). Use
@@ -41,7 +41,7 @@ function usage(): never {
   console.error(`usage: hirono raindrop forget <slug-or-url> [--reason "<text>"] [--skip-reason <kind>] [--force]
 
 Composed accident cleanup: removes local artifacts (Source + raw archive)
-AND adds the URL to Meta/sources-ingest-skips.md so future ingests skip it.
+AND adds the URL to 00_Meta/sources-ingest-skips.md so future ingests skip it.
 
 Args:
   <slug-or-url>           Either a slug (2026-04-23-foo) or a full URL.
@@ -117,19 +117,19 @@ function listRawSlugUrls(repoRoot: string): Array<{ slug: string; host: string; 
 }
 
 function findSourcePath(repoRoot: string, slug: string): string | null {
-  const sourcesDir = join(repoRoot, "Sources");
+  const sourcesDir = join(repoRoot, "03_Sources");
   if (!existsSync(sourcesDir)) return null;
   for (const year of readdirSync(sourcesDir)) {
     if (!/^\d{4}$/.test(year)) continue;
-    const p = `Sources/${year}/${slug}.md`;
+    const p = `03_Sources/${year}/${slug}.md`;
     if (existsSync(join(repoRoot, p))) return p;
   }
   return null;
 }
 
-/** Append an entry to Meta/sources-ingest-skips.md (under the "## Entries" section). */
+/** Append an entry to 00_Meta/sources-ingest-skips.md (under the "## Entries" section). */
 function appendSkipEntry(repoRoot: string, key: string, skipReason: string, rationale: string): void {
-  const path = join(repoRoot, "Meta", "sources-ingest-skips.md");
+  const path = join(repoRoot, "00_Meta", "sources-ingest-skips.md");
   mkdirSync(dirname(path), { recursive: true });
   let content: string;
   if (existsSync(path)) {
@@ -229,7 +229,7 @@ export function forget(
     appendLogEntry(repoRoot, "refactor", `Added \`${skipKey}\` to ingest skip-list`, [
       `Skip-reason: ${skipReason}.`,
       opts.reason ? `Rationale: ${opts.reason}` : `(no rationale provided)`,
-      `To un-skip: delete the line from Meta/sources-ingest-skips.md.`,
+      `To un-skip: delete the line from 00_Meta/sources-ingest-skips.md.`,
     ]);
   }
 
@@ -247,7 +247,7 @@ export function main(argv: string[]): void {
     if (r.rawDir) console.log(`  ${r.rawDeleted ? "deleted" : "kept"} raw archive: ${r.rawDir}`);
     console.log(`✓ added to skip-list: ${r.skipKey} (skip-reason=${args.skipReason})`);
     console.log(`\nNext: skip-list permanently shields against re-fetch/re-ingest.`);
-    console.log(`To un-skip later: delete the line from Meta/sources-ingest-skips.md.`);
+    console.log(`To un-skip later: delete the line from 00_Meta/sources-ingest-skips.md.`);
   } catch (e) {
     console.error(`error: ${(e as Error).message}`);
     process.exit(1);

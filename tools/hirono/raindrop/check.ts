@@ -415,7 +415,7 @@ export function runCheck(opts: CheckOpts = {}): { report: CheckReport; exitCode:
   if (!existsSync(path)) {
     throw new Error(
       `[check] cache not found at ${path}. ` +
-      `Populate it first (use the MCP-based refresh documented in Meta/schema.md, ` +
+      `Populate it first (use the MCP-based refresh documented in 00_Meta/schema.md, ` +
       `or pass --input <path>).`
     );
   }

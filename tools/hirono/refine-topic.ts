@@ -77,7 +77,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function findTopicFile(repoRoot: string, name: string): string | null {
-  const p = `Topics/${name}.md`;
+  const p = `01_Topics/${name}.md`;
   return existsSync(join(repoRoot, p)) ? p : null;
 }
 
@@ -107,7 +107,7 @@ function extractSourceCitations(body: string): string[] {
     const target = m[1].trim();
     // Source slugs typically start with YYYY-MM-DD-
     if (/^\d{4}-\d{2}-\d{2}-/.test(target)) out.add(target);
-    else if (target.startsWith("Sources/")) {
+    else if (target.startsWith("03_Sources/")) {
       const slug = target.replace(/^Sources\/(?:\d{4}\/)?/, "").replace(/\.md$/, "");
       out.add(slug);
     }
@@ -116,11 +116,11 @@ function extractSourceCitations(body: string): string[] {
 }
 
 function resolveSourcePath(repoRoot: string, slug: string): string | null {
-  const sourcesDir = join(repoRoot, "Sources");
+  const sourcesDir = join(repoRoot, "03_Sources");
   if (!existsSync(sourcesDir)) return null;
   for (const year of readdirSync(sourcesDir)) {
     if (!/^\d{4}$/.test(year)) continue;
-    const candidate = `Sources/${year}/${slug}.md`;
+    const candidate = `03_Sources/${year}/${slug}.md`;
     if (existsSync(join(repoRoot, candidate))) return candidate;
   }
   return null;

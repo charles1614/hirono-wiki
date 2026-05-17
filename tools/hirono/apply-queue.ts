@@ -1,6 +1,6 @@
 /**
  * `hirono apply-queue` — execute approved curation proposals from
- * `Meta/curation-queue.md`.
+ * `00_Meta/curation-queue.md`.
  *
  * Reads the queue markdown produced by `propose-curation --finalize`. For
  * each proposal section, the operator either:
@@ -39,13 +39,13 @@ interface ParsedArgs {
 function usage(): never {
   console.error(`usage: hirono apply-queue [--auto-apply <high|medium|low>] [--dry-run] [--queue <path>]
 
-Execute approved proposals from Meta/curation-queue.md.
+Execute approved proposals from 00_Meta/curation-queue.md.
 
 Flags:
   --auto-apply <level>   Dispatch all proposals at confidence >= <level>,
                          ignoring checkbox state. high|medium|low.
   --dry-run              Print what would happen; don't dispatch.
-  --queue <path>         Override queue file location (default: Meta/curation-queue.md).
+  --queue <path>         Override queue file location (default: 00_Meta/curation-queue.md).
 `);
   process.exit(2);
 }
@@ -53,7 +53,7 @@ Flags:
 function parseArgs(argv: string[]): ParsedArgs {
   let autoApply: ParsedArgs["autoApply"] = null;
   let dryRun = false;
-  let queuePath = "Meta/curation-queue.md";
+  let queuePath = "00_Meta/curation-queue.md";
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--auto-apply") {
@@ -180,7 +180,7 @@ function splitArgv(cmd: string): string[] {
 // ---------------------------------------------------------------------------
 
 export function applyQueue(repoRoot: string, opts: { autoApply?: ParsedArgs["autoApply"]; dryRun?: boolean; queuePath?: string } = {}): ApplyResult[] {
-  const queueAbs = join(repoRoot, opts.queuePath ?? "Meta/curation-queue.md");
+  const queueAbs = join(repoRoot, opts.queuePath ?? "00_Meta/curation-queue.md");
   if (!existsSync(queueAbs)) throw new Error(`queue file not found: ${queueAbs}`);
   const markdown = readFileSync(queueAbs, "utf8");
   const items = parseQueue(markdown);

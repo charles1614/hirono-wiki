@@ -5,4 +5,4 @@
 
 ---
 
-*This URL was rejected during fetch with an L2 (skip-and-continue) error. Edit the bookmark, accept the stub via Meta/fetch-decisions.md, or fix the underlying upstream issue if applicable.*
+*This URL was rejected during fetch with an L2 (skip-and-continue) error. Edit the bookmark, accept the stub via 00_Meta/fetch-decisions.md, or fix the underlying upstream issue if applicable.*

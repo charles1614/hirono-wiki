@@ -8,7 +8,7 @@
  * `--all-zero`: delete every `_seen/` orphan with refs=0 (use after review).
  * `--dry-run`: with `--confirm` or `--all-zero`, prints what would happen.
  *
- * Only deletes from `Entities/_seen/`. Never active-tier entities, never
+ * Only deletes from `02_Entities/_seen/`. Never active-tier entities, never
  * Topics, never Sources. Emits a refactor log entry summarizing the
  * deletion.
  */
@@ -44,7 +44,7 @@ Flags:
 Safety:
   - Only deletes files in Entities/_seen/. Never active-tier entities,
     never Topics, never Sources.
-  - Emits a refactor entry to Meta/log-YYYY.md listing the deleted slugs.
+  - Emits a refactor entry to 00_Meta/log-YYYY.md listing the deleted slugs.
   - After successful delete, run \`npx tsx tools/bin/reindex.ts\` to refresh indexes.
 `);
   process.exit(2);
@@ -80,7 +80,7 @@ export function computeOrphans(repoRoot: string): { slug: string; path: string }
   // Build refs map (citations FROM non-Meta pages TO any slug)
   const refs = new Map<string, number>();
   for (const repoPath of paths) {
-    if (repoPath.startsWith("Meta/")) continue;
+    if (repoPath.startsWith("00_Meta/")) continue;
     let raw: string;
     try { raw = readFileSync(join(repoRoot, repoPath), "utf8"); } catch { continue; }
     const { content } = matter(raw);
@@ -91,14 +91,14 @@ export function computeOrphans(repoRoot: string): { slug: string; path: string }
     }
   }
   // Walk _seen/ entities, return those with refs=0 (or not in refs map at all)
-  const seenDir = join(repoRoot, "Entities", "_seen");
+  const seenDir = join(repoRoot, "02_Entities", "_seen");
   if (!existsSync(seenDir)) return [];
   const out: { slug: string; path: string }[] = [];
   for (const entry of readdirSync(seenDir)) {
     if (!entry.endsWith(".md")) continue;
     const slug = entry.slice(0, -3);
     const count = refs.get(slug) ?? 0;
-    if (count === 0) out.push({ slug, path: `Entities/_seen/${entry}` });
+    if (count === 0) out.push({ slug, path: `02_Entities/_seen/${entry}` });
   }
   return out;
 }
@@ -158,14 +158,14 @@ export function main(argv: string[]): void {
 
   appendLogEntry(repoRoot, "refactor", `Delete ${toDelete.length} _seen/ orphan entities`, [
     `Deleted slugs (refs=0): ${toDelete.map(o => `\`${o.slug}\``).join(", ")}.`,
-    `Run \`npx tsx tools/bin/reindex.ts\` to refresh Meta/index*.md.`,
+    `Run \`npx tsx tools/bin/reindex.ts\` to refresh 00_Meta/index*.md.`,
   ]);
 
   cleanupStaging(repoRoot, opId);
 
   console.log(`✓ deleted ${toDelete.length} _seen/ orphan entities`);
   for (const o of toDelete) console.log(`  ✓ ${o.path}`);
-  console.log(`✓ refactor log entry appended to Meta/log-${new Date().getFullYear()}.md`);
+  console.log(`✓ refactor log entry appended to 00_Meta/log-${new Date().getFullYear()}.md`);
   console.log(`\nNext: run \`npx tsx tools/bin/reindex.ts\` to refresh indexes.`);
 }
 

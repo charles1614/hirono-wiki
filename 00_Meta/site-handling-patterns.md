@@ -754,7 +754,7 @@ Common shapes that hit this:
 
 Reference output: `sweep-results/1cb887bb.pinit.eth.limo/sample-converted.md`.
 
-**Remediation (automated, future).** Extend `tools/sites/_default/index.ts` body-selector cascade with `<body>` as a final fallback. Apply alongside aggressive dropSelectors (`style, script, noscript, nav, footer, aside, header`). Fire only when (a) no narrower selector matched AND (b) the body's text-after-strip exceeds a threshold (~300 chars) so SPA shells pre-hydration still go through the browser-eval path. Tracked in `Meta/post-fetch-todo.md`.
+**Remediation (automated, future).** Extend `tools/sites/_default/index.ts` body-selector cascade with `<body>` as a final fallback. Apply alongside aggressive dropSelectors (`style, script, noscript, nav, footer, aside, header`). Fire only when (a) no narrower selector matched AND (b) the body's text-after-strip exceeds a threshold (~300 chars) so SPA shells pre-hydration still go through the browser-eval path. Tracked in `00_Meta/post-fetch-todo.md`.
 
 **Generalization.** Two heuristics for when the body-direct fallback should fire:
 
@@ -809,7 +809,7 @@ Concrete corpus example: `blog.google` ironwood-tpu article. The article has 4 i
 
 **Remediation.** `_default`'s `browserFetch` now scrolls the page progressively (0% → 100% → 0% in 9 steps with 600ms pauses, ~5s total) BEFORE extracting outerHTML. Intersection observers fire at each scroll position, lazy-loaded images upgrade their `src` to high-res URLs, and the captured HTML reflects the post-scroll state. The extracted markdown then references the high-res URLs, which the image-download phase saves at native resolution.
 
-The scroll cost (~5s) is paid on every browser-eval-routed fetch. Non-browser routes (curl-only article-shape sites going through the article-site factory) DON'T benefit from this — the factory is curl-only by design. Sites with substantive lazy-loading on the curl path stay sub-good for images until the factory grows browser-assist; tracked in `Meta/post-fetch-todo.md`.
+The scroll cost (~5s) is paid on every browser-eval-routed fetch. Non-browser routes (curl-only article-shape sites going through the article-site factory) DON'T benefit from this — the factory is curl-only by design. Sites with substantive lazy-loading on the curl path stay sub-good for images until the factory grows browser-assist; tracked in `00_Meta/post-fetch-todo.md`.
 
 **Generalization.** Three rules of thumb:
 
@@ -1059,14 +1059,14 @@ After reading 2–3 sample URLs from a new host, classify into one of these. Eac
 | **PR / issue / discussion** | OP + activity timeline + threaded comments + reactions | Split-speaker: `## username` heading + `> opened/commented/replied on … · Role` blockquote + body. Strip activity events, reactions, avatars per CLAUDE.md §3 | github.com PR/issue/discussion |
 | **Catalog / table page** | Page is mostly a structured table/note with metadata fields | Title + author/metadata callout + flattened table. Image-only variants get explicit "Text content unavailable" marker | xhs, github releases |
 | **Data / interactive viz** | Interactive chart/dashboard; real data lives in JS state or a CSV download | Intro prose + `## Dataset (top N of M rows)` markdown table built from the CSV | epoch.ai |
-| **Wiki / docs** | Multi-page hierarchy, mermaid diagrams, rich tables, code refs | Body + spliced mermaid fences + spliced table contents (see DeepWiki recipe in `Meta/fix-recipes.md`) | deepwiki.com, wiki.litenext.digital |
+| **Wiki / docs** | Multi-page hierarchy, mermaid diagrams, rich tables, code refs | Body + spliced mermaid fences + spliced table contents (see DeepWiki recipe in `00_Meta/fix-recipes.md`) | deepwiki.com, wiki.litenext.digital |
 | **Gallery / SPA** | React-rendered grid with dropdown filters; "content" lives in JS state | Best-achievable: capture visible prose, flag interactive UI as known-limit, do NOT lock fixtures around partial output | sebastianraschka.com |
 
 If a host matches none of these, *say so explicitly to the user before guessing*. Adding a new shape is a deliberate design decision, not a fallback.
 
 ### §7.ii. Universal chrome categories
 
-These categories appear on almost every content host in some combination. Scan for them in the first/last 30 lines of any new sample. For each present: reuse the `Meta/fix-recipes.md` recipe regex if one matches, else write a new line-filter following the same shape.
+These categories appear on almost every content host in some combination. Scan for them in the first/last 30 lines of any new sample. For each present: reuse the `00_Meta/fix-recipes.md` recipe regex if one matches, else write a new line-filter following the same shape.
 
 | Category | Common shapes | Already-handled hosts |
 |---|---|---|

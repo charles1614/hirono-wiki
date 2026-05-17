@@ -9,8 +9,8 @@ function makeMap(docs: Record<string, { doc_id: string; obj_token?: string; url:
     parents: {},
     docs: Object.fromEntries(
       Object.entries(docs).map(([slug, d]) => [slug, {
-        repo_path: `Entities/${slug}.md`,
-        bucket: "Entities" as const,
+        repo_path: `02_Entities/${slug}.md`,
+        bucket: "02_Entities" as const,
         type: "entity" as const,
         doc_id: d.doc_id,
         obj_token: d.obj_token,

@@ -13,7 +13,7 @@
  *     → reports summary
  *
  *   With --review: Phase 2 stops after finalize so the operator can tick
- *   approved boxes in Meta/curation-queue.md, then runs apply-queue
+ *   approved boxes in 00_Meta/curation-queue.md, then runs apply-queue
  *   (without --auto-apply) so only checked items dispatch.
  *
  * All work is delegated to existing CLIs — this file adds no curation
@@ -56,7 +56,7 @@ Phase 2 (--continue):
 Flags:
   --continue              Run Phase 2.
   --review                Phase 2 stops after finalize. Operator opens
-                          Meta/curation-queue.md, ticks approved boxes,
+                          00_Meta/curation-queue.md, ticks approved boxes,
                           then re-runs without --review (or runs
                           \`hirono apply-queue\` directly).
   --auto-apply <level>    Confidence threshold for apply-queue dispatch.
@@ -185,7 +185,7 @@ export function phase2(repoRoot: string, args: ParsedArgs): { ok: boolean } {
   // If --review: stop here for operator approval
   if (args.review) {
     console.log(`\n=== Phase 2 paused for review ===\n`);
-    console.log(`Open Meta/curation-queue.md and tick \`[x]\` next to approved items.`);
+    console.log(`Open 00_Meta/curation-queue.md and tick \`[x]\` next to approved items.`);
     console.log(`Then run:`);
     console.log(`  npx tsx tools/bin/hirono.ts apply-queue${args.dryRun ? " --dry-run" : ""}`);
     return { ok: true };

@@ -12,7 +12,7 @@ auto-classifier maps `quality_flags` onto a 15-kind taxonomy
 `intentional-stub-app-only`). When the heuristic gets a slug wrong, pin
 it here and the status report uses your kind instead.
 
-Companion file: `Meta/fetch-decisions.md` (slug-level "accepted as is" —
+Companion file: `00_Meta/fetch-decisions.md` (slug-level "accepted as is" —
 suppresses retry attempts; doesn't change kind).
 
 ## Format

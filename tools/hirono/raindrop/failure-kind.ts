@@ -10,7 +10,7 @@
  *   - hierarchical (upstream-* / host-* / content-* prefixes)
  *
  * Operators can override the auto-classifier per slug via
- * `Meta/sources-health-overrides.md` when the heuristic gets a host
+ * `00_Meta/sources-health-overrides.md` when the heuristic gets a host
  * wrong (e.g. a paywalled site that the heuristic mislabels as
  * `clean` because the body extraction succeeded under a soft paywall).
  */
@@ -162,7 +162,7 @@ export function classifyFromInput(input: ClassifyInput): FailureKind {
   if (!host) return "host-malformed";
   // (share.google?link=… used to classify as host-malformed unconditionally;
   // now handled by `unwrapShareUrl` pre-fetch — see P-32 in
-  // Meta/site-handling-patterns.md. Once unwrapped, the slug's source.json
+  // 00_Meta/site-handling-patterns.md. Once unwrapped, the slug's source.json
   // origin_url is the real target so the URL-shape rule below classifies
   // by the target's host instead.)
   if (isLanIp(host) || /:\d{4,5}$/.test(host)) return "host-lan-only";

@@ -9,7 +9,7 @@
  *
  * Each row is classified onto the canonical 15-kind taxonomy
  * (see ./failure-kind.ts), with operator overrides from
- * `Meta/sources-health-overrides.md` taking precedence.
+ * `00_Meta/sources-health-overrides.md` taking precedence.
  *
  * Output: markdown (default), JSON (ndjson), or CSV. No state file
  * written by default — the report is derived on each invocation.
@@ -42,7 +42,7 @@ import {
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const RAINDROP_CACHE = join(REPO_ROOT, ".wiki-raindrop-cache.json");
 const SOURCES_INDEX = join(REPO_ROOT, ".wiki-sources-index.json");
-const OVERRIDES_FILE = join(REPO_ROOT, "Meta", "sources-health-overrides.md");
+const OVERRIDES_FILE = join(REPO_ROOT, "00_Meta", "sources-health-overrides.md");
 const RAW_DIR = join(REPO_ROOT, "raw");
 
 interface RaindropBookmark {
@@ -116,7 +116,7 @@ into one row per bookmark. Classifies each onto the 15-kind failure taxonomy.
 
 Kinds: ${ALL_KINDS.join(", ")}
 
-Operator overrides: Meta/sources-health-overrides.md (format: \`- <slug>: pin-kind=<kind>\`).`);
+Operator overrides: 00_Meta/sources-health-overrides.md (format: \`- <slug>: pin-kind=<kind>\`).`);
       process.exit(0);
     }
     else {
@@ -140,7 +140,7 @@ function ensureFreshSourcesIndex(): void {
     return;
   }
   const idxMtime = statSync(SOURCES_INDEX).mtimeMs;
-  const sourcesDir = join(REPO_ROOT, "Sources");
+  const sourcesDir = join(REPO_ROOT, "03_Sources");
   if (!existsSync(sourcesDir)) return;
   let newest = 0;
   const walk = (dir: string) => {

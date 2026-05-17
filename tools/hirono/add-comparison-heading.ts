@@ -2,7 +2,7 @@
  * `hirono add-comparison-heading <name>` — atomic insertion of a
  * `## Comparison` heading into a Topic body.
  *
- * Opt-in primitive for the comparison sub-shape (Meta/schema.md §"Topic
+ * Opt-in primitive for the comparison sub-shape (00_Meta/schema.md §"Topic
  * sub-shapes"). After the heading is in place:
  *   - `comparison-table-missing` lint fires (table needed)
  *   - `hirono refine-topic <name>` switches to comparison-aware prompt
@@ -79,7 +79,7 @@ export function addComparisonHeading(
   name: string,
   reason: string,
 ): AddComparisonHeadingResult {
-  const topicPath = `Topics/${name}.md`;
+  const topicPath = `01_Topics/${name}.md`;
   const abs = join(repoRoot, topicPath);
   if (!existsSync(abs)) throw new Error(`Topic not found: ${topicPath}`);
   const raw = readFileSync(abs, "utf8");

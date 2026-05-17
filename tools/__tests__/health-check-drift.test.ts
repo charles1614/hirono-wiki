@@ -13,10 +13,10 @@ import { spawnSync } from "node:child_process";
 
 function makeRepo(): string {
   const root = mkdtempSync(join(tmpdir(), "drift-test-"));
-  mkdirSync(join(root, "Sources", "2026"), { recursive: true });
-  mkdirSync(join(root, "Entities", "_seen"), { recursive: true });
-  mkdirSync(join(root, "Topics"), { recursive: true });
-  mkdirSync(join(root, "Meta"), { recursive: true });
+  mkdirSync(join(root, "03_Sources", "2026"), { recursive: true });
+  mkdirSync(join(root, "02_Entities", "_seen"), { recursive: true });
+  mkdirSync(join(root, "01_Topics"), { recursive: true });
+  mkdirSync(join(root, "00_Meta"), { recursive: true });
   mkdirSync(join(root, "raw", "raindrop"), { recursive: true });
   return root;
 }
@@ -61,7 +61,7 @@ async function getAudits() {
 test("auditDrift detects content-SHA drift when Source predates latest fetch", async () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Sources/2026/foo-slug.md",
+    writeFile(root, "03_Sources/2026/foo-slug.md",
       `---\ncreated: 2026-01-01\nupdated: 2026-01-01\ntype: source\n---\n\nBody.\n`);
     seedRawArchive(root, "example.com", "foo-slug", {
       sourceJson: { url: "https://example.com/foo" },
@@ -87,7 +87,7 @@ test("auditDrift detects content-SHA drift when Source predates latest fetch", a
 test("auditDrift dead-link detection respects sources-health-overrides pin", async () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Sources/2026/dead-slug.md",
+    writeFile(root, "03_Sources/2026/dead-slug.md",
       `---\ncreated: 2026-01-01\nupdated: 2026-01-01\ntype: source\n---\n\nBody.\n`);
     seedRawArchive(root, "example.com", "dead-slug", {
       sourceJson: { url: "https://example.com/dead", quality_flags: ["dead-link"] },
@@ -105,9 +105,9 @@ test("auditDrift dead-link detection respects sources-health-overrides pin", asy
 test("auditSources flags Sources with 0 outgoing wikilinks", async () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Sources/2026/zero-link.md",
+    writeFile(root, "03_Sources/2026/zero-link.md",
       `---\ncreated: 2026-04-01\nupdated: 2026-04-01\ntype: source\ntags: [llm]\n---\n\nNo wikilinks at all.\n`);
-    writeFile(root, "Sources/2026/some-link.md",
+    writeFile(root, "03_Sources/2026/some-link.md",
       `---\ncreated: 2026-04-01\nupdated: 2026-04-01\ntype: source\ntags: [llm]\n---\n\nHas [[Entity]].\n`);
     const docs = loadDocs(root);
 
@@ -122,13 +122,13 @@ test("auditSources flags Sources with 0 outgoing wikilinks", async () => {
 test("auditSources detects topic-only-cited Sources", async () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Sources/2026/topic-only.md",
+    writeFile(root, "03_Sources/2026/topic-only.md",
       `---\ncreated: 2026-04-01\ntype: source\n---\n\nBody.\n`);
-    writeFile(root, "Sources/2026/entity-cited.md",
+    writeFile(root, "03_Sources/2026/entity-cited.md",
       `---\ncreated: 2026-04-01\ntype: source\n---\n\nBody.\n`);
-    writeFile(root, "Topics/Foo Topic.md",
+    writeFile(root, "01_Topics/Foo Topic.md",
       `---\ntype: topic\n---\n\nCites [[topic-only]] and [[entity-cited]].\n`);
-    writeFile(root, "Entities/Bar.md",
+    writeFile(root, "02_Entities/Bar.md",
       `---\ntype: entity\n---\n\n## Observations\n\n- Claim — [[entity-cited]]\n`);
     const docs = loadDocs(root);
     // Just verify the fixture parses correctly; full audit tested via integration with the CLI

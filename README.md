@@ -7,7 +7,7 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 | Intent | Command | Notes |
 |---|---|---|
 | Pull new bookmarks → raw | `npx tsx tools/bin/hirono.ts raindrop refresh-cache && npx tsx tools/bin/hirono.ts raindrop fetch-all` | Idempotent; only fetches new URLs |
-| Triage fetch failures | `npx tsx tools/bin/hirono.ts raindrop status --filter <kind>` | See `Meta/operator-workflows.md` §3 |
+| Triage fetch failures | `npx tsx tools/bin/hirono.ts raindrop status --filter <kind>` | See `00_Meta/operator-workflows.md` §3 |
 | See what's ingestable | `npx tsx tools/bin/hirono.ts raindrop ingest-candidates --limit 50 --md` | Markdown table of pending |
 | **Ingest N sources** | *Ask Claude: "ingest 20 more from raw"* | LLM-authored — see CLAUDE.md §10 |
 | Preview refine cost after ingest | `npx tsx tools/bin/hirono.ts ingest-preview --since HEAD~1` | Shows new Sources + fan-out + est tokens/$ |
@@ -24,7 +24,7 @@ Personal LLM-maintained wiki inspired by [Karpathy's LLM-Wiki gist](https://gist
 |---|---|---|
 | Fetch raw HTML/markdown | `hirono raindrop fetch-all` | Mechanical |
 | Pick which raw to ingest | `hirono raindrop ingest-candidates` | Mechanical |
-| **Write `Sources/YYYY/<slug>.md`** | **Claude (no command)** | **LLM authorship — Key claims, wikilinks** |
+| **Write `03_Sources/YYYY/<slug>.md`** | **Claude (no command)** | **LLM authorship — Key claims, wikilinks** |
 | Append `## Observations` to Entities/Topics | Claude (no command) | LLM authorship |
 | Scaffold missing entities | `hirono new-entity` / `new-topic` (Claude runs) | Mechanical, run by Claude inline |
 | Reindex / build-sources-index / lint | three CLIs (Claude runs at end) | Mechanical |
@@ -102,20 +102,20 @@ Three distinct usage modes, each reads (and writes) different folders.
 ### Mode 1 — Browse / learn ("what do I know about X?")
 
 ```
-Open Meta/index.md  ─►  catalog overview, total counts
+Open 00_Meta/index.md  ─►  catalog overview, total counts
        │
        ├──►  Synthesis.md             ─►  corpus-wide thesis (what this wiki argues)
        │
-       ├──►  Meta/index-topics.md     ─►  Topics/<X>.md
+       ├──►  00_Meta/index-topics.md     ─►  Topics/<X>.md
        │                                    ├── "Current understanding" synthesis
-       │                                    └── follows [[Sources/...]] links
+       │                                    └── follows [[03_Sources/...]] links
        │
-       ├──►  Meta/index-entities.md   ─►  Entities/<Name>.md (active, ≥3 refs)
+       ├──►  00_Meta/index-entities.md   ─►  Entities/<Name>.md (active, ≥3 refs)
        │                                    ├── one-line kind
        │                                    ├── Synthesis
        │                                    └── Observations (cited bullets)
        │
-       └──►  Meta/index-sources.md    ─►  Sources/YYYY/<slug>.md
+       └──►  00_Meta/index-sources.md    ─►  03_Sources/YYYY/<slug>.md
                                             ├── TL;DR
                                             ├── Key claims
                                             ├── Visual observations + inlined figures
@@ -128,13 +128,13 @@ Concrete entry points right now:
 
 | Curiosity | Read first |
 |---|---|
-| Landscape of LLM inference systems | [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md) — 7 sources |
-| Is inference disaggregation worth it? | [`Topics/Inference Disaggregation.md`](Topics/Inference%20Disaggregation.md) — 5 sources |
-| Kernel-authoring-language landscape | [`Topics/Kernel Authoring Languages.md`](Topics/Kernel%20Authoring%20Languages.md) — 4 sources |
-| What NVIDIA published that I read | [`Entities/NVIDIA.md`](Entities/NVIDIA.md) — 8 refs |
-| FlashMLA in 60 seconds | [`Entities/FlashMLA.md`](Entities/FlashMLA.md) — 4 refs |
-| One specific paper I read | `Sources/YYYY/<slug>.md` |
-| What changed recently | [`Meta/log-2026.md`](Meta/log-2026.md) — newest at top |
+| Landscape of LLM inference systems | [`01_Topics/LLM Inference Systems.md`](01_Topics/LLM%20Inference%20Systems.md) — 7 sources |
+| Is inference disaggregation worth it? | [`01_Topics/Inference Disaggregation.md`](01_Topics/Inference%20Disaggregation.md) — 5 sources |
+| Kernel-authoring-language landscape | [`01_Topics/Kernel Authoring Languages.md`](01_Topics/Kernel%20Authoring%20Languages.md) — 4 sources |
+| What NVIDIA published that I read | [`02_Entities/NVIDIA.md`](02_Entities/NVIDIA.md) — 8 refs |
+| FlashMLA in 60 seconds | [`02_Entities/FlashMLA.md`](02_Entities/FlashMLA.md) — 4 refs |
+| One specific paper I read | `03_Sources/YYYY/<slug>.md` |
+| What changed recently | [`00_Meta/log-2026.md`](00_Meta/log-2026.md) — newest at top |
 
 **Don't read `raw/raindrop/`** for browsing. That's evidence storage. Only consult it to verify a specific claim or to refetch.
 
@@ -150,12 +150,12 @@ Three substeps; the wiki layer is the *last* step, not the first.
                             (pulls new bookmarks into raw/)             │
                                                                           ▼
                                                                 Claude writes:
-                                                                  Sources/YYYY/<slug>.md
+                                                                  03_Sources/YYYY/<slug>.md
                                                                 Touches:
                                                                   Entities/<...>.md
                                                                   Topics/<...>.md
                                                                 Appends to:
-                                                                  Meta/log-2026.md
+                                                                  00_Meta/log-2026.md
                                                                 Then run:
                                                                   npx tsx tools/bin/reindex.ts
                                                                   npx tsx tools/bin/lint.ts
@@ -168,8 +168,8 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 
 | Layer | Who writes it | What it produces |
 |---|---|---|
-| **Editorial** (content) | The LLM, during ingest — or via a Sonnet subagent invoked by `auto-detect-entities` / `refine-entity` / `refine-topic` | `## Observations` bullets on each touched Entity (one atomic claim per citing Source, with `[[Sources/<slug>]]` citation); `## Synthesis` paragraph regenerated when evidence reshapes the picture; `## Current understanding` revised on touched Topics. |
-| **Mechanical** (metadata) | `reindex.ts`, after editorial | `refs:` counts; `source_count`; tier promotion (`_seen/` → active at ≥3 refs; **no auto-demotion**); `Meta/index*.md` regeneration; `updated:` timestamps. |
+| **Editorial** (content) | The LLM, during ingest — or via a Sonnet subagent invoked by `auto-detect-entities` / `refine-entity` / `refine-topic` | `## Observations` bullets on each touched Entity (one atomic claim per citing Source, with `[[03_Sources/<slug>]]` citation); `## Synthesis` paragraph regenerated when evidence reshapes the picture; `## Current understanding` revised on touched Topics. |
+| **Mechanical** (metadata) | `reindex.ts`, after editorial | `refs:` counts; `source_count`; tier promotion (`_seen/` → active at ≥3 refs; **no auto-demotion**); `00_Meta/index*.md` regeneration; `updated:` timestamps. |
 
 **Observations are not auto-populated.** `reindex.ts` counts incoming wikilinks but doesn't write content. If an Entity has a non-zero `refs:` but an empty `## Observations`, the LLM hasn't yet folded that citing Source's lens into the entity — `reindex.ts` prints a `missing N observations` worklist per entity, naming which Sources still need a cited bullet. That report is the queue for the next ingest pass.
 
@@ -177,16 +177,16 @@ Only Step 1 is fully manual. Step 2 is one command. Step 3 is a conversation wit
 
 | When | Command (LLM-invoked) | Effect |
 |---|---|---|
-| New entity / topic noticed during ingest | `hirono new-entity <Name>` / `new-topic <Name>` | scaffolds `Entities/_seen/<Name>.md` or `Topics/<Name>.md` |
-| Whole-Source NER pass | `hirono auto-detect-entities <slug>` | Sonnet subagent extracts entities → creates `_seen/` stubs atomically; uses `Meta/entity-aliases.md` to dedupe spelling variants |
+| New entity / topic noticed during ingest | `hirono new-entity <Name>` / `new-topic <Name>` | scaffolds `02_Entities/_seen/<Name>.md` or `01_Topics/<Name>.md` |
+| Whole-Source NER pass | `hirono auto-detect-entities <slug>` | Sonnet subagent extracts entities → creates `_seen/` stubs atomically; uses `00_Meta/entity-aliases.md` to dedupe spelling variants |
 | Synthesis drifted vs new Observations | `hirono refine-entity <name>` | Sonnet regenerates `## Synthesis` from cited Sources; bumps `synthesis_updated_at` |
 | Topic's Current understanding drifted | `hirono refine-topic <name>` | same shape, for `## Current understanding` |
 | Corpus-wide thesis drifted (top-level `Synthesis.md`) | `hirono refine-synthesis` | Sonnet regenerates the repo-root `Synthesis.md` body from all Topic syntheses; bumps `updated:`. Fires on the `stale-top-synthesis` lint (>7d behind newest Topic `synthesis_updated_at`). |
 | Batch refresh | `hirono refine-all-stale` | runs lint, prepares prompts for every flagged entity. `--preview` shows cost only; `--limit N` caps to top-N most-stale |
 | Post-bulk-ingest cost preview | `hirono ingest-preview` | After `fetch-all` + `auto-detect-entities`, prints the headline: new Sources, stale fan-out, est tokens/$. **Discipline: ingest frequently, refine rarely** — let staleness accumulate so each refine batches multiple Sources' worth of drift |
-| Zero-touch autonomous repairs | `hirono auto-fix` | Auto-applies alias merges from `Meta/entity-aliases.md` + preps refine prompts for stale entity Syntheses **and the top-level [[Synthesis]]** + refreshes indexes. **Never deletes anything.** Safe for cron / pre-commit. |
-| Unified curation loop (one command) | `hirono auto-curate` → Sonnet → `hirono auto-curate --continue` | Wraps the full pipeline: auto-fix + propose-curation in Phase 1, finalize + apply-queue in Phase 2. Default Phase 2 is full-auto (`--auto-apply high`); pass `--review` for the one-tap variant where you tick `[x]` boxes first. **When to run it**: lint emits a `curation-needed` info-advisory when accumulated stale-synthesis + orphans + tier-mismatch ≥ 5. Threshold + tuned `stale-synthesis` cadence (7d-lag rule + 30d/3-obs accumulation rule) documented in [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §13c. |
-| Operator-judged ingest mistake (rare) | `hirono raindrop forget <url>` | deletes Source + raw archive + adds to `Meta/sources-ingest-skips.md` |
+| Zero-touch autonomous repairs | `hirono auto-fix` | Auto-applies alias merges from `00_Meta/entity-aliases.md` + preps refine prompts for stale entity Syntheses **and the top-level [[Synthesis]]** + refreshes indexes. **Never deletes anything.** Safe for cron / pre-commit. |
+| Unified curation loop (one command) | `hirono auto-curate` → Sonnet → `hirono auto-curate --continue` | Wraps the full pipeline: auto-fix + propose-curation in Phase 1, finalize + apply-queue in Phase 2. Default Phase 2 is full-auto (`--auto-apply high`); pass `--review` for the one-tap variant where you tick `[x]` boxes first. **When to run it**: lint emits a `curation-needed` info-advisory when accumulated stale-synthesis + orphans + tier-mismatch ≥ 5. Threshold + tuned `stale-synthesis` cadence (7d-lag rule + 30d/3-obs accumulation rule) documented in [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) §13c. |
+| Operator-judged ingest mistake (rare) | `hirono raindrop forget <url>` | deletes Source + raw archive + adds to `00_Meta/sources-ingest-skips.md` |
 
 The skip-list is a last-resort registry for spam / permanent duplicates — **not** for off-topic content (Karpathy: the wiki absorbs broadly; operator curation is at the bookmark layer, not the wiki layer).
 
@@ -194,23 +194,23 @@ The skip-list is a last-resort registry for spam / permanent duplicates — **no
 
 Two flavors:
 
-**Quick lookup** — answer is already in existing pages. Claude reads relevant `Topics/` + `Entities/` + cited `Sources/`, synthesizes inline in chat. No new files written.
+**Quick lookup** — answer is already in existing pages. Claude reads relevant `01_Topics/` + `02_Entities/` + cited `03_Sources/`, synthesizes inline in chat. No new files written.
 
-**Cross-source synthesis** — answer doesn't exist yet. Claude reads, synthesizes, then **files the answer back as a new `Topics/<question-shaped-name>.md`** and appends a `query | <question>` entry to `Meta/log-2026.md`. This is Karpathy's "compounding artifact" move — the answer becomes part of the wiki, not a disposable chat message. Future questions about the same area start from this synthesis.
+**Cross-source synthesis** — answer doesn't exist yet. Claude reads, synthesizes, then **files the answer back as a new `01_Topics/<question-shaped-name>.md`** and appends a `query | <question>` entry to `00_Meta/log-2026.md`. This is Karpathy's "compounding artifact" move — the answer becomes part of the wiki, not a disposable chat message. Future questions about the same area start from this synthesis.
 
-**When the Source summary isn't deep enough**, the LLM consults the raw-archive snapshot directly (the locally-cached `content.md` — not the live URL; the snapshot is the curated extraction with Marker / browser-eval / site-adapter cleanup already applied). Sources are deliberately concise (TL;DR + Key claims + a few Visual obs); raw has the original article body, the full author list, every paragraph of prose, every code block. The path mapping between a Source slug and its raw archive is mechanical — Claude Code knows the convention from `CLAUDE.md` (the operator never has to derive paths by hand). Raw is read-only consultation — the wiki layer isn't edited in response — but the LLM's answer in chat can cite raw-derived detail with `[[Sources/<slug>]]`. The Source remains the canonical citation node in the graph; raw is the receipt store.
+**When the Source summary isn't deep enough**, the LLM consults the raw-archive snapshot directly (the locally-cached `content.md` — not the live URL; the snapshot is the curated extraction with Marker / browser-eval / site-adapter cleanup already applied). Sources are deliberately concise (TL;DR + Key claims + a few Visual obs); raw has the original article body, the full author list, every paragraph of prose, every code block. The path mapping between a Source slug and its raw archive is mechanical — Claude Code knows the convention from `CLAUDE.md` (the operator never has to derive paths by hand). Raw is read-only consultation — the wiki layer isn't edited in response — but the LLM's answer in chat can cite raw-derived detail with `[[03_Sources/<slug>]]`. The Source remains the canonical citation node in the graph; raw is the receipt store.
 
 ### "I just opened the repo; what do I click?"
 
 ```
-1. Open Meta/index.md          ← see what's here at a glance
-2. Open Meta/index-topics.md   ← scan for something interesting
+1. Open 00_Meta/index.md          ← see what's here at a glance
+2. Open 00_Meta/index-topics.md   ← scan for something interesting
 3. Click a Topics/<Name>.md    ← read the synthesis
 4. Follow [[2026-...]] links   ← drill into specific Sources
-5. Open Meta/log-2026.md       ← see what's been changing
+5. Open 00_Meta/log-2026.md       ← see what's been changing
 ```
 
-Or click [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md) — densest page in the wiki today.
+Or click [`01_Topics/LLM Inference Systems.md`](01_Topics/LLM%20Inference%20Systems.md) — densest page in the wiki today.
 
 ## How the data flows
 
@@ -231,16 +231,16 @@ Or click [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md
            site-handling-   queue)           guard)
            patterns.md)        │
                                │  LLM reads content.md →
-                               │  writes Sources/YYYY/<slug>.md
+                               │  writes 03_Sources/YYYY/<slug>.md
                                ▼
    ┌──────────────────────────────────────────────────────────────┐
-   │  Sources/YYYY/<slug>.md     (TL;DR + Key claims +            │
+   │  03_Sources/YYYY/<slug>.md     (TL;DR + Key claims +            │
    │                              Entities/Topics touched + …)   │
    └─────────┬────────────────────────────────────────────────────┘
              │
              ├──► hirono auto-detect-entities <slug>  ─►  Sonnet NER pass
              │      creates Entities/_seen/<X>.md stubs (atomic);
-             │      `Meta/entity-aliases.md` dedupes spelling variants.
+             │      `00_Meta/entity-aliases.md` dedupes spelling variants.
              │
              ├──► LLM editorial pass (in chat or batch)
              │      writes ## Observations bullets on touched Entities;
@@ -256,7 +256,7 @@ Or click [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md
              │
              ├──► reindex.ts                            (mechanical)
              │      refs counted, _seen/ → active at ≥3,
-             │      Meta/index*.md regenerated, updated: bumped.
+             │      00_Meta/index*.md regenerated, updated: bumped.
              │
              ├──► hirono refine-entity <name>           (Sonnet)
              │    hirono refine-topic <name>
@@ -275,7 +275,7 @@ Or click [`Topics/LLM Inference Systems.md`](Topics/LLM%20Inference%20Systems.md
 Three loops run on this graph:
 - **Forward (per ingest)**: raw → Source → auto-detect stubs + Observations → reindex bumps refs + tiers.
 - **Refine (periodic)**: when `stale-synthesis` lint fires or a merge marks Synthesis stale, `refine-entity` / `refine-topic` regenerate the LLM-judgment section from accumulated Observations. The wiki re-compresses as evidence reshapes the picture.
-- **Curate (batch, occasional)**: `hirono propose-curation` runs health-check + lint, hands the findings to a Sonnet judge, emits `Meta/curation-queue.md` of merge / rename / refine / delete proposals. Operator either reviews + ticks `[x]` to approve (one-tap mode) or skips the gate for high-confidence items via `apply-queue --auto-apply high` (full-auto mode). Cadence: monthly, or when health-check warning counts get unwieldy.
+- **Curate (batch, occasional)**: `hirono propose-curation` runs health-check + lint, hands the findings to a Sonnet judge, emits `00_Meta/curation-queue.md` of merge / rename / refine / delete proposals. Operator either reviews + ticks `[x]` to approve (one-tap mode) or skips the gate for high-confidence items via `apply-queue --auto-apply high` (full-auto mode). Cadence: monthly, or when health-check warning counts get unwieldy.
 
 In all three loops, the LLM does the judgment. The operator's role is sourcing + occasional approval — never writing wiki content directly.
 
@@ -283,9 +283,9 @@ In all three loops, the LLM does the judgment. The operator's role is sourcing +
 
 Every URL in the corpus is in **exactly one** of three states, derived from `raw/raindrop/_index.json`:
 
-- **`not-yet-good`** — raw extraction has problems (auth-walled, paywalled, SPA empty, content too short). Cannot be ingested as-is. Resolved via the debug loop in `Meta/site-handling-patterns.md` or by accepting the stub as-is in `Meta/fetch-decisions.md`.
-- **`ingest-ready`** — raw is clean (`quality_status = good`) but no `Sources/.../<slug>.md` exists yet. The LLM ingest queue.
-- **`ingested`** — Source page exists in `Sources/YYYY/`. The slug is now part of the wiki's compounding graph. **Frozen-slug guard** prevents accidental refetch.
+- **`not-yet-good`** — raw extraction has problems (auth-walled, paywalled, SPA empty, content too short). Cannot be ingested as-is. Resolved via the debug loop in `00_Meta/site-handling-patterns.md` or by accepting the stub as-is in `00_Meta/fetch-decisions.md`.
+- **`ingest-ready`** — raw is clean (`quality_status = good`) but no `03_Sources/.../<slug>.md` exists yet. The LLM ingest queue.
+- **`ingested`** — Source page exists in `03_Sources/YYYY/`. The slug is now part of the wiki's compounding graph. **Frozen-slug guard** prevents accidental refetch.
 
 Bulk view:
 
@@ -294,28 +294,28 @@ jq '[.slugs | to_entries | .[] | .value.state] | group_by(.) | map({state: .[0],
 # → e.g. [{state: "ingested", n: 16}, {state: "ingest-ready", n: 348}, {state: "not-yet-good", n: 198}]
 ```
 
-Full design + per-scenario runbooks: [`Meta/corpus-pipeline.md`](Meta/corpus-pipeline.md).
+Full design + per-scenario runbooks: [`00_Meta/corpus-pipeline.md`](00_Meta/corpus-pipeline.md).
 
 ## Where to look — by intent
 
 | What I want to do | Read this |
 |---|---|
-| Understand the corpus state machine end-to-end | [`Meta/corpus-pipeline.md`](Meta/corpus-pipeline.md) |
-| Run / understand operator commands | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) |
-| Entity/Topic curation (rename, merge, delete-orphan, health-check) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §9 |
-| Source curation (delete-source, raindrop forget, skip-list) — accident cleanup, NOT defaults | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §10 |
-| Auto-gen + refine entities/topics (LLM-NER, Synthesis regeneration via Sonnet) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §11 |
-| Drift detection cadence (`health-check --scope drift|sources`, `raindrop gc`) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §12 |
-| Debug a sub-good site, add a new host adapter, look up a defect pattern | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) |
+| Understand the corpus state machine end-to-end | [`00_Meta/corpus-pipeline.md`](00_Meta/corpus-pipeline.md) |
+| Run / understand operator commands | [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) |
+| Entity/Topic curation (rename, merge, delete-orphan, health-check) | [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) §9 |
+| Source curation (delete-source, raindrop forget, skip-list) — accident cleanup, NOT defaults | [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) §10 |
+| Auto-gen + refine entities/topics (LLM-NER, Synthesis regeneration via Sonnet) | [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) §11 |
+| Drift detection cadence (`health-check --scope drift|sources`, `raindrop gc`) | [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) §12 |
+| Debug a sub-good site, add a new host adapter, look up a defect pattern | [`00_Meta/site-handling-patterns.md`](00_Meta/site-handling-patterns.md) |
 | Understand the fetcher architecture | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
 | Step-by-step recipe for a new per-host site module | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
-| Fix recipes — full regex bodies for every documented-symptom-to-commit fix | [`Meta/fix-recipes.md`](Meta/fix-recipes.md) |
+| Fix recipes — full regex bodies for every documented-symptom-to-commit fix | [`00_Meta/fix-recipes.md`](00_Meta/fix-recipes.md) |
 | Per-file / per-export code pointers for the fetch / lint / ingest toolchain | [`docs/code-map.md`](docs/code-map.md) |
-| Wiki page conventions (frontmatter, page types, tier rules, image rules) | [`Meta/schema.md`](Meta/schema.md) |
-| Pending punch-list after the most recent bulk fetch | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
-| Known drift / contradictions / cleanup TODOs across the wiki | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
+| Wiki page conventions (frontmatter, page types, tier rules, image rules) | [`00_Meta/schema.md`](00_Meta/schema.md) |
+| Pending punch-list after the most recent bulk fetch | [`00_Meta/post-fetch-todo.md`](00_Meta/post-fetch-todo.md) |
+| Known drift / contradictions / cleanup TODOs across the wiki | [`00_Meta/linting-notes.md`](00_Meta/linting-notes.md) |
 | Quality rules + fix recipes (what fires on every commit) | [`CLAUDE.md`](CLAUDE.md) |
-| Karpathy's original LLM-wiki gist (inspiration, not binding) | [`Meta/references/karpathy-llm-wiki-gist.md`](Meta/references/karpathy-llm-wiki-gist.md) |
+| Karpathy's original LLM-wiki gist (inspiration, not binding) | [`00_Meta/references/karpathy-llm-wiki-gist.md`](00_Meta/references/karpathy-llm-wiki-gist.md) |
 
 ## The four content buckets (which folder = which page type)
 
@@ -323,10 +323,10 @@ This is the question that confuses newcomers most. Every `.md` file in this repo
 
 | Bucket | Path | `type:` frontmatter | What lives here | Who writes it |
 |---|---|---|---|---|
-| **Sources** | `Sources/YYYY/` | `source` | One file per **ingested source** (a Raindrop URL, a Lark wiki node, a paper). Summary in the §schema template shape: TL;DR + Key claims + Visual observations + What this changes (optional) + Entities/Topics touched + Raw source. (Cross-source research questions live in `Topics/<X>.md ## Open threads`, not per-Source.) | LLM, reading raw `content.md` |
-| **Entities** | `Entities/<Name>.md` (active) or `Entities/_seen/<Name>.md` (seen) | `entity` | One file per **distinct thing the corpus references** — a person, project, model, framework, paper, hardware. Has an Observations log (append-only, each bullet cited to a Source) and a Synthesis section (regenerated from Observations). Auto-tier-promoted from `_seen` → active at **≥3 incoming refs**. | LLM ingest pass + reindex (refs / tier auto-maintained) |
-| **Topics** | `Topics/<Topic Name>.md` | `topic` | One file per **synthesis or cross-cutting theme** — "Inference Disaggregation", "Kernel Authoring Languages", "MoE Serving". Filed either from a query (`query \| <question>`) or noticed as a recurring cluster during ingest. Has `source_count` tracking how many Sources cite it. | LLM, on query OR during ingest when a Source touches a theme |
-| **Meta** | `Meta/*.md` (+ `Meta/_archive/`, `Meta/references/`) | `meta` | **Governance + catalogs + logs** — schema, indexes (auto-regen), the year's log, linting notes, the pipeline docs. Not content; it's *how the rest is organized*. | Human + LLM, append-only for logs |
+| **Sources** | `03_Sources/YYYY/` | `source` | One file per **ingested source** (a Raindrop URL, a Lark wiki node, a paper). Summary in the §schema template shape: TL;DR + Key claims + Visual observations + What this changes (optional) + Entities/Topics touched + Raw source. (Cross-source research questions live in `01_Topics/<X>.md ## Open threads`, not per-Source.) | LLM, reading raw `content.md` |
+| **Entities** | `02_Entities/<Name>.md` (active) or `02_Entities/_seen/<Name>.md` (seen) | `entity` | One file per **distinct thing the corpus references** — a person, project, model, framework, paper, hardware. Has an Observations log (append-only, each bullet cited to a Source) and a Synthesis section (regenerated from Observations). Auto-tier-promoted from `_seen` → active at **≥3 incoming refs**. | LLM ingest pass + reindex (refs / tier auto-maintained) |
+| **Topics** | `01_Topics/<Topic Name>.md` | `topic` | One file per **synthesis or cross-cutting theme** — "Inference Disaggregation", "Kernel Authoring Languages", "MoE Serving". Filed either from a query (`query \| <question>`) or noticed as a recurring cluster during ingest. Has `source_count` tracking how many Sources cite it. | LLM, on query OR during ingest when a Source touches a theme |
+| **Meta** | `00_Meta/*.md` (+ `00_Meta/_archive/`, `00_Meta/references/`) | `meta` | **Governance + catalogs + logs** — schema, indexes (auto-regen), the year's log, linting notes, the pipeline docs. Not content; it's *how the rest is organized*. | Human + LLM, append-only for logs |
 
 **Quick litmus test**:
 - "This describes a source I read." → **Sources/**

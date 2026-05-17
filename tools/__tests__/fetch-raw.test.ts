@@ -335,7 +335,7 @@ test("classifyQuality: loading-skeleton flag fires", () => {
 //  own wait timing inside fetcher.ts files now.)
 
 // ---------------------------------------------------------------------------
-// Meta/fetch-decisions.md parser
+// 00_Meta/fetch-decisions.md parser
 // ---------------------------------------------------------------------------
 
 test("parseFetchDecisions: basic bullets under H2", () => {
@@ -1040,7 +1040,7 @@ test("buildSyncPlan: ingested slug → skip-frozen-slug, --force bypasses", () =
     writeFileSync(sourcesIndexPath, JSON.stringify({
       "https://blog.example.com/post": {
         slug: "2026-04-01-ingested",
-        repo_path: "Sources/2026/2026-04-01-ingested.md",
+        repo_path: "03_Sources/2026/2026-04-01-ingested.md",
         source_url: "https://blog.example.com/post",
         ingested_at: "2026-04-01",
       },
@@ -1161,7 +1161,7 @@ test("rebuildRawIndex: state field is 'ingested' when URL is in sources index", 
     writeFileSync(sourcesIndexPath, JSON.stringify({
       "https://example.com/ingested": {
         slug: "2026-04-01-ingested",
-        repo_path: "Sources/2026/2026-04-01-ingested.md",
+        repo_path: "03_Sources/2026/2026-04-01-ingested.md",
         source_url: "https://example.com/ingested",
         ingested_at: "2026-04-01",
       },
@@ -1197,7 +1197,7 @@ test("rebuildRawIndex: 'ingested' wins over 'not-yet-good' when slug is in sourc
     writeFileSync(sourcesIndexPath, JSON.stringify({
       "https://example.com/ingested-flagged": {
         slug: "2026-04-01-ingested-but-flagged",
-        repo_path: "Sources/2026/2026-04-01-ingested-but-flagged.md",
+        repo_path: "03_Sources/2026/2026-04-01-ingested-but-flagged.md",
         source_url: "https://example.com/ingested-flagged",
         ingested_at: "2026-04-01",
       },
@@ -1228,7 +1228,7 @@ test("rebuildRawIndex: state field handles share-aggregator unwrap (P-32)", () =
     writeFileSync(sourcesIndexPath, JSON.stringify({
       "https://share.google?link=https://linux.do/t/topic/537374": {
         slug: "2025-06-09-shared",
-        repo_path: "Sources/2025/2025-06-09-shared.md",
+        repo_path: "03_Sources/2025/2025-06-09-shared.md",
         source_url: "https://share.google?link=https://linux.do/t/topic/537374",
         ingested_at: "2025-06-09",
       },

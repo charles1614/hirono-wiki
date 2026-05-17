@@ -8,18 +8,18 @@ Match intent → canonical doc. Don't re-derive what's documented.
 
 | Intent | Read |
 |---|---|
-| High-level corpus state machine (Raindrop → raw → wiki) | [`Meta/corpus-pipeline.md`](Meta/corpus-pipeline.md) |
-| Operator pipeline (`hirono raindrop refresh-cache`, `fetch-all`, `sync`, `status`, cadence) | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) |
-| Wiki curation, source curation, auto-gen+refine, top-Synthesis, token-cost arch, refine-storm containment, drift detection, auto-fix/auto-curate/propose-curation | [`Meta/operator-workflows.md`](Meta/operator-workflows.md) §9–§13c |
-| Site adapter triage / build / per-defect lookup | [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) |
+| High-level corpus state machine (Raindrop → raw → wiki) | [`00_Meta/corpus-pipeline.md`](00_Meta/corpus-pipeline.md) |
+| Operator pipeline (`hirono raindrop refresh-cache`, `fetch-all`, `sync`, `status`, cadence) | [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) |
+| Wiki curation, source curation, auto-gen+refine, top-Synthesis, token-cost arch, refine-storm containment, drift detection, auto-fix/auto-curate/propose-curation | [`00_Meta/operator-workflows.md`](00_Meta/operator-workflows.md) §9–§13c |
+| Site adapter triage / build / per-defect lookup | [`00_Meta/site-handling-patterns.md`](00_Meta/site-handling-patterns.md) |
 | Fetcher architecture (site module contract, `_default`) | [`docs/fetcher-architecture.md`](docs/fetcher-architecture.md) |
 | New per-host module recipe | [`tools/sites/MIGRATION.md`](tools/sites/MIGRATION.md) |
-| **Fix recipes — full regex bodies** (activity timeline, mermaid splice, mdnice, GitHub chrome, KaTeX, avatars) | [`Meta/fix-recipes.md`](Meta/fix-recipes.md) (CLAUDE.md §4 indexes) |
+| **Fix recipes — full regex bodies** (activity timeline, mermaid splice, mdnice, GitHub chrome, KaTeX, avatars) | [`00_Meta/fix-recipes.md`](00_Meta/fix-recipes.md) (CLAUDE.md §4 indexes) |
 | Per-file code pointers | [`docs/code-map.md`](docs/code-map.md) (CLAUDE.md §8 summarizes) |
-| Pending punch-list | [`Meta/post-fetch-todo.md`](Meta/post-fetch-todo.md) |
-| Wiki page conventions / canonical tag vocab / canonical rationale phrases | [`Meta/schema.md`](Meta/schema.md) |
-| Known drift / cleanup TODOs | [`Meta/linting-notes.md`](Meta/linting-notes.md) |
-| Karpathy gist + alignment map | [`Meta/references/karpathy-llm-wiki-gist.md`](Meta/references/karpathy-llm-wiki-gist.md) · [`Meta/references/karpathy-alignment.md`](Meta/references/karpathy-alignment.md) |
+| Pending punch-list | [`00_Meta/post-fetch-todo.md`](00_Meta/post-fetch-todo.md) |
+| Wiki page conventions / canonical tag vocab / canonical rationale phrases | [`00_Meta/schema.md`](00_Meta/schema.md) |
+| Known drift / cleanup TODOs | [`00_Meta/linting-notes.md`](00_Meta/linting-notes.md) |
+| Karpathy gist + alignment map | [`00_Meta/references/karpathy-llm-wiki-gist.md`](00_Meta/references/karpathy-llm-wiki-gist.md) · [`00_Meta/references/karpathy-alignment.md`](00_Meta/references/karpathy-alignment.md) |
 | **Wiki ingest mechanics** (raw → Source) | §10 below — read before any "ingest from raw" task |
 | **Refine + curation workflows** (refine-batch, refine-entity, auto-curate, primitives) | §11 below — reach for the CLI, don't improvise |
 
@@ -118,9 +118,9 @@ Discussion replies use `> replied on ...` (distinct from `> commented on ...`).
 
 ## 4. Fix recipes — symptom → recipe index
 
-When §1 flags a bug matching a recipe below, **apply — don't ask**. Full regex bodies in [`Meta/fix-recipes.md`](Meta/fix-recipes.md).
+When §1 flags a bug matching a recipe below, **apply — don't ask**. Full regex bodies in [`00_Meta/fix-recipes.md`](00_Meta/fix-recipes.md).
 
-| Symptom | Recipe in `Meta/fix-recipes.md` |
+| Symptom | Recipe in `00_Meta/fix-recipes.md` |
 |---|---|
 | Missing body / comments / tables / fences | "Missing body…" — HF blog/github API/raw-mirror fallback. Set `GITHUB_TOKEN` for 5000/hr. |
 | Activity timeline leak | "Activity timeline leaking…" — 4 avatar-residual prefix variants. |
@@ -190,7 +190,7 @@ Quality bar isn't knowable from md alone. Show user, iterate.
 
 ### 5e. Direction-finding for new hosts
 
-Content-shape taxonomy, chrome categories, cleanup ordering, eye-read checklist, source-of-truth heuristics: [`Meta/site-handling-patterns.md`](Meta/site-handling-patterns.md) §7. Read before writing a new module.
+Content-shape taxonomy, chrome categories, cleanup ordering, eye-read checklist, source-of-truth heuristics: [`00_Meta/site-handling-patterns.md`](00_Meta/site-handling-patterns.md) §7. Read before writing a new module.
 
 ## 6. Regression set
 
@@ -301,13 +301,13 @@ See [`docs/code-map.md`](docs/code-map.md) for per-file/per-export breakdown.
 
 Sources are summaries. For detail not carried (algorithm steps, table rows, code, captions), Read `raw/raindrop/<host>/<slug>/content.md` directly. `<host>` from Source's `source_url:`. Siblings: `<slug>.pdf`, `<slug>-figures/`, `<slug>-images-extract.md`, `source.json`, `revisions.jsonl`.
 
-**Trust the snapshot — don't refetch.** `content.md` is curated; URL refetch bypasses cleanup. Stale → `hirono raindrop refetch <slug>`. Cite as `[[Sources/<slug>]]`. Path mapping lives only here + Meta/schema.md (never in Source body).
+**Trust the snapshot — don't refetch.** `content.md` is curated; URL refetch bypasses cleanup. Stale → `hirono raindrop refetch <slug>`. Cite as `[[03_Sources/<slug>]]`. Path mapping lives only here + 00_Meta/schema.md (never in Source body).
 
 **Image-heavy workflow**: when `shouldExtractImages` triggers, Sonnet subagent extracts verbatim → `<slug>-images-extract.md`. Opus inline-verifies any number/§-ref/parameter before citing. **Never Haiku** for dense Chinese (1568px cap drops specifics + hallucinates). Details: memory `feedback_image_extraction_hybrid.md` + `feedback_haiku_image_resolution.md`.
 
-**Image-ref rule**: 2–5 `![]()` refs only for genuinely visual (diagrams, charts, heatmaps, schematics, dashboards, photos). Text-in-spatial-layout → use a canonical rationale phrase from Meta/schema.md's documented list (lint exact-string match — paraphrasing breaks gate).
+**Image-ref rule**: 2–5 `![]()` refs only for genuinely visual (diagrams, charts, heatmaps, schematics, dashboards, photos). Text-in-spatial-layout → use a canonical rationale phrase from 00_Meta/schema.md's documented list (lint exact-string match — paraphrasing breaks gate).
 
-## 10. Wiki ingest mechanics (raw → `Sources/YYYY/<slug>.md`)
+## 10. Wiki ingest mechanics (raw → `03_Sources/YYYY/<slug>.md`)
 
 LLM is the authoring layer; no single command converts raw → Source. Rules below = what `lint.ts` enforces. Get them right first pass.
 
@@ -333,12 +333,12 @@ LLM is the authoring layer; no single command converts raw → Source. Rules bel
 | "one-tap cleanup" | `hirono auto-fix` (Tier-1) or `hirono auto-curate` (Tier-1+2) |
 | "lint" | `npx tsx tools/bin/lint.ts` (must end `0 error(s)`) |
 
-CLIs are atomic + log to `Meta/refactor-log.md` + update indexes. Hand-rolled equivalents skip those invariants.
+CLIs are atomic + log to `00_Meta/refactor-log.md` + update indexes. Hand-rolled equivalents skip those invariants.
 
 ### Flow
 
 ```
-fetch-all → pick candidates → ingest_batch start <id> → write Sources/YYYY/<slug>.md
+fetch-all → pick candidates → ingest_batch start <id> → write 03_Sources/YYYY/<slug>.md
                                                        + append Observations
                                                        + scaffold missing entities
                             → ingest_batch mark-done → reindex + lint (gate)
@@ -356,7 +356,7 @@ npx tsx tools/bin/ingest_batch.ts next --count N    # emits NDJSON
 
 ### Slug rule (load-bearing — most-missed)
 
-Filename in `Sources/YYYY/<slug>.md` MUST equal raw folder name EXACTLY. NO stripping suffixes (`-小红书`, `-trai`, `-在`) or trimming dashes. `checkRawOrphan` lint errors on mismatch.
+Filename in `03_Sources/YYYY/<slug>.md` MUST equal raw folder name EXACTLY. NO stripping suffixes (`-小红书`, `-trai`, `-在`) or trimming dashes. `checkRawOrphan` lint errors on mismatch.
 
 **Resolve**: `grep -lr "<url>" raw/raindrop/*/*/source.json | head -1` → parent directory IS the slug. Copy-paste, don't retype.
 
@@ -368,7 +368,7 @@ created: <today YYYY-MM-DD>
 updated: <today YYYY-MM-DD>
 type: source
 source_url: <verbatim from source.json — keep utm/share>
-tags: [tag-1, tag-2, ...]            # ≥1 from CANONICAL_TAGS (Meta/schema.md); lint ERROR if missing
+tags: [tag-1, tag-2, ...]            # ≥1 from CANONICAL_TAGS (00_Meta/schema.md); lint ERROR if missing
 ---
 
 # [<source-pub-date YYYY-MM-DD>] <Clean Title>
@@ -416,7 +416,7 @@ tags: [tag-1, tag-2, ...]            # ≥1 from CANONICAL_TAGS (Meta/schema.md)
 
   Source slug `2025-08-23-tensorrt-llm` with `created: 2026-05-15` is CORRECT — source published 2025, ingested today.
 
-**`tags:` lint-required**. 2–5 from `Meta/schema.md` "Canonical tag vocabulary" (5 axes: workload / subdomain / hardware / source-shape / special). Non-canonical → WARN; missing → ERROR. **Don't tag proper nouns** (companies/models/SKUs) — those go in `## Entities touched`.
+**`tags:` lint-required**. 2–5 from `00_Meta/schema.md` "Canonical tag vocabulary" (5 axes: workload / subdomain / hardware / source-shape / special). Non-canonical → WARN; missing → ERROR. **Don't tag proper nouns** (companies/models/SKUs) — those go in `## Entities touched`.
 
 **`source_url:`** verbatim from `source.json.url`. Keep utm/share; lint exact-string compares.
 
@@ -445,7 +445,7 @@ If `raw/raindrop/<host>/<slug>/<slug>-images-extract.md` exists, **read it befor
 
 ### Image-path depth
 
-Sources live at `Sources/YYYY/<slug>.md` (2 levels). Refs: `../../raw/raindrop/<host>/<slug>/<image>.ext`. Not `../raw/...`, not `../../../raw/...`.
+Sources live at `03_Sources/YYYY/<slug>.md` (2 levels). Refs: `../../raw/raindrop/<host>/<slug>/<image>.ext`. Not `../raw/...`, not `../../../raw/...`.
 
 ### Dead wikilinks → scaffold inline
 
@@ -460,7 +460,7 @@ For each `[[Entity]]`/`[[Topic]]` in the Source, append to that page's `## Obser
 ```
 
 - Em-dash `—` (U+2014, ` — `), not hyphen.
-- Slug only — NO `Sources/2026/` prefix.
+- Slug only — NO `03_Sources/2026/` prefix.
 - Append at END of `## Observations`. If section doesn't exist (freshly-scaffolded `_seen/` stub), add heading first.
 - **Atomic**: Read immediately before each Edit; retry up to 3× on collision when parallel subagents touch the same file. Edit only — no wholesale Write.
 
@@ -546,7 +546,7 @@ Agent({
 | `refine-topic "<N>"` | `.refine-prompts/<N>-topic-prompt.md` | `.refine-prompts/<N>-topic-response.txt` |
 | `refine-synthesis` | `.refine-prompts/top-synthesis-prompt.md` | `.refine-prompts/top-synthesis-response.txt` |
 | `auto-detect-entities <slug>` | `raw/raindrop/<host>/<slug>/<slug>-entities-prompt.md` | `<slug>-entities-response.json` |
-| `propose-curation` | `Meta/.propose-curation/prompt.md` | `Meta/.propose-curation/response.json` |
+| `propose-curation` | `00_Meta/.propose-curation/prompt.md` | `00_Meta/.propose-curation/response.json` |
 
 Use these literal paths. Don't invent custom ones.
 
@@ -560,7 +560,7 @@ Subagent response is paste-verbatim: 4–6 sentences for `refine-entity`, no pre
 
 ### `auto-detect-entities <slug>` — LLM-NER per Source
 
-Run AFTER authoring `Sources/YYYY/<slug>.md` per §10, to discover missed entities/topics.
+Run AFTER authoring `03_Sources/YYYY/<slug>.md` per §10, to discover missed entities/topics.
 
 ```bash
 hirono auto-detect-entities <slug>                         # writes prompt
@@ -568,7 +568,7 @@ hirono auto-detect-entities <slug> --response <path>       # dry-run
 hirono auto-detect-entities <slug> --response <path> --apply  # creates _seen/<canon>.md
 ```
 
-Does NOT insert wikilinks into Source body — that's your job. Consults `Meta/entity-aliases.md` for normalization (LLaMA→Llama, bfloat16→BF16).
+Does NOT insert wikilinks into Source body — that's your job. Consults `00_Meta/entity-aliases.md` for normalization (LLaMA→Llama, bfloat16→BF16).
 
 ### `refine-entity` / `refine-topic` / `refine-synthesis`
 
@@ -645,7 +645,7 @@ hirono delete-source <slug> [--keep-raw] --reason "..."    # removes Source + ra
 hirono bulk-delete-orphans [--confirm | --all-zero]        # _seen/ refs=0
 ```
 
-Each atomic + logs to `Meta/refactor-log.md` + updates indexes. Hand-rolled `mv`+`sed` skips wikilink rewrite + audit trail.
+Each atomic + logs to `00_Meta/refactor-log.md` + updates indexes. Hand-rolled `mv`+`sed` skips wikilink rewrite + audit trail.
 
 ### `auto-fix` / `auto-curate` (one-tap)
 
@@ -657,7 +657,7 @@ User says "tidy up" / "fix what's broken" / "one-tap" → `auto-curate`.
 ### `propose-curation` / `apply-queue`
 
 ```bash
-hirono propose-curation                     # spawn Opus (judgment quality > cost here) → writes Meta/curation-queue.md
+hirono propose-curation                     # spawn Opus (judgment quality > cost here) → writes 00_Meta/curation-queue.md
 # operator marks [x] APPROVED
 hirono apply-queue [--auto-apply <level>]   # dispatcher executes via atomic CLIs
 ```
@@ -693,12 +693,12 @@ When work finishes, ask: **"would a future session avoid the trap or shorten the
 
 | Lesson | File |
 |---|---|
-| Site-handling pattern | `Meta/site-handling-patterns.md` §2 (P-NN) + §1 row + §3 if novel |
-| Recurring anti-pattern | `Meta/site-handling-patterns.md` §6 (AP-NN) |
-| Workflow change / new command | `Meta/operator-workflows.md` |
-| Actionable TODO | `Meta/post-fetch-todo.md` |
-| Wiki conventions | `Meta/schema.md` |
-| Cross-doc drift | `Meta/linting-notes.md` |
+| Site-handling pattern | `00_Meta/site-handling-patterns.md` §2 (P-NN) + §1 row + §3 if novel |
+| Recurring anti-pattern | `00_Meta/site-handling-patterns.md` §6 (AP-NN) |
+| Workflow change / new command | `00_Meta/operator-workflows.md` |
+| Actionable TODO | `00_Meta/post-fetch-todo.md` |
+| Wiki conventions | `00_Meta/schema.md` |
+| Cross-doc drift | `00_Meta/linting-notes.md` |
 | Code-quality rule for every commit | CLAUDE.md §3 |
 | Fetcher architecture shift | `docs/fetcher-architecture.md` |
 | New host module variant | `tools/sites/MIGRATION.md` |

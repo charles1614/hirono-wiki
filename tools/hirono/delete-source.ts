@@ -7,7 +7,7 @@
  * operator wants to undo it cleanly.
  *
  * Atomic operations (via applyAtomically):
- *   1. Delete `Sources/<year>/<slug>.md`.
+ *   1. Delete `03_Sources/<year>/<slug>.md`.
  *   2. Delete `raw/raindrop/<host>/<slug>/` directory (unless --keep-raw).
  *   3. Append a refactor log entry.
  *
@@ -80,11 +80,11 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function findSourcePath(repoRoot: string, slug: string): string | null {
-  const sourcesDir = join(repoRoot, "Sources");
+  const sourcesDir = join(repoRoot, "03_Sources");
   if (!existsSync(sourcesDir)) return null;
   for (const year of readdirSync(sourcesDir)) {
     if (!/^\d{4}$/.test(year)) continue;
-    const p = `Sources/${year}/${slug}.md`;
+    const p = `03_Sources/${year}/${slug}.md`;
     if (existsSync(join(repoRoot, p))) return p;
   }
   return null;

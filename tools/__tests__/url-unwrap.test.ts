@@ -1,6 +1,6 @@
 /**
  * Unit tests for `unwrapShareUrl` — the share-aggregator URL detector
- * documented as pattern P-32 in `Meta/site-handling-patterns.md`.
+ * documented as pattern P-32 in `00_Meta/site-handling-patterns.md`.
  */
 
 import { test } from "node:test";

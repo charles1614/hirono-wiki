@@ -126,15 +126,15 @@ function extractSection(body: string, heading: string): string {
 
 /** Try to resolve a citation token to a Source path. */
 function resolveSourcePath(repoRoot: string, token: string): string | null {
-  if (token.startsWith("Sources/")) {
+  if (token.startsWith("03_Sources/")) {
     const direct = token.endsWith(".md") ? token : `${token}.md`;
     if (existsSync(join(repoRoot, direct))) return direct;
   }
-  const sourcesDir = join(repoRoot, "Sources");
+  const sourcesDir = join(repoRoot, "03_Sources");
   if (!existsSync(sourcesDir)) return null;
   for (const year of readdirSync(sourcesDir)) {
     if (!/^\d{4}$/.test(year)) continue;
-    const candidate = `Sources/${year}/${token}.md`;
+    const candidate = `03_Sources/${year}/${token}.md`;
     if (existsSync(join(repoRoot, candidate))) return candidate;
   }
   return null;
@@ -146,8 +146,8 @@ function gatherEntityContext(
   name: string,
   sourceMode: ExcerptMode,
 ): { synthesis: string; observations: string[]; sources: { slug: string; body: string }[] } {
-  const active = `Entities/${name}.md`;
-  const seen = `Entities/_seen/${name}.md`;
+  const active = `02_Entities/${name}.md`;
+  const seen = `02_Entities/_seen/${name}.md`;
   let entityPath: string | null = null;
   if (existsSync(join(repoRoot, active))) entityPath = active;
   else if (existsSync(join(repoRoot, seen))) entityPath = seen;
@@ -169,7 +169,7 @@ function gatherEntityContext(
       }
       for (const m of line.matchAll(/\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]/g)) {
         const target = m[1].trim();
-        if (target.startsWith("Sources/")) continue;
+        if (target.startsWith("03_Sources/")) continue;
         cited.add(target);
       }
     }

@@ -94,7 +94,7 @@ function extractSection(body: string, heading: string): string {
 interface TopicContext { name: string; what: string; currentUnderstanding: string; updated: string }
 
 function loadTopicContexts(repoRoot: string): TopicContext[] {
-  const topicsDir = join(repoRoot, "Topics");
+  const topicsDir = join(repoRoot, "01_Topics");
   if (!existsSync(topicsDir)) return [];
   const out: TopicContext[] = [];
   for (const f of readdirSync(topicsDir)) {
@@ -216,7 +216,7 @@ export function refineSynthesis(
     // Count stubs filtered for the measure sidecar
     let stubCount = 0;
     try {
-      const topicsDir = join(repoRoot, "Topics");
+      const topicsDir = join(repoRoot, "01_Topics");
       if (existsSync(topicsDir)) {
         stubCount = readdirSync(topicsDir).filter(f => f.endsWith(".md")).length - topics.length;
       }

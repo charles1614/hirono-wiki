@@ -11,7 +11,7 @@ maintenance tooling. Each section: a flow diagram, the exact commands
 in order, what to expect on success, and what to do when things go
 sideways.
 
-> **See also:** [`Meta/corpus-pipeline.md`](corpus-pipeline.md) for the
+> **See also:** [`00_Meta/corpus-pipeline.md`](corpus-pipeline.md) for the
 > high-level state machine view (NOT-YET-GOOD / INGEST-READY / INGESTED,
 > the two transitions, the frozen-slug guard, the downgrade-protection
 > backward edge, and the per-scenario runbooks). This file is the
@@ -25,7 +25,7 @@ The single `hirono` binary is the canonical entry point for the
 Raindrop fetch pipeline. Wiki ingest (`ingest_batch.ts`) and wiki
 maintenance (`reindex.ts`, `build-sources-index.ts`, `lint.ts`,
 etc.) live in separate top-level binaries by design — they operate
-on `Sources/` / `Entities/` / `Topics/`, not on `raw/` or Raindrop
+on `03_Sources/` / `02_Entities/` / `01_Topics/`, not on `raw/` or Raindrop
 state.
 
 Jump to:
@@ -110,12 +110,12 @@ hirono raindrop new --json --out batch-1.json
 npx tsx tools/bin/ingest_batch.ts plan batch-1.json
 
 # 5. Hand off to the LLM (or yourself) to actually fetch + write the
-#    Sources/2026/<slug>.md files. The LLM uses MCP tools (Raindrop,
+#    03_Sources/2026/<slug>.md files. The LLM uses MCP tools (Raindrop,
 #    lark-hirono, WebFetch) and `hirono raindrop fetch ...` for the
 #    raw-archive layer. ingest_batch tracks status across sessions:
 npx tsx tools/bin/ingest_batch.ts next        # peek next pending
 npx tsx tools/bin/ingest_batch.ts start <id>  # mark in-progress
-# ... LLM does the work, writes Sources/2026/<slug>.md and raw/...
+# ... LLM does the work, writes 03_Sources/2026/<slug>.md and raw/...
 npx tsx tools/bin/ingest_batch.ts mark-done <id> --slug <slug>
 
 # 6. After the batch is processed, rebuild the URL→slug index from
@@ -123,7 +123,7 @@ npx tsx tools/bin/ingest_batch.ts mark-done <id> --slug <slug>
 npx tsx tools/bin/build-sources-index.ts
 
 # 7. Recompute reference counts + tier promotions in entity/topic
-#    frontmatter; regenerate Meta/index*.md.
+#    frontmatter; regenerate 00_Meta/index*.md.
 npx tsx tools/bin/reindex.ts
 
 # 8. Final health report. Tells you what didn't make it through.
@@ -245,8 +245,8 @@ hirono raindrop status
 | Symptom | What to do |
 |---|---|
 | `raindrop new` shows URLs but `ingest_batch plan` skips them all | URLs may have utm/share params that normalize differently. Inspect `.wiki-sources-index.json` for the normalized key. |
-| `--check-stale` triggers HEAD storms against a host | Rate-limited or noisy upstream. Lower `--max-age` next run, or add the slug to `Meta/fetch-decisions.md` to skip. |
-| `sync --retry-flagged` keeps retrying the same flagged slugs | The flag is genuinely unfixable. Diagnose with `status` (flow #3); if confirmed unrecoverable, accept-as-is via `Meta/fetch-decisions.md`. |
+| `--check-stale` triggers HEAD storms against a host | Rate-limited or noisy upstream. Lower `--max-age` next run, or add the slug to `00_Meta/fetch-decisions.md` to skip. |
+| `sync --retry-flagged` keeps retrying the same flagged slugs | The flag is genuinely unfixable. Diagnose with `status` (flow #3); if confirmed unrecoverable, accept-as-is via `00_Meta/fetch-decisions.md`. |
 | New bookmarks didn't appear after `refresh-cache` | Raindrop API token expired or rate limited. Re-auth and retry. |
 
 ---
@@ -352,7 +352,7 @@ got nothing. Three follow-ups:
 # 2. If the page is genuinely interactive (calculator, demo, web app):
 #    pin it as intentional-stub-app-only via the override file
 #    (see flow #6).
-# 3. Otherwise accept the stub via Meta/fetch-decisions.md.
+# 3. Otherwise accept the stub via 00_Meta/fetch-decisions.md.
 ```
 
 #### `upstream-not-html` (PDFs, app-store listings, API endpoints)
@@ -389,7 +389,7 @@ hirono raindrop status --filter upstream-not-html
 hirono raindrop status --filter content-incomplete-images
 hirono raindrop sync --retry-kind content-incomplete-images
 # If it persists across retries, the host is rate-limiting image fetches.
-# Wait a few minutes and retry, or add to Meta/fetch-decisions.md.
+# Wait a few minutes and retry, or add to 00_Meta/fetch-decisions.md.
 ```
 
 #### `content-too-short`
@@ -409,9 +409,9 @@ Is the kind tool-fixable?
 │       → fix → hirono raindrop sync --retry-kind <kind>
 └── no (genuinely unrecoverable / source-side)
         ├── stable failure (deleted, paywalled, app-only)
-        │       → Meta/fetch-decisions.md (skip future retries)
+        │       → 00_Meta/fetch-decisions.md (skip future retries)
         └── classifier mistake
-                → Meta/sources-health-overrides.md (flow #6)
+                → 00_Meta/sources-health-overrides.md (flow #6)
 ```
 
 ---
@@ -635,15 +635,15 @@ hirono raindrop status --filter clean   # those hosts should now be here
 ## 6. Override workflow
 
 When the auto-classifier mis-categorizes a slug, pin the kind in
-`Meta/sources-health-overrides.md`. The status report will use your
+`00_Meta/sources-health-overrides.md`. The status report will use your
 kind (with a 📌 marker) instead of the auto-classifier's.
 
-### When to use overrides vs `Meta/fetch-decisions.md`
+### When to use overrides vs `00_Meta/fetch-decisions.md`
 
 | File | Effect |
 |---|---|
-| `Meta/sources-health-overrides.md` | Changes the **kind** displayed in `status` reports. Doesn't suppress retries. |
-| `Meta/fetch-decisions.md` | **Suppresses** future fetch attempts (`sync` skips listed slugs). Doesn't change the kind. |
+| `00_Meta/sources-health-overrides.md` | Changes the **kind** displayed in `status` reports. Doesn't suppress retries. |
+| `00_Meta/fetch-decisions.md` | **Suppresses** future fetch attempts (`sync` skips listed slugs). Doesn't change the kind. |
 
 You'll often use both — pin the kind to reflect reality, then accept
 in fetch-decisions to stop retrying.
@@ -657,8 +657,8 @@ hirono raindrop status --filter content-too-short
 # Suppose 2026-04-21-some-tweet shows up but you've eyeballed it and
 # the body is 80 chars by design (a tweet) — not a defect.
 
-# 2. Edit Meta/sources-health-overrides.md. Add under today's date:
-$EDITOR Meta/sources-health-overrides.md
+# 2. Edit 00_Meta/sources-health-overrides.md. Add under today's date:
+$EDITOR 00_Meta/sources-health-overrides.md
 ```
 
 Add a row like:
@@ -713,12 +713,12 @@ Suggested cadence — adjust to your appetite.
 
 ### Batch-close ritual (run after every ingest batch)
 
-When the LLM finishes writing N new `Sources/YYYY/<slug>.md` pages (whether
+When the LLM finishes writing N new `03_Sources/YYYY/<slug>.md` pages (whether
 one slug or a 20-slug batch), close the batch with this sequence:
 
 ```bash
 # 1. Maintenance — refs / tier / counts / state field
-npx tsx tools/bin/reindex.ts                      # entity refs + tier promotions + Meta/index*.md
+npx tsx tools/bin/reindex.ts                      # entity refs + tier promotions + 00_Meta/index*.md
 npx tsx tools/bin/build-sources-index.ts          # URL → slug map (used by state derivation)
 npx tsx tools/bin/hirono.ts raindrop reindex-raw  # raw/raindrop/_index.json state field
 
@@ -731,7 +731,7 @@ npx tsx tools/bin/lint.ts
 #    append a cited Observation bullet per schema.md §entity-page.
 
 # 4. Schema-audit habit (~5 min, biweekly or after schema-touching commits):
-#    Read Meta/schema.md end-to-end. Any section that no longer matches the
+#    Read 00_Meta/schema.md end-to-end. Any section that no longer matches the
 #    new Source pages you just wrote? Update schema first, regenerate
 #    pages second. Schema drift compounds — catch it while context is fresh.
 
@@ -802,9 +802,9 @@ removed. Every subcommand now lives under `hirono raindrop`:
 | Command | Purpose |
 |---|---|
 | `hirono doctor` | Environment + adapter health check. `--fix` repairs symlinks. |
-| `npx tsx tools/bin/build-sources-index.ts` | Rebuild `.wiki-sources-index.json` from `Sources/**.md`. |
+| `npx tsx tools/bin/build-sources-index.ts` | Rebuild `.wiki-sources-index.json` from `03_Sources/**.md`. |
 | `npx tsx tools/bin/build-mention-map.ts` | Build the wiki-link cross-reference map. |
-| `npx tsx tools/bin/reindex.ts` | Recompute frontmatter `refs:` / `tier:` / `source_count:`; promote `_seen/` entities; regenerate `Meta/index*.md`. |
+| `npx tsx tools/bin/reindex.ts` | Recompute frontmatter `refs:` / `tier:` / `source_count:`; promote `_seen/` entities; regenerate `00_Meta/index*.md`. |
 | `npx tsx tools/bin/ingest_batch.ts <subcommand>` | Batch-state manager — `plan` / `next` / `start` / `mark-done` / `list`. |
 | `npx tsx tools/bin/lint.ts` | Wiki-content linter. |
 | `npx tsx tools/bin/find-dupes.ts` | Find duplicate slugs / wiki-link conflicts. |
@@ -814,14 +814,14 @@ removed. Every subcommand now lives under `hirono raindrop`:
 
 | File | Purpose |
 |---|---|
-| `Meta/fetch-decisions.md` | Slug-level "accept-as-is" — `sync` skips listed slugs on subsequent runs. |
-| `Meta/sources-health-overrides.md` | Slug-level `pin-kind=<kind>` — overrides the auto-classifier in `status`. |
+| `00_Meta/fetch-decisions.md` | Slug-level "accept-as-is" — `sync` skips listed slugs on subsequent runs. |
+| `00_Meta/sources-health-overrides.md` | Slug-level `pin-kind=<kind>` — overrides the auto-classifier in `status`. |
 
 ### Output files (operator-facing)
 
 | Path | Purpose |
 |---|---|
-| `Sources/2026/<slug>.md` | Hand-authored ingest report for a bookmark. The canonical citation target. |
+| `03_Sources/2026/<slug>.md` | Hand-authored ingest report for a bookmark. The canonical citation target. |
 | `raw/raindrop/<host>/<slug>/content.md` | Latest fetched markdown for a slug. |
 | `raw/raindrop/<host>/<slug>/content-rev<N>.md` | Earlier revisions when refetched without `--force`. |
 | `raw/raindrop/<host>/<slug>/source.json` | Latest fetch metadata (status, flags, etag, etc.). |
@@ -878,7 +878,7 @@ hirono bulk-delete-orphans [--confirm <slugs>] [--all-zero] [--dry-run]
 
 All mutators are **atomic** (two-phase commit via `.curation-staging/`)
 and **emit a refactor log entry** so the operator never has to remember
-to update `Meta/log-YYYY.md` manually.
+to update `00_Meta/log-YYYY.md` manually.
 
 ### 9.3 The four-step pattern
 
@@ -917,14 +917,14 @@ accident where a bookmark shouldn't have been added.
 hirono delete-source <slug> [--keep-raw] [--reason "..."]
 ```
 
-Atomic: deletes `Sources/<year>/<slug>.md` + `raw/raindrop/<host>/<slug>/`
+Atomic: deletes `03_Sources/<year>/<slug>.md` + `raw/raindrop/<host>/<slug>/`
 (unless `--keep-raw`), appends a `refactor | Delete Source` log entry.
 Refuses if any Entity/Topic wikilinks the Source (dangling-ref guard);
 `--force` overrides.
 
 After: `npx tsx tools/bin/build-sources-index.ts` to refresh the URL→slug index.
 
-### 10.2 The skip-list (`Meta/sources-ingest-skips.md`)
+### 10.2 The skip-list (`00_Meta/sources-ingest-skips.md`)
 
 Last-resort permanent-exclusion registry. **NOT for off-topic Sources**
 (those get ingested; the wiki absorbs broadly per Karpathy). Use only for:
@@ -951,7 +951,7 @@ Handles three local-state branches automatically:
 
 Raindrop bookmark stays upstream (we don't have write API); skip-list permanently shields.
 
-To un-skip later: delete the line from `Meta/sources-ingest-skips.md`.
+To un-skip later: delete the line from `00_Meta/sources-ingest-skips.md`.
 
 ## 11. Auto-gen and refine entities (Phase B)
 
@@ -981,7 +981,7 @@ hirono auto-detect-entities 2026-04-03-foo-slug --response <path> --apply
 
 Wikilink insertion is operator's call (reported, not auto-applied — picking the right insertion point requires judgment).
 
-Aliases live in `Meta/entity-aliases.md` (normalization hints only, NOT a scope gate).
+Aliases live in `00_Meta/entity-aliases.md` (normalization hints only, NOT a scope gate).
 
 ### 11.2 `hirono refine-entity <name>`
 
@@ -1061,7 +1061,7 @@ Dry-run with `--response <path>` (without `--apply`) prints the diff before comm
 
 **Auto-curate integration.** `hirono propose-curation` exposes `refine-synthesis` as a Sonnet-dispatchable proposal kind. When the Sonnet judge sees the `stale-top-synthesis` lint finding, it can emit a proposal that `apply-queue` executes as `hirono refine-synthesis` (which prepares the prompt). The Sonnet+apply loop for the regeneration itself is the operator's next iteration — same shape as how `refine-entity` regenerations close.
 
-**Quality bar**: every claim in [[Synthesis]] must be backed by ≥1 `[[Topics/X]]` or `[[Sources/YYYY/X]]` or `[[<Entity>]]` wikilink. Orphan assertions (claims with no link) are a regression — the lint doesn't catch them, so eye-read every regeneration before approving.
+**Quality bar**: every claim in [[Synthesis]] must be backed by ≥1 `[[01_Topics/X]]` or `[[03_Sources/YYYY/X]]` or `[[<Entity>]]` wikilink. Orphan assertions (claims with no link) are a regression — the lint doesn't catch them, so eye-read every regeneration before approving.
 
 ## 12. Drift detection (Phase B)
 
@@ -1086,7 +1086,7 @@ hirono raindrop gc [--keep-last N]    # content-rev*.md cleanup
 
 **Cadence**: drift audit before each bulk-fetch cycle; sources audit before bulk-refine.
 
-**Pinning dead URLs**: add `pin-kind=dead-link-accepted` to `Meta/sources-health-overrides.md` to mark a dead URL as operator-accepted (sync skips it from retry loops).
+**Pinning dead URLs**: add `pin-kind=dead-link-accepted` to `00_Meta/sources-health-overrides.md` to mark a dead URL as operator-accepted (sync skips it from retry loops).
 
 **Revision GC**: `hirono raindrop gc --keep-last 3` keeps the most recent 3 revisions; older `content-rev*.md` files are deleted and `revisions.jsonl` is updated with `body_pruned=true` markers.
 
@@ -1097,7 +1097,7 @@ The curation pipeline is fully LLM-driven end-to-end. The three "modes" differ o
 | Mode | LLM does | Operator does | Command |
 |---|---|---|---|
 | **Zero-touch** | nothing (mechanical operations only) | nothing | `hirono auto-fix` |
-| **One-tap** (default for Tier 2) | judges health-check findings, proposes specific atomic-CLI commands with rationale, dispatcher executes | reviews `Meta/curation-queue.md`, ticks `[x]` approved boxes | `propose-curation` → spawn Sonnet → `apply-queue` |
+| **One-tap** (default for Tier 2) | judges health-check findings, proposes specific atomic-CLI commands with rationale, dispatcher executes | reviews `00_Meta/curation-queue.md`, ticks `[x]` approved boxes | `propose-curation` → spawn Sonnet → `apply-queue` |
 | **Full auto** | same as one-tap PLUS auto-dispatch of high-confidence items | nothing (just kicks off the loop) | `propose-curation` → spawn Sonnet → `apply-queue --auto-apply high` |
 
 All three modes are *automated* — the LLM does the judgment work. They differ in operator-approval scope. Full-auto is appropriate when the operator trusts Sonnet's high-confidence calls (case-only alias merges, obvious orphan deletions, name collisions); one-tap is appropriate when reviewing each proposed mutation is worth the ~5 minutes; zero-touch is the safe-by-construction subset.
@@ -1110,7 +1110,7 @@ The narrowest autonomous loop. Runs three safe-by-construction operations and **
 hirono auto-fix [--dry-run]
 ```
 
-**Step 1 — alias merges**: for each `variant → canonical` in `Meta/entity-aliases.md` where BOTH `Entities/_seen/{variant,canonical}.md` exist, run `hirono merge-entities` automatically. Safe because the alias is operator-declared: if `bfloat16 → BF16` is in the file, the operator already stated they're the same thing. The merge concatenates Observations (no information loss), rewrites wikilinks, appends a refactor log entry.
+**Step 1 — alias merges**: for each `variant → canonical` in `00_Meta/entity-aliases.md` where BOTH `02_Entities/_seen/{variant,canonical}.md` exist, run `hirono merge-entities` automatically. Safe because the alias is operator-declared: if `bfloat16 → BF16` is in the file, the operator already stated they're the same thing. The merge concatenates Observations (no information loss), rewrites wikilinks, appends a refactor log entry.
 
 **Step 2 — refine-prompt prep**: for each entity flagged stale by `lint --check stale-synthesis`, write a refine prompt package to `.refine-prompts/`. Also, when `lint --check stale-top-synthesis` fires (top-level `Synthesis.md` >7d behind newest Topic `synthesis_updated_at`), prep `.refine-prompts/synthesis-prompt.md` via `hirono refine-synthesis`. No mutations. Operator then spawns Sonnet → apply per the normal refine workflow (per-entity or top-level).
 
@@ -1156,7 +1156,7 @@ This is a thin orchestrator over the underlying CLIs; behavior is identical to r
 Mostly the answer is "nothing fires; operator invokes" — but two narrow exceptions handle the easy cases:
 
 **Post-commit hook** (`.githooks/post-commit`) runs `hirono auto-fix --skip-reindex` after every commit. Scope:
-- Auto-applies alias merges where both sides exist in `Meta/entity-aliases.md`.
+- Auto-applies alias merges where both sides exist in `00_Meta/entity-aliases.md`.
 - Skips reindex (the just-committed snapshot already has fresh indexes via pre-commit lint).
 - Loop-safe: skips itself if the previous commit was an auto-fix commit.
 - Escape hatch: `HIRONO_SKIP_POST_COMMIT=1 git commit ...` bypasses.
@@ -1196,7 +1196,7 @@ hirono propose-curation
 
 # 3. Finalize: render operator-reviewable queue with checkboxes
 hirono propose-curation --finalize .curation-prompts/curation-proposal-response.json
-# → writes Meta/curation-queue.md (operator opens + ticks [x] approved items)
+# → writes 00_Meta/curation-queue.md (operator opens + ticks [x] approved items)
 
 # 4. Apply approved items — each dispatches to the matching atomic CLI
 hirono apply-queue

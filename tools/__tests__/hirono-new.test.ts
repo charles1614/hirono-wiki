@@ -30,7 +30,7 @@ test("createEntityStub: creates a seen-tier stub with correct frontmatter + scaf
   try {
     const path = createEntityStub(root, "FooBar", "A test entity");
     assert.ok(existsSync(path), `expected file at ${path}`);
-    assert.equal(path, join(root, "Entities", "_seen", "FooBar.md"));
+    assert.equal(path, join(root, "02_Entities", "_seen", "FooBar.md"));
     const content = readFileSync(path, "utf8");
     // Required frontmatter fields:
     assert.match(content, /^type: entity$/m);
@@ -60,8 +60,8 @@ test("createEntityStub: refuses to overwrite existing file at seen tier", () => 
 test("createEntityStub: refuses to overwrite existing file at active tier", () => {
   const root = tmp();
   try {
-    mkdirSync(join(root, "Entities"), { recursive: true });
-    writeFileSync(join(root, "Entities", "FooBaz.md"), "stub");
+    mkdirSync(join(root, "02_Entities"), { recursive: true });
+    writeFileSync(join(root, "02_Entities", "FooBaz.md"), "stub");
     assert.throws(
       () => createEntityStub(root, "FooBaz", "test"),
       /already exists/,
@@ -97,7 +97,7 @@ test("createTopicStub: creates a Topic with the four required sections in order"
   try {
     const path = createTopicStub(root, "Cross-Cutting Theme", "Some testable definition.");
     assert.ok(existsSync(path), `expected file at ${path}`);
-    assert.equal(path, join(root, "Topics", "Cross-Cutting Theme.md"));
+    assert.equal(path, join(root, "01_Topics", "Cross-Cutting Theme.md"));
     const content = readFileSync(path, "utf8");
     // Required frontmatter:
     assert.match(content, /^type: topic$/m);

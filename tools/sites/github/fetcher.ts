@@ -193,7 +193,7 @@ export function fetchRaw(
   // matches when normalized (lower-case, dashes/underscores collapsed,
   // leading-zero variations like `blog9_` vs `blog09_`). Fetch the
   // unique match if exactly one. See P-42 in
-  // `Meta/site-handling-patterns.md`.
+  // `00_Meta/site-handling-patterns.md`.
   const moved = findMovedFile(org, repo, branch, path);
   if (moved) {
     const movedRes = spawnSync(

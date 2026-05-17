@@ -8,9 +8,9 @@
  * Operations are applied atomically via two-phase commit (`tools/curation.ts`).
  * On any failure mid-apply, the staging dir holds the rollback snapshots.
  *
- * After applying, a refactor entry is prepended to Meta/log-YYYY.md.
+ * After applying, a refactor entry is prepended to 00_Meta/log-YYYY.md.
  * Operator should run `npx tsx tools/bin/reindex.ts` afterward to refresh
- * Meta/index*.md and entity `updated:` dates.
+ * 00_Meta/index*.md and entity `updated:` dates.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -42,7 +42,7 @@ Atomically rename an entity:
   - Moves Entities/[_seen/]<OldName>.md → Entities/[_seen/]<NewName>.md
   - Rewrites the body's H1 heading
   - Rewrites all [[OldName]] (and [[OldName|alias]]) references corpus-wide
-  - Appends a refactor entry to Meta/log-YYYY.md
+  - Appends a refactor entry to 00_Meta/log-YYYY.md
 
 Examples:
   hirono rename-entity "Tile IR" "CUDA Tile IR" --reason "Consolidate three-name fragment"
@@ -82,10 +82,10 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function findEntityFile(repoRoot: string, name: string): { path: string; tier: "active" | "seen" } | null {
-  const active = join(repoRoot, "Entities", `${name}.md`);
-  if (existsSync(active)) return { path: `Entities/${name}.md`, tier: "active" };
-  const seen = join(repoRoot, "Entities", "_seen", `${name}.md`);
-  if (existsSync(seen)) return { path: `Entities/_seen/${name}.md`, tier: "seen" };
+  const active = join(repoRoot, "02_Entities", `${name}.md`);
+  if (existsSync(active)) return { path: `02_Entities/${name}.md`, tier: "active" };
+  const seen = join(repoRoot, "02_Entities", "_seen", `${name}.md`);
+  if (existsSync(seen)) return { path: `02_Entities/_seen/${name}.md`, tier: "seen" };
   return null;
 }
 
@@ -130,8 +130,8 @@ export function renameEntity(
 
   // Resolve target path (preserve tier)
   const newPath = src.tier === "active"
-    ? `Entities/${newName}.md`
-    : `Entities/_seen/${newName}.md`;
+    ? `02_Entities/${newName}.md`
+    : `02_Entities/_seen/${newName}.md`;
 
   // Read source body; rewrite H1 inside it (best-effort — only rewrites
   // the first `# OldName` line on a typical schema-conformant page).
@@ -203,7 +203,7 @@ export function renameEntity(
     `Tier preserved: ${src.tier}.`,
     `Pages with wikilink rewrites: ${writes.length}. Total link replacements: ${totalLinkRewrites}.`,
     reason ? `Reason: ${reason}` : `Reason: not specified.`,
-    `Run \`npx tsx tools/bin/reindex.ts\` to refresh Meta/index*.md.`,
+    `Run \`npx tsx tools/bin/reindex.ts\` to refresh 00_Meta/index*.md.`,
   ]);
 
   // Clean up staging on success (forensic snapshots are no longer needed)
@@ -235,7 +235,7 @@ export function main(argv: string[]): void {
       console.log(`✓ renamed: ${result.oldPath} → ${result.newPath}`);
       console.log(`✓ citing pages touched: ${result.citingPagesTouched}`);
       console.log(`✓ total wikilink replacements: ${result.totalLinkRewrites}`);
-      console.log(`✓ refactor log entry appended to Meta/log-${new Date().getFullYear()}.md`);
+      console.log(`✓ refactor log entry appended to 00_Meta/log-${new Date().getFullYear()}.md`);
       console.log(`\nNext: run \`npx tsx tools/bin/reindex.ts\` to refresh indexes.`);
     }
   } catch (e) {

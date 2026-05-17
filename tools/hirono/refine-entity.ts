@@ -91,9 +91,9 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 /** Find an entity file at active or seen tier. */
 function findEntityFile(repoRoot: string, name: string): string | null {
-  const active = `Entities/${name}.md`;
+  const active = `02_Entities/${name}.md`;
   if (existsSync(join(repoRoot, active))) return active;
-  const seen = `Entities/_seen/${name}.md`;
+  const seen = `02_Entities/_seen/${name}.md`;
   if (existsSync(join(repoRoot, seen))) return seen;
   return null;
 }
@@ -127,14 +127,14 @@ function parseEntity(body: string): { synthesis: string; observations: string[];
   for (const line of obsBlock.split("\n")) {
     if (/^-\s+/.test(line)) {
       observations.push(line.replace(/^-\s+/, "").trim());
-      // Extract [[Sources/.../slug]] wikilinks
+      // Extract [[03_Sources/.../slug]] wikilinks
       for (const m of line.matchAll(/\[\[Sources\/(?:\d{4}\/)?([^\]|]+?)(?:\|[^\]]*)?\]\]/g)) {
         cited.add(m[1].trim());
       }
       for (const m of line.matchAll(/\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]/g)) {
         // Also catch shorthand `[[slug]]` referring to a Source by its basename
         const target = m[1].trim();
-        if (target.startsWith("Sources/")) continue;  // handled above
+        if (target.startsWith("03_Sources/")) continue;  // handled above
         cited.add(target);
       }
     }
@@ -142,19 +142,19 @@ function parseEntity(body: string): { synthesis: string; observations: string[];
   return { synthesis, observations, cited: Array.from(cited) };
 }
 
-/** Try to resolve a citation token (slug or `Sources/yyyy/slug`) to a Source path. */
+/** Try to resolve a citation token (slug or `03_Sources/yyyy/slug`) to a Source path. */
 function resolveSourcePath(repoRoot: string, token: string): string | null {
   // Direct path under Sources/
-  if (token.startsWith("Sources/")) {
+  if (token.startsWith("03_Sources/")) {
     const direct = token.endsWith(".md") ? token : `${token}.md`;
     if (existsSync(join(repoRoot, direct))) return direct;
   }
   // Sources/<year>/<slug>.md
-  const sourcesDir = join(repoRoot, "Sources");
+  const sourcesDir = join(repoRoot, "03_Sources");
   if (!existsSync(sourcesDir)) return null;
   for (const year of readdirSync(sourcesDir)) {
     if (!/^\d{4}$/.test(year)) continue;
-    const candidate = `Sources/${year}/${token}.md`;
+    const candidate = `03_Sources/${year}/${token}.md`;
     if (existsSync(join(repoRoot, candidate))) return candidate;
   }
   return null;

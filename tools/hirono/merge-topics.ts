@@ -2,7 +2,7 @@
  * `hirono merge-topics <Src> --into <Tgt>` — atomic topic merge.
  *
  * Topic merges are simpler than entity merges (no tier system; Topics live
- * flat in `Topics/`). Per-section concatenation: ## What, ## Current
+ * flat in `01_Topics/`). Per-section concatenation: ## What, ## Current
  * understanding, ## Open threads, ## Sources drawn on get an HTML merge-
  * marker between target's content and source's content. Then rewrite all
  * `[[Src]]` corpus-wide → `[[Tgt]]`, delete source, append log entry.
@@ -43,7 +43,7 @@ Atomically merge two topics:
   - Rewrites all [[SourceName]] corpus-wide to [[TargetName]].
   - Marks Current understanding stale if either was non-stub.
   - Deletes the source file.
-  - Appends a refactor entry to Meta/log-YYYY.md.
+  - Appends a refactor entry to 00_Meta/log-YYYY.md.
 
 Examples:
   hirono merge-topics "Communication Overlap" --into "Communication-Computation Overlap"
@@ -70,8 +70,8 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function findTopicFile(repoRoot: string, name: string): string | null {
-  const p = join(repoRoot, "Topics", `${name}.md`);
-  return existsSync(p) ? `Topics/${name}.md` : null;
+  const p = join(repoRoot, "01_Topics", `${name}.md`);
+  return existsSync(p) ? `01_Topics/${name}.md` : null;
 }
 
 const STUB_RE = /\*?stub /i;

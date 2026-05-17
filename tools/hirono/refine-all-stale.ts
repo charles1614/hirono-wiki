@@ -106,7 +106,7 @@ function runStaleSynthesisLint(repoRoot: string): LintIssue[] {
   return issues.filter(i => i.kind === "stale-synthesis");
 }
 
-/** Extract entity name from a path like `Entities/MLA.md` → `MLA`. */
+/** Extract entity name from a path like `02_Entities/MLA.md` → `MLA`. */
 function entityNameFromPath(p: string): string | null {
   const m = p.match(/^Entities\/(?:_seen\/)?([^\/]+?)\.md$/);
   return m ? m[1] : null;

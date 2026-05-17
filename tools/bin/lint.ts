@@ -17,7 +17,7 @@
  *                     or Entity in active tier with refs < 3 (curious; may
  *                     be a manual carve-out).
  *   frontmatter       Missing / malformed required frontmatter fields per
- *                     the page's bucket (per Meta/schema.md conventions).
+ *                     the page's bucket (per 00_Meta/schema.md conventions).
  *
  *   tsx lint.ts                         # run all checks
  *   tsx lint.ts --check orphans,dead    # subset
@@ -116,7 +116,7 @@ export function checkOrphans(docs: DocMeta[]): Issue[] {
   // Count incoming refs excluding Meta/ (navigation) + self-refs.
   const refs = new Map<string, number>();
   for (const doc of docs) {
-    if (doc.bucket === "Meta") continue;
+    if (doc.bucket === "00_Meta") continue;
     for (const target of doc.wikilinks) {
       if (target === doc.slug) continue;
       refs.set(target, (refs.get(target) ?? 0) + 1);
@@ -124,7 +124,7 @@ export function checkOrphans(docs: DocMeta[]): Issue[] {
   }
   const issues: Issue[] = [];
   for (const doc of docs) {
-    if (doc.bucket !== "Entities" && doc.bucket !== "Topics") continue;
+    if (doc.bucket !== "02_Entities" && doc.bucket !== "01_Topics") continue;
     const count = refs.get(doc.slug) ?? 0;
     if (count === 0) {
       issues.push({
@@ -146,12 +146,12 @@ export function checkDeadWikilinks(
   const knownSlugs = new Set(docs.map((d) => d.slug));
   const issues: Issue[] = [];
   for (const doc of docs) {
-    if (!opts.includeMeta && doc.bucket === "Meta") continue;
+    if (!opts.includeMeta && doc.bucket === "00_Meta") continue;
     for (const target of doc.wikilinks) {
       if (!knownSlugs.has(target)) {
         const hint =
           target.includes("/")
-            ? "path-style wikilink detected; use bare slug (e.g. [[schema]] not [[Meta/schema]])"
+            ? "path-style wikilink detected; use bare slug (e.g. [[schema]] not [[00_Meta/schema]])"
             : "slug doesn't exist; create it as a stub or remove the reference";
         issues.push({
           kind: "dead-wikilinks",
@@ -169,7 +169,7 @@ export function checkDeadWikilinks(
 export function checkTierMismatch(docs: DocMeta[]): Issue[] {
   const refs = new Map<string, number>();
   for (const doc of docs) {
-    if (doc.bucket === "Meta") continue;
+    if (doc.bucket === "00_Meta") continue;
     for (const target of doc.wikilinks) {
       if (target === doc.slug) continue;
       refs.set(target, (refs.get(target) ?? 0) + 1);
@@ -177,7 +177,7 @@ export function checkTierMismatch(docs: DocMeta[]): Issue[] {
   }
   const issues: Issue[] = [];
   for (const doc of docs) {
-    if (doc.bucket !== "Entities") continue;
+    if (doc.bucket !== "02_Entities") continue;
     const count = refs.get(doc.slug) ?? 0;
     const inSeen = doc.repo_path.includes("/_seen/");
     if (inSeen && count >= TIER_THRESHOLD) {
@@ -203,7 +203,7 @@ export function checkTierMismatch(docs: DocMeta[]): Issue[] {
 }
 
 /**
- * raw-orphan: every Sources/YYYY/<slug>.md should have a paired
+ * raw-orphan: every 03_Sources/YYYY/<slug>.md should have a paired
  * raw/raindrop/<host>/<slug>/content.md; every raw/raindrop/<host>/<slug>/
  * should be referenced by some Sources/<slug>.md. Missing either side
  * is an error.
@@ -214,7 +214,7 @@ export function checkTierMismatch(docs: DocMeta[]): Issue[] {
  */
 export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
   const issues: Issue[] = [];
-  const sources = docs.filter((d) => d.bucket === "Sources");
+  const sources = docs.filter((d) => d.bucket === "03_Sources");
 
   // Index existing raw slugs by slug → (host, slugDir).
   const rawRoot = join(repoRoot, "raw", "raindrop");
@@ -264,7 +264,7 @@ export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
         kind: "raw-orphan",
         severity: "error",
         path: s.repo_path,
-        detail: `Sources/.../${s.slug}.md has no raw archive at raw/raindrop/<host>/${s.slug}/content.md`,
+        detail: `03_Sources/.../${s.slug}.md has no raw archive at raw/raindrop/<host>/${s.slug}/content.md`,
         hint: "run `hirono raindrop fetch <slug>` to populate raw/, or remove the Source summary",
       });
     }
@@ -315,7 +315,7 @@ export function checkRawOrphan(docs: DocMeta[], repoRoot: string): Issue[] {
  */
 export function checkSourceImageRefs(docs: DocMeta[], repoRoot: string): Issue[] {
   const issues: Issue[] = [];
-  for (const doc of docs.filter((d) => d.bucket === "Sources")) {
+  for (const doc of docs.filter((d) => d.bucket === "03_Sources")) {
     for (const ref of extractLocalImageRefs(doc.body)) {
       // Resolve `../../raw/...` relative to the Source's directory.
       const abs = resolve(repoRoot, dirname(doc.repo_path), ref);
@@ -498,7 +498,7 @@ function hasCanonicalRationale(body: string): boolean {
  */
 export function checkSourceImageCount(docs: DocMeta[], repoRoot: string): Issue[] {
   const issues: Issue[] = [];
-  const sources = docs.filter((d) => d.bucket === "Sources");
+  const sources = docs.filter((d) => d.bucket === "03_Sources");
 
   // Build slug → slugDir map (same shape as checkRawOrphan).
   const rawRoot = join(repoRoot, "raw", "raindrop");
@@ -539,14 +539,14 @@ export function checkSourceImageCount(docs: DocMeta[], repoRoot: string): Issue[
         severity: "warn",
         path: doc.repo_path,
         detail: `raw archive shows load-bearing-image signals (${reasons.join("; ")}; img_count=${imgCount}) but Source references ${refCount} image(s) and has no rationale line`,
-        hint: `Add ${requiredMinRefs === 1 ? "1" : "2-5"} ![](../../raw/...) refs to ## Visual observations, OR add a "*No load-bearing images — <reason>.*" line per Meta/schema.md`,
+        hint: `Add ${requiredMinRefs === 1 ? "1" : "2-5"} ![](../../raw/...) refs to ## Visual observations, OR add a "*No load-bearing images — <reason>.*" line per 00_Meta/schema.md`,
       });
     } else if (refCount > 5) {
       issues.push({
         kind: "source-image-count",
         severity: "warn",
         path: doc.repo_path,
-        detail: `Source references ${refCount} images (cap is 5); demote some to supporting bullets per Meta/schema.md image rule`,
+        detail: `Source references ${refCount} images (cap is 5); demote some to supporting bullets per 00_Meta/schema.md image rule`,
         hint: `Visual observations should keep image refs to 2-5 load-bearing panels`,
       });
     }
@@ -559,7 +559,7 @@ export function checkSourceImageCount(docs: DocMeta[], repoRoot: string): Issue[
  * observation-gaps: surface the LLM-editorial debt that reindex.ts's
  * verbose output prints but doesn't enforce.
  *
- * For each ACTIVE-tier Entity (in `Entities/`, not `Entities/_seen/`)
+ * For each ACTIVE-tier Entity (in `02_Entities/`, not `02_Entities/_seen/`)
  * whose `## Observations` section doesn't cite all of the Sources that
  * wikilink to it, emit a WARN naming the missing citing Source(s).
  * The LLM is expected to append one cited bullet per citing Source on
@@ -582,9 +582,9 @@ export function checkObservationGaps(docs: DocMeta[]): Issue[] {
   const gaps = computeObservationGaps(docs, refs);
   for (const gap of gaps) {
     // Find the entity doc to check its tier. Active-tier entities live
-    // in `Entities/<Name>.md`; seen-tier in `Entities/_seen/<Name>.md`.
+    // in `02_Entities/<Name>.md`; seen-tier in `02_Entities/_seen/<Name>.md`.
     const entityDoc = docs.find(
-      (d) => d.bucket === "Entities" && d.slug === gap.slug,
+      (d) => d.bucket === "02_Entities" && d.slug === gap.slug,
     );
     if (!entityDoc) continue;
     const inSeen = entityDoc.repo_path.includes("/_seen/");
@@ -607,7 +607,7 @@ export function checkObservationGaps(docs: DocMeta[]): Issue[] {
 }
 
 function yearForSourcePath(repoPath: string): string {
-  // "Sources/2026/2026-04-19-foo.md" → "2026"
+  // "03_Sources/2026/2026-04-19-foo.md" → "2026"
   const m = repoPath.match(/^Sources\/(\d{4})\//);
   return m ? m[1] : new Date().getFullYear().toString();
 }
@@ -615,7 +615,7 @@ function yearForSourcePath(repoPath: string): string {
 /**
  * Canonical tag vocabulary for Sources `tags:` frontmatter. Five axes;
  * Sources should pick 2–5 tags from the relevant axes. Documented in
- * `Meta/schema.md` under "Canonical tag vocabulary"; this set is the
+ * `00_Meta/schema.md` under "Canonical tag vocabulary"; this set is the
  * single source of truth (the doc references this list, not vice versa).
  *
  * Don't tag proper nouns (NVIDIA, vLLM, Mixtral, Llama, etc.) — those go
@@ -669,7 +669,7 @@ export function checkTopicContentGaps(docs: DocMeta[]): Issue[] {
     if (trimmed.length === 0) return true;
     return STUB_PATTERNS.some((re) => re.test(trimmed));
   };
-  for (const doc of docs.filter((d) => d.bucket === "Topics")) {
+  for (const doc of docs.filter((d) => d.bucket === "01_Topics")) {
     const sourceCount = doc.frontmatter.source_count;
     if (typeof sourceCount !== "number" || sourceCount < 3) continue;
     const whatMatch = doc.body.match(/^## What\n\n(.*?)(?=\n## |\Z)/ms);
@@ -686,8 +686,8 @@ export function checkTopicContentGaps(docs: DocMeta[]): Issue[] {
           `are both placeholders — load-bearing Topic pages need synthesis.`,
         hint:
           `LLM-editorial backfill: read each citing Source (grep the Topic name across ` +
-          `Sources/2026/*.md) and write a synthesis paragraph in ## Current understanding. ` +
-          `See Meta/schema.md §Topic-page structure.`,
+          `03_Sources/2026/*.md) and write a synthesis paragraph in ## Current understanding. ` +
+          `See 00_Meta/schema.md §Topic-page structure.`,
       });
     }
   }
@@ -699,7 +699,7 @@ export function checkTopicContentGaps(docs: DocMeta[]): Issue[] {
  * heading but no usable table beneath it.
  *
  * Comparison sections are optional and embedded — any Topic may choose to
- * carry one (per Meta/schema.md §"Topic sub-shapes"). Presence of the
+ * carry one (per 00_Meta/schema.md §"Topic sub-shapes"). Presence of the
  * heading IS the contract; absence is fine (most Topics don't need one).
  * The lint only fires when the operator has added the heading but the
  * table is missing / stub.
@@ -714,7 +714,7 @@ export function checkComparisonTable(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
 
   for (const d of docs) {
-    if (d.bucket !== "Topics") continue;
+    if (d.bucket !== "01_Topics") continue;
 
     const bodyLines = d.body.split("\n");
     const headingIdx = bodyLines.findIndex(l => l.trim() === "## Comparison");
@@ -777,7 +777,7 @@ export function checkComparisonOpportunity(docs: DocMeta[]): Issue[] {
   // Build active-tier entity slug set
   const activeEntitySlugs = new Set<string>();
   for (const d of docs) {
-    if (d.bucket !== "Entities") continue;
+    if (d.bucket !== "02_Entities") continue;
     if (d.repo_path.includes("/_seen/")) continue;
     activeEntitySlugs.add(d.slug);
   }
@@ -798,7 +798,7 @@ export function checkComparisonOpportunity(docs: DocMeta[]): Issue[] {
     : null;
 
   for (const d of docs) {
-    if (d.bucket !== "Topics") continue;
+    if (d.bucket !== "01_Topics") continue;
 
     // Skip if already opted in
     const bodyLines = d.body.split("\n");
@@ -890,13 +890,13 @@ export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
   // Source slug → updated date
   const sourceUpdated = new Map<string, string>();
   for (const d of docs) {
-    if (d.bucket !== "Sources") continue;
+    if (d.bucket !== "03_Sources") continue;
     const u = String(d.frontmatter.updated ?? "");
     if (u) sourceUpdated.set(d.slug, u);
   }
 
   for (const d of docs) {
-    if (d.bucket !== "Entities") continue;
+    if (d.bucket !== "02_Entities") continue;
     if (d.repo_path.includes("/_seen/")) continue; // active-tier only
     // Skip if Synthesis is stub-only (other lint rules catch those)
     const synthMatch = d.body.match(/^## Synthesis\s*$([\s\S]*?)(?=^## |\Z)/m);
@@ -908,7 +908,7 @@ export function checkStaleSynthesis(docs: DocMeta[]): Issue[] {
     // Find newest citing Source
     let newest: { slug: string; updated: string } | null = null;
     for (const other of docs) {
-      if (other.bucket !== "Sources") continue;
+      if (other.bucket !== "03_Sources") continue;
       if (!other.wikilinks.has(d.slug)) continue;
       const su = sourceUpdated.get(other.slug);
       if (!su) continue;
@@ -976,13 +976,13 @@ export function checkStaleTopicSynthesis(docs: DocMeta[]): Issue[] {
 
   const sourceUpdated = new Map<string, string>();
   for (const d of docs) {
-    if (d.bucket !== "Sources") continue;
+    if (d.bucket !== "03_Sources") continue;
     const u = toISO(d.frontmatter.updated);
     if (u) sourceUpdated.set(d.slug, u);
   }
 
   for (const d of docs) {
-    if (d.bucket !== "Topics") continue;
+    if (d.bucket !== "01_Topics") continue;
 
     // Skip stub Topics — covered by topic-content-gaps
     const cuMatch = d.body.match(/^## Current understanding\s*$([\s\S]*?)(?=^## |\Z)/m);
@@ -995,7 +995,7 @@ export function checkStaleTopicSynthesis(docs: DocMeta[]): Issue[] {
 
     let newest: { slug: string; updated: string } | null = null;
     for (const other of docs) {
-      if (other.bucket !== "Sources") continue;
+      if (other.bucket !== "03_Sources") continue;
       if (!other.wikilinks.has(d.slug)) continue;
       const su = sourceUpdated.get(other.slug);
       if (!su) continue;
@@ -1058,7 +1058,7 @@ export function checkStaleTopSynthesis(docs: DocMeta[], repoRoot: string): Issue
   };
   let newest: { name: string; date: string } | null = null;
   for (const d of docs) {
-    if (d.bucket !== "Topics") continue;
+    if (d.bucket !== "01_Topics") continue;
     const t = toISO(d.frontmatter.synthesis_updated_at ?? d.frontmatter.updated);
     if (!t) continue;
     if (!newest || t > newest.date) newest = { name: d.slug, date: t };
@@ -1095,7 +1095,7 @@ export function checkStaleSourceReview(docs: DocMeta[], repoRoot: string): Issue
   const issues: Issue[] = [];
   const THRESHOLD_DAYS = 30;
   for (const d of docs) {
-    if (d.bucket !== "Sources") continue;
+    if (d.bucket !== "03_Sources") continue;
     const lastReviewed = String(d.frontmatter.last_reviewed_at ?? "");
     if (!lastReviewed) continue;  // opt-in
     // Find the raw archive: raw/raindrop/<host>/<slug>/revisions.jsonl
@@ -1154,7 +1154,7 @@ export function checkStaleSourceReview(docs: DocMeta[], repoRoot: string): Issue
  */
 export function checkTagVocabulary(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
-  for (const doc of docs.filter((d) => d.bucket === "Sources")) {
+  for (const doc of docs.filter((d) => d.bucket === "03_Sources")) {
     const tags = doc.frontmatter.tags;
     if (!Array.isArray(tags)) continue;  // other check enforces presence
     const novel = tags.filter((t): t is string =>
@@ -1167,7 +1167,7 @@ export function checkTagVocabulary(docs: DocMeta[]): Issue[] {
       path: doc.repo_path,
       detail: `tags not in canonical vocabulary: ${novel.map((t) => `"${t}"`).join(", ")}`,
       hint:
-        `Either rewrite to a canonical tag (see Meta/schema.md "Canonical tag vocabulary") ` +
+        `Either rewrite to a canonical tag (see 00_Meta/schema.md "Canonical tag vocabulary") ` +
         `or extend tools/bin/lint.ts CANONICAL_TAGS + the schema doc in the same commit. ` +
         `Tip: proper nouns (companies / products / models / SKUs) belong in ## Entities touched, not in tags.`,
     });
@@ -1268,16 +1268,16 @@ export function checkSourcesIndex(repoRoot: string): Issue[] {
 export function checkFrontmatter(docs: DocMeta[]): Issue[] {
   const issues: Issue[] = [];
   const required: Record<Bucket, string[]> = {
-    Meta:     ["type", "created", "updated"],
-    Sources:  ["type", "created", "updated", "source_url", "tags"],
-    Entities: ["type", "created", "updated", "refs", "tier"],
-    Topics:   ["type", "created", "updated", "source_count"],
+    "00_Meta":     ["type", "created", "updated"],
+    "03_Sources":  ["type", "created", "updated", "source_url", "tags"],
+    "02_Entities": ["type", "created", "updated", "refs", "tier"],
+    "01_Topics":   ["type", "created", "updated", "source_count"],
   };
   const expectedType: Record<Bucket, string> = {
-    Meta: "meta",
-    Sources: "source",
-    Entities: "entity",
-    Topics: "topic",
+    "00_Meta": "meta",
+    "03_Sources": "source",
+    "02_Entities": "entity",
+    "01_Topics": "topic",
   };
   for (const doc of docs) {
     const fm = doc.frontmatter;
@@ -1295,7 +1295,7 @@ export function checkFrontmatter(docs: DocMeta[]): Issue[] {
       // Sources `tags` must be a non-empty list. An empty `[]` literally
       // satisfies the "key present" check above but provides no signal
       // for corpus-level filtering — explicitly reject.
-      if (doc.bucket === "Sources" && key === "tags") {
+      if (doc.bucket === "03_Sources" && key === "tags") {
         const tags = fm[key];
         if (!Array.isArray(tags) || tags.length === 0) {
           issues.push({

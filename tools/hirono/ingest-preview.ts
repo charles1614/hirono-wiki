@@ -159,7 +159,7 @@ function gatherIngestSignal(repoRoot: string, since: string): IngestSignal {
   // returned wrapped in quotes with octal-escaped bytes.
   const result = spawnSync(
     "git",
-    ["-c", "core.quotepath=false", "diff", "--name-only", "--diff-filter=A", since, "HEAD", "--", "Sources/"],
+    ["-c", "core.quotepath=false", "diff", "--name-only", "--diff-filter=A", since, "HEAD", "--", "03_Sources/"],
     { cwd: repoRoot, encoding: "utf8" },
   );
   if (result.status !== 0) {
@@ -181,11 +181,11 @@ function gatherIngestSignal(repoRoot: string, since: string): IngestSignal {
     catch { continue; }
     const body = raw.replace(/^---\n[\s\S]*?\n---\n/, "");
     for (const link of extractWikilinks(body)) {
-      if (existsSync(join(repoRoot, "Topics", `${link}.md`))) {
+      if (existsSync(join(repoRoot, "01_Topics", `${link}.md`))) {
         touchedTopics.add(link);
       } else if (
-        existsSync(join(repoRoot, "Entities", `${link}.md`)) ||
-        existsSync(join(repoRoot, "Entities", "_seen", `${link}.md`))
+        existsSync(join(repoRoot, "02_Entities", `${link}.md`)) ||
+        existsSync(join(repoRoot, "02_Entities", "_seen", `${link}.md`))
       ) {
         touchedEntities.add(link);
       }

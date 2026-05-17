@@ -274,13 +274,13 @@ test("buildStatusRows: joins cache + index + raw correctly", () => {
   writeFileSync(indexPath, JSON.stringify({
     "https://blog.example.com/post1": {
       slug: "2026-05-08-blog-post1",
-      repo_path: "Sources/2026/2026-05-08-blog-post1.md",
+      repo_path: "03_Sources/2026/2026-05-08-blog-post1.md",
       source_url: "https://blog.example.com/post1",
       ingested_at: "2026-05-08",
     },
     "https://x.com/user/status/123": {
       slug: "x-status-123",
-      repo_path: "Sources/2026/x-status-123.md",
+      repo_path: "03_Sources/2026/x-status-123.md",
       source_url: "https://x.com/user/status/123",
       ingested_at: "2026-05-08",
     },
@@ -347,7 +347,7 @@ test("buildStatusRows: share-aggregator bookmark resolves to slug stored under u
   // `unwrapShareUrl(b.link).unwrapped` against rawByUrl, otherwise the
   // bookmark looks unfetched and the slug looks orphan — the "ghost"
   // failure mode where one bookmark + one slug surface as two opposing
-  // problems. See P-32 in Meta/site-handling-patterns.md.
+  // problems. See P-32 in 00_Meta/site-handling-patterns.md.
   const dir = mkdtempSync(join(tmpdir(), "status-"));
   const cachePath = join(dir, "cache.json");
   const indexPath = join(dir, "index.json");

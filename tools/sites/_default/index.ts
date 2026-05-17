@@ -191,7 +191,7 @@ function browserFetch(url: string, waitMs: number = 3500): { html: string; error
     // their `src` to the high-res variant. After the walk, scroll
     // back to 0 so any extraction that depends on document position
     // sees a stable state. See P-39 in
-    // `Meta/site-handling-patterns.md`.
+    // `00_Meta/site-handling-patterns.md`.
     const scrollScript = `(async () => {
       const h = document.body.scrollHeight;
       for (const pct of [12, 25, 38, 50, 62, 75, 88, 100, 0]) {
@@ -349,7 +349,7 @@ function looksLikeNotFoundPage(title: string | undefined, body: string): string 
  * Distinct flag (`_default-not-found`) so the failure-kind classifier
  * can route the slug to `upstream-deleted` (different operator
  * action from bot-block: edit the bookmark or accept). See P-34 in
- * `Meta/site-handling-patterns.md`.
+ * `00_Meta/site-handling-patterns.md`.
  */
 function notFoundStub(url: string, signature: string, errorDetail?: string): Result {
   return makeStub({
@@ -373,7 +373,7 @@ function notFoundStub(url: string, signature: string, errorDetail?: string): Res
  * classifier can map this case to `upstream-fetch-failed` directly
  * instead of letting the slug masquerade as `content-too-short` /
  * `content-incomplete-images-zero`. See P-33 in
- * `Meta/site-handling-patterns.md`.
+ * `00_Meta/site-handling-patterns.md`.
  */
 function botBlockedStub(url: string, signature: string, errorDetail?: string): Result {
   return makeStub({
@@ -487,7 +487,7 @@ export const site: Site = {
     // we'd save the error page as if it were content. Detect it and
     // emit a `_default-not-found` stub which classifies as
     // `upstream-deleted`. See P-34 in
-    // `Meta/site-handling-patterns.md`.
+    // `00_Meta/site-handling-patterns.md`.
     const notFoundSig = looksLikeNotFoundPage(conv.metadata.title, conv.markdown);
     if (notFoundSig) {
       const detail = [
@@ -502,7 +502,7 @@ export const site: Site = {
     // Anti-bot challenge detection. If the body we extracted IS the
     // Cloudflare / Akamai / DataDome challenge page (or a CF
     // origin-error interstitial), DON'T let it pass through as
-    // content. See P-33 in `Meta/site-handling-patterns.md`.
+    // content. See P-33 in `00_Meta/site-handling-patterns.md`.
     //
     // CF challenges typically auto-resolve in 10-15s with JS execution
     // — the default 3.5s browser wait often catches the challenge

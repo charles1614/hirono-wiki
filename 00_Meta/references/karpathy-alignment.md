@@ -13,8 +13,8 @@ How this wiki maps to the pattern described in [[karpathy-llm-wiki-gist]]. Not a
 | Karpathy | This wiki | Status |
 |---|---|---|
 | Raw sources (immutable; LLM reads, never modifies) | `raw/raindrop/<host>/<slug>/content.md` + `source.json` + figures. Trusted as snapshot; refetch is a deliberate state change ([[../../CLAUDE\|CLAUDE]] §9). | ✅ Faithful |
-| LLM-owned wiki (summaries, entity pages, concept pages) | `Sources/YYYY/`, `Entities/`, `Topics/` — schema-governed, LLM-written | ✅ Faithful |
-| Schema doc | [[../schema\|Meta/schema.md]] + [[../operator-workflows\|Meta/operator-workflows.md]] + [[../../CLAUDE\|CLAUDE.md]] — co-evolved governance | ✅ Faithful (stronger than gist — three docs split by concern) |
+| LLM-owned wiki (summaries, entity pages, concept pages) | `03_Sources/YYYY/`, `02_Entities/`, `01_Topics/` — schema-governed, LLM-written | ✅ Faithful |
+| Schema doc | [[../schema\|00_Meta/schema.md]] + [[../operator-workflows\|00_Meta/operator-workflows.md]] + [[../../CLAUDE\|CLAUDE.md]] — co-evolved governance | ✅ Faithful (stronger than gist — three docs split by concern) |
 
 ## Operations
 
@@ -23,7 +23,7 @@ How this wiki maps to the pattern described in [[karpathy-llm-wiki-gist]]. Not a
 | Ingest (drop source → LLM processes → touches 10–15 wiki pages) | `hirono raindrop refresh-cache` → `fetch-all` → `sync` → `auto-detect-entities` → Synthesis regen. See [[../operator-workflows\|operator-workflows]] §11. | ✅ Faithful |
 | Query (LLM answers from wiki; good answers filed back as pages) | Source-as-canonical-citation + raw archive as receipt store (CLAUDE.md §9). | ⚠️ Partial — no documented workflow for promoting Q&A → Topic. This page is itself an example of doing it manually. |
 | Lint (health-check for contradictions, stale claims, orphans, missing concepts) | `hirono health-check`, `hirono auto-fix`, `hirono auto-curate` (Tier-1/Tier-2). Drift cadence documented. | ✅ Stronger than gist |
-| Indexing + logging | `Meta/index.md` + `Meta/log-2026.md` — chronological log with parseable prefixes per gist recommendation | ✅ Faithful |
+| Indexing + logging | `00_Meta/index.md` + `00_Meta/log-2026.md` — chronological log with parseable prefixes per gist recommendation | ✅ Faithful |
 
 ## Karpathy's enumerated artifacts
 
@@ -31,11 +31,11 @@ The gist names six artifact kinds the wiki should produce: "Summaries, entity pa
 
 | Artifact | This wiki | Status |
 |---|---|---|
-| Summaries | `Sources/YYYY/*.md` (one per ingested source) | ✅ |
-| Entity pages | `Entities/*.md` (active) + `Entities/_seen/*.md` (staging) | ✅ |
-| Concept pages | `Topics/*.md` — 50+ pages on systems concepts (Attention Kernels, Context Parallelism, FP8 Computation, …) | ✅ |
+| Summaries | `03_Sources/YYYY/*.md` (one per ingested source) | ✅ |
+| Entity pages | `02_Entities/*.md` (active) + `02_Entities/_seen/*.md` (staging) | ✅ |
+| Concept pages | `01_Topics/*.md` — 50+ pages on systems concepts (Attention Kernels, Context Parallelism, FP8 Computation, …) | ✅ |
 | Comparisons | Lives inside Topic prose (`AI Accelerators`, `FP Emulation`, …). Schema now formalizes a Comparison sub-shape (filename `<X> vs <Y>.md` + `## Comparison` table) — see [[../schema\|schema]] §"Topic sub-shapes". | ⚠️ Optional convention; no Comparison-shape Topic has been created yet. |
-| Overview | [[../index\|Meta/index.md]] — catalog overview, total counts, navigation | ✅ |
+| Overview | [[../index\|00_Meta/index.md]] — catalog overview, total counts, navigation | ✅ |
 | Synthesis | [[../../Synthesis\|Synthesis.md]] at repo root — corpus-wide thesis page | ✅ (added 2026-05-13; previously absent) |
 
 ## Deliberate deviations

@@ -14,7 +14,7 @@
  *
  *   2. Finalize (--finalize <response.json>):
  *      Reads Sonnet's structured JSON proposals. Renders a human-reviewable
- *      `Meta/curation-queue.md` with one section per proposal (checkbox +
+ *      `00_Meta/curation-queue.md` with one section per proposal (checkbox +
  *      rationale + command). Operator reviews + ticks approved items.
  *
  *   3. (No mode for direct apply — that's `hirono apply-queue`. Splitting
@@ -58,7 +58,7 @@ Modes:
     .curation-prompts/curation-proposal-response.json.
 
   --finalize <path>
-    Reads Sonnet's response JSON. Renders Meta/curation-queue.md (operator-
+    Reads Sonnet's response JSON. Renders 00_Meta/curation-queue.md (operator-
     reviewable with checkboxes). Operator ticks approved items, then:
 
       hirono apply-queue        # dispatches approved items to atomic CLIs
@@ -222,7 +222,7 @@ function preparePrompt(repoRoot: string): { promptPath: string; findingCount: nu
 }
 
 // ---------------------------------------------------------------------------
-// Mode 2: finalize — render Meta/curation-queue.md from Sonnet's JSON
+// Mode 2: finalize — render 00_Meta/curation-queue.md from Sonnet's JSON
 // ---------------------------------------------------------------------------
 
 interface Proposal {
@@ -335,7 +335,7 @@ function finalizeQueue(repoRoot: string, responsePath: string): { queuePath: str
   catch (e) { throw new Error(`failed to read/parse response JSON at ${respAbs}: ${(e as Error).message}`); }
   const proposals = Array.isArray(parsed.proposals) ? parsed.proposals : [];
   const queueMd = renderQueueMarkdown(proposals);
-  const queuePath = "Meta/curation-queue.md";
+  const queuePath = "00_Meta/curation-queue.md";
   writeFileSync(join(repoRoot, queuePath), queueMd, "utf8");
   return { queuePath, proposalCount: proposals.length };
 }

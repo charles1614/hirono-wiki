@@ -91,7 +91,7 @@ Top-level:
                                           insert opt-in \`## Comparison\` heading into a Topic
                                           (idempotent); next refine-topic populates the table
   propose-curation [--finalize <path>]    Tier-2 curation: health-check + lint → Sonnet → queue
-  apply-queue [--auto-apply <level>]      execute approved proposals from Meta/curation-queue.md
+  apply-queue [--auto-apply <level>]      execute approved proposals from 00_Meta/curation-queue.md
   auto-fix [--dry-run]                    Tier-1 safe auto-repairs: alias merges,
                                           refine-prompt prep, index refresh (NO deletions)
   auto-curate [--continue] [--review] [--auto-apply <lvl>]

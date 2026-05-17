@@ -14,9 +14,9 @@ import { refineBatch, parseBatchResponse } from "../hirono/refine-batch.ts";
 
 function makeRepo(): string {
   const root = mkdtempSync(join(tmpdir(), "refine-batch-"));
-  mkdirSync(join(root, "Sources", "2026"), { recursive: true });
-  mkdirSync(join(root, "Entities", "_seen"), { recursive: true });
-  mkdirSync(join(root, "Meta"), { recursive: true });
+  mkdirSync(join(root, "03_Sources", "2026"), { recursive: true });
+  mkdirSync(join(root, "02_Entities", "_seen"), { recursive: true });
+  mkdirSync(join(root, "00_Meta"), { recursive: true });
   return root;
 }
 
@@ -85,10 +85,10 @@ some trailing garbage
 test("refineBatch prepare: writes batch.md with preamble + per-entity blocks", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Entities/Foo.md", ENTITY("Foo", "Foo synthesis.", ["claim — [[foo-src]]"]));
-    writeFile(root, "Entities/Bar.md", ENTITY("Bar", "Bar synthesis.", ["claim — [[bar-src]]"]));
-    writeFile(root, "Sources/2026/foo-src.md", "---\ntype: source\n---\n\nFoo Source body.\n");
-    writeFile(root, "Sources/2026/bar-src.md", "---\ntype: source\n---\n\nBar Source body.\n");
+    writeFile(root, "02_Entities/Foo.md", ENTITY("Foo", "Foo synthesis.", ["claim — [[foo-src]]"]));
+    writeFile(root, "02_Entities/Bar.md", ENTITY("Bar", "Bar synthesis.", ["claim — [[bar-src]]"]));
+    writeFile(root, "03_Sources/2026/foo-src.md", "---\ntype: source\n---\n\nFoo Source body.\n");
+    writeFile(root, "03_Sources/2026/bar-src.md", "---\ntype: source\n---\n\nBar Source body.\n");
 
     const r = refineBatch(root, { names: ["Foo", "Bar"] });
     assert.equal(r.mode, "prepare");
@@ -118,8 +118,8 @@ test("refineBatch prepare: throws when entity not found", () => {
 test("refineBatch dryrun: cross-checks response names against batch.md", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Entities/Foo.md", ENTITY("Foo", "Foo synthesis.", []));
-    writeFile(root, "Entities/Bar.md", ENTITY("Bar", "Bar synthesis.", []));
+    writeFile(root, "02_Entities/Foo.md", ENTITY("Foo", "Foo synthesis.", []));
+    writeFile(root, "02_Entities/Bar.md", ENTITY("Bar", "Bar synthesis.", []));
     refineBatch(root, { names: ["Foo", "Bar"] });
 
     // Response includes Foo + Baz (typo), missing Bar
@@ -136,8 +136,8 @@ test("refineBatch dryrun: cross-checks response names against batch.md", () => {
 test("refineBatch apply: invokes refineEntity per parsed entity, atomic per item", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Entities/Foo.md", ENTITY("Foo", "Old Foo synthesis.", []));
-    writeFile(root, "Entities/Bar.md", ENTITY("Bar", "Old Bar synthesis.", []));
+    writeFile(root, "02_Entities/Foo.md", ENTITY("Foo", "Old Foo synthesis.", []));
+    writeFile(root, "02_Entities/Bar.md", ENTITY("Bar", "Old Bar synthesis.", []));
     refineBatch(root, { names: ["Foo", "Bar"] });
 
     writeFile(root, ".refine-prompts/batch-response.txt",
@@ -148,8 +148,8 @@ test("refineBatch apply: invokes refineEntity per parsed entity, atomic per item
     assert.deepEqual(r.failed, []);
 
     // Verify Entity files updated
-    const foo = readFileSync(join(root, "Entities/Foo.md"), "utf8");
-    const bar = readFileSync(join(root, "Entities/Bar.md"), "utf8");
+    const foo = readFileSync(join(root, "02_Entities/Foo.md"), "utf8");
+    const bar = readFileSync(join(root, "02_Entities/Bar.md"), "utf8");
     assert.ok(foo.includes("New Foo synthesis paragraph"));
     assert.ok(bar.includes("New Bar synthesis paragraph"));
     assert.ok(!foo.includes("Old Foo synthesis."));
@@ -157,9 +157,9 @@ test("refineBatch apply: invokes refineEntity per parsed entity, atomic per item
     // synthesis_updated_at bumped
     assert.match(foo, /^synthesis_updated_at:\s*\d{4}-\d{2}-\d{2}$/m);
     assert.match(bar, /^synthesis_updated_at:\s*\d{4}-\d{2}-\d{2}$/m);
-    // refactor log entry written (Meta/log-YYYY.md, current year)
+    // refactor log entry written (00_Meta/log-YYYY.md, current year)
     const year = new Date().getFullYear();
-    const log = readFileSync(join(root, "Meta", `log-${year}.md`), "utf8");
+    const log = readFileSync(join(root, "00_Meta", `log-${year}.md`), "utf8");
     assert.ok(log.includes("Refine [[Foo]] Synthesis"));
     assert.ok(log.includes("Refine [[Bar]] Synthesis"));
   } finally { rmSync(root, { recursive: true, force: true }); }
@@ -168,7 +168,7 @@ test("refineBatch apply: invokes refineEntity per parsed entity, atomic per item
 test("refineBatch apply: partial success — one bad entity doesn't block the rest", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Entities/Foo.md", ENTITY("Foo", "Old Foo.", []));
+    writeFile(root, "02_Entities/Foo.md", ENTITY("Foo", "Old Foo.", []));
     // Bar deliberately absent → refineEntity throws on apply
     refineBatch(root, { names: ["Foo"] });
 

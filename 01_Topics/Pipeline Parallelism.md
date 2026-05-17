@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-15
+updated: 2026-05-17
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 2
+source_count: 1
 ---
 
 # Pipeline Parallelism

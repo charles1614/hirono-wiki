@@ -22,10 +22,10 @@ import {
 
 function makeRepo(): string {
   const root = mkdtempSync(join(tmpdir(), "curation-"));
-  mkdirSync(join(root, "Sources", "2026"), { recursive: true });
-  mkdirSync(join(root, "Entities", "_seen"), { recursive: true });
-  mkdirSync(join(root, "Topics"), { recursive: true });
-  mkdirSync(join(root, "Meta"), { recursive: true });
+  mkdirSync(join(root, "03_Sources", "2026"), { recursive: true });
+  mkdirSync(join(root, "02_Entities", "_seen"), { recursive: true });
+  mkdirSync(join(root, "01_Topics"), { recursive: true });
+  mkdirSync(join(root, "00_Meta"), { recursive: true });
   return root;
 }
 
@@ -88,16 +88,16 @@ test("rewriteWikilinksInBody: leaves unrelated wikilinks alone", () => {
 test("reverseCitationIndex: indexes wikilinks from Sources to Entities", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Sources/2026/foo.md",
+    writeFile(root, "03_Sources/2026/foo.md",
       `---\ncreated: 2026-05-12\ntype: source\nsource_url: https://example.com\ntags: [inference]\n---\n\n# Foo\n\nCites [[BarEntity]] and [[BazEntity|alias]].\n`);
-    writeFile(root, "Entities/_seen/BarEntity.md",
+    writeFile(root, "02_Entities/_seen/BarEntity.md",
       `---\ncreated: 2026-05-12\ntype: entity\nrefs: 0\ntier: seen\n---\n\n# BarEntity\n`);
-    writeFile(root, "Entities/_seen/BazEntity.md",
+    writeFile(root, "02_Entities/_seen/BazEntity.md",
       `---\ncreated: 2026-05-12\ntype: entity\nrefs: 0\ntier: seen\n---\n\n# BazEntity\n`);
     const idx = reverseCitationIndex(root);
     const barRefs = idx.get("BarEntity") ?? [];
     assert.equal(barRefs.length, 1, `expected 1 ref to BarEntity, got ${JSON.stringify(barRefs)}`);
-    assert.equal(barRefs[0].source_path, "Sources/2026/foo.md");
+    assert.equal(barRefs[0].source_path, "03_Sources/2026/foo.md");
     const bazRefs = idx.get("BazEntity") ?? [];
     assert.equal(bazRefs.length, 1);
     assert.ok(bazRefs[0].raw_link.includes("BazEntity"));
@@ -107,13 +107,13 @@ test("reverseCitationIndex: indexes wikilinks from Sources to Entities", () => {
 test("reverseCitationIndex: excludes Meta/ pages", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/index.md", `---\ntype: meta\n---\n\nCites [[X]].\n`);
-    writeFile(root, "Sources/2026/foo.md", `---\ntype: source\n---\n\nCites [[X]].\n`);
-    writeFile(root, "Entities/_seen/X.md", `---\ntype: entity\n---\n\n# X\n`);
+    writeFile(root, "00_Meta/index.md", `---\ntype: meta\n---\n\nCites [[X]].\n`);
+    writeFile(root, "03_Sources/2026/foo.md", `---\ntype: source\n---\n\nCites [[X]].\n`);
+    writeFile(root, "02_Entities/_seen/X.md", `---\ntype: entity\n---\n\n# X\n`);
     const idx = reverseCitationIndex(root);
     const xRefs = idx.get("X") ?? [];
-    assert.equal(xRefs.length, 1, "Meta/ should be excluded");
-    assert.equal(xRefs[0].source_path, "Sources/2026/foo.md");
+    assert.equal(xRefs.length, 1, "00_Meta/ should be excluded");
+    assert.equal(xRefs[0].source_path, "03_Sources/2026/foo.md");
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -175,16 +175,16 @@ test("mergeObservationBlocks: returns target unchanged if source has no Observat
 test("applyAtomically: write + delete + rename succeed atomically", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Entities/_seen/A.md", "# A original\n");
-    writeFile(root, "Entities/_seen/B.md", "# B original\n");
+    writeFile(root, "02_Entities/_seen/A.md", "# A original\n");
+    writeFile(root, "02_Entities/_seen/B.md", "# B original\n");
     const stagingDir = applyAtomically(root, "test-op-1", [
-      { kind: "write", path: "Entities/_seen/A.md", body: "# A rewritten\n" },
-      { kind: "delete", path: "Entities/_seen/B.md" },
-      { kind: "write", path: "Entities/_seen/C.md", body: "# C new\n" },
+      { kind: "write", path: "02_Entities/_seen/A.md", body: "# A rewritten\n" },
+      { kind: "delete", path: "02_Entities/_seen/B.md" },
+      { kind: "write", path: "02_Entities/_seen/C.md", body: "# C new\n" },
     ]);
-    assert.equal(readFileSync(join(root, "Entities/_seen/A.md"), "utf8"), "# A rewritten\n");
-    assert.ok(!existsSync(join(root, "Entities/_seen/B.md")), "B should be deleted");
-    assert.equal(readFileSync(join(root, "Entities/_seen/C.md"), "utf8"), "# C new\n");
+    assert.equal(readFileSync(join(root, "02_Entities/_seen/A.md"), "utf8"), "# A rewritten\n");
+    assert.ok(!existsSync(join(root, "02_Entities/_seen/B.md")), "B should be deleted");
+    assert.equal(readFileSync(join(root, "02_Entities/_seen/C.md"), "utf8"), "# C new\n");
     assert.ok(existsSync(stagingDir));
     cleanupStaging(root, "test-op-1");
     assert.ok(!existsSync(stagingDir), "staging dir should be cleaned");
@@ -194,12 +194,12 @@ test("applyAtomically: write + delete + rename succeed atomically", () => {
 test("applyAtomically: rename op moves file", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Entities/_seen/Old.md", "# Old\n");
+    writeFile(root, "02_Entities/_seen/Old.md", "# Old\n");
     applyAtomically(root, "test-op-rename", [
-      { kind: "rename", from: "Entities/_seen/Old.md", path: "Entities/_seen/New.md" },
+      { kind: "rename", from: "02_Entities/_seen/Old.md", path: "02_Entities/_seen/New.md" },
     ]);
-    assert.ok(!existsSync(join(root, "Entities/_seen/Old.md")));
-    assert.equal(readFileSync(join(root, "Entities/_seen/New.md"), "utf8"), "# Old\n");
+    assert.ok(!existsSync(join(root, "02_Entities/_seen/Old.md")));
+    assert.equal(readFileSync(join(root, "02_Entities/_seen/New.md"), "utf8"), "# Old\n");
     cleanupStaging(root, "test-op-rename");
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
@@ -210,7 +210,7 @@ test("applyAtomically: Phase 1 validation fails fast on missing delete target", 
     let threw = false;
     try {
       applyAtomically(root, "test-op-fail-1", [
-        { kind: "delete", path: "Entities/_seen/DoesNotExist.md" },
+        { kind: "delete", path: "02_Entities/_seen/DoesNotExist.md" },
       ]);
     } catch (e) {
       threw = true;
@@ -228,10 +228,10 @@ test("appendLogEntry: prepends after LOG-ENTRIES-START marker", () => {
   const root = makeRepo();
   try {
     const year = new Date().getFullYear();
-    writeFile(root, `Meta/log-${year}.md`,
+    writeFile(root, `00_Meta/log-${year}.md`,
       `---\ncreated: 2026-05-01\nupdated: 2026-05-01\ntype: meta\n---\n\n# Log — ${year}\n\nIntro.\n\n<!-- LOG-ENTRIES-START -->\n\n## [2026-05-01] ingest | Old entry\n\nold body\n\n---\n`);
     appendLogEntry(root, "refactor", "Test rename", ["Body line 1.", "Body line 2."]);
-    const content = readFileSync(join(root, `Meta/log-${year}.md`), "utf8");
+    const content = readFileSync(join(root, `00_Meta/log-${year}.md`), "utf8");
     const newIdx = content.indexOf("Test rename");
     const oldIdx = content.indexOf("Old entry");
     assert.ok(newIdx > 0 && newIdx < oldIdx, "new entry should appear before old entry (newest first)");
@@ -246,7 +246,7 @@ test("appendLogEntry: bootstraps a new log file if missing", () => {
     const year = new Date().getFullYear();
     // Don't create the log file
     appendLogEntry(root, "refactor", "First entry", ["Initial body."]);
-    const content = readFileSync(join(root, `Meta/log-${year}.md`), "utf8");
+    const content = readFileSync(join(root, `00_Meta/log-${year}.md`), "utf8");
     assert.ok(content.includes("# Log —"));
     assert.ok(content.includes("First entry"));
     assert.ok(content.includes("Initial body."));
@@ -268,7 +268,7 @@ test("loadEntityAliases: returns empty map when file missing", () => {
 test("loadEntityAliases: parses entries under ## Aliases with → arrow", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/entity-aliases.md", [
+    writeFile(root, "00_Meta/entity-aliases.md", [
       "---", "type: meta", "---", "",
       "# Aliases doc", "",
       "## Aliases", "",
@@ -288,7 +288,7 @@ test("loadEntityAliases: parses entries under ## Aliases with → arrow", () => 
 test("loadEntityAliases: also accepts -> ASCII arrow", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/entity-aliases.md", [
+    writeFile(root, "00_Meta/entity-aliases.md", [
       "## Aliases", "",
       "- VLLM -> vLLM",
       "",
@@ -301,7 +301,7 @@ test("loadEntityAliases: also accepts -> ASCII arrow", () => {
 test("loadEntityAliases: ignores lines outside ## Aliases section", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/entity-aliases.md", [
+    writeFile(root, "00_Meta/entity-aliases.md", [
       "## Notes", "",
       "- Foo → Bar",  // should NOT be parsed
       "",
@@ -321,7 +321,7 @@ test("loadEntityAliases: ignores lines outside ## Aliases section", () => {
 test("loadEntityAliases: skips identity mappings (variant == canonical)", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/entity-aliases.md", [
+    writeFile(root, "00_Meta/entity-aliases.md", [
       "## Aliases", "",
       "- Llama → Llama",  // identity - skip
       "- LLaMA → Llama",
@@ -359,7 +359,7 @@ test("loadIngestSkips: returns empty list when file missing", () => {
 test("loadIngestSkips: parses em-dash entries with skip-reason", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/sources-ingest-skips.md", [
+    writeFile(root, "00_Meta/sources-ingest-skips.md", [
       "# Skips",
       "",
       "## Entries",
@@ -382,7 +382,7 @@ test("loadIngestSkips: parses em-dash entries with skip-reason", () => {
 test("loadIngestSkips: accepts ASCII -- arrow", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/sources-ingest-skips.md", [
+    writeFile(root, "00_Meta/sources-ingest-skips.md", [
       "## Entries", "",
       "- https://x.example.com -- skip-reason=spam · whatever",
       "",

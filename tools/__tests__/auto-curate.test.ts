@@ -14,7 +14,7 @@ import { phase2 } from "../hirono/auto-curate.ts";
 
 function makeRepo(): string {
   const root = mkdtempSync(join(tmpdir(), "auto-curate-"));
-  mkdirSync(join(root, "Meta"), { recursive: true });
+  mkdirSync(join(root, "00_Meta"), { recursive: true });
   mkdirSync(join(root, ".curation-prompts"), { recursive: true });
   return root;
 }

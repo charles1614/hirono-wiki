@@ -48,7 +48,7 @@ Atomically merge two entities:
   - Mark Synthesis stale with a TODO comment (LLM regenerates later).
   - Rewrite all [[SourceName]] corpus-wide to [[TargetName]].
   - Delete the source file.
-  - Append a refactor entry to Meta/log-YYYY.md.
+  - Append a refactor entry to 00_Meta/log-YYYY.md.
 
 Examples:
   hirono merge-entities bfloat16 --into BF16 --reason "Eliminate alias duplicate"
@@ -99,11 +99,11 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function findEntityFile(repoRoot: string, name: string): { path: string; tier: "active" | "seen" } | null {
-  if (existsSync(join(repoRoot, "Entities", `${name}.md`))) {
-    return { path: `Entities/${name}.md`, tier: "active" };
+  if (existsSync(join(repoRoot, "02_Entities", `${name}.md`))) {
+    return { path: `02_Entities/${name}.md`, tier: "active" };
   }
-  if (existsSync(join(repoRoot, "Entities", "_seen", `${name}.md`))) {
-    return { path: `Entities/_seen/${name}.md`, tier: "seen" };
+  if (existsSync(join(repoRoot, "02_Entities", "_seen", `${name}.md`))) {
+    return { path: `02_Entities/_seen/${name}.md`, tier: "seen" };
   }
   return null;
 }
@@ -260,7 +260,7 @@ export function main(argv: string[]): void {
     console.log(`${prefix} citing pages: ${result.citingPagesTouched} (${result.totalLinkRewrites} link replacements)`);
     console.log(`${prefix} synthesis: ${result.synthesisMarkedStale ? "marked stale (TODO for LLM)" : "both stubs, no marker added"}`);
     if (!args.dryRun) {
-      console.log(`✓ refactor log entry appended to Meta/log-${new Date().getFullYear()}.md`);
+      console.log(`✓ refactor log entry appended to 00_Meta/log-${new Date().getFullYear()}.md`);
       console.log(`\nNext: run \`npx tsx tools/bin/reindex.ts\` and optionally rewrite the Synthesis in-session.`);
     }
   } catch (e) {

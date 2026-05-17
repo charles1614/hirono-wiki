@@ -14,10 +14,10 @@ Every page declares its `type` in frontmatter. Four types:
 
 | Type | Lives in | Purpose |
 |---|---|---|
-| `source` | `Sources/YYYY/` | Summary of one ingested raw source (Raindrop bookmark, Space 1 node, URL) |
-| `entity` | `Entities/` or `Entities/_seen/` | A person, project, paper, product, model, company |
-| `topic` | `Topics/` | Synthesis across multiple sources; answers to questions; cross-cutting themes |
-| `meta` | `Meta/` | Schema, index, log, linting notes, and the top-level [[Synthesis]] page |
+| `source` | `03_Sources/YYYY/` | Summary of one ingested raw source (Raindrop bookmark, Space 1 node, URL) |
+| `entity` | `02_Entities/` or `02_Entities/_seen/` | A person, project, paper, product, model, company |
+| `topic` | `01_Topics/` | Synthesis across multiple sources; answers to questions; cross-cutting themes |
+| `meta` | `00_Meta/` | Schema, index, log, linting notes, and the top-level [[Synthesis]] page |
 
 ### Comparison sections inside Topics
 
@@ -39,7 +39,7 @@ Comparisons are an optional **section inside a Topic**, not a separate page type
 
 ### Top-level Synthesis
 
-[[Synthesis]] (root, not `Meta/`) is a `type: meta` page that states what the corpus collectively argues across all Topics. One page, regenerated per-batch (not per-ingest). It is the entry point for "what is this wiki *about*", complementing [[index]]'s catalog role. Regeneration cadence and triggers are documented in [[operator-workflows]] §11.4.
+[[Synthesis]] (root, not `00_Meta/`) is a `type: meta` page that states what the corpus collectively argues across all Topics. One page, regenerated per-batch (not per-ingest). It is the entry point for "what is this wiki *about*", complementing [[index]]'s catalog role. Regeneration cadence and triggers are documented in [[operator-workflows]] §11.4.
 
 ## Frontmatter spec
 
@@ -152,7 +152,7 @@ Frontmatter is **local-only** — the preprocessor strips it on upload and rende
 
 **Two dates, distinct meanings**:
 - `created:` / `updated:` (frontmatter) — when the WIKI page was written / last edited.
-- `YYYY-MM-DD` prefix in `Sources/YYYY/YYYY-MM-DD-<slug>.md` — the SOURCE publication / capture date (per Raindrop bookmark `created` or the article's `<time>` element). A Source filed `2025-08-23-...` but frontmatter `created: 2026-05-11` is consistent — the source was published in 2025, we ingested it into the wiki on 2026-05-11.
+- `YYYY-MM-DD` prefix in `03_Sources/YYYY/YYYY-MM-DD-<slug>.md` — the SOURCE publication / capture date (per Raindrop bookmark `created` or the article's `<time>` element). A Source filed `2025-08-23-...` but frontmatter `created: 2026-05-11` is consistent — the source was published in 2025, we ingested it into the wiki on 2026-05-11.
 
 **Optional Source field**: `last_reviewed_at: YYYY-MM-DD` records the most recent date the operator manually re-read the raw archive and confirmed the Source summary still reflects current content. If raw content drifts (newer `revisions.jsonl` entry) more than 30 days past `last_reviewed_at`, the `stale-source-review` lint check fires (WARN). Opt-in: Sources without this field are not flagged.
 
@@ -162,9 +162,9 @@ This wiki is **broad-scope by design** (Karpathy alignment): it absorbs whatever
 
 Two optional registries support curation:
 
-- **`Meta/entity-aliases.md`** — normalization hints (e.g. `LLaMA → Llama`, `bfloat16 → BF16`) consulted by `hirono auto-detect-entities` to avoid duplicate stubs for spelling variants. NOT a scope gate; absence doesn't block stub creation.
+- **`00_Meta/entity-aliases.md`** — normalization hints (e.g. `LLaMA → Llama`, `bfloat16 → BF16`) consulted by `hirono auto-detect-entities` to avoid duplicate stubs for spelling variants. NOT a scope gate; absence doesn't block stub creation.
 
-- **`Meta/sources-ingest-skips.md`** — last-resort permanent-exclusion registry. Reserved for spam / duplicate / deprecated / bookmarked-by-mistake URLs. NOT used for "off-topic" content (which the wiki absorbs). Format:
+- **`00_Meta/sources-ingest-skips.md`** — last-resort permanent-exclusion registry. Reserved for spam / duplicate / deprecated / bookmarked-by-mistake URLs. NOT used for "off-topic" content (which the wiki absorbs). Format:
   ```
   - <URL or slug> — skip-reason=<spam|duplicate|deprecated|bookmarked-by-mistake|other> · <rationale>
   ```
@@ -174,9 +174,9 @@ Two optional registries support curation:
 
 Use `[[Slug]]` syntax, Obsidian-compatible. Resolution is by **slug** (file basename without `.md`), unique across the whole repo.
 
-- `[[Megatron]]` → resolves to `Entities/Megatron.md` or `Entities/_seen/Megatron.md`
-- `[[2026-04-19-aws-trainium3]]` → resolves to `Sources/2026/2026-04-19-aws-trainium3.md`
-- `[[Training Infrastructure]]` → resolves to `Topics/Training Infrastructure.md`
+- `[[Megatron]]` → resolves to `02_Entities/Megatron.md` or `02_Entities/_seen/Megatron.md`
+- `[[2026-04-19-aws-trainium3]]` → resolves to `03_Sources/2026/2026-04-19-aws-trainium3.md`
+- `[[Training Infrastructure]]` → resolves to `01_Topics/Training Infrastructure.md`
 
 The preprocessor rewrites `[[X]]` to a Lark `<mention>` node on upload, creating empty stubs in Lark if the target doesn't exist yet.
 
@@ -184,7 +184,7 @@ The preprocessor rewrites `[[X]]` to a Lark `<mention>` node on upload, creating
 
 ## Source page structure
 
-File name: `Sources/YYYY/YYYY-MM-DD-<slug>.md`. Slug = kebab-case of title, English, ≤ 60 chars.
+File name: `03_Sources/YYYY/YYYY-MM-DD-<slug>.md`. Slug = kebab-case of title, English, ≤ 60 chars.
 
 Body template:
 
@@ -278,7 +278,7 @@ Every image in `raw/<host>/<slug>/...` falls into one of three buckets:
 ### Path convention
 
 Inline images reference the **raw archive** by relative path; don't copy bytes
-into `Sources/`. From `Sources/YYYY/<slug>.md`, the relative path is:
+into `03_Sources/`. From `03_Sources/YYYY/<slug>.md`, the relative path is:
 
 ```
 ../../raw/raindrop/<host>/<slug>/<file>
@@ -363,7 +363,7 @@ captioned with a factual observation the rest of the wiki can cite. Six
 properties:
 
 1. **Comes from the raw archive.** Path = `../../raw/raindrop/<host>/<slug>/<file>`.
-   Never inline a remote URL. Never copy bytes into `Sources/`.
+   Never inline a remote URL. Never copy bytes into `03_Sources/`.
 2. **File is valid.** Exists on disk, ≥ 512 B, magic bytes match a known
    image format (PNG / JPEG / WebP / SVG / GIF / BMP / TIFF). Enforced
    at fetch time by `downloadImage` in `tools/fetch-raw.ts` and at ingest
@@ -400,7 +400,7 @@ gets a corresponding bullet citing this Source. Same compounding rule as Key
 Claims.
 
 **Each Source is paired with a raw archive on disk.** Path mapping is
-mechanical: `Sources/YYYY/<slug>.md` ↔ `raw/raindrop/<host>/<slug>/`,
+mechanical: `03_Sources/YYYY/<slug>.md` ↔ `raw/raindrop/<host>/<slug>/`,
 where `<host>` is the hostname from the Source's `source_url:`
 frontmatter URL. Sibling files in the slug dir:
 
@@ -434,7 +434,7 @@ reopen. Route questions by type:
 
 - **Source-specific re-fetch TODOs / provenance notes** → `## Raw source`
   footer (e.g. `"PDF not fetched; re-fetch with /pdf/ URL to unlock figures"`).
-- **Cross-source research questions** → `Topics/<X>.md ## Open threads` (the
+- **Cross-source research questions** → `01_Topics/<X>.md ## Open threads` (the
   Topic schema already has this section). When the same question gets asked
   by three sources, it's evidence the Topic page needs more synthesis.
 - **Source-internal critique** ("authors assert X without justifying") →
@@ -449,7 +449,7 @@ substantive papers and announcements usually do.
 
 ## Entity page structure
 
-File name: `Entities/<Name>.md` (or `Entities/_seen/<Name>.md` while 1–2 refs).
+File name: `02_Entities/<Name>.md` (or `02_Entities/_seen/<Name>.md` while 1–2 refs).
 
 ```markdown
 ---
@@ -471,8 +471,8 @@ One-line kind: "GPU-era training framework by NVIDIA", "LLM research lab", etc.
 
 ## Observations
 
-- First observation. — [[Sources/2026-04-19-aws-trainium3]]
-- Second observation. — [[Sources/2026-01-15-megatron-paper]]
+- First observation. — [[03_Sources/2026-04-19-aws-trainium3]]
+- Second observation. — [[03_Sources/2026-01-15-megatron-paper]]
 - …
 ```
 
@@ -484,7 +484,7 @@ One-line kind: "GPU-era training framework by NVIDIA", "LLM research lab", etc.
 - Observations are concatenated; the source entity's bullets land after a `<!-- merged from [[<src-slug>]] on YYYY-MM-DD -->` HTML comment marking the merge origin.
 - If either side had a non-stub Synthesis, the surviving entity's Synthesis gets a `<!-- TODO: re-regenerate Synthesis from merged Observations -->` marker. The LLM regenerates it in-session afterward and bumps `synthesis_updated_at:`.
 - All `[[OldSlug]]` references across the corpus are rewritten to `[[NewSlug]]` atomically.
-- A `refactor | Merge [[X]] → [[Y]]` entry is auto-appended to `Meta/log-YYYY.md`.
+- A `refactor | Merge [[X]] → [[Y]]` entry is auto-appended to `00_Meta/log-YYYY.md`.
 
 ## Topic page structure
 
@@ -504,7 +504,7 @@ One paragraph: what this topic is, why it's worth a page.
 
 ## Current understanding
 
-Synthesis across sources. Freely revised. Cite with [[Sources/...]].
+Synthesis across sources. Freely revised. Cite with [[03_Sources/...]].
 
 ## Open threads
 
@@ -512,13 +512,13 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 
 ## Sources drawn on
 
-- [[Sources/2026-04-19-aws-trainium3]] — one-line relevance
-- [[Sources/...]]
+- [[03_Sources/2026-04-19-aws-trainium3]] — one-line relevance
+- [[03_Sources/...]]
 ```
 
 ## Log entry format
 
-`Meta/log-YYYY.md`, entries **prepended** (newest first). Three entry types:
+`00_Meta/log-YYYY.md`, entries **prepended** (newest first). Three entry types:
 
 ```markdown
 ## [2026-04-19] ingest | AWS Trainium3 Deep Dive
@@ -536,14 +536,14 @@ Synthesis across sources. Freely revised. Cite with [[Sources/...]].
 - Pages touched: 7 sources re-linked.
 ```
 
-**Wikilink syntax rule**: always use **bare slugs** — `[[Trainium3]]`, not `[[Entities/Trainium3]]`; `[[aws-trainium3-deep-dive]]`, not `[[Sources/aws-trainium3-deep-dive]]`. Paths are for the filesystem; wiki resolution is by unique slug. `tools/bin/lint.ts` flags path-style wikilinks as errors.
+**Wikilink syntax rule**: always use **bare slugs** — `[[Trainium3]]`, not `[[02_Entities/Trainium3]]`; `[[aws-trainium3-deep-dive]]`, not `[[03_Sources/aws-trainium3-deep-dive]]`. Paths are for the filesystem; wiki resolution is by unique slug. `tools/bin/lint.ts` flags path-style wikilinks as errors.
 
 ## Entity tiering rules
 
-- **Tier "seen"** (`Entities/_seen/<Name>.md`): 1–2 incoming references (across the whole repo — sources, entities, topics, meta). Thin stub.
-- **Tier "active"** (`Entities/<Name>.md`): ≥3 incoming references. Full entity page with Synthesis + Observations.
+- **Tier "seen"** (`02_Entities/_seen/<Name>.md`): 1–2 incoming references (across the whole repo — sources, entities, topics, meta). Thin stub.
+- **Tier "active"** (`02_Entities/<Name>.md`): ≥3 incoming references. Full entity page with Synthesis + Observations.
 - **`refs` counts incoming wikilinks** from other pages (self-refs excluded). This matches Lark's graph-view semantics: tier reflects established-ness in the graph, not raw source citations.
-- **Promotion** is automatic: `tools/bin/reindex.ts` runs after every ingest (or on demand), recomputes `refs`, and when a `_seen` entity crosses the threshold, moves the file from `Entities/_seen/` to `Entities/` and rewrites `tier: active`. Wikilinks are slug-based, so no rewriting elsewhere is needed.
+- **Promotion** is automatic: `tools/bin/reindex.ts` runs after every ingest (or on demand), recomputes `refs`, and when a `_seen` entity crosses the threshold, moves the file from `02_Entities/_seen/` to `02_Entities/` and rewrites `tier: active`. Wikilinks are slug-based, so no rewriting elsewhere is needed.
 - **Demotion is not automatic** — once active, an entity stays active even if refs drop. (A `refactor |` log entry would document manual demotion.)
 
 ## Do / don't
@@ -566,7 +566,7 @@ URL normalization for dedup (see `tools/bin/build-sources-index.ts`): lowercase 
 
 ## Raw-source archive layer
 
-Per Karpathy's invariant ("raw sources are immutable — the source of truth", see `Meta/references/karpathy-llm-wiki-gist.md`), every `Sources/<slug>.md` summary has a paired local archive containing the full content we summarized from. This is what lets us re-ingest when conventions evolve and survives URL rot / provider disappearance.
+Per Karpathy's invariant ("raw sources are immutable — the source of truth", see `00_Meta/references/karpathy-llm-wiki-gist.md`), every `03_Sources/<slug>.md` summary has a paired local archive containing the full content we summarized from. This is what lets us re-ingest when conventions evolve and survives URL rot / provider disappearance.
 
 ### Structure (one dir per source)
 
@@ -700,11 +700,11 @@ three-level summary derived from `quality_flags`:
 tsx tools/bin/hirono.ts raindrop status
 ```
 
-Walks `raw/` + reads `Meta/fetch-decisions.md`, re-classifies each slug (cheap
+Walks `raw/` + reads `00_Meta/fetch-decisions.md`, re-classifies each slug (cheap
 — just reads content.md), and groups output:
 
 - **needs attention** — flagged or failed AND not listed in `fetch-decisions.md`. Each entry prints slug + flags + origin URL + one-line remediation hint.
-- **accepted-as-is** — listed in `Meta/fetch-decisions.md`. Harmless; just audit.
+- **accepted-as-is** — listed in `00_Meta/fetch-decisions.md`. Harmless; just audit.
 - **good** — clean. Elided when list gets long (>20); set `FETCH_RAW_STATUS_QUIET=1` to hide entirely.
 
 Exit code: 1 if anything in `needs attention`, 0 otherwise. Hook into CI / batch close like lint.
@@ -745,7 +745,7 @@ tsx tools/bin/hirono.ts raindrop refetch <slug>
 Reads `source.json` to get the origin, re-runs the fetcher. Useful after a
 user-side fix (re-login, fresh xsec_token, paywall subscription acquired).
 
-### `Meta/fetch-decisions.md` — accepted exceptions (gitted)
+### `00_Meta/fetch-decisions.md` — accepted exceptions (gitted)
 
 Sibling to `.wiki-fetch-issues.md` (the L2 append log). `fetch-decisions.md`
 is **human-authored, gitted**, and captures decisions of the form "this flag
@@ -784,7 +784,7 @@ npx tsx tools/bin/hirono.ts raindrop status
 # 4. Retry anything that came back flagged after fixing issues
 npx tsx tools/bin/hirono.ts raindrop sync --retry-flagged
 
-# 5. Accept genuinely can't-fix cases by editing Meta/fetch-decisions.md
+# 5. Accept genuinely can't-fix cases by editing 00_Meta/fetch-decisions.md
 #    (then re-run status to confirm they moved to "accepted-as-is")
 
 # 6. Run the LLM ingest loop — each item reads raw/<slug>/content.md
@@ -828,7 +828,7 @@ either is valid:
 - **Conversational** (preferred for small/curated runs, ≤ 10 sources):
   chat with Claude per slug — "ingest `<slug>`" — Claude reads
   `raw/raindrop/<host>/<slug>/content.md` (and `<slug>.pdf` when present),
-  writes `Sources/YYYY/<slug>.md`, touches Entities + Topics, appends a
+  writes `03_Sources/YYYY/<slug>.md`, touches Entities + Topics, appends a
   log entry. See [`README.md`](../README.md) §"How to use the wiki" Mode 2.
 
 - **Programmatic batch** (for queued-up backlogs, 20-50 sources per batch):

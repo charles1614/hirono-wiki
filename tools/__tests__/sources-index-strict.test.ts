@@ -31,7 +31,7 @@ test("readSourceIndexStrict: parses valid index", () => {
     writeFileSync(path, JSON.stringify({
       "https://example.com/a": {
         slug: "2026-04-19-a",
-        repo_path: "Sources/2026/2026-04-19-a.md",
+        repo_path: "03_Sources/2026/2026-04-19-a.md",
         source_url: "https://example.com/a",
         ingested_at: "2026-04-19",
       },
@@ -137,10 +137,10 @@ test("writeSourceIndex: creates .bak of prior version", () => {
 
 function makeMinimalRepo(): string {
   const root = mkdtempSync(join(tmpdir(), "lint-srcidx-"));
-  mkdirSync(join(root, "Sources", "2026"), { recursive: true });
+  mkdirSync(join(root, "03_Sources", "2026"), { recursive: true });
   mkdirSync(join(root, "raw", "2026", "2026-04-19-a"), { recursive: true });
   writeFileSync(join(root, "raw", "2026", "2026-04-19-a", "content.md"), "body");
-  writeFileSync(join(root, "Sources", "2026", "2026-04-19-a.md"), [
+  writeFileSync(join(root, "03_Sources", "2026", "2026-04-19-a.md"), [
     "---",
     "type: source",
     "created: 2026-04-19",
@@ -168,7 +168,7 @@ test("lint sources-index: parseable + consistent -> clean", () => {
     writeFileSync(join(root, ".wiki-sources-index.json"), JSON.stringify({
       "https://example.com/a": {
         slug: "2026-04-19-a",
-        repo_path: "Sources/2026/2026-04-19-a.md",
+        repo_path: "03_Sources/2026/2026-04-19-a.md",
         source_url: "https://example.com/a",
         ingested_at: "2026-04-19",
       },
@@ -199,7 +199,7 @@ test("lint sources-index: stale repo_path -> warn issue", () => {
     writeFileSync(join(root, ".wiki-sources-index.json"), JSON.stringify({
       "https://example.com/gone": {
         slug: "2026-04-19-gone",
-        repo_path: "Sources/2026/2026-04-19-gone.md",
+        repo_path: "03_Sources/2026/2026-04-19-gone.md",
         source_url: "https://example.com/gone",
         ingested_at: "2026-04-19",
       },

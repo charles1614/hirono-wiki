@@ -20,7 +20,7 @@
  * standalone `tools/bin/fetch-raw.ts` binary was removed when the
  * fetch pipeline was consolidated under the hirono namespace.
  *
- * Error escalation (per the codified protocol in Meta/schema.md):
+ * Error escalation (per the codified protocol in 00_Meta/schema.md):
  *   L1 (auto-retry transient): network timeout, 5xx, 429 w/ Retry-After
  *   L2 (queue-and-continue):   404, app-only-url, empty-body, paywalled-partial
  *   L3 (halt and ask user):    extension-offline, login-expired, captcha-required,
@@ -1122,7 +1122,7 @@ const AUTO_SKIP_RULES: Array<{
  *
  * Best-effort — failures inside this helper are logged but never
  * mask the original L2 error (the caller still re-throws). See P-35
- * in `Meta/site-handling-patterns.md`.
+ * in `00_Meta/site-handling-patterns.md`.
  */
 function writeL2ErrorAsStub(opts: FetchUrlOpts, errorCode: string, errorMessage: string): void {
   const slugDir = rawDirFor(opts.slug, opts.url);
@@ -1136,7 +1136,7 @@ function writeL2ErrorAsStub(opts: FetchUrlOpts, errorCode: string, errorMessage:
     `---`,
     ``,
     `*This URL was rejected during fetch with an L2 (skip-and-continue) error. ` +
-      `Edit the bookmark, accept the stub via Meta/fetch-decisions.md, or fix the underlying upstream issue if applicable.*`,
+      `Edit the bookmark, accept the stub via 00_Meta/fetch-decisions.md, or fix the underlying upstream issue if applicable.*`,
     ``,
   ];
   writeRawArchive({
@@ -1317,13 +1317,13 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
 }
 
 // ---------------------------------------------------------------------------
-// Meta/fetch-decisions.md parser
+// 00_Meta/fetch-decisions.md parser
 // ---------------------------------------------------------------------------
 
-const DECISIONS_PATH = join(REPO_ROOT, "Meta", "fetch-decisions.md");
+const DECISIONS_PATH = join(REPO_ROOT, "00_Meta", "fetch-decisions.md");
 
 /**
- * Parse `Meta/fetch-decisions.md` for accepted-as-is slug exceptions.
+ * Parse `00_Meta/fetch-decisions.md` for accepted-as-is slug exceptions.
  *
  * The file format is markdown with H2 date sections; each bullet under any
  * H2 that looks like `- <slug> — <reason>` contributes one entry. We match
@@ -1537,7 +1537,7 @@ export function listRawSlugs(rawRoot: string = RAW_DIR): RawSlugInfo[] {
  *   - `ingested`: clean raw archive AND a paired wiki summary
  *     exists. Frozen-slug guard protects against accidental refetch.
  *
- * See `Meta/corpus-pipeline.md` for the state machine.
+ * See `00_Meta/corpus-pipeline.md` for the state machine.
  */
 export type SlugState = "not-yet-good" | "ingest-ready" | "ingested";
 
@@ -1744,16 +1744,16 @@ export function remediationFor(flags: string[], originUrl: string = ""): string 
     return "SPA didn't fully render — promote the host to a dedicated site module under tools/sites/<host>/ that uses opencli browser-eval (see xhs/weixin/zhihu for reference)";
   }
   if (flags.includes("short-body")) {
-    return "content looks truncated — check the source URL in a browser; if genuinely short, add the slug to Meta/fetch-decisions.md";
+    return "content looks truncated — check the source URL in a browser; if genuinely short, add the slug to 00_Meta/fetch-decisions.md";
   }
   if (flags.includes("images-declared-but-none-downloaded")) {
     return "site module emitted image refs but downloaded none — refetch, or fix the module's image-download loop";
   }
   if (flags.includes("app-only-url")) {
-    return "content is app-only and can't be fetched — add slug to Meta/fetch-decisions.md to suppress";
+    return "content is app-only and can't be fetched — add slug to 00_Meta/fetch-decisions.md to suppress";
   }
   if (flags.includes("dead-link")) {
-    return "origin URL is dead (404/410) — add slug to Meta/fetch-decisions.md or find an archive.org mirror";
+    return "origin URL is dead (404/410) — add slug to 00_Meta/fetch-decisions.md or find an archive.org mirror";
   }
   return "inspect raw/<slug>/ and flag manually";
 }
@@ -1823,7 +1823,7 @@ export function printStatusReport(r: StatusReport): void {
   }
 
   if (accepted.length > 0) {
-    console.log("\n## accepted-as-is (Meta/fetch-decisions.md)");
+    console.log("\n## accepted-as-is (00_Meta/fetch-decisions.md)");
     for (const { info, reason } of accepted) {
       console.log(`  ${info.slug} — ${reason}`);
     }
@@ -1900,7 +1900,7 @@ export interface SyncOpts {
    */
   sourcesIndexPath?: string;
   /**
-   * Optional override for `Meta/sources-health-overrides.md` path (test hook).
+   * Optional override for `00_Meta/sources-health-overrides.md` path (test hook).
    * Defaults to `<wiki-root>/Meta/sources-health-overrides.md`. Slugs pinned
    * with `pin-kind=dead-link-accepted` are skipped from retry loops — the
    * operator has explicitly accepted that the upstream is dead and wants
@@ -2017,7 +2017,7 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
 
   // Load health-overrides to find `pin-kind=dead-link-accepted` slugs
   // — operator-accepted dead URLs that should be skipped from retry loops.
-  const healthOverridesPath = opts.healthOverridesPath ?? join(REPO_ROOT, "Meta", "sources-health-overrides.md");
+  const healthOverridesPath = opts.healthOverridesPath ?? join(REPO_ROOT, "00_Meta", "sources-health-overrides.md");
   const deadAcceptedSlugs = new Set<string>();
   if (existsSync(healthOverridesPath)) {
     try {
@@ -2108,7 +2108,7 @@ export function buildSyncPlan(opts: SyncOpts): SyncPlanItem[] {
       plan.push({
         slug: info.slug,
         action: "skip-decisioned",
-        reason: `pin-kind=dead-link-accepted (Meta/sources-health-overrides.md): operator keeps local archive, no sync retries`,
+        reason: `pin-kind=dead-link-accepted (00_Meta/sources-health-overrides.md): operator keeps local archive, no sync retries`,
       });
       continue;
     }

@@ -2,7 +2,7 @@
 /**
  * backfill-synthesis-date.ts — one-time script.
  *
- * Walks active-tier entities (`Entities/*.md`, excluding `_seen/`). For each
+ * Walks active-tier entities (`02_Entities/*.md`, excluding `_seen/`). For each
  * one with a non-stub `## Synthesis`, sets `synthesis_updated_at: <today>`
  * in the frontmatter (preserving existing field values + ordering).
  *
@@ -27,7 +27,7 @@ function main(): void {
   const dryRun = argv.includes("--dry-run");
   const today = new Date().toISOString().slice(0, 10);
 
-  const entitiesDir = join(REPO_ROOT, "Entities");
+  const entitiesDir = join(REPO_ROOT, "02_Entities");
   const files = readdirSync(entitiesDir).filter((f) => f.endsWith(".md"));
   let touched = 0;
   let skipped = 0;

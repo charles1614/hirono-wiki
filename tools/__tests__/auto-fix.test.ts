@@ -11,8 +11,8 @@ import { loadEntityAliases } from "../curation.ts";
 
 function makeRepo(): string {
   const root = mkdtempSync(join(tmpdir(), "auto-fix-"));
-  mkdirSync(join(root, "Entities", "_seen"), { recursive: true });
-  mkdirSync(join(root, "Meta"), { recursive: true });
+  mkdirSync(join(root, "02_Entities", "_seen"), { recursive: true });
+  mkdirSync(join(root, "00_Meta"), { recursive: true });
   return root;
 }
 
@@ -24,7 +24,7 @@ function writeFile(root: string, repoPath: string, content: string): void {
 
 function listEntities(root: string): Set<string> {
   const out = new Set<string>();
-  for (const dir of [join(root, "Entities"), join(root, "Entities", "_seen")]) {
+  for (const dir of [join(root, "02_Entities"), join(root, "02_Entities", "_seen")]) {
     if (!existsSync(dir)) continue;
     for (const f of readdirSync(dir)) if (f.endsWith(".md")) out.add(f.slice(0, -3));
   }
@@ -46,11 +46,11 @@ function findMerges(root: string): Array<{ variant: string; canonical: string }>
 test("auto-fix: detects alias merges where both files exist", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/entity-aliases.md", "## Aliases\n\n- bfloat16 → BF16\n- LLaMA → Llama\n");
-    writeFile(root, "Entities/_seen/bfloat16.md", "---\ntype: entity\n---\n\n# bfloat16\n");
-    writeFile(root, "Entities/_seen/BF16.md", "---\ntype: entity\n---\n\n# BF16\n");
+    writeFile(root, "00_Meta/entity-aliases.md", "## Aliases\n\n- bfloat16 → BF16\n- LLaMA → Llama\n");
+    writeFile(root, "02_Entities/_seen/bfloat16.md", "---\ntype: entity\n---\n\n# bfloat16\n");
+    writeFile(root, "02_Entities/_seen/BF16.md", "---\ntype: entity\n---\n\n# BF16\n");
     // Llama target exists but the variant doesn't — not a candidate
-    writeFile(root, "Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
+    writeFile(root, "02_Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
 
     const merges = findMerges(root);
     assert.equal(merges.length, 1);
@@ -62,8 +62,8 @@ test("auto-fix: detects alias merges where both files exist", () => {
 test("auto-fix: skips alias when only one side exists", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Meta/entity-aliases.md", "## Aliases\n\n- LLaMA → Llama\n");
-    writeFile(root, "Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
+    writeFile(root, "00_Meta/entity-aliases.md", "## Aliases\n\n- LLaMA → Llama\n");
+    writeFile(root, "02_Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
     // LLaMA stub doesn't exist
     const merges = findMerges(root);
     assert.equal(merges.length, 0);
@@ -75,10 +75,10 @@ test("auto-fix: skips identity mappings (variant == canonical)", () => {
   try {
     // loadEntityAliases already filters these per its own tests, but verify
     // the combined logic for safety
-    writeFile(root, "Meta/entity-aliases.md", "## Aliases\n\n- Llama → Llama\n- BFloat16 → BF16\n");
-    writeFile(root, "Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
-    writeFile(root, "Entities/_seen/BFloat16.md", "---\ntype: entity\n---\n\n# BFloat16\n");
-    writeFile(root, "Entities/_seen/BF16.md", "---\ntype: entity\n---\n\n# BF16\n");
+    writeFile(root, "00_Meta/entity-aliases.md", "## Aliases\n\n- Llama → Llama\n- BFloat16 → BF16\n");
+    writeFile(root, "02_Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
+    writeFile(root, "02_Entities/_seen/BFloat16.md", "---\ntype: entity\n---\n\n# BFloat16\n");
+    writeFile(root, "02_Entities/_seen/BF16.md", "---\ntype: entity\n---\n\n# BF16\n");
     const merges = findMerges(root);
     assert.equal(merges.length, 1);
     assert.equal(merges[0].variant, "BFloat16");
@@ -88,7 +88,7 @@ test("auto-fix: skips identity mappings (variant == canonical)", () => {
 test("auto-fix: empty aliases file → no merges", () => {
   const root = makeRepo();
   try {
-    writeFile(root, "Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
+    writeFile(root, "02_Entities/Llama.md", "---\ntype: entity\n---\n\n# Llama\n");
     assert.equal(findMerges(root).length, 0);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

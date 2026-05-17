@@ -25,7 +25,7 @@ test("findNewBookmarks: returns bookmarks not in the sources index", () => {
   writeFileSync(indexPath, JSON.stringify({
     "https://example.com/already-ingested": {
       slug: "old-slug",
-      repo_path: "Sources/2026/old-slug.md",
+      repo_path: "03_Sources/2026/old-slug.md",
       source_url: "https://example.com/already-ingested",
     },
   }));
@@ -64,7 +64,7 @@ test("findNewBookmarks: full overlap → empty result", () => {
     bookmarks: [{ bookmark_id: 1, link: "https://a.com/x", title: "A" }],
   }));
   writeFileSync(indexPath, JSON.stringify({
-    "https://a.com/x": { slug: "a-x", repo_path: "Sources/a-x.md", source_url: "https://a.com/x" },
+    "https://a.com/x": { slug: "a-x", repo_path: "03_Sources/a-x.md", source_url: "https://a.com/x" },
   }));
   const items = findNewBookmarks({ raindropCachePath: cachePath, sourcesIndexPath: indexPath });
   assert.equal(items.length, 0);
@@ -82,7 +82,7 @@ test("findNewBookmarks: applies normalizeUrl (utm-stripped URLs match)", () => {
   writeFileSync(indexPath, JSON.stringify({
     "https://blog.example.com/post": {
       slug: "blog-post",
-      repo_path: "Sources/blog-post.md",
+      repo_path: "03_Sources/blog-post.md",
       source_url: "https://blog.example.com/post",
     },
   }));

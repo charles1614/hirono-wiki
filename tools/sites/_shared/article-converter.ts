@@ -163,7 +163,7 @@ export function convertArticle(opts: ArticleConvertOpts): ArticleConvertResult {
   //     a card. Picking the first card drops 95% of the page. Walk up
   //     to the candidates' nearest common ancestor and use THAT as the
   //     body so all cards survive into the markdown. See P-40 in
-  //     `Meta/site-handling-patterns.md`.
+  //     `00_Meta/site-handling-patterns.md`.
   let bodyEl: Element | null = null;
   for (const sel of selectors.bodySelectors) {
     const candidates = Array.from(doc.querySelectorAll(sel))

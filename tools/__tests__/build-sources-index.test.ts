@@ -42,13 +42,13 @@ test("normalizeUrl: empty / malformed input", () => {
 test("buildIndex: extracts source_url from each Source page", () => {
   const root = mkdtempSync(join(tmpdir(), "src-idx-"));
   try {
-    mkdirSync(join(root, "Sources/2026"), { recursive: true });
-    mkdirSync(join(root, "Entities"));
-    mkdirSync(join(root, "Topics"));
-    mkdirSync(join(root, "Meta"));
+    mkdirSync(join(root, "03_Sources/2026"), { recursive: true });
+    mkdirSync(join(root, "02_Entities"));
+    mkdirSync(join(root, "01_Topics"));
+    mkdirSync(join(root, "00_Meta"));
 
     writeFileSync(
-      join(root, "Sources/2026/2026-04-19-foo.md"),
+      join(root, "03_Sources/2026/2026-04-19-foo.md"),
       `---
 type: source
 created: 2026-04-19
@@ -59,7 +59,7 @@ source_url: https://example.com/foo
 `,
     );
     writeFileSync(
-      join(root, "Sources/2026/2026-04-20-bar.md"),
+      join(root, "03_Sources/2026/2026-04-20-bar.md"),
       `---
 type: source
 created: 2026-04-20
@@ -71,7 +71,7 @@ source_url: https://Example.com/bar/?utm_source=x
     );
     // entity / topic should be ignored
     writeFileSync(
-      join(root, "Entities/Foo.md"),
+      join(root, "02_Entities/Foo.md"),
       `---
 type: entity
 ---
@@ -95,9 +95,9 @@ type: entity
 test("buildIndex: skips sources with empty source_url", () => {
   const root = mkdtempSync(join(tmpdir(), "src-idx-empty-"));
   try {
-    mkdirSync(join(root, "Sources/2026"), { recursive: true });
+    mkdirSync(join(root, "03_Sources/2026"), { recursive: true });
     writeFileSync(
-      join(root, "Sources/2026/no-raw.md"),
+      join(root, "03_Sources/2026/no-raw.md"),
       `---
 type: source
 ---

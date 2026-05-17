@@ -8,7 +8,7 @@
  *   - rewriteWikilinksInBody(): body + mapping → rewritten body
  *   - mergeObservationBlocks(): two Observations sections → merged
  *   - applyAtomically(): two-phase commit via .curation-staging/<op-id>/
- *   - appendLogEntry(): prepend a `refactor | ` entry to Meta/log-2026.md
+ *   - appendLogEntry(): prepend a `refactor | ` entry to 00_Meta/log-2026.md
  *
  * Design tenets (per the curation-infrastructure plan):
  *  - Live-computed, no persisted reverse index (small corpus).
@@ -59,7 +59,7 @@ export function reverseCitationIndex(repoRoot: string): Map<string, CitationRef[
   const paths = walkWikiDocs(repoRoot);
   for (const repoPath of paths) {
     // Skip Meta/ — auto-regenerated
-    if (repoPath.startsWith("Meta/")) continue;
+    if (repoPath.startsWith("00_Meta/")) continue;
     let raw: string;
     try { raw = readFileSync(join(repoRoot, repoPath), "utf8"); } catch { continue; }
     // Strip frontmatter — the wikilinks live in the body
@@ -331,7 +331,7 @@ export interface SkipEntry {
 }
 
 /**
- * Parse `Meta/sources-ingest-skips.md` into a list of skip entries.
+ * Parse `00_Meta/sources-ingest-skips.md` into a list of skip entries.
  *
  * Format (one entry per line, under any `## ` heading):
  *   - <URL or slug> — skip-reason=<spam|duplicate|deprecated|bookmarked-by-mistake|other> · <free text>
@@ -347,7 +347,7 @@ export interface SkipEntry {
  * permanently-deprecated, or duplicate-URL situations.
  */
 export function loadIngestSkips(repoRoot: string): SkipEntry[] {
-  const path = join(repoRoot, "Meta", "sources-ingest-skips.md");
+  const path = join(repoRoot, "00_Meta", "sources-ingest-skips.md");
   let content: string;
   try { content = readFileSync(path, "utf8"); } catch { return []; }
   const out: SkipEntry[] = [];
@@ -376,7 +376,7 @@ export function isInSkipList(urlOrSlug: string, entries: SkipEntry[]): SkipEntry
 // ---------------------------------------------------------------------------
 
 /**
- * Parse `Meta/entity-aliases.md` into a Map<variant, canonical>.
+ * Parse `00_Meta/entity-aliases.md` into a Map<variant, canonical>.
  *
  * Each line under `## Aliases` matching `- <variant> → <canonical>` becomes
  * one entry. The arrow can be `→` (U+2192) or `->`. Match against incoming
@@ -387,7 +387,7 @@ export function isInSkipList(urlOrSlug: string, entries: SkipEntry[]): SkipEntry
  * detect-entities calls this to merge spelling variants before stub-creation.
  */
 export function loadEntityAliases(repoRoot: string): Map<string, string> {
-  const path = join(repoRoot, "Meta", "entity-aliases.md");
+  const path = join(repoRoot, "00_Meta", "entity-aliases.md");
   let content: string;
   try { content = readFileSync(path, "utf8"); } catch { return new Map(); }
 
@@ -420,7 +420,7 @@ export function normalizeEntityName(name: string, aliases: Map<string, string>):
 // ---------------------------------------------------------------------------
 
 /**
- * Prepend a refactor log entry to `Meta/log-YYYY.md` (current year).
+ * Prepend a refactor log entry to `00_Meta/log-YYYY.md` (current year).
  *
  * Entries land at the top of the entries section, marked by the
  * `<!-- LOG-ENTRIES-START -->` comment if present, otherwise after the
@@ -438,7 +438,7 @@ export function appendLogEntry(
 ): void {
   const year = new Date().toISOString().slice(0, 4);
   const date = new Date().toISOString().slice(0, 10);
-  const logPath = join(repoRoot, "Meta", `log-${year}.md`);
+  const logPath = join(repoRoot, "00_Meta", `log-${year}.md`);
   let content: string;
   try { content = readFileSync(logPath, "utf8"); }
   catch {

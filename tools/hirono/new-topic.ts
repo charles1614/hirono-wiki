@@ -1,6 +1,6 @@
 /**
  * `hirono new-topic <Name>` — scaffold a new Topic stub at
- * `Topics/<Name>.md` with the standard four-section schema skeleton.
+ * `01_Topics/<Name>.md` with the standard four-section schema skeleton.
  *
  * Topics differ from Entities: they're cross-cutting concepts / design
  * spaces / problem areas, not named things. No tier system; the page
@@ -128,7 +128,7 @@ _(populated as Sources wikilink this Topic; cite each with one-line relevance.)_
  */
 export function createTopicStub(repoRoot: string, name: string, what: string): string {
   validateName(name);
-  const dir = join(repoRoot, "Topics");
+  const dir = join(repoRoot, "01_Topics");
   const path = join(dir, `${name}.md`);
   if (existsSync(path)) {
     throw new Error(`${path} already exists`);

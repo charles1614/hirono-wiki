@@ -21,7 +21,7 @@ export const REFINE_ENTITY_PREAMBLE = `# refine-entity — Synthesis regeneratio
 
 You are regenerating the \`## Synthesis\` paragraph for an Entity page in
 an LLM-maintained wiki (Karpathy LLM-wiki pattern; see
-Meta/references/karpathy-llm-wiki-gist.md).
+00_Meta/references/karpathy-llm-wiki-gist.md).
 
 ## Output format (strict — the CLI pastes your response verbatim)
 
@@ -112,7 +112,7 @@ and footer; do not include them in your response.
 ## Source-of-truth rules
 
   - Every substantive claim must be backed by ≥1
-    \`[[Topics/<X>]]\` or \`[[Sources/YYYY/<slug>]]\` or \`[[<Entity>]]\`
+    \`[[01_Topics/<X>]]\` or \`[[03_Sources/YYYY/<slug>]]\` or \`[[<Entity>]]\`
     wikilink. **Orphan claims** (assertions with no link) **are a regression**.
   - **Preserve through-line where the corpus is unchanged**. Mirror the
     existing Synthesis's section structure unless the corpus has

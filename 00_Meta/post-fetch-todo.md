@@ -174,7 +174,7 @@ Surface in CLAUDE.md §4 fix recipes when implemented.
   active-corpus regression today (we already cover blog.google in
   `_default`'s browser path), but blog-shape hosts that DO route
   through the factory would benefit. See P-39 in
-  `Meta/site-handling-patterns.md`. **Survey 2026-05-09:** all
+  `00_Meta/site-handling-patterns.md`. **Survey 2026-05-09:** all
   candidates examined have either (a) curl-only resolution working
   fine or (b) intentionally-tiny images (CSDN math equations).
   Defer until a real factory-routed slug surfaces with low-res content.
@@ -233,7 +233,7 @@ Surface in CLAUDE.md §4 fix recipes when implemented.
 - [ ] **Eyeball and pin `content-too-short` slugs** (3 items, was 6
   — P-18 + P-34 absorbed 2; atopx pinned `clean` in commit `b1d187d`).
   For each, open the URL; if the body really is short by design, pin
-  via `Meta/sources-health-overrides.md`. Remaining URLs to review:
+  via `00_Meta/sources-health-overrides.md`. Remaining URLs to review:
   - `https://www.zhihu.com/question/1918276517865157261/answer/1918748704971678665`
     — short-body answer (eyeball; could be deleted answer or genuinely
     brief).
@@ -266,15 +266,15 @@ Surface in CLAUDE.md §4 fix recipes when implemented.
   classified by P-18 and don't need a manual override. Anything still
   showing up under `content-too-short` or `intentional-stub-app-only`
   that's actually a deliberate skip can go into
-  `Meta/sources-health-overrides.md` with a one-line `pin-kind=` entry.
+  `00_Meta/sources-health-overrides.md` with a one-line `pin-kind=` entry.
 
 ---
 
 ## 4. Post-fetch downstream work
 
 The fetch pipeline produces the **raw archive** (`raw/raindrop/<host>/<slug>/`).
-Building the **wiki itself** (`Sources/<year>/<slug>.md` summaries +
-`Entities/` + `Topics/`) is downstream work that wasn't part of this
+Building the **wiki itself** (`03_Sources/<year>/<slug>.md` summaries +
+`02_Entities/` + `01_Topics/`) is downstream work that wasn't part of this
 session. Unchanged from iteration 1.
 
 - [ ] **Identify which raw slugs are worth summarizing.** The 355
@@ -285,7 +285,7 @@ session. Unchanged from iteration 1.
   npx tsx tools/bin/ingest_batch.ts plan <input.json>
   npx tsx tools/bin/ingest_batch.ts next       # peek next pending
   npx tsx tools/bin/ingest_batch.ts start <id> # mark in-progress
-  # ... write Sources/2026/<slug>.md
+  # ... write 03_Sources/2026/<slug>.md
   npx tsx tools/bin/ingest_batch.ts mark-done <id> --slug <slug>
   ```
 - [ ] **Rebuild the URL→slug index** after the batch:
@@ -320,7 +320,7 @@ the older session) — all unreviewed except by you.
 
 ## 6. Health-check schedule
 
-Per `Meta/operator-workflows.md` §7. Schedule when ready for
+Per `00_Meta/operator-workflows.md` §7. Schedule when ready for
 steady-state operations.
 
 - [ ] **Daily** (manual or cron): `hirono raindrop refresh-cache`.

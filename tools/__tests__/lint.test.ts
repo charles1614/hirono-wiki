@@ -10,20 +10,20 @@ function tmp(): string {
 }
 
 function bucketStubs(root: string): void {
-  mkdirSync(join(root, "Meta"));
-  mkdirSync(join(root, "Sources/2026"), { recursive: true });
-  mkdirSync(join(root, "Entities/_seen"), { recursive: true });
-  mkdirSync(join(root, "Topics"));
+  mkdirSync(join(root, "00_Meta"));
+  mkdirSync(join(root, "03_Sources/2026"), { recursive: true });
+  mkdirSync(join(root, "02_Entities/_seen"), { recursive: true });
+  mkdirSync(join(root, "01_Topics"));
 }
 
 function writeSource(root: string, slug: string, body: string, fm = "type: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\ntags: [inference]"): void {
   writeFileSync(
-    join(root, `Sources/2026/${slug}.md`),
+    join(root, `03_Sources/2026/${slug}.md`),
     `---\n${fm}\n---\n\n${body}\n`,
   );
 }
 function writeEntity(root: string, slug: string, body: string, tier: "seen" | "active" = "seen", refs = 0): void {
-  const dir = tier === "seen" ? "Entities/_seen" : "Entities";
+  const dir = tier === "seen" ? "02_Entities/_seen" : "02_Entities";
   writeFileSync(
     join(root, `${dir}/${slug}.md`),
     `---\ntype: entity\ncreated: 2026-04-20\nupdated: 2026-04-20\nrefs: ${refs}\ntier: ${tier}\n---\n\n${body}\n`,
@@ -31,7 +31,7 @@ function writeEntity(root: string, slug: string, body: string, tier: "seen" | "a
 }
 function writeTopic(root: string, slug: string, body: string, sc = 0): void {
   writeFileSync(
-    join(root, `Topics/${slug}.md`),
+    join(root, `01_Topics/${slug}.md`),
     `---\ntype: topic\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_count: ${sc}\n---\n\n${body}\n`,
   );
 }
@@ -57,9 +57,9 @@ test("orphans: topic with only Meta-page refs is still orphan", () => {
   try {
     bucketStubs(root);
     writeTopic(root, "T1", "body");
-    // Meta/index mentions T1 — shouldn't count toward orphan protection
+    // 00_Meta/index mentions T1 — shouldn't count toward orphan protection
     writeFileSync(
-      join(root, "Meta/index.md"),
+      join(root, "00_Meta/index.md"),
       `---\ntype: meta\ncreated: 2026-04-20\nupdated: 2026-04-20\n---\n\n[[T1]] is a topic.\n`,
     );
     const issues = runLint(root, { checks: ["orphans"] });
@@ -89,11 +89,11 @@ test("dead-wikilinks: unresolved slug flagged, fenced content ignored", () => {
   } finally { rmSync(root, { recursive: true }); }
 });
 
-test("dead-wikilinks: path-style refs ([[Meta/X]]) flagged with hint", () => {
+test("dead-wikilinks: path-style refs ([[00_Meta/X]]) flagged with hint", () => {
   const root = tmp();
   try {
     bucketStubs(root);
-    writeSource(root, "s1", "ref [[Meta/schema]] — should warn about path-style");
+    writeSource(root, "s1", "ref [[00_Meta/schema]] — should warn about path-style");
     const issues = runLint(root, { checks: ["dead-wikilinks"] });
     assert.equal(issues.length, 1);
     assert.match(issues[0].hint ?? "", /path-style/);
@@ -105,7 +105,7 @@ test("dead-wikilinks: Meta/ scope-excluded by default; --include-meta reverses",
   try {
     bucketStubs(root);
     writeFileSync(
-      join(root, "Meta/schema.md"),
+      join(root, "00_Meta/schema.md"),
       `---\ntype: meta\ncreated: 2026-04-20\nupdated: 2026-04-20\n---\n\nExample: [[Slug]] is a placeholder.\n`,
     );
     const defaultRun = runLint(root, { checks: ["dead-wikilinks"] });
@@ -148,7 +148,7 @@ test("frontmatter: missing required field flagged", () => {
     bucketStubs(root);
     // Missing source_url (required for Sources)
     writeFileSync(
-      join(root, "Sources/2026/s1.md"),
+      join(root, "03_Sources/2026/s1.md"),
       `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\n---\n\nbody\n`,
     );
     const issues = runLint(root, { checks: ["frontmatter"] });
@@ -163,14 +163,14 @@ test("frontmatter: Sources without tags is flagged (pre-scale lockdown)", () => 
     // Sources require `tags` as a non-empty list as of the pre-scale
     // schema lockdown. Missing `tags` key:
     writeFileSync(
-      join(root, "Sources/2026/s1.md"),
+      join(root, "03_Sources/2026/s1.md"),
       `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\n---\n\nbody\n`,
     );
     const issues1 = runLint(root, { checks: ["frontmatter"] });
     assert.ok(issues1.some((i) => i.detail.includes("tags")), `missing tags should flag; got ${JSON.stringify(issues1)}`);
     // Empty list also rejected — the spirit of the check is "≥1 tag":
     writeFileSync(
-      join(root, "Sources/2026/s1.md"),
+      join(root, "03_Sources/2026/s1.md"),
       `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nsource_url: https://x\ntags: []\n---\n\nbody\n`,
     );
     const issues2 = runLint(root, { checks: ["frontmatter"] });
@@ -183,7 +183,7 @@ test("frontmatter: type that doesn't match bucket is flagged", () => {
   try {
     bucketStubs(root);
     writeFileSync(
-      join(root, "Entities/Foo.md"),
+      join(root, "02_Entities/Foo.md"),
       `---\ntype: source\ncreated: 2026-04-20\nupdated: 2026-04-20\nrefs: 0\ntier: active\n---\n\nbody\n`,
     );
     const issues = runLint(root, { checks: ["frontmatter"] });
@@ -493,7 +493,7 @@ test("observation-gaps: active-tier entity missing Observations from citing Sour
     writeEntity(root, "Foo", "Body.\n\n## Observations\n\n- (auto-populated as Sources cite this entity)\n", "active", 1);
     const issues = runLint(root, { checks: ["observation-gaps"] });
     assert.ok(
-      issues.some((i) => i.kind === "observation-gaps" && i.severity === "warn" && i.path === "Entities/Foo.md"),
+      issues.some((i) => i.kind === "observation-gaps" && i.severity === "warn" && i.path === "02_Entities/Foo.md"),
       `expected observation-gaps WARN on Foo; got ${JSON.stringify(issues)}`,
     );
   } finally { rmSync(root, { recursive: true }); }
@@ -576,7 +576,7 @@ test("topic-content-gaps: load-bearing Topic with stub What+Current understandin
     );
     const issues = runLint(root, { checks: ["topic-content-gaps"] });
     assert.ok(
-      issues.some((i) => i.kind === "topic-content-gaps" && i.path === "Topics/Foo.md"),
+      issues.some((i) => i.kind === "topic-content-gaps" && i.path === "01_Topics/Foo.md"),
       `expected topic-content-gaps WARN; got ${JSON.stringify(issues)}`,
     );
   } finally { rmSync(root, { recursive: true }); }

@@ -2,7 +2,7 @@
  * `hirono auto-fix` — Tier-1 autonomous safe-by-construction repairs.
  *
  * Auto-applies ONLY operations where the operator can't lose information:
- *   - **Alias merges**: `Meta/entity-aliases.md` declares `variant → canonical`
+ *   - **Alias merges**: `00_Meta/entity-aliases.md` declares `variant → canonical`
  *     mappings. If both entities exist, merge them (operator's own
  *     statement says they're the same thing).
  *   - **Prepare refine prompts** for entities flagged stale-synthesis.
@@ -40,7 +40,7 @@ function usage(): never {
 Tier-1 safe-by-construction autonomous repairs. Does NOT delete anything.
 
 Actions (in order):
-  1. Alias merges — for each \`variant → canonical\` in Meta/entity-aliases.md
+  1. Alias merges — for each \`variant → canonical\` in 00_Meta/entity-aliases.md
      where BOTH Entities/_seen/{variant,canonical}.md exist, run
      \`hirono merge-entities <variant> --into <canonical>\`. Mechanically
      safe: the alias is operator-declared, the merge concatenates
@@ -63,7 +63,7 @@ What it does NOT do:
   - Auto-delete \`_seen/\` orphans (use \`hirono propose-curation\` for the
     Sonnet-judged orphan-pruning workflow).
   - Auto-apply refines (operator must spawn Sonnet + approve each).
-  - Auto-merge anything not in Meta/entity-aliases.md.
+  - Auto-merge anything not in 00_Meta/entity-aliases.md.
 `);
   process.exit(2);
 }
@@ -88,7 +88,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 function listEntitySlugs(repoRoot: string): Set<string> {
   const out = new Set<string>();
-  const dirs = [join(repoRoot, "Entities"), join(repoRoot, "Entities", "_seen")];
+  const dirs = [join(repoRoot, "02_Entities"), join(repoRoot, "02_Entities", "_seen")];
   for (const d of dirs) {
     if (!existsSync(d)) continue;
     for (const f of readdirSync(d)) {
@@ -117,12 +117,12 @@ function findAliasMerges(repoRoot: string): AliasMergeAction[] {
 
 function applyAliasMerge(repoRoot: string, action: AliasMergeAction, dryRun: boolean): { ok: boolean; msg: string } {
   if (dryRun) {
-    return { ok: true, msg: `would run: hirono merge-entities ${quote(action.variant)} --into ${quote(action.canonical)} --reason "auto-fix: alias resolution per Meta/entity-aliases.md"` };
+    return { ok: true, msg: `would run: hirono merge-entities ${quote(action.variant)} --into ${quote(action.canonical)} --reason "auto-fix: alias resolution per 00_Meta/entity-aliases.md"` };
   }
   const result = spawnSync("npx", [
     "tsx", "tools/bin/hirono.ts", "merge-entities",
     action.variant, "--into", action.canonical,
-    "--reason", `auto-fix: alias resolution per Meta/entity-aliases.md`,
+    "--reason", `auto-fix: alias resolution per 00_Meta/entity-aliases.md`,
   ], { cwd: repoRoot, encoding: "utf8" });
   if (result.status === 0) return { ok: true, msg: "merged" };
   return { ok: false, msg: (result.stderr || "non-zero exit").trim().slice(-200) };
@@ -282,7 +282,7 @@ export function autoFix(repoRoot: string, opts: ParsedArgs): AutoFixResult {
       if (result.ok && !opts.dryRun) r.aliasMergesApplied++;
     }
   } else {
-    console.log(`# Step 1: alias merges — none pending (no overlapping entries in Meta/entity-aliases.md)`);
+    console.log(`# Step 1: alias merges — none pending (no overlapping entries in 00_Meta/entity-aliases.md)`);
   }
   console.log();
 

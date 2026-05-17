@@ -27,9 +27,9 @@ test("extractWikilinks dedupes", () => {
 
 test("countRefs: multiple pages linking to the same slug", () => {
   const docs = [
-    { slug: "p1", bucket: "Sources" as const, wikilinks: new Set(["A", "B"]), repo_path: "Sources/p1.md", frontmatter: {}, body: "" },
-    { slug: "p2", bucket: "Sources" as const, wikilinks: new Set(["A"]),      repo_path: "Sources/p2.md", frontmatter: {}, body: "" },
-    { slug: "p3", bucket: "Entities" as const, wikilinks: new Set(["A", "C"]), repo_path: "Entities/p3.md", frontmatter: {}, body: "" },
+    { slug: "p1", bucket: "03_Sources" as const, wikilinks: new Set(["A", "B"]), repo_path: "03_Sources/p1.md", frontmatter: {}, body: "" },
+    { slug: "p2", bucket: "03_Sources" as const, wikilinks: new Set(["A"]),      repo_path: "03_Sources/p2.md", frontmatter: {}, body: "" },
+    { slug: "p3", bucket: "02_Entities" as const, wikilinks: new Set(["A", "C"]), repo_path: "02_Entities/p3.md", frontmatter: {}, body: "" },
   ];
   const refs = countRefs(docs);
   assert.equal(refs.get("A"), 3);
@@ -39,8 +39,8 @@ test("countRefs: multiple pages linking to the same slug", () => {
 
 test("countRefs excludes self-refs", () => {
   const docs = [
-    { slug: "A", bucket: "Entities" as const, wikilinks: new Set(["A", "B"]), repo_path: "Entities/A.md", frontmatter: {}, body: "" },
-    { slug: "B", bucket: "Sources" as const,  wikilinks: new Set(["A"]),      repo_path: "Sources/B.md",  frontmatter: {}, body: "" },
+    { slug: "A", bucket: "02_Entities" as const, wikilinks: new Set(["A", "B"]), repo_path: "02_Entities/A.md", frontmatter: {}, body: "" },
+    { slug: "B", bucket: "03_Sources" as const,  wikilinks: new Set(["A"]),      repo_path: "03_Sources/B.md",  frontmatter: {}, body: "" },
   ];
   const refs = countRefs(docs);
   assert.equal(refs.get("A"), 1, "only B → A counts; A → A excluded");
@@ -50,13 +50,13 @@ test("countSourceCites: counts Topic↔Source connections in either direction", 
   // Topic [[T1]] is mentioned inbound by Source s1, and outbound from T1 to Source s2.
   // Both directions should count → source_count(T1) = 2.
   const docs = [
-    { slug: "T1", bucket: "Topics" as const,   wikilinks: new Set(["s2"]),   repo_path: "Topics/T1.md",   frontmatter: {}, body: "" },
-    { slug: "T2", bucket: "Topics" as const,   wikilinks: new Set([]),       repo_path: "Topics/T2.md",   frontmatter: {}, body: "" },
-    { slug: "s1", bucket: "Sources" as const,  wikilinks: new Set(["T1"]),   repo_path: "Sources/s1.md",  frontmatter: {}, body: "" },
-    { slug: "s2", bucket: "Sources" as const,  wikilinks: new Set([]),       repo_path: "Sources/s2.md",  frontmatter: {}, body: "" },
-    { slug: "s3", bucket: "Sources" as const,  wikilinks: new Set(["T1"]),   repo_path: "Sources/s3.md",  frontmatter: {}, body: "" },
+    { slug: "T1", bucket: "01_Topics" as const,   wikilinks: new Set(["s2"]),   repo_path: "01_Topics/T1.md",   frontmatter: {}, body: "" },
+    { slug: "T2", bucket: "01_Topics" as const,   wikilinks: new Set([]),       repo_path: "01_Topics/T2.md",   frontmatter: {}, body: "" },
+    { slug: "s1", bucket: "03_Sources" as const,  wikilinks: new Set(["T1"]),   repo_path: "03_Sources/s1.md",  frontmatter: {}, body: "" },
+    { slug: "s2", bucket: "03_Sources" as const,  wikilinks: new Set([]),       repo_path: "03_Sources/s2.md",  frontmatter: {}, body: "" },
+    { slug: "s3", bucket: "03_Sources" as const,  wikilinks: new Set(["T1"]),   repo_path: "03_Sources/s3.md",  frontmatter: {}, body: "" },
     // Entity citations should NOT count toward Topic source_count
-    { slug: "E1", bucket: "Entities" as const, wikilinks: new Set(["T1"]),   repo_path: "Entities/E1.md", frontmatter: {}, body: "" },
+    { slug: "E1", bucket: "02_Entities" as const, wikilinks: new Set(["T1"]),   repo_path: "02_Entities/E1.md", frontmatter: {}, body: "" },
   ];
   const sc = countSourceCites(docs);
   assert.equal(sc.get("T1"), 3, "T1 connects to s1 + s3 (inbound) and s2 (outbound) → 3 sources; E1 excluded");
@@ -65,8 +65,8 @@ test("countSourceCites: counts Topic↔Source connections in either direction", 
 
 test("countSourceCites: deduplicates if both directions exist for same Source", () => {
   const docs = [
-    { slug: "T", bucket: "Topics" as const,  wikilinks: new Set(["s1"]), repo_path: "Topics/T.md",  frontmatter: {}, body: "" },
-    { slug: "s1", bucket: "Sources" as const, wikilinks: new Set(["T"]), repo_path: "Sources/s1.md", frontmatter: {}, body: "" },
+    { slug: "T", bucket: "01_Topics" as const,  wikilinks: new Set(["s1"]), repo_path: "01_Topics/T.md",  frontmatter: {}, body: "" },
+    { slug: "s1", bucket: "03_Sources" as const, wikilinks: new Set(["T"]), repo_path: "03_Sources/s1.md", frontmatter: {}, body: "" },
   ];
   const sc = countSourceCites(docs);
   assert.equal(sc.get("T"), 1, "T↔s1 bidirectional counts as 1, not 2");
@@ -75,15 +75,15 @@ test("countSourceCites: deduplicates if both directions exist for same Source", 
 test("end-to-end reindex: promotion + index regen", () => {
   const root = mkdtempSync(join(tmpdir(), "reindex-"));
   try {
-    mkdirSync(join(root, "Meta"));
-    mkdirSync(join(root, "Sources/2026"), { recursive: true });
-    mkdirSync(join(root, "Entities/_seen"), { recursive: true });
-    mkdirSync(join(root, "Topics"));
+    mkdirSync(join(root, "00_Meta"));
+    mkdirSync(join(root, "03_Sources/2026"), { recursive: true });
+    mkdirSync(join(root, "02_Entities/_seen"), { recursive: true });
+    mkdirSync(join(root, "01_Topics"));
 
-    writeFileSync(join(root, "Meta/index.md"), "old overview");
-    writeFileSync(join(root, "Meta/index-sources.md"), "old");
-    writeFileSync(join(root, "Meta/index-entities.md"), "old");
-    writeFileSync(join(root, "Meta/index-topics.md"), "old");
+    writeFileSync(join(root, "00_Meta/index.md"), "old overview");
+    writeFileSync(join(root, "00_Meta/index-sources.md"), "old");
+    writeFileSync(join(root, "00_Meta/index-entities.md"), "old");
+    writeFileSync(join(root, "00_Meta/index-topics.md"), "old");
 
     // 4 sources all reference [[Hub]] → Hub should promote (threshold = 3)
     const src = (slug: string, cites: string[]) => `---
@@ -98,14 +98,14 @@ TL;DR.
 
 Body mentions ${cites.map((c) => `[[${c}]]`).join(" ")}.
 `;
-    writeFileSync(join(root, "Sources/2026/s1.md"), src("s1", ["Hub", "Spoke"]));
-    writeFileSync(join(root, "Sources/2026/s2.md"), src("s2", ["Hub"]));
-    writeFileSync(join(root, "Sources/2026/s3.md"), src("s3", ["Hub"]));
-    writeFileSync(join(root, "Sources/2026/s4.md"), src("s4", ["Spoke"]));
+    writeFileSync(join(root, "03_Sources/2026/s1.md"), src("s1", ["Hub", "Spoke"]));
+    writeFileSync(join(root, "03_Sources/2026/s2.md"), src("s2", ["Hub"]));
+    writeFileSync(join(root, "03_Sources/2026/s3.md"), src("s3", ["Hub"]));
+    writeFileSync(join(root, "03_Sources/2026/s4.md"), src("s4", ["Spoke"]));
 
     // Hub initially in _seen/
     writeFileSync(
-      join(root, "Entities/_seen/Hub.md"),
+      join(root, "02_Entities/_seen/Hub.md"),
       `---
 type: entity
 created: 2026-04-19
@@ -124,7 +124,7 @@ One-liner.
 `,
     );
     writeFileSync(
-      join(root, "Entities/_seen/Spoke.md"),
+      join(root, "02_Entities/_seen/Spoke.md"),
       `---
 type: entity
 created: 2026-04-19
@@ -143,7 +143,7 @@ Another.
 `,
     );
     writeFileSync(
-      join(root, "Topics/Theme.md"),
+      join(root, "01_Topics/Theme.md"),
       `---
 type: topic
 created: 2026-04-19
@@ -172,31 +172,31 @@ Description paragraph.
     }
 
     // Hub moved to active tier
-    assert.ok(existsSync(join(root, "Entities/Hub.md")), "Hub promoted to Entities/");
-    assert.ok(!existsSync(join(root, "Entities/_seen/Hub.md")), "Hub removed from _seen/");
-    const hubContent = readFileSync(join(root, "Entities/Hub.md"), "utf8");
+    assert.ok(existsSync(join(root, "02_Entities/Hub.md")), "Hub promoted to Entities/");
+    assert.ok(!existsSync(join(root, "02_Entities/_seen/Hub.md")), "Hub removed from _seen/");
+    const hubContent = readFileSync(join(root, "02_Entities/Hub.md"), "utf8");
     assert.match(hubContent, /tier: active/);
     assert.match(hubContent, /refs: 3/);
 
     // Spoke stayed in _seen (2 refs)
-    assert.ok(existsSync(join(root, "Entities/_seen/Spoke.md")), "Spoke still in _seen/");
-    const spokeContent = readFileSync(join(root, "Entities/_seen/Spoke.md"), "utf8");
+    assert.ok(existsSync(join(root, "02_Entities/_seen/Spoke.md")), "Spoke still in _seen/");
+    const spokeContent = readFileSync(join(root, "02_Entities/_seen/Spoke.md"), "utf8");
     assert.match(spokeContent, /refs: 2/);
     assert.match(spokeContent, /tier: seen/);
 
     // Topic source_count updated
-    const themeContent = readFileSync(join(root, "Topics/Theme.md"), "utf8");
+    const themeContent = readFileSync(join(root, "01_Topics/Theme.md"), "utf8");
     // Theme isn't wikilinked from any source in our fixture → source_count stays 0
     assert.match(themeContent, /source_count: 0/);
 
     // Indexes regenerated
-    const ixOverview = readFileSync(join(root, "Meta/index.md"), "utf8");
+    const ixOverview = readFileSync(join(root, "00_Meta/index.md"), "utf8");
     assert.match(ixOverview, /Sources: 4/);
     assert.match(ixOverview, /Entities \(active\): 1/);
     assert.match(ixOverview, /Entities \(seen\):\s+1/);
     assert.match(ixOverview, /Topics: 1/);
 
-    const ixEntities = readFileSync(join(root, "Meta/index-entities.md"), "utf8");
+    const ixEntities = readFileSync(join(root, "00_Meta/index-entities.md"), "utf8");
     assert.match(ixEntities, /\[\[Hub\]\].*3 refs/);
     assert.match(ixEntities, /\[\[Spoke\]\].*2 refs/);
   } finally {
@@ -207,17 +207,17 @@ Description paragraph.
 test("reindex is idempotent: re-running yields no pending changes", () => {
   const root = mkdtempSync(join(tmpdir(), "reindex-idem-"));
   try {
-    mkdirSync(join(root, "Meta"));
-    mkdirSync(join(root, "Sources/2026"), { recursive: true });
-    mkdirSync(join(root, "Entities"));
+    mkdirSync(join(root, "00_Meta"));
+    mkdirSync(join(root, "03_Sources/2026"), { recursive: true });
+    mkdirSync(join(root, "02_Entities"));
 
-    writeFileSync(join(root, "Meta/index.md"), "");
-    writeFileSync(join(root, "Meta/index-sources.md"), "");
-    writeFileSync(join(root, "Meta/index-entities.md"), "");
-    writeFileSync(join(root, "Meta/index-topics.md"), "");
+    writeFileSync(join(root, "00_Meta/index.md"), "");
+    writeFileSync(join(root, "00_Meta/index-sources.md"), "");
+    writeFileSync(join(root, "00_Meta/index-entities.md"), "");
+    writeFileSync(join(root, "00_Meta/index-topics.md"), "");
 
     writeFileSync(
-      join(root, "Sources/2026/s1.md"),
+      join(root, "03_Sources/2026/s1.md"),
       `---
 type: source
 created: 2026-04-19
@@ -230,7 +230,7 @@ See [[E]].
 `,
     );
     writeFileSync(
-      join(root, "Entities/E.md"),
+      join(root, "02_Entities/E.md"),
       `---
 type: entity
 created: 2026-04-19
@@ -269,20 +269,20 @@ test("reindex does not mutate YYYY-MM-DD dates into ISO timestamps (regression)"
   // mutating the on-disk format. normalizeDateFields() fixes this.
   const root = mkdtempSync(join(tmpdir(), "reindex-dates-"));
   try {
-    mkdirSync(join(root, "Meta"));
-    mkdirSync(join(root, "Sources/2026"), { recursive: true });
-    mkdirSync(join(root, "Entities/_seen"), { recursive: true });
-    mkdirSync(join(root, "Topics"));
+    mkdirSync(join(root, "00_Meta"));
+    mkdirSync(join(root, "03_Sources/2026"), { recursive: true });
+    mkdirSync(join(root, "02_Entities/_seen"), { recursive: true });
+    mkdirSync(join(root, "01_Topics"));
 
-    writeFileSync(join(root, "Meta/index.md"), "");
-    writeFileSync(join(root, "Meta/index-sources.md"), "");
-    writeFileSync(join(root, "Meta/index-entities.md"), "");
-    writeFileSync(join(root, "Meta/index-topics.md"), "");
+    writeFileSync(join(root, "00_Meta/index.md"), "");
+    writeFileSync(join(root, "00_Meta/index-sources.md"), "");
+    writeFileSync(join(root, "00_Meta/index-entities.md"), "");
+    writeFileSync(join(root, "00_Meta/index-topics.md"), "");
 
     // Three Sources to cross the promotion threshold (refs ≥ 3 → active).
     for (let i = 1; i <= 3; i++) {
       writeFileSync(
-        join(root, `Sources/2026/s${i}.md`),
+        join(root, `03_Sources/2026/s${i}.md`),
         `---
 type: source
 created: 2026-04-19
@@ -298,7 +298,7 @@ See [[E]] and [[T]].
       );
     }
     writeFileSync(
-      join(root, "Entities/_seen/E.md"),
+      join(root, "02_Entities/_seen/E.md"),
       `---
 type: entity
 created: 2026-04-19
@@ -313,7 +313,7 @@ Body.
 `,
     );
     writeFileSync(
-      join(root, "Topics/T.md"),
+      join(root, "01_Topics/T.md"),
       `---
 type: topic
 created: 2026-04-19
