@@ -50,7 +50,7 @@ function usage(): never {
 Regenerate the top-level Synthesis.md from all active Topic syntheses.
 
 Modes:
-  (no flags)              Generate prompt package; operator spawns Sonnet subagent.
+  (no flags)              Generate prompt package; operator spawns Opus subagent (top-Synthesis policy).
   --response <path>       Dry-run diff.
   --response <path> --apply   Atomic replace + log entry.
 
@@ -273,7 +273,7 @@ export function main(argv: string[]): void {
     if (r.mode === "prepare") {
       console.log(`✓ wrote prompt package: ${r.promptPath}`);
       console.log(`  Topics included: ${r.topicCount ?? 0}`);
-      console.log(`\nNext: spawn Sonnet subagent on this prompt, save response to .refine-prompts/synthesis-response.txt, then:`);
+      console.log(`\nNext: spawn Opus subagent on this prompt (top Synthesis is high-stakes — see CLAUDE.md §11 / memory feedback_model_choice_opus_vs_sonnet.md), save response to .refine-prompts/synthesis-response.txt, then:`);
       console.log(`  hirono refine-synthesis --response .refine-prompts/synthesis-response.txt --apply`);
     } else if (r.mode === "dryrun") {
       printDiff(r.oldBody!, r.newBody!);

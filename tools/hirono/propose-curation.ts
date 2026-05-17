@@ -52,7 +52,9 @@ Modes:
   (no flags)
     Runs health-check + lint internally. Writes prompt package to
     .curation-prompts/curation-proposal-prompt.md.
-    Operator spawns Sonnet subagent in Claude session, saves response to
+    Operator spawns Opus subagent in Claude session (judgment quality matters
+    here — see CLAUDE.md §11 / memory feedback_model_choice_opus_vs_sonnet.md),
+    saves response to
     .curation-prompts/curation-proposal-response.json.
 
   --finalize <path>
@@ -356,7 +358,7 @@ export function main(argv: string[]): void {
       console.log(`✓ wrote prompt: ${r.promptPath}`);
       console.log(`  found ${r.findingCount} candidate items for Sonnet to judge.`);
       console.log(`\nNext steps:`);
-      console.log(`  1. Spawn Sonnet subagent with this prompt.`);
+      console.log(`  1. Spawn Opus subagent with this prompt (judgment quality matters; see CLAUDE.md §11).`);
       console.log(`  2. Save response to: .curation-prompts/curation-proposal-response.json`);
       console.log(`  3. Re-run: hirono propose-curation --finalize <path>`);
     }

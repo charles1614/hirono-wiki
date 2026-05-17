@@ -322,7 +322,7 @@ LLM is the authoring layer; no single command converts raw → Source. Rules bel
 | "ingest cost preview" | `hirono ingest-preview --since HEAD~1` |
 | "refine stale" (≥3 items) | **`hirono refine-batch --from-stale --limit N`** (§11) |
 | "refine stale" — preview cost | `hirono refine-all-stale --preview` (§11) |
-| "refine one entity/topic" | `hirono refine-entity "<N>"` → Sonnet → `--response <path> --apply` (§11) |
+| "refine one entity/topic" | `hirono refine-entity "<N>"` → Agent (model per §11) → `--response <path> --apply` (§11) |
 | "regenerate top Synthesis" | `hirono refine-synthesis` (§11) |
 | "scaffold Entity/Topic" | `hirono new-entity "<N>" --kind "<one-liner>"` / `new-topic "<N>" --what "<one-liner>"` |
 | "rename Foo → Bar" | `hirono rename-entity "Foo" "Bar" --reason "..."` (atomic — never sed) |
@@ -504,15 +504,15 @@ Reports new-Sources / touched-Entities/Topics / stale count / est refine cost. H
 
 ## 11. Refine + curation workflows
 
-CLI for each common task. Reach for it, don't improvise. Many use a two-step pattern: CLI writes prompt to disk → spawn Sonnet → re-run CLI with `--response <path> --apply`.
+CLI for each common task. Reach for it, don't improvise. Many use a two-step pattern: CLI writes prompt to disk → spawn Agent (model per memory `feedback_model_choice_opus_vs_sonnet.md`) → re-run CLI with `--response <path> --apply`.
 
 ### The `--response <path> --apply` two-step
 
 ```bash
-# 1. Prepare (cheap; no Sonnet spend)
+# 1. Prepare (cheap; no model spend)
 hirono <command> "<target>"                      # writes prompt to disk
 
-# 2. Spawn Sonnet via Agent (model:"sonnet"), save response
+# 2. Spawn Agent (model per memory `feedback_model_choice_opus_vs_sonnet.md`), save response
 
 # 3. Dry-run (preview the diff)
 hirono <command> "<target>" --response <path>
@@ -523,15 +523,17 @@ hirono <command> "<target>" --response <path> --apply
 
 Never skip dry-run for production runs. Reveals scaffolded entities, retained Observations, changed wikilinks.
 
-### Sonnet subagent (Step 2)
+### Subagent (Step 2)
 
-ALWAYS via Agent tool with `model:"sonnet"` — never `curl` API, never shell `claude`. Preamble caching depends on Anthropic-side prefix-match; only Agent-tool calls hit that path.
+ALWAYS via Agent tool — never `curl` API, never shell `claude`. Preamble caching depends on Anthropic-side prefix-match; only Agent-tool calls hit that path.
+
+**Model choice**: per memory `feedback_model_choice_opus_vs_sonnet.md`. Defaults if memory missing: **Opus** for `refine-synthesis` (top), `propose-curation`, and `refine-batch`/`refine-entity` on active-tier entities (refs ≥ 10). **Sonnet** for ingest, `auto-detect-entities`, image-bulk extraction, and refine-entity on long-tail (refs < 5). Pick at the spawn site.
 
 ```
 Agent({
   description: "Refine <Name> Synthesis",
   subagent_type: "general-purpose",
-  model: "sonnet",
+  model: "sonnet",  // or "opus" per policy above
   prompt: `Read .refine-prompts/<Name>-synthesis-prompt.md (CLI prints path). Follow exactly. Output ONLY the requested artifact (e.g., 4–6 sentences plain prose) — CLI pastes verbatim. Write to .refine-prompts/<Name>-synthesis-response.txt then report path. Under 50 words of meta.`
 })
 ```
@@ -554,7 +556,7 @@ Strict layout: preamble FIRST (cache-friendly, stable), curated Source excerpts 
 
 Preambles live in `tools/hirono/_shared/prompt-preamble.ts` as deterministic constants. **Never edit inline in a `.refine-prompts/*.md`** — breaks every cache hit for ~5 min. To refine wording, edit `prompt-preamble.ts` (one commit, all callers updated).
 
-Sonnet response is paste-verbatim: 4–6 sentences for `refine-entity`, no preamble, no wikilinks inside Synthesis (per `REFINE_ENTITY_PREAMBLE` in `prompt-preamble.ts:24-50`). CLI prepends `## Synthesis\n\n`; if response has its own header/fence → doubled heading.
+Subagent response is paste-verbatim: 4–6 sentences for `refine-entity`, no preamble, no wikilinks inside Synthesis (per `REFINE_ENTITY_PREAMBLE` in `prompt-preamble.ts:24-50`). CLI prepends `## Synthesis\n\n`; if response has its own header/fence → doubled heading.
 
 ### `auto-detect-entities <slug>` — LLM-NER per Source
 
@@ -580,7 +582,7 @@ hirono refine-synthesis [--response <r> --apply]      # corpus-wide top Synthesi
 
 Use cache-friendly preamble + curated Source excerpts (`tools/hirono/_shared/source-excerpt.ts`). Measure sidecar at `<prompt>-measure.json`.
 
-### `refine-batch` — N entities in ONE Sonnet call (preferred ≥3)
+### `refine-batch` — N entities in ONE Agent call (preferred ≥3)
 
 Per-entity `refine-entity` = 3 tool calls each. `refine-batch` = **3 tool calls TOTAL** for any N.
 
@@ -588,13 +590,13 @@ Per-entity `refine-entity` = 3 tool calls each. `refine-batch` = **3 tool calls 
 hirono refine-batch <n1> <n2> ...                  # explicit
 hirono refine-batch --from-stale [--limit N]       # top-N stale
 
-# Spawn ONE Sonnet → read .refine-prompts/batch.md → write marker-delimited .refine-prompts/batch-response.txt
+# Spawn ONE Agent (model per policy — Opus for active-tier batches, Sonnet for tail) → read .refine-prompts/batch.md → write marker-delimited .refine-prompts/batch-response.txt
 
 hirono refine-batch --response .refine-prompts/batch-response.txt           # dry-run
 hirono refine-batch --response .refine-prompts/batch-response.txt --apply
 ```
 
-**Why batched > parallel-N**: preamble bills once within one conversation (vs N). Sonnet aligns framing across shared Sources. 1 Agent call vs N.
+**Why batched > parallel-N**: preamble bills once within one conversation (vs N). One model call aligns framing across shared Sources. 1 Agent call vs N. Opus 4.7 1M context fits ~60 entities per call; Sonnet ~10–15.
 
 **Marker format** (parser-strict):
 
@@ -606,14 +608,14 @@ hirono refine-batch --response .refine-prompts/batch-response.txt --apply
 <...>
 ```
 
-CLI cross-checks parsed names against `batch.md`: reports `missingFromResponse` (Sonnet skipped) + `unmatchedInResponse` (Sonnet hallucinated). Per-entity atomic apply.
+CLI cross-checks parsed names against `batch.md`: reports `missingFromResponse` (subagent skipped) + `unmatchedInResponse` (subagent hallucinated). Per-entity atomic apply.
 
 **When to use**: 1–2 entities → `refine-entity`. ≥3 entities or any "refine all stale" → **`refine-batch --from-stale --limit N`**.
 
 ### `refine-all-stale` — batch with cost discipline
 
 ```bash
-hirono refine-all-stale --preview     # NO Sonnet — count + tokens + $
+hirono refine-all-stale --preview     # no model spend — count + tokens + $
 hirono refine-all-stale --list        # stale items sorted by lag-days
 hirono refine-all-stale --limit N     # top-N most-stale
 hirono refine-all-stale               # full batch (only after --preview)
@@ -647,15 +649,15 @@ Each atomic + logs to `Meta/refactor-log.md` + updates indexes. Hand-rolled `mv`
 
 ### `auto-fix` / `auto-curate` (one-tap)
 
-- **`auto-fix`** (Tier-1, NO Sonnet, NO deletions): safe alias merges + prompt prep + index refresh. Pre-commit-hook-safe.
-- **`auto-curate`** (Tier-1 + Tier-2): runs auto-fix → propose-curation (Sonnet) → apply-queue. Default full-auto Phase 2; `--review` for checkbox; `--continue` to resume.
+- **`auto-fix`** (Tier-1, no model spend, no deletions): safe alias merges + prompt prep + index refresh. Pre-commit-hook-safe.
+- **`auto-curate`** (Tier-1 + Tier-2): runs auto-fix → propose-curation (Opus) → apply-queue. Default full-auto Phase 2; `--review` for checkbox; `--continue` to resume.
 
 User says "tidy up" / "fix what's broken" / "one-tap" → `auto-curate`.
 
 ### `propose-curation` / `apply-queue`
 
 ```bash
-hirono propose-curation                     # Sonnet writes Meta/curation-queue.md
+hirono propose-curation                     # spawn Opus (judgment quality > cost here) → writes Meta/curation-queue.md
 # operator marks [x] APPROVED
 hirono apply-queue [--auto-apply <level>]   # dispatcher executes via atomic CLIs
 ```

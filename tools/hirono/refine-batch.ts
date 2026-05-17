@@ -404,7 +404,8 @@ export function main(argv: string[]): void {
       console.log(`✓ wrote batch prompt for ${r.itemCount} entities: ${r.promptPath}`);
       console.log(`  prompt size: ${(r.promptChars! / 1024).toFixed(1)} KB`);
       console.log(`\nNext steps:`);
-      console.log(`  1. Spawn ONE Sonnet subagent (Agent tool, model:"sonnet").`);
+      console.log(`  1. Spawn ONE Agent subagent (model per CLAUDE.md §11:`);
+      console.log(`     Opus for active-tier batches, Sonnet for tail).`);
       console.log(`     Instruct it to read ${r.promptPath} and write its response to`);
       console.log(`     ${BATCH_RESPONSE_PATH} using the marker format.`);
       console.log(`  2. \`hirono refine-batch --response ${BATCH_RESPONSE_PATH}\`              # dry-run all diffs`);
