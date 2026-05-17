@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 11
+refs: 14
 tier: active
 ---
 
@@ -32,4 +32,4 @@ OpenAI Triton is a Python-based DSL and compiler for GPU kernels that targets SI
 <!-- merged from `Triton` on 2026-05-16 -->
 
 - _(append cited bullets here as Sources reference this entity — one atomic claim per bullet, trailed with a Source wikilink)_
-
+- Used as the compute layer in a pure-Python torchcomms backend prototype combining SymmetricMemory + Triton (#2521, May 2026); passes the core torchcomms integration test suite. — [[2026-05-12-pytorch-devlog]]

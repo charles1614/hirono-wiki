@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 32
+refs: 33
 tier: active
 ---
 
@@ -36,3 +36,4 @@ PyTorch is the dominant deep learning framework for LLM training and inference, 
 - In verl's Nsight integration, `torch.cuda.profiler.start()` / `torch.cuda.profiler.stop()` are used to control Nsight capture-range activation per training step, enabling targeted profiling of specific steps within a long training run. This is the standard PyTorch interface to Nsight's capture-range mechanism for RL training frameworks. — [[2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248]]
 - [[PyTorch]] 通过 `torch._C` 扩展模块调用 CUDA Runtime API，采用延迟初始化（`_lazy_init`）；[[OpenAI Triton]] 的 `GPUDriver` 复用PyTorch CUDA API（`torch.cuda.set_device`等）进行设备管理，两者在完整推理流程中共享同一CUDA Runtime接口层。 — [[2025-05-27-pytorch-triton与runtime的三角虐恋]]
 - [[vLLM]] V1的 `load_model` 调用链（Executor→Worker→ModelRunner→DefaultModelLoader）中，`_get_all_weights` 生成不预切片的完整权重迭代器，每个TP rank的ModelRunner在 `model.load_weights()` 时自行切取所需分片；RLHF场景下Actor权重更新可直接构建为此格式的迭代器传入 `model_runner.model.load_weights()`。 — [[2025-05-27-图解vllm-v1系列4-加载模型权重-load_model]]
+- May 2026 DevLog activity spans: Python-first comms (torchcomms PRs), torch.compile/RL integration in TorchTitan (6× on Qwen3 0.6B), Dynamo CPython-semantics refactor (38%→45% test pass), default-on nested graph breaks (81/82 OSS benchmarks pass, 67% graph-break reduction), Diffusers/Flux-1-Dev 1.5× recipe, unbacked-shape perf parity (was 2×–20% slower on TorchBench, ~30% on [[vLLM]]; now matches backed), and LLM-assisted PR-shepherding ("mergedog"). — [[2026-05-12-pytorch-devlog]]

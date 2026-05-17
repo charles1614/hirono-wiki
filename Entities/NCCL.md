@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 30
+refs: 31
 tier: active
 ---
 
@@ -40,3 +40,4 @@ NCCL is the dominant GPU collective communications library for multi-GPU trainin
 - P2P SendRecv kernel launch path: `scheduleP2pTasksToPlan` → `ncclDevFuncId_P2p()` = `ncclDevFuncRowToId[0]` = 554 → `ncclDevKernelForFunc[554]` = `ncclDevKernel_SendRecv`; launched in `ncclLaunchKernel` via `cudaGetFuncBySymbol` + `cuLaunchKernel`; `ncclKernelMain` dispatches to specialized `RunWorkBatch().run()` when `funcId == SpecializedFnId`. — [[2025-06-08-nccl源码解析8-kernel-launch]]
 - NCCL 2.26.3-1 `initTransportsRank` path computation: BFS from each node type builds a path table (PATH_LOC → PATH_NVL → PATH_NVB → PATH_PIX → PATH_PXB → PATH_PHB → PATH_NET in bandwidth order); PXN proxy paths are injected via `addInterStep` when a GPU cannot directly access a target NIC but can reach it through an NVLink-connected neighbor GPU, enabling rail-optimization that avoids Spine Switch traffic; NVLink Sharp (NVLS) requires `nvidia-fabricmanager` and is supported on Hopper (H100) NVSwitch in NCCL 2.17+. — [[2025-05-30-nccl-系列之深入解析-nccl-通信路径计算和优化]]
 - NCCL v2.19 pipeline internals: P2P uses LL for small messages and Simple for large (LL128 not used due to alignment and warm-up costs); stepSize = buffSizes[protocol]/NCCL_STEPS (e.g. Simple 4 MB/8 = 512 KB, LL 64 KB/8 = 8 KB); chunkDataSize = chunkSize/2 for LL due to command+data interleaving; channel count for single-node uses minPartSize=stepSize/8 vs multi-node stepSize/2 to balance packet size vs concurrency; each channel = one CUDA Block, channelMask maps blocks to non-sequential channel IDs. — [[2025-09-01-nccl揭秘-二-通信pipeline分析]]
+- PyTorch researchers can now wrap NVIDIA's new nccl4py bindings via the torchcomms Python-binding layer (#2515, May 2026) — a Python-side backend that plugs into `torch.distributed` and passes the core torchcomms integration test suite, removing C++ as a barrier when prototyping new collective features. — [[2026-05-12-pytorch-devlog]]

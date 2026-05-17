@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 28
+refs: 29
 tier: active
 ---
 
@@ -40,3 +40,4 @@ Qwen is Alibaba's LLM family spanning dense and MoE models from 0.6B to 480B+ pa
 - Datawhale/Raschka survey (Jul 2025): Qwen3 dense models (0.6B–32B) use deeper architecture (more Transformer blocks, fewer attention heads) than Llama 3 — smaller VRAM footprint but slower generation speed. Qwen3 MoE 235B-A22B near-identical to DeepSeek V3 but drops the shared expert. QK-Norm adopted for training stability. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
 - Qwen3-235B-A22B FP8 model uses e4m3 format with dynamic activation quantization + [128,128] block-wise static weight quantization; MoE intermediate_size=768 per expert means intermediate gate+up combined size 1536 — requires TP divisibility constraint: TP8 fails (1536/8=192 not divisible by 128-block), TP4 works (1536/4=384). — [[2025-05-26-基于vllm-v1测试bfloat16-vs-fp8-qwen3-moe模型吞吐]]
 - [[GTE-Qwen]] 从[[Qwen]] LLM Base微调为嵌入模型（gte-Qwen1.5/gte-Qwen2），三核心机制：推理时设 `is_causal=False` 启用双向注意力、额外Instruction Tuning、改进InfoNCE损失（4项分母，τ=0.01）；token表示取序列最后一个真实token；gte-Qwen2-7B-instruct曾登顶MTEB leaderboard第一。 — [[2025-05-27-gte-qwen系列-feishu-docs]]
+- Qwen3 0.6B was the eval model for the PyTorch DevLog TorchTitan RL torch.compile experiment (May 2026): full-RL-loop time on GSM8K dropped 446s → 70s (6× end-to-end speedup) thanks to shared compiled artifacts across trainer and generator. — [[2026-05-12-pytorch-devlog]]

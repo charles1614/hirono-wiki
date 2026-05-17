@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 31
+refs: 38
 tier: active
 ---
 
@@ -42,3 +42,4 @@ Multi-Head Latent Attention was DeepSeek's KV-compression mechanism through V3/V
 - Detailed derivation of MLA's compression mechanism: KV潜变量c^{KV}维度512（4d_h），加上共享RoPE k^R维度64（d_h/2），总缓存量576维 vs MHA完整KV缓存的128 heads × 2 × 64 = 16384维，压缩比约28×；W^UK矩阵通过矩阵吸收被并入W^UQ，因此推理时只需c^{KV}而无需显式计算K；V同理通过W^UV吸收进W^O。RoPE不相容原因：Rt-j随相对位置变化，无法作为常量提前融合，故单独用64维MQA格式引入位置信息。 — [[2025-06-05-deepseek技术解读-1-彻底理解mla-multi-head-latent]]
 - Step-by-step naive PyTorch implementation of MLA decode with config dim=7168, n_heads=128, q_lora_rank=1536, kv_lora_rank=512; matrix absorption (Optimization 1) reduces KV head count from 128 (MHA) to 1 (MQA) by absorbing W_UK into q_nope; [[FlashMLA]] for Optimization 2; FP8 block-wise CUTLASS GEMM (not torch._scaled_mm) for Optimization 3; precomputed RoPE cache for Optimization 4; CUDA Graph/torch.compile for Optimization 5. Combined speedup: tens to 100× over naive. — [[2025-06-16-细数deepseek-mla-layer从naive实现开始的5大优化策略]]
 - MLA's `num_kv_heads=1` means standard tensor parallelism (TP) replicates the KV cache `tp_size` times via `QKVParallelLinear`; [[SGLang]]'s [[DP Attention]] addresses this by assigning different request batches (not KV heads) to each DP worker, then all-gathering before MoE layers. — [[2025-05-27-sglang-dp-attention-介绍]]
+- Useful contrast against newer 2026 designs: [[MLA]] compresses the per-token KV *representation* but keeps one latent entry per token; [[Compressed Convolutional Attention]] (Zyphra/ZAYA1-8B) goes further by performing attention directly in the compressed latent space; [[Compression Sparse Attention]] and [[Highly Compressed Attention]] (DeepSeek V4) compress along the sequence dimension by summarizing groups of tokens into fewer entries. — [[2026-05-17-recent-developments-in-llm-architectures]]

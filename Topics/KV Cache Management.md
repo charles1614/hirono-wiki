@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 25
+source_count: 27
 ---
 
 # KV Cache Management
@@ -44,4 +44,5 @@ KV cache management sits at the intersection of memory architecture and serving 
 - [[2025-11-20-kvconnector-add-metrics-to-prometheus-gr]] — vLLM NIXL/KVConnectorStats observability for the KV-transfer data plane.
 - [[2026-05-08-a-survey-of-llm-inference-systems]] — Pan+Li survey treating memory management as a first-class design axis with database-systems framing.
 - [[2026-03-16-我们撞车了kimi的注意力残差-但用在压缩上-小红书]] — context compression via residual attention over frozen LLM hidden states, avoiding the progressive layer-dilution problem shared with [[Kimi K2]] Attention Residuals.
-
+- Long-context KV-cache cost dominates 2026 open-weight design choices. Three orthogonal compression axes are now in production: per-layer reuse ([[Cross-Layer Attention]] in [[Gemma 4]]), per-token representation compression ([[MLA]]), and sequence-dimension compression ([[Compression Sparse Attention]] + [[Highly Compressed Attention]] in [[DeepSeek-V4]] — 7-10% of V3.2 cache size at 1M context). [[Compressed Convolutional Attention]] adds a fourth: operate on compressed tensors directly rather than decompress for the attention op. — [[2026-05-17-recent-developments-in-llm-architectures]]
+- Context-offload pattern (Tencent's [[TencentDB Agent Memory]], 2026): the largest token consumers in long agent tasks are verbose intermediate logs (search results, code, error traces). Default thresholds — mild offload at 50% of context window, aggressive at 85%, Mermaid canvas budget capped at 20%. The Agent reasons over the canvas; raw evidence lives on disk under `refs/*.md` and is recalled via `node_id` grep. Different mechanism than per-token-representation compression (MLA) or sequence-dimension compression (DeepSeek V4 CSA/HCA) — a file-system + symbolic-graph approach rather than a kernel-level one. — [[2026-05-16-tencent-tencentdb-agent-memory-tencentdb]]

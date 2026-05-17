@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 12
+refs: 13
 tier: active
 ---
 
@@ -27,3 +27,4 @@ Claude is Anthropic's model family, with the Opus tier serving as the most-capab
 - In the AI era for STEM-background builders, [[Vibe Design]] is cited alongside Claude as a T0-tier tool for achieving product taste — the post accumulated 4,896 likes and 8,041 collects, signaling broad practitioner interest. — [[2026-03-13-理科生审美救星-vibe-design之神-小红书]]
 - MCP教程中，作者使用Claude 3.7直接生成了一个统计桌面TXT文件数量的MCP Server（FastMCP封装，`@mcp.tool()`装饰器），并在Claude Desktop上测试通过；文中将Claude视为MCP协议的核心使用端，与[[Anthropic]] MCP协议的发布密切关联。 — [[2025-06-04-https-zhuanlan-zhihu-com-p-29001189476]]
 - Andrej Karpathy将Claude列为个人常用LLM之一，与ChatGPT/Gemini/Grok/Perplexity并列，用于不同任务场景的交替使用；Karpathy明确区分各模型适用场景，将平台选择视为动态路由决策而非单一偏好。 — [[2025-06-04-andrej-karpathy-karpathy-on-x]]
+- Claude drafted the PyTorch DevLog "mergedog" post (May 2026, edited by [[Edward Yang]]) about a vibe-coded Python harness that shepherds one approved pytorch/pytorch PR through CI — pressing the "Approve CI workflows" button securely, waiting for CI results, distinguishing spurious from real failures, and fixing simple CI failures. — [[2026-05-12-pytorch-devlog]]

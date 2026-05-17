@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 37
+source_count: 38
 ---
 
 # LLM Training Systems
@@ -52,3 +52,4 @@ Once Sources are attached, this section should be revised to anchor each claim t
 - [[AReaL]]'s async RL framework addresses synchronous RL's rollout-trainer serialization by overlapping training with the next rollout; the decouple PPO algorithm maintains a trusted reference policy (π_behave) from the most recent checkpoint generating each response segment, producing a reliable trust region despite multi-checkpoint sequence composition. — [[2025-06-11-异步rl框架areal速览]]
 - Awesome-ML-SYS-Tutorial is the primary community learning resource for RL infra frameworks ([[slime]], [[verl]], [[AReaL]], [[OpenRLHF]]) and [[SGLang]] internals, authored by Zhao Chenyang (now at RadixArk/SGLang community); grew from ~30 GitHub stars (Aug 2024) to 4.5K+ (mid-2025). — [[2025-07-03-github-zhaochenyang20-awesome-ml-sys-tut]]
 - LLM training (ChatGLM2-6B PT fine-tune) storage I/O: model loading uses lseek+read with random seeks (not sequential), driven by safetensor index file byte-offset mappings; writev dominates checkpoint writes at 512KB (90.36% of write bytes); blktrace shows 93.2% sequential read and 91.5% sequential write by byte volume across 2 epochs; total write 23.8GB ≈ 2× read 12.5GB consistent with 2-epoch checkpoint behavior. — [[2025-09-08-llm-推理-训练-i-o-pattern初探]]
+- PyTorch DevLog (May 2026) momentum on training-time compile: [[TorchTitan RL]] 6× speedup on Qwen3 0.6B / GSM8K via unified train+inference model definition with shared compiled artifacts; [[Dynamo]] CPython-semantics refactor lifting CPython test pass rate 38%→45% and reducing frontier-model graph breaks; default-on nested graph breaks (81/82 OSS benchmarks pass) reducing graph breaks up to 67% with up to 15% runtime speedup on GNN/detection workloads. — [[2026-05-12-pytorch-devlog]]

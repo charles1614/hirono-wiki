@@ -54,3 +54,13 @@ sweep-results/_health/
 
 # lark-hirono intermediates
 .lark-hirono-cache/
+
+# Obsidian — per-machine pane layout churns on every focus change.
+# Share plugin config (app.json, appearance.json, core-plugins.json), not workspace state.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+
+# Stray empty Obsidian vault accidentally created during onboarding.
+# The real vault IS this repo — the nested wiki/ folder is a misclick artifact.
+/wiki/

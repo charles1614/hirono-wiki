@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
 type: topic
-source_count: 31
+source_count: 32
 ---
 
 # Agentic AI Infrastructure
@@ -64,3 +64,5 @@ Reinforcement learning is co-cited alongside agentic inference as a primary Vera
 - [[Claude Code]] pre-flight Haiku call for Bash tool validation: Bash tool invocations are gated on a small-model API call; AWS Bedrock 403 from missing model access caused ~210-second hangs; debugging required `ANTHROPIC_LOG=debug`; fix is enabling Bedrock model access or setting `ANTHROPIC_SMALL_FAST_MODEL`. — [[2025-10-29-significant-pre-execution-delay-210s-whe]]
 - Alibaba Cloud practitioner retrospective on [[Claude Code]]: key behavioral patterns for high-quality output — CO-STAR + pseudo-XML prompting, task-boundary by competency level, step-by-step validation, defensive review posture, context compression with `/compact`, `git worktree` for parallel instances. Confirms that context management and task granularity are the primary bottlenecks beyond prompt quality. — [[2025-07-30-如何用ai-coding和claude-code提升开发效率-看我的全流程复盘]]
 - [[Pine AI]] production agent system demonstrates three knowledge-expression modalities for experience learning: (1) code-generated RPA tools (fixed sequences as atomic sub-tools); (2) knowledge base (per-company procedural memory); (3) SFT/RL into model parameters (high-frequency tasks as "muscle memory"). The RL constraint: it cannot create new outputs the base model has never produced — it only raises proficiency on known-good trajectories. On Tau-Bench Airline: Claude 4 Sonnet baseline 56% → sequential-revision 64%; 8/18 failures were ground-truth annotation errors. — [[2025-06-14-能办成事的-agent-实时与环境交互-从经验中学习]]
+- [[Tencent]]'s [[TencentDB Agent Memory]] (May 2026) proposes a two-pillar architecture for Agent memory: (1) symbolic short-term memory — verbose tool logs offloaded to `refs/*.md` while only a Mermaid task canvas (with `node_id` anchors for drill-down) stays in context; (2) layered long-term memory — L0 Conversation → L1 Atom → L2 Scenario → L3 Persona pyramid. Heterogeneous storage: lower-layer evidence in databases, upper-layer abstractions as human-readable Markdown for white-box inspection. — [[2026-05-16-tencent-tencentdb-agent-memory-tencentdb]]
+- Reported as a concrete remedy to "irreversible lossy summarization" — preserves full traceability via L3 Persona → L2 Scenario → L1 Atom → L0 Conversation drill-down chain linked by `result_ref` / `node_id`. Token-cost reductions (61.38% on WideSearch, 33.09% on SWE-bench over 50-task sessions) are large enough to matter for production agent serving. — [[2026-05-16-tencent-tencentdb-agent-memory-tencentdb]]

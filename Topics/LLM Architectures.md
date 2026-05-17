@@ -1,8 +1,8 @@
 ---
 created: 2026-05-15
-updated: 2026-05-16
+updated: 2026-05-17
 type: topic
-source_count: 15
+source_count: 16
 ---
 
 # LLM Architectures
@@ -59,3 +59,4 @@ The broader pattern Raschka identifies: the decisive differentiators in 2025 are
 - Datawhale/Raschka 2025-07-25 横向快照（八种架构比较）：NoPE（[[SmolLM3]]）在长度泛化上优于 RoPE；[[OLMo]] 2 的 Post-Norm + QK-Norm 训练更稳定；[[Gemma]] 3 的滑动窗口 4096→1024 显著降低 KV 缓存内存且困惑度损失极小；[[Kimi K2]] 使用 Muon 优化器训练损失曲线平滑迅速下降。所有架构基础（Pre-Norm Transformer + RoPE + SwiGLU）七年来惊人稳定，决定性差异来自训练流水线和推理扩展策略而非架构本身。 — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
 - gpt-oss-20B/120B ([[OpenAI]], Aug 2025, Apache 2.0): [[MoE]] (32/128 experts, 4 active), [[GQA]] alternating with sliding-window-128 GQA every other layer, [[SwiGLU]], [[RoPE]], [[RMSNorm]], attention bias + learned-logit sinks; width-first design (embedding dim 2880, 24 transformer blocks) vs [[Qwen3]]-30B-A3B depth-first (2048 dim, 48 blocks); MXFP4 MoE expert quantization fits 20B in 16GB VRAM (RTX 50-series) and 120B on a single H100 80GB; training: 2.1M H100-hours (SFT+RL), focused on STEM/coding. — [[2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch]]
 - Raschka's GPT-2→gpt-oss evolution: dropout removed (single-epoch regime makes it harmful); SwiGLU replaces GELU (3 half-size layers → fewer params but better expressivity via multiplicative gating); GQA reduces KV memory bandwidth; RMSNorm eliminates mean centering, reducing cross-feature reductions from 2→1; attention bias terms reappear (empirically minimal difference per arXiv 2302.08626); gpt-oss sliding window fixed at 128 tokens vs Gemma 3's 1024 and Gemma 2's 4096. — [[2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch]]
+- 2026 architecture-evolution snapshot (Raschka, May 2026 Substack survey): four major Apr–May 2026 open-weight releases — [[Gemma 4]], [[Laguna XS.2]], [[ZAYA1-8B]], [[DeepSeek-V4]] — all target long-context inference cost through different parts of the transformer block. Gemma 4 shrinks KV via [[Cross-Layer Attention]] + adds capacity via [[Per-Layer Embeddings]]; Laguna varies attention capacity per layer; ZAYA1 moves attention into a compressed latent space ([[Compressed Convolutional Attention]]); DeepSeek V4 widens the residual stream ([[Manifold-Constrained Hyper-Connections]]) and compresses along the sequence axis ([[Compression Sparse Attention]] / [[Highly Compressed Attention]]). Modeling quality remains driven by data + training recipes; architecture tweaks are efficiency-focused. — [[2026-05-17-recent-developments-in-llm-architectures]]

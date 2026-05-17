@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 5
+refs: 6
 tier: active
 ---
 
@@ -26,3 +26,4 @@ Sebastian Raschka maintains the canonical living survey of modern open-weight LL
 - Datawhale 编译的 Raschka 中文横评文章（Jul 2025）对比八种架构：DeepSeek V3/R1、OLMo 2、Gemma 3、Mistral Small 3.1、Llama 4、Qwen3、SmolLM3、Kimi K2；核心发现：七年来 Transformer 基础稳定，真正差异在注意力机制（MLA vs GQA vs MHA）、归一化位置（Pre/Post）、MoE 专家设计和位置编码（RoPE vs NoPE）四个维度。 — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
 - "Build A Large Language Model (From Scratch)" (Manning 2024, ISBN 978-1633437166): 7 chapters from GPT implementation to DPO instruction finetuning; companion GitHub repo (`rasbt/LLMs-from-scratch`) includes bonus material on MoE, MLA, GQA, sliding-window attention, and from-scratch implementations of Llama 3.2, Qwen3, Gemma 3/4, Olmo 3; 17h15m companion video course at Manning; sequel "Build A Reasoning Model (From Scratch)" covers GRPO RLVR, distillation, and inference-time scaling. — [[2025-07-06-rasbt-llms-from-scratch-implement-a-chat]]
 - Published "From GPT-2 to gpt-oss" (Aug 2025): detailed architecture walkthrough of OpenAI's gpt-oss-20B/120B covering 7 GPT-2→gpt-oss evolution points (dropout removal, RoPE, SwiGLU/MoE, GQA, sliding-window attention, RMSNorm) plus gpt-oss-specific MXFP4 quantization, attention bias+sinks, and controllable reasoning effort; trained 2.1M H100-hours (SFT+RL); Apache 2.0 open-weight. — [[2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch]]
+- May 2026 Substack post surveys recent (Apr–May 2026) open-weight LLM releases — [[Gemma 4]], [[Laguna XS.2]], [[ZAYA1-8B]], [[DeepSeek-V4]] — focusing on transformer-block tweaks for long-context efficiency: cross-layer KV sharing, per-layer embeddings, layer-wise attention budgeting, compressed-latent attention with convolutional mixing, manifold-constrained hyper-connections, and sequence-length attention compression. — [[2026-05-17-recent-developments-in-llm-architectures]]

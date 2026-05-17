@@ -1,9 +1,9 @@
 ---
 created: 2026-05-12
-updated: 2026-05-16
+updated: 2026-05-17
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 18
+source_count: 19
 ---
 
 # Communication-Computation Overlap
@@ -75,3 +75,4 @@ _(none yet — wikilinks from Sources will populate this on the next reindex pas
 - Alibaba [[RTP-LLM]] MicroBatch overlap for [[DeepSeek-V3]]: Dispatch (FP8) is shorter than Combine (FP16); Combine requires more compute to hide — Shared Expert compute covers Combine in Prefill; Decode uses Attention as the Dispatch-side cover and MoE MLP as the Combine-side cover; unified communication callback interface built to support DeepEP's two modes + Vanilla All2All + other hardware. — [[2025-10-09-如何重现-deepseek-推理性能突破]]
 - [[DeepEP]] low-latency kernel three-stage flow: LOW_LATENCY_SEND_PHASE (SMs active, ~10 µs) → RDMA transit (SMs idle) → LOW_LATENCY_RECV_PHASE (SMs active, ~10 µs); `recv_hook=true` splits into two independent kernel launches, releasing SM resources between phases. — [[2025-10-09-xzwazsg-zjcksvuvksvw]]
 - NCCL pipeline slot mechanism: each channel buffer is divided into NCCL_STEPS=8 slots, each slot progressing independently through Compute→Wait→Transmit→Consume stages; Warp-level role assignment within each Block enables slot-level pipeline concurrency; reducing chunkSize below stepSize increases pipeline parallelism across channels, particularly benefiting cross-node high-latency paths. — [[2025-09-01-nccl揭秘-二-通信pipeline分析]]
+- May 2026 [[torchcomms]] effort adds Python bindings (#2080) and two pure-Python collective backend prototypes — one wrapping NVIDIA nccl4py (#2515), one built on SymmetricMemory + [[OpenAI Triton]] (#2521) — both passing the core torchcomms integration test suite. Plugs into `torch.distributed` so research collective features can be prototyped without C++. — [[2026-05-12-pytorch-devlog]]

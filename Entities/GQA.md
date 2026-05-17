@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 11
+refs: 15
 tier: active
 ---
 
@@ -26,3 +26,4 @@ Grouped-Query Attention is the default K/V-sharing mechanism in modern open-weig
 - gpt-oss uses GQA in alternating pattern: full-context GQA every other layer, sliding-window-128 GQA in between; the 128-token window is unusually small vs Gemma 2's 4096 and Gemma 3's 1024; Gemma ablations show minimal modeling performance impact from sliding window at 4096 tokens (Gemma 2) and 1024 tokens (Gemma 3). — [[2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch]]
 - In [[Megatron-LM]]'s implementation, GQA sets `num_query_groups < num_attention_heads` (e.g., Llama-3 70B: 64 query heads, 8 KV heads — 8× KV cache reduction); query and KV heads shard independently across tensor-parallel ranks via `num_query_groups_per_partition` / `num_attention_heads_per_partition`. — [[2026-01-21-deepwiki-megatron-lm-12-attention-mechan]]
 - Datawhale/Raschka survey (Jul 2025): Llama 4 Maverick uses GQA (not MLA), adopting the simpler K/V-sharing variant despite DeepSeek V3 establishing MLA's quality advantage. OLMo 2 retains MHA (no GQA), while Mistral Small 3.1 and Qwen3 use GQA. — [[2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较]]
+- [[Gemma 4]] E2B uses MQA (one-KV-head GQA) + [[Sliding Window Attention]] in 4:1 pattern, layered on top of [[Cross-Layer Attention]] KV sharing. [[Laguna XS.2]] keeps KV heads fixed at 8 but varies query heads per layer (6 for full-attention layers, 8 for sliding-window) — per-layer query-head budgeting via `num_attention_heads_per_layer`. — [[2026-05-17-recent-developments-in-llm-architectures]]

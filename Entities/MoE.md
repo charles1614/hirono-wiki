@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 45
+refs: 48
 tier: active
 ---
 
@@ -36,3 +36,4 @@ Mixture of Experts is the dominant paradigm for frontier models above roughly 30
 - 大EP部署的前提是足够高的并发需求：MoE最优部署曲线形如浴盆，两端为一体机和大EP，中间因BSP不均衡的二阶放大效应形成深坑；DeepSeek-V3的256专家大EP在足够多并发下接近全负荷，但若专家数扩至1024，需要约4倍以上的V3并发量，此时cold/hot专家分类将成必要机制。 — [[2025-06-04-https-zhuanlan-zhihu-com-p-1911899575096]]
 - [[VeOmni]] integrates Expert Parallel (EP) as a composable parallelism primitive alongside FSDP and Ulysses for training super-large MoE-based multi-modal models at thousand-GPU scale. — [[2025-08-06-字节跳动-veomni-框架开源-统一多模态训练效率飞跃]]
 - Kimi K2's sparsity scaling law: increasing total MoE params at fixed activated params continues to improve loss without overfitting — holds for both training loss and validation loss; motivated the jump from DSv3's 256 to K2's 384 experts with the same top-8 routing. — [[2025-07-15-https-www-zhihu-com-question-19271405065]]
+- 2026 architecture-survey datapoint: [[DeepSeek-V4]]-Pro is the most parameter-sparse MoE in the recent cohort by active-parameter share. [[ZAYA1-8B]] uses an extreme MoE setup with only one routed expert active per token. [[Gemma 4]] adds a 26B MoE alongside its dense variants. — [[2026-05-17-recent-developments-in-llm-architectures]]

@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
-updated: 2026-05-16
+updated: 2026-05-17
 synthesis_updated_at: 2026-05-13T00:00:00.000Z
 type: topic
-source_count: 29
+source_count: 30
 ---
 
 # Attention Kernels
@@ -74,3 +74,4 @@ GPU kernels implementing the attention operator at production-grade efficiency �
 
 - [[2025-05-26-flashattention-v3解读之hopper-gpu版flashatte]] — Technical deep-dive into FA-V3 as a Hopper-native adaptation of FA-V2: TMA producer/consumer warp specialization, inter/intra-warpgroup GEMM-softmax overlap, register allocation per warpgroup, FP8 support.
 - [[2025-06-05-deepseek技术解读-1-彻底理解mla-multi-head-latent]] — Detailed derivation of MLA (Multi-Head Latent Attention): KV low-rank compression mechanism, RoPE-incompatibility root cause and decoupled-RoPE solution, matrix absorption computation enabling V to be absorbed into W^O, with DeepSeek-V2 ablation data confirming quality superiority over GQA/MQA.
+- Per-layer attention budgeting emerges as a design knob: [[Laguna XS.2]] varies query-head count by layer (`num_attention_heads_per_layer`), allocating fewer query heads to expensive full-attention layers and more to cheap sliding-window layers, while keeping KV-head count fixed. Concept traces to Apple OpenELM (2024). Also: [[Compressed Convolutional Attention]] (ZAYA1-8B) performs attention in a compressed latent space with sequence-mixing convolutions on Q and K, reducing both KV cache size and prefill FLOPs. — [[2026-05-17-recent-developments-in-llm-architectures]]

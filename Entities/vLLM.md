@@ -1,9 +1,9 @@
 ---
 created: 2026-05-11
 updated: 2026-05-17
-synthesis_updated_at: 2026-05-17
+synthesis_updated_at: 2026-05-17T00:00:00.000Z
 type: entity
-refs: 56
+refs: 57
 tier: active
 ---
 
@@ -51,3 +51,4 @@ vLLM is the dominant open-source LLM inference engine and the de facto productio
 - [[vLLM]] V1 `load_model` 调用链（Executor→Worker→ModelRunner→DefaultModelLoader）：`_get_all_weights` 生成 `(权重名, tensor)` 完整不切片迭代器，`model.load_weights()` 遍历时每个TP rank自行切取所需分片；量化模型在 `_initialize_model` 阶段替换为 `QuantLinear`；RLHF场景Actor权重更新可直接构建为此格式迭代器传入 `model_runner.model.load_weights()`。 — [[2025-05-27-图解vllm-v1系列4-加载模型权重-load_model]]
 - PR #6496 (merged Jul 18, 2024) introduced CPU offload by hooking `make_layers` in pipeline parallel to load layer weights from CPU pinned memory to GPU on demand via `torch.func.functional_call`; `--cpu-offload-gb N` conceptually extends each GPU's memory by N GB; compatible with CUDA graphs and `non_blocking=True` async copy; GH200 test with Meta-Llama-3-70B-Instruct at 70 GB offload: 61.3 GB loaded, ~8 min load time, TTFT matched non-offloaded, throughput slightly below PR #6317. — [[2025-05-30-core-model-yet-another-cpu-offload-imple]]
 - vLLM v0.8.5.post1 FP8 Qwen3-235B-A22B deployment pitfall: with `--tensor-parallel-size 8`, the MoE intermediate size 1536 / 8 = 192 is not divisible by the 128-element block-wise quantization granularity, causing an error at MoE layer FP8 weight creation; fix is TP4 (1536/4=384, divisible). Online throughput per device: FP8+TP4 = 901.2 tok/s vs BF16+TP8 = 515.2 tok/s (~1.75×). — [[2025-05-26-基于vllm-v1测试bfloat16-vs-fp8-qwen3-moe模型吞吐]]
+- Unbacked dynamic shapes in torch.export caused ~30% regressions on vLLM (also 2×–20% on TorchBench), blocking adoption in Frontier workloads (March 2026 PyTorch DevLog). May 2026 fix: unbacked now matches backed across 30+ vLLM models and all HuggingFace TorchBench models, with some up to 2× faster. — [[2026-05-12-pytorch-devlog]]
