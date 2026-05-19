@@ -46,19 +46,19 @@ Meta Reality Labs blog (Nov 22 2024) introducing [SPDL](https://github.com/faceb
 
 44 images in raw, but only 3 are load-bearing — the architecture diagram + two benchmark charts. The remaining 41 are tiny social-media icon SVGs (~1 KB each), brand logos, author photos, or pipeline-code screenshots whose content is already in the prose.
 
-**Execution engine architecture** (`../../raw/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-002.png`)
+**Execution engine architecture** (`https://hirono-wiki.litenext.digital/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-002.png`)
 
 ![SPDL execution engine architecture: thread-pool-based pipeline showing how operations of different natures (CPU-bound preprocessing, I/O-bound fetch, GPU-bound transfer) are concurrently driven by a single GIL-released thread pool](https://hirono-wiki.litenext.digital/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-002.png)
 
 The thread-pool-based pipeline that replaces subprocess workers. Architectural commitment to thread-based concurrency depends on the C extensions releasing the GIL — the diagram's mechanism only works if NumPy/PyTorch/Pillow etc. are GIL-cooperative.
 
-**Post-init throughput vs PyTorch DataLoader** (`../../raw/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-013.png`)
+**Post-init throughput vs PyTorch DataLoader** (`https://hirono-wiki.litenext.digital/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-013.png`)
 
 ![Bar chart of SPDL @ 32 workers hitting 7,700 FPS vs PyTorch DataLoader's 6,500 FPS — the headline 2-3× benchmark claim](https://hirono-wiki.litenext.digital/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-013.png)
 
 The headline benchmark proof point. With 32 workers, SPDL hits 7,700 FPS vs PyTorch DataLoader's 6,500 FPS — the 2-3× gain the Key claim cites depends on this chart.
 
-**End-to-end model eval throughput** (`../../raw/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-014.png`)
+**End-to-end model eval throughput** (`https://hirono-wiki.litenext.digital/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-014.png`)
 
 ![End-to-end model evaluation throughput chart comparing SPDL against PyTorch DataLoader v1 + v2 across batch sizes; SPDL maintains lead as batch size scales](https://hirono-wiki.litenext.digital/raindrop/ai.meta.com/2026-01-20-introducing-spdl-faster-ai-model-trainin/default-img-014.png)
 

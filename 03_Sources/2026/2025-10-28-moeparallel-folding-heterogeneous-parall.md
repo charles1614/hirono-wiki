@@ -47,13 +47,13 @@ NVIDIA paper (Dennis Liu et al., arXiv:2504.14960 Apr 2025, shipped in Megatron-
 
 The whole paper's contribution in one diagram. Without this, the "decouple attention and MoE mappings" claim is abstract; with it, the constraint relaxation is immediate.
 
-**Figure 2 — Token-routing dataflow under folded parallelism** (`../../raw/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-figures/figure-002.png`)
+**Figure 2 — Token-routing dataflow under folded parallelism** (`https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-figures/figure-002.png`)
 
 ![Four-GPU MoE routing schematic: per-GPU attention layers → routers → AlltoAll across EP groups → AlltoAll across TP groups → FFN TP1/TP2 expert shards → ReduceScatter Y → AlltoAll back → Unpermute](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-figures/figure-002.png)
 
 The token-flow diagram that operationalizes the folded mapping. Load-bearing because the spatial topology of cross-GPU AlltoAll-EP / AlltoAll-TP / ReduceScatter operations is exactly what the optimization rearranges — text alone flattens the data flow into a list and loses the parallel-group structure.
 
-**Figure 8 — LM-loss validation, MCore baseline vs Parallel-Folding** (`../../raw/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-figures/figure-008.png`)
+**Figure 8 — LM-loss validation, MCore baseline vs Parallel-Folding** (`https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-figures/figure-008.png`)
 
 ![Line chart of LM-loss validation: MCore 0.9 (cyan) and Parallel-Folding TP2/CP2/PP2/EP8/ETP1 (gray) curves tracking each other tightly from step 0 to ~8k steps, both converging from ~5.5 to ~2.1](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-28-moeparallel-folding-heterogeneous-parall/2025-10-28-moeparallel-folding-heterogeneous-parall-figures/figure-008.png)
 

@@ -51,19 +51,19 @@ The upload edge is dashed in the architecture diagram — explicitly optional, i
 
 ## Visual observations
 
-**Four-layer observability architecture** (`../../raw/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-003.png`)
+**Four-layer observability architecture** (`https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-003.png`)
 
 ![Four-layer observability architecture: Collection Layer (Session/Message/Tool-call/Run hooks) → Modeling Layer (TraceID/ParentID + Observation Type) → Storage Layer (Memory Buffer → Async Queue → Batch Flush → DuckDB) → Visualization Layer (Trace / Analytics / Security views)](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-003.png)
 
 The 4-layer separation is the architectural commitment — hooks register events at runtime; modeling assigns structure; storage uses DuckDB-friendly batched async writes; visualization is independent. Each layer has a clean contract.
 
-**DuckDB vs SQLite benchmark** (`../../raw/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-005.png`)
+**DuckDB vs SQLite benchmark** (`https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-005.png`)
 
 ![DuckDB vs SQLite query-time benchmark: 5 query types (GROUP BY, time-range agg, JSON extraction, top-sessions, LIKE full-text) with 6×–56× speedup for DuckDB](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-005.png)
 
 The benchmark table — load-bearing because the 6×-56× DuckDB advantage is the architectural justification for the entire stack. Without this gap, SQLite (the default embedded DB) would be the simpler choice.
 
-**Local + Cloud deployment architecture** (`../../raw/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-006.png`)
+**Local + Cloud deployment architecture** (`https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-006.png`)
 
 ![Two-zone deployment: Local (OpenClaw Gateway → Observability Plugin 20 hooks → Security Scanner L1 regex + L2 behavior chain → DuckDB audit_actions/sessions/alerts → Analytics Dashboard) with dashed-arrow upload edge to Cloud (RDS-MySQL-DuckDB → Unified Admin Analytics Dashboard)](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-openclaw-observability-基于-duckdb-构建-open/weixin-img-006.png)
 

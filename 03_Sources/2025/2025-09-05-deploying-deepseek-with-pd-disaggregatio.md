@@ -26,33 +26,33 @@ SGLang Team blog (May 5, 2025) — the **first open-source implementation to nea
 
 ## Visual observations
 
-**Fig 1 — 96-GPU system architecture overview** (`../../raw/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-001.png`)
+**Fig 1 — 96-GPU system architecture overview** (`https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-001.png`)
 
 ![SGLang 96-GPU DeepSeek deployment architecture: 12 nodes × 8 H100, PD disaggregated, expert parallelism across nodes via InfiniBand](https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-001.png)
 
 Top-level topology: prefill pool and decode pool occupying separate node groups, connected via InfiniBand, KV cache transferred across the boundary.
 
-**Fig 2 — DP Attention + DP Dense FFN vs. EP sparse FFN layout** (`../../raw/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-002.png`)
+**Fig 2 — DP Attention + DP Dense FFN vs. EP sparse FFN layout** (`https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-002.png`)
 
 ![Left: DP Attention + DP dense FFN communication pattern (reduce-scatter/all-gather instead of all-reduce). Right: EP MoE expert layout using DeepEP across devices.](https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-002.png)
 
 Crystallizes the two-part parallelism design: uniform DP for attention + dense layers (no KV duplication), EP for sparse MoE layers.
 
-**Fig 3 — PD disaggregation handshake and KV transfer flow** (`../../raw/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-003.png`)
+**Fig 3 — PD disaggregation handshake and KV transfer flow** (`https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-003.png`)
 
 ![Sequence diagram: decode server pre-allocates KV cache → signals prefill server → prefill runs forward pass → RDMA transfer to decode server → decode server runs token generation](https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-003.png)
 
 Concrete implementation: non-blocking background-thread send/receive, RDMA queue pairs with scatter-gather elements, pluggable RDMA libraries (Mooncake, NIXL).
 
-**Fig 6 — End-to-end throughput comparison (prefill + decode, 4 configurations)** (`../../raw/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-006.png`)
+**Fig 6 — End-to-end throughput comparison (prefill + decode, 4 configurations)** (`https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-006.png`)
 
 ![Bar chart comparing TP16 baseline vs PD+EP SGLang vs PD+EP+simulated MTP vs DeepSeek official profile, for both prefill (4-node) and decode (9-node) phases. SGLang decode at 9 nodes matches or exceeds DeepSeek profile at 16 nodes.](https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-006.png)
 
 Headline throughput numbers for all configurations side by side. The decode column is the most striking: 9-node SGLang matches 16-node DeepSeek profile, confirming the EP72 + TBO configuration's efficiency.
 
-- **Fig 4 — TBO launch-order diagram** (`../../raw/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-004.png`) — prefill timeline showing computation submitted before CPU-blocking dispatch, eliminating GPU idle bubble. Load-bearing for the "proper launch order" claim.
-- **Fig 5 — EPLB balancedness simulation at scale** (`../../raw/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-005.png`) — GPU utilization (mean/max compute ratio) vs. node count with and without EPLB; confirms utilization degrades with scale and EPLB recovers it significantly. (Numbers in Key claims; image adds the scaling trend shape.)
-- **Fig 12 — EPLB throughput impact** (`../../raw/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-012.png`) — bar chart: 1.49× prefill / 2.54× decode speedup from EPLB. Supporting visualization for the speedup claims in Key claims.
+- **Fig 4 — TBO launch-order diagram** (`https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-004.png`) — prefill timeline showing computation submitted before CPU-blocking dispatch, eliminating GPU idle bubble. Load-bearing for the "proper launch order" claim.
+- **Fig 5 — EPLB balancedness simulation at scale** (`https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-005.png`) — GPU utilization (mean/max compute ratio) vs. node count with and without EPLB; confirms utilization degrades with scale and EPLB recovers it significantly. (Numbers in Key claims; image adds the scaling trend shape.)
+- **Fig 12 — EPLB throughput impact** (`https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2025-09-05-deploying-deepseek-with-pd-disaggregatio/lmsys-img-012.png`) — bar chart: 1.49× prefill / 2.54× decode speedup from EPLB. Supporting visualization for the speedup claims in Key claims.
 
 *Other images decorative or supporting — TBO ablation charts (img-009–011), kernel breakdowns (img-007–008), expert distribution stats (img-014), balancedness-vs-throughput scatter (img-013) contain numbers already extracted above.*
 

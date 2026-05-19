@@ -41,19 +41,19 @@ The three traces together are **a 2026 baseline** for "what well-overlapped Deep
 
 3 timeline-schematic diagrams illustrate the SM-lane partitioning + overlap pattern for each regime. All real visual content (boxes + arrows + color-coded micro-batch / chunk identity); spatial structure resists text expression.
 
-**Training trace summary** (`../../raw/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-001.jpg`)
+**Training trace summary** (`https://hirono-wiki.litenext.digital/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-001.jpg`)
 
 ![Training-profile timeline: 112 SMs compute lane (MLP B/W/F + ATTN B/W/F boxes alternating, color-coded by forward chunk orange vs backward chunk green) interleaved via dependency arrows with 20 SMs communication lane (Dispatch F/B + Combine F + PP F/B + Combine B)](https://hirono-wiki.litenext.digital/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-001.jpg)
 
 The SM-lane partitioning is the load-bearing insight: 112+20=132 SMs assigned at the deployment level, not the kernel level. Compute and communication run on disjoint SM pools rather than serializing.
 
-**Prefill trace summary** (`../../raw/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-002.jpg`)
+**Prefill trace summary** (`https://hirono-wiki.litenext.digital/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-002.jpg`)
 
 ![Prefill timeline: 108 SMs compute lane (ATTN + SHARED + MLP boxes color-coded by micro-batch 0 vs 1) interleaved with 24 SMs communication lane (COMBINE + DISPATCH alternating). Caption: "ATTN: MLA and MoE routing gate · SHARED: Shared experts"](https://hirono-wiki.litenext.digital/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-002.jpg)
 
 The two-micro-batch overlap pattern for prefill — same SM-lane partitioning logic as training, different lane sizes.
 
-**Decode trace summary** (`../../raw/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-003.jpg`)
+**Decode trace summary** (`https://hirono-wiki.litenext.digital/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-003.jpg`)
 
 ![Decode timeline showing two-micro-batch overlap with EP128 / TP1 configuration; AllToAll communication does not occupy SMs (RDMA-issued, then SMs freed)](https://hirono-wiki.litenext.digital/raindrop/github.com/2026-04-03-deepseek-ai-profile-data-analyze-computa/github-img-003.jpg)
 

@@ -54,25 +54,25 @@ The Kunlun-P800 detail is the meta-claim: this isn't a NVIDIA-stack optimization
 
 ## Visual observations
 
-**AttentionStore 2-layer architecture** (`../../raw/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-003.png`)
+**AttentionStore 2-layer architecture** (`https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-003.png`)
 
 ![AttentionStore 2-layer architecture: cluster-awareness layer (global KV cache awareness + precise scheduling: node/instance + storage medium + node health + instance load + KV cache) and node-cache layer (local cache index over HBM/DRAM/SSD + transfer acceleration via huge-pages/pinned memory/pipeline parallel read/async eviction + 3-tier multi-level cache L1 HBM / L2 DRAM / L3 SSD)](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-003.png)
 
 The 2-layer split between cluster-level scheduling and node-level cache management is the architectural commitment — neither layer alone suffices; both must compose for the scheduling decisions to actually land on cache-hot nodes.
 
-**Global awareness + scheduling flow** (`../../raw/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-004.png`)
+**Global awareness + scheduling flow** (`https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-004.png`)
 
-![Global scheduling flow: 对话 (Request) → Scheduler (queries AttentionStore Master global block-index showing [实例+HBM]/[节点+DRAM]/[节点+SSD] placements) → routes to Inference Nodes each running vLLM or SGLang + AttentionStore Agent that reports KV info back to the Master](../../raw/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-004.png)
+![Global scheduling flow: 对话 (Request) → Scheduler (queries AttentionStore Master global block-index showing [实例+HBM]/[节点+DRAM]/[节点+SSD] placements) → routes to Inference Nodes each running vLLM or SGLang + AttentionStore Agent that reports KV info back to the Master](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-004.png)
 
 The scheduling-decision flow: cache-locality is a first-class scheduler input, not an after-the-fact optimization. AttentionStore Master is the global authority for "where does block X live"; Scheduler routes accordingly.
 
-**Read-pipelining before/after** (`../../raw/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-006.png`)
+**Read-pipelining before/after** (`https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-006.png`)
 
 ![Before-after comparison: BEFORE — 3 serial steps (DRAM→HBM, then SSD→DRAM, then DRAM→HBM); AFTER — 2 pipelined steps with huge-pages/pinned-memory enabling simultaneous DRAM→HBM and SSD→DRAM, then second DRAM→HBM](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-006.png)
 
 The pipelining trick — huge-page + pinned-memory enables safe simultaneous DRAM↔HBM + SSD↔DRAM transfers, collapsing 3 sequential steps to 2. The kind of low-level memory-system primitive whose payoff (TTFT 6.2×) is felt at the operator level.
 
-**TTFT benchmark — SGLang vs AttentionStore** (`../../raw/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-007.png`)
+**TTFT benchmark — SGLang vs AttentionStore** (`https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-007.png`)
 
 ![TTFT bar chart: 昆仑芯 P800 / TP4 DP4 / DeepSeek R1 671B / 64K context. Left bar (tall): SGLang default cache policy; Right bar (~1/6 height): SGLang with AttentionStore. Annotation: "TTFT 降低 6.2 倍" (6.2× reduction)](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-04-01-拒绝-openclaw-成为-吞金龙虾-百度百舸打造极致-kv-cache-调度/weixin-img-007.png)
 

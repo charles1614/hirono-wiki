@@ -25,8 +25,8 @@ tags: [inference, disaggregation, parallelism, tooling]
 
 ## Visual observations
 
-- `../../raw/raindrop/zhuanlan.zhihu.com/2025-07-31-https-zhuanlan-zhihu-com-p-1934204758920/zhihu-img-001.jpg` — 1A1F 3-stage pipeline diagram with communication constraint derivation timeline.
-- `../../raw/raindrop/zhuanlan.zhihu.com/2025-07-31-https-zhuanlan-zhihu-com-p-1934204758920/zhihu-img-003.jpg` — StepMesh 3-stage timeline showing per-microbatch GPU stream overlap.
+- `https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-07-31-https-zhuanlan-zhihu-com-p-1934204758920/zhihu-img-001.jpg` — 1A1F 3-stage pipeline diagram with communication constraint derivation timeline.
+- `https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-07-31-https-zhuanlan-zhihu-com-p-1934204758920/zhihu-img-003.jpg` — StepMesh 3-stage timeline showing per-microbatch GPU stream overlap.
 
 *Other images decorative — monitoring dashboard screenshot and flow diagram described fully in body.*
 

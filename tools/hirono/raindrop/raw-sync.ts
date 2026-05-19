@@ -283,13 +283,28 @@ async function cmdRewriteSources(f: Flags): Promise<void> {
     }
   }
   walk(SOURCES_DIR);
-  const re = /!\[([^\]]*)\]\(\.\.\/\.\.\/raw\/raindrop\/([^)]+)\)/g;
+  // Three ref shapes to migrate:
+  //  1. `![alt](../../raw/raindrop/<rest>)`        — image markdown
+  //  2. `![alt with [brackets]](../../raw/raindrop/<rest>)` — alt contains ];
+  //     greedy alt with explicit lookahead avoids early-termination.
+  //  3. `` `../../raw/raindrop/<rest>` ``          — backticked caption path
+  //     (per schema.md "load-bearing image" shape: bold-caption (`path`)).
+  //
+  // Run shape (2) first with a more permissive matcher, then shape (3).
+  // Both anchor on the `../../raw/raindrop/` prefix so they only fire on
+  // pre-R2 relative refs and are idempotent.
+  const imgRe = /!\[((?:[^\]]|\](?!\())*)\]\(\.\.\/\.\.\/raw\/raindrop\/([^)]+)\)/g;
+  const backtickRe = /`\.\.\/\.\.\/raw\/raindrop\/([^`]+)`/g;
   let touched = 0, refs = 0;
   for (const file of files) {
     const before = readFileSync(file, "utf8");
-    const after = before.replace(re, (_, alt: string, rest: string) => {
+    let after = before.replace(imgRe, (_, alt: string, rest: string) => {
       refs++;
       return `![${alt}](${publicBase}/raindrop/${rest})`;
+    });
+    after = after.replace(backtickRe, (_, rest: string) => {
+      refs++;
+      return `\`${publicBase}/raindrop/${rest}\``;
     });
     if (after !== before) {
       touched++;
@@ -314,15 +329,23 @@ async function cmdVerifySourceRefs(): Promise<void> {
     }
   }
   walk(SOURCES_DIR);
-  const refRe = new RegExp(`!\\[[^\\]]*\\]\\(${publicBase.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}/([^)]+)\\)`, "g");
+  const baseEsc = publicBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Two ref shapes appear in Source bodies: `![alt](publicBase/...)` and
+  // backticked caption paths `` `publicBase/...` `` per schema.md. Match both.
+  const imgRe = new RegExp(`!\\[(?:[^\\]]|\\](?!\\())*\\]\\(${baseEsc}/([^)]+)\\)`, "g");
+  const backtickRe = new RegExp(`\`${baseEsc}/([^\`]+)\``, "g");
   const bucket = getR2Bucket();
   const client = getR2Client();
   let ok = 0, missing = 0;
   for (const file of files) {
     const text = readFileSync(file, "utf8");
+    const keys: string[] = [];
     let m: RegExpExecArray | null;
-    while ((m = refRe.exec(text))) {
-      const key = m[1];
+    imgRe.lastIndex = 0;
+    while ((m = imgRe.exec(text))) keys.push(m[1]);
+    backtickRe.lastIndex = 0;
+    while ((m = backtickRe.exec(text))) keys.push(m[1]);
+    for (const key of keys) {
       try {
         await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
         ok++;

@@ -49,8 +49,8 @@ Jaeger view of a single request's lifecycle across PD-disaggregated nodes. Reque
 
 Perfetto view of the same execution transposed: threads on rows, request segments on columns, colored bands distinguishing prefill schedule / prefill takeover / decode schedule / MHA. This is the view for "is the resource underutilized?" — gaps in any row are visible idle time.
 
-- **Jaeger non-PD-disagg variant** (`../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-002.png`) — Same Jaeger layout for TP=2 non-disaggregated config. Supporting (variant of Fig 1's shape, no new claim).
-- **Perfetto variant** (`../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-004.png`) — Alternative Perfetto view. Supporting.
+- **Jaeger non-PD-disagg variant** (`https://hirono-wiki.litenext.digital/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-002.png`) — Same Jaeger layout for TP=2 non-disaggregated config. Supporting (variant of Fig 1's shape, no new claim).
+- **Perfetto variant** (`https://hirono-wiki.litenext.digital/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-004.png`) — Alternative Perfetto view. Supporting.
 
 ## Entities touched
 
