@@ -33,7 +33,7 @@ import {
   readdirSync, statSync, renameSync, rmSync,
   openSync, readSync, closeSync,
 } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { writeFileAtomic } from "./shared/atomic-write.ts";
@@ -990,7 +990,39 @@ export function writeRawArchive(args: WriteArgs): SourceJson {
     console.error(`[raw-index] failed to refresh _index.json: ${e instanceof Error ? e.message : e}`);
   }
 
+  // R2 backup hook (fire-and-forget). Default-on; opt-out via
+  // WIKI_R2_AUTOSYNC=0. writeRawArchive is sync — the upload runs in
+  // the background after the fetch returns. Failures log to stderr; the
+  // operator can catch missed uploads with `hirono raindrop raw-sync`.
+  // Skipped silently when R2 isn't configured so local-only setups
+  // work without ceremony.
+  if (process.env.WIKI_R2_AUTOSYNC !== "0") {
+    const host = basename(dirname(slugDir));
+    void scheduleR2Upload(slugDir, host, args.slug);
+  }
+
   return src;
+}
+
+/**
+ * Detached R2 upload. Runs after writeRawArchive returns. Errors are
+ * logged but don't propagate.
+ */
+function scheduleR2Upload(slugDir: string, host: string, slug: string): void {
+  void import("./shared/r2-uploader.ts")
+    .then(({ uploadSlugBest }) => uploadSlugBest(slugDir, host, slug))
+    .then((result) => {
+      if (result.errors.length > 0) {
+        console.warn(`[r2] ${slug}: ${result.errors.length} file(s) failed — run \`hirono raindrop raw-sync --slug ${slug}\` to retry`);
+      }
+    })
+    .catch((e) => {
+      const msg = e instanceof Error ? e.message : String(e);
+      // "missing required fields" = R2 not configured yet. Silent skip.
+      if (!/missing required fields/.test(msg)) {
+        console.warn(`[r2] ${slug}: ${msg}`);
+      }
+    });
 }
 
 // ---------------------------------------------------------------------------

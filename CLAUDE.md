@@ -301,6 +301,8 @@ See [`docs/code-map.md`](docs/code-map.md) for per-file/per-export breakdown.
 
 Sources are summaries. For detail not carried (algorithm steps, table rows, code, captions), Read `raw/raindrop/<host>/<slug>/content.md` directly. `<host>` from Source's `source_url:`. Siblings: `<slug>.pdf`, `<slug>-figures/`, `<slug>-images-extract.md`, `source.json`, `revisions.jsonl`.
 
+If `raw/<slug>` is missing locally (fresh machine or accidental `rm`), restore from R2: `hirono raindrop raw-sync --restore --slug <slug>`. R2 is a durable backup; local can always be rebuilt from it (backup semantics, not mirror — see §12).
+
 **Trust the snapshot — don't refetch.** `content.md` is curated; URL refetch bypasses cleanup. Stale → `hirono raindrop refetch <slug>`. Cite as `[[03_Sources/<slug>]]`. Path mapping lives only here + 00_Meta/schema.md (never in Source body).
 
 **Image-heavy workflow**: when `shouldExtractImages` triggers, Sonnet subagent extracts verbatim → `<slug>-images-extract.md`. Opus inline-verifies any number/§-ref/parameter before citing. **Never Haiku** for dense Chinese (1568px cap drops specifics + hallucinates). Details: memory `feedback_image_extraction_hybrid.md` + `feedback_haiku_image_resolution.md`.
@@ -332,6 +334,10 @@ LLM is the authoring layer; no single command converts raw → Source. Rules bel
 | "audit wiki health" | `hirono health-check --scope drift` |
 | "one-tap cleanup" | `hirono auto-fix` (Tier-1) or `hirono auto-curate` (Tier-1+2) |
 | "lint" | `npx tsx tools/bin/lint.ts` (must end `0 error(s)`) |
+| "back up raw to R2" | `hirono raindrop raw-sync` (§12) |
+| "remove avatar / bad image from R2" | `hirono raindrop raw-prune <slug> --file <name> --reason "..."` (§12) |
+| "inspect raw locally" | `hirono raindrop raw-show <slug> [--open]` (§12) |
+| "bootstrap new machine" | `hirono raindrop raw-sync --restore` (§12) |
 
 CLIs are atomic + log to `00_Meta/refactor-log.md` + update indexes. Hand-rolled equivalents skip those invariants.
 
@@ -384,7 +390,7 @@ tags: [tag-1, tag-2, ...]            # ≥1 from CANONICAL_TAGS (00_Meta/schema.
 
 ## Visual observations
 
-*<canonical rationale phrase OR 2–5 ![](../../raw/raindrop/<host>/<slug>/<img>.ext) refs>*
+*<canonical rationale phrase OR 2–5 ![](<R2_PUBLIC_BASE>/raindrop/<host>/<slug>/<img>.ext) refs>*
 
 ## What this changes
 
@@ -443,9 +449,15 @@ If `raw/raindrop/<host>/<slug>/<slug>-images-extract.md` exists, **read it befor
 - **Source file `## Key claims`**: NO `— [[<own-slug>]]` trailing citation. The Source IS the citation. (Most-missed by subagents.)
 - **Entity/Topic file `## Observations`**: DO end with `— [[<source-slug>]]` (slug only, NO path prefix).
 
-### Image-path depth
+### Image-ref form (R2-backed)
 
-Sources live at `03_Sources/YYYY/<slug>.md` (2 levels). Refs: `../../raw/raindrop/<host>/<slug>/<image>.ext`. Not `../raw/...`, not `../../../raw/...`.
+Sources reference images via the **public R2 URL**, not a relative path. `raw/` is gitignored, so relative `../../raw/...` refs work only on the operator's local machine — they break in the GitHub-synced clone that Obsidian renders from. R2 = single canonical form that works both places.
+
+Form: `![<alt>](<R2_PUBLIC_BASE>/raindrop/<host>/<slug>/<image>.ext)`
+
+`R2_PUBLIC_BASE` resolves from env / `.wiki-r2.json::publicBase` (see §12). Operator debug of the local file: `hirono raindrop raw-show <slug>` lists the raw dir.
+
+For pre-R2 Sources still on relative refs, one-time rewrite via `hirono raindrop raw-sync --rewrite-sources --apply`.
 
 ### Dead wikilinks → scaffold inline
 
@@ -680,6 +692,94 @@ npx tsx tools/bin/reindex.ts
 npx tsx tools/bin/build-sources-index.ts
 npx tsx tools/bin/lint.ts                   # 0 error(s)
 ```
+
+## 12. R2 backup of `raw/`
+
+### Why R2
+
+- `raw/` is gitignored (1 GB+ of fetched HTML / images / PDFs, regenerable but slow).
+- Obsidian renders the wiki from a GitHub-synced clone where `raw/` is absent — relative `../../raw/...` image refs are broken there. Source image refs must be public URLs.
+- Single-machine = single point of failure. R2 is the durable second copy.
+
+### Backup semantics (load-bearing invariant)
+
+R2 is a **backup, not a mirror.** R2 deletion is never inferred from "local missing"; only explicit `hirono raindrop raw-prune` deletes (which appends a row to the disposition log so future syncs honor the decision).
+
+Sync decision matrix:
+
+| Local | R2 | Disposition | Action |
+|---|---|---|---|
+| present | absent | — | UPLOAD |
+| present, sha=X | present, sha=X | — | SKIP |
+| present, sha=X | present, sha=Y | — | UPLOAD (drift) |
+| absent | present | no entry | SKIP (preserve R2 — recover via `--restore`) |
+| absent | present | `delete` | DELETE from R2 |
+| present | present | `delete` | DELETE from R2 (local survives) |
+
+### Setup (one-time)
+
+1. Create R2 bucket `wiki-raw`, attach a custom domain `https://raw.<your-domain>` (stable across token rotation; `*.r2.dev` works as a fallback).
+2. Generate R2 API token with Read+Write on `wiki-raw`.
+3. Write `.wiki-r2.json` at repo root (gitignored):
+   ```json
+   {
+     "accountId": "...",
+     "accessKeyId": "...",
+     "secretAccessKey": "...",
+     "bucket": "wiki-raw",
+     "endpoint": "https://<accountId>.r2.cloudflarestorage.com",
+     "publicBase": "https://raw.<your-domain>"
+   }
+   ```
+   Env-var equivalents override the file: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT`, `R2_PUBLIC_BASE`.
+4. Initial population: `hirono raindrop raw-sync` — uploads everything (~3400 PUTs, ~1 GB, ~$0.02 one-time).
+5. One-time Source rewrite of any legacy relative refs: `hirono raindrop raw-sync --rewrite-sources --apply` (regex-rewrites `../../raw/raindrop/...` → `<publicBase>/raindrop/...` across `03_Sources/**/*.md`).
+6. Verify: `hirono raindrop raw-sync --verify-source-refs` — HEADs every R2 URL in Sources; all must 200.
+
+Operator-only sensitive data, never `git add .wiki-r2.json`.
+
+### CLIs
+
+```
+hirono raindrop raw-sync                       # incremental upload + disposition-driven deletes
+hirono raindrop raw-sync --slug <slug>
+hirono raindrop raw-sync --host <host>
+hirono raindrop raw-sync --dry-run             # plan only
+hirono raindrop raw-sync --status              # in-sync / drift / unsynced / pending-delete
+hirono raindrop raw-sync --restore [--slug <s>]   # R2 → local (respects disposition)
+hirono raindrop raw-sync --rewrite-sources [--apply]   # legacy refs → R2 URLs
+hirono raindrop raw-sync --verify              # download + checksum a sample
+hirono raindrop raw-sync --verify-source-refs  # HEAD every R2 URL in 03_Sources
+
+hirono raindrop raw-prune <slug> --file <name> --reason "..."
+hirono raindrop raw-prune <slug> --pattern '*avatar*' --reason "..."
+hirono raindrop raw-prune --revert <slug>/<file>      # remove disposition entry
+hirono raindrop raw-prune <slug> --pattern '...' --dry-run
+
+hirono raindrop raw-show <slug>                # operator debug: list local raw dir
+hirono raindrop raw-show <slug> --open         # macOS Finder
+hirono raindrop raw-show --from-source 03_Sources/2026/<slug>.md
+```
+
+### Per-fetch hook
+
+`writeRawArchive` schedules a fire-and-forget R2 upload after each fetch (default-on; `WIKI_R2_AUTOSYNC=0` disables). Failures log to stderr; missed uploads are caught by the next manual `hirono raindrop raw-sync`. If R2 isn't configured, the hook silently no-ops (so local-only setups still work).
+
+### State files
+
+- `raw/raindrop/.r2-sync-ledger.jsonl` — append-only record of each slug-level upload (per-file SHA + bytes).
+- `raw/raindrop/.disposition.jsonl` — append-only record of `delete`/`keep` decisions per `(slug, file)`. Last row wins. Consulted on every sync.
+- Both gitignored (under `raw/`). Append via `O_APPEND + fsync` (mirrors `revisions.jsonl`).
+
+### Failure modes + fixes
+
+| Symptom | Fix |
+|---|---|
+| Source image renders broken in Obsidian | run `hirono raindrop raw-sync --verify-source-refs`; for any 404 either re-`raw-sync` the slug or re-fetch. |
+| `r2-upload-failed` in `source.json.quality_flags` | `hirono raindrop raw-sync --slug <slug>` to retry. |
+| Accidentally `rm`'d a local file | run `hirono raindrop raw-sync --restore --slug <slug>` — R2 is the backup. |
+| Want a specific image gone (avatar leak, broken fetch) | `hirono raindrop raw-prune <slug> --file <name> --reason "..."` — local rm + R2 DELETE + disposition row. |
+| Undo a prune | `hirono raindrop raw-prune --revert <slug>/<file>`; next sync re-uploads if local present. |
 
 ## Auto-capturing learnings
 

@@ -21,6 +21,7 @@ dist/
 .wiki-fetch-issues.md
 .wiki-raindrop-cache.json
 .wiki-mention-map.json
+.wiki-r2.json
 batch-*-candidates.json
 .curation-staging/
 .refine-prompts/

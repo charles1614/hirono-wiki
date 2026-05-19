@@ -226,13 +226,30 @@ async function main(): Promise<void> {
       return;
     }
 
+    if (sub === "raw-sync") {
+      const { main } = await import("../hirono/raindrop/raw-sync.ts");
+      await main(rest);
+      return;
+    }
+    if (sub === "raw-prune") {
+      const { main } = await import("../hirono/raindrop/raw-prune.ts");
+      await main(rest);
+      return;
+    }
+    if (sub === "raw-show") {
+      const { main } = await import("../hirono/raindrop/raw-show.ts");
+      await main(rest);
+      return;
+    }
+
     // Subcommands that consolidate the raw-archive CLI.
     if (await dispatchRaindropFetchSubcommands(sub, rest)) return;
 
     console.error(`unknown raindrop subcommand: ${sub}`);
     console.error(
       `valid: check, refresh-cache, new, fetch, refetch, sync, verify,\n` +
-      `       status, history, diff, ingest-candidates, forget, gc, fetch-all, store, fetch-lark, export`,
+      `       status, history, diff, ingest-candidates, forget, gc, fetch-all, store, fetch-lark, export,\n` +
+      `       raw-sync, raw-prune, raw-show`,
     );
     process.exit(2);
   }

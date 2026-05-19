@@ -277,22 +277,25 @@ Every image in `raw/<host>/<slug>/...` falls into one of three buckets:
 
 ### Path convention
 
-Inline images reference the **raw archive** by relative path; don't copy bytes
-into `03_Sources/`. From `03_Sources/YYYY/<slug>.md`, the relative path is:
+Inline images reference the **R2 public URL** of the raw archive, not a
+relative path. `raw/` is gitignored, so `../../raw/...` refs only resolve
+on the operator's local machine — they break in the GitHub-synced clone
+that Obsidian renders from. The R2 URL form works in both places.
 
 ```
-../../raw/raindrop/<host>/<slug>/<file>
+<R2_PUBLIC_BASE>/raindrop/<host>/<slug>/<file>
 ```
 
-Obsidian + Lark sync (via lark-hirono) both render this. The raw archive
-remains the single canonical location for image bytes.
+`R2_PUBLIC_BASE` resolves from env or `.wiki-r2.json::publicBase` (see
+CLAUDE.md §12). The raw archive remains the single canonical location
+for image bytes — local `raw/` for operator debug, R2 for rendering.
 
 ### Shape (load-bearing image)
 
 ```markdown
-**Fig 3 — TPU spec progression** (`../../raw/raindrop/blog.google/<slug>/blog-google-img-003.webp`)
+**Fig 3 — TPU spec progression** (`<R2_PUBLIC_BASE>/raindrop/blog.google/<slug>/blog-google-img-003.webp`)
 
-![TPU spec progression](../../raw/raindrop/blog.google/<slug>/blog-google-img-003.webp)
+![TPU spec progression](<R2_PUBLIC_BASE>/raindrop/blog.google/<slug>/blog-google-img-003.webp)
 
 v4 / v5p / Ironwood spec table with absolute numbers. Pod size 4,096 → 8,960 → 9,216;
 HBM 32 GB → 95 GB → 192 GB; TFLOPS/chip 275 → 459 → 4,614.
@@ -301,7 +304,7 @@ HBM 32 GB → 95 GB → 192 GB; TFLOPS/chip 275 → 459 → 4,614.
 ### Shape (supporting image — bullet only)
 
 ```markdown
-- **Fig 13 — Post-init throughput chart** (`../../raw/raindrop/ai.meta.com/<slug>/default-img-013.png`) — SPDL @ 32 workers hits 7,700 FPS vs PyTorch's 6,500 FPS. (Numbers already in Key Claims; image is verification material.)
+- **Fig 13 — Post-init throughput chart** (`<R2_PUBLIC_BASE>/raindrop/ai.meta.com/<slug>/default-img-013.png`) — SPDL @ 32 workers hits 7,700 FPS vs PyTorch's 6,500 FPS. (Numbers already in Key Claims; image is verification material.)
 ```
 
 ## What this changes  ← optional
@@ -362,8 +365,11 @@ archive that exists and is a valid image of its claimed format, and is
 captioned with a factual observation the rest of the wiki can cite. Six
 properties:
 
-1. **Comes from the raw archive.** Path = `../../raw/raindrop/<host>/<slug>/<file>`.
-   Never inline a remote URL. Never copy bytes into `03_Sources/`.
+1. **Comes from the raw archive (via R2).** URL = `<R2_PUBLIC_BASE>/raindrop/<host>/<slug>/<file>`.
+   The local copy at `raw/raindrop/<host>/<slug>/<file>` is the operator's
+   debug surface; Sources reference the R2 mirror so Obsidian on the
+   GitHub-synced side renders the image. Never inline a foreign remote URL.
+   Never copy bytes into `03_Sources/`.
 2. **File is valid.** Exists on disk, ≥ 512 B, magic bytes match a known
    image format (PNG / JPEG / WebP / SVG / GIF / BMP / TIFF). Enforced
    at fetch time by `downloadImage` in `tools/fetch-raw.ts` and at ingest
