@@ -22,9 +22,9 @@ tags: [training, parallelism, comm-overlap, microbenchmark]
 
 ## Visual observations
 
-![](../../raw/raindrop/zhuanlan.zhihu.com/2025-08-25-megatron-interleaved-1f1b流水线并行中的计算负载不均衡问/zhihu-img-001.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-08-25-megatron-interleaved-1f1b流水线并行中的计算负载不均衡问/zhihu-img-001.jpg)
 
-![](../../raw/raindrop/zhuanlan.zhihu.com/2025-08-25-megatron-interleaved-1f1b流水线并行中的计算负载不均衡问/zhihu-img-008.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-08-25-megatron-interleaved-1f1b流水线并行中的计算负载不均衡问/zhihu-img-008.jpg)
 
 *Other images decorative — GPU profile timelines redundant with analysis in body.*
 

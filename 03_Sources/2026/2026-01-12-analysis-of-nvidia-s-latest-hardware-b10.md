@@ -25,10 +25,10 @@ Comprehensive technical breakdown of NVIDIA's Blackwell GPU family (B100, B200, 
 
 ## Visual observations
 
-![](../../raw/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-002.png)
-![](../../raw/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-006.png)
-![](../../raw/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-036.png)
-![](../../raw/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-045.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-006.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-036.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.fibermall.com/2026-01-12-analysis-of-nvidia-s-latest-hardware-b10/default-img-045.png)
 
 *Other images decorative — product photos, network switch chassis shots, related-posts thumbnails.*
 

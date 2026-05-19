@@ -39,13 +39,13 @@ tags: [observability, inference, tooling]
 
 **Jaeger view — request-centric (PD-disaggregation, TP=1)** (load-bearing)
 
-![Jaeger request-centric view — sglang request trace showing service & operation hierarchy across PD-disaggregated nodes, with per-segment timing](../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-001.png)
+![Jaeger request-centric view — sglang request trace showing service & operation hierarchy across PD-disaggregated nodes, with per-segment timing](https://hirono-wiki.litenext.digital/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-001.png)
 
 Jaeger view of a single request's lifecycle across PD-disaggregated nodes. Request as top-level entry; threads as second-level; execution segments at third level. **This is the surface that "fine-grained tracing" actually delivers** — without it, the FR sounds abstract. Note the timeline grain (microseconds) and the per-stage breakdown (init, PD-disagg, prefill, decode).
 
 **Perfetto view — thread-centric (PD-disaggregation, TP=1)** (load-bearing)
 
-![Perfetto thread-centric view — sglang threads on rows, request segments on columns, colored bands for prefill / decode / disaggregation stages](../../raw/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-003.png)
+![Perfetto thread-centric view — sglang threads on rows, request segments on columns, colored bands for prefill / decode / disaggregation stages](https://hirono-wiki.litenext.digital/raindrop/github.com/2025-11-17-feature-sglang-tracing-fine-grained-trac/github-img-003.png)
 
 Perfetto view of the same execution transposed: threads on rows, request segments on columns, colored bands distinguishing prefill schedule / prefill takeover / decode schedule / MHA. This is the view for "is the resource underutilized?" — gaps in any row are visible idle time.
 

@@ -26,11 +26,11 @@ A thorough survey of Silent Data Corruption (SDC) in LLM training infrastructure
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-002.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-003.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-004.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-019.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-020.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-019.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-26-静默数据损坏-sdc-ai-infra-的隐性杀手/weixin-img-020.png)
 
 *Other images decorative — formula screenshots (weixin-img-009 to 012, 017), node-collection flowchart (007), mismatch frequency / severity tables (013–016, 018), SDC classification diagram (001), NVIDIA driver release note screenshot (006).*
 

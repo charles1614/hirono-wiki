@@ -23,9 +23,9 @@ tags: [post-training, tooling, inference]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-15-知识蒸馏不再难-阿里开源easydistill及distilqwen模型家族-开/weixin-img-003.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-15-知识蒸馏不再难-阿里开源easydistill及distilqwen模型家族-开/weixin-img-004.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-15-知识蒸馏不再难-阿里开源easydistill及distilqwen模型家族-开/weixin-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-15-知识蒸馏不再难-阿里开源easydistill及distilqwen模型家族-开/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-15-知识蒸馏不再难-阿里开源easydistill及distilqwen模型家族-开/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-15-知识蒸馏不再难-阿里开源easydistill及distilqwen模型家族-开/weixin-img-005.png)
 
 *Other images decorative — 公众号推荐链接封面图。*
 

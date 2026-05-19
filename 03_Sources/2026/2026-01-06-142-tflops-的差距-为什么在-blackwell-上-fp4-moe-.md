@@ -26,9 +26,9 @@ Benchmarks a GPT-OSS-20B MoE model (32 experts, top-4, NVFP4) on a single Blackw
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-/weixin-img-001.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-/weixin-img-003.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-06-142-tflops-的差距-为什么在-blackwell-上-fp4-moe-/weixin-img-004.png)
 
 *Other images decorative — top-k=2 variant chart (weixin-img-002), DeepSeek-256-expert charts (weixin-img-005).*
 

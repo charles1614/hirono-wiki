@@ -23,11 +23,11 @@ tags: [tooling, production-deployment]
 
 **Time Machine 备份保留策略示意图** — Time Machine's native tiered-retention schedule: hourly for 24 h, daily for a month, weekly thereafter. Shows the temporal granularity cliff that motivates custom pruning scripts.
 
-![Time Machine 备份保留策略示意图，展示按小时/天/周递减保留的层级结构](../../raw/raindrop/sspai.com/2025-07-29-如何更好地清理-time-machine-备份-少数派/sspai-img-001.png)
+![Time Machine 备份保留策略示意图，展示按小时/天/周递减保留的层级结构](https://hirono-wiki.litenext.digital/raindrop/sspai.com/2025-07-29-如何更好地清理-time-machine-备份-少数派/sspai-img-001.png)
 
 **BackupLoupe 空间占用树形视图** — UI screenshot of BackupLoupe showing per-snapshot and per-directory space usage as a tree. Visual spatial layout (proportional bars + hierarchy) carries meaning beyond a prose list.
 
-![BackupLoupe 界面截图，显示各备份快照及目录的空间占用树形分析视图](../../raw/raindrop/sspai.com/2025-07-29-如何更好地清理-time-machine-备份-少数派/sspai-img-002.png)
+![BackupLoupe 界面截图，显示各备份快照及目录的空间占用树形分析视图](https://hirono-wiki.litenext.digital/raindrop/sspai.com/2025-07-29-如何更好地清理-time-machine-备份-少数派/sspai-img-002.png)
 
 ## Entities touched
 

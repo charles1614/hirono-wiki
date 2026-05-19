@@ -39,13 +39,13 @@ A code-grounded recap by **GiantPandaLLM** of Ant Group's January 2026 SGLang Me
 
 **0x7 — Expert Affinity EPLB placement schematic** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png`)
 
-![Two side-by-side schematics contrasting Original EPLB (scattered co-activated experts across nodes → increased cross-node communication) vs Expert Affinity EPLB (top-k co-activated expert-pairs placed on same node)](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png)
+![Two side-by-side schematics contrasting Original EPLB (scattered co-activated experts across nodes → increased cross-node communication) vs Expert Affinity EPLB (top-k co-activated expert-pairs placed on same node)](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-011.png)
 
 Expert-to-node placement as boxes-on-nodes; the spatial layout IS the optimization.
 
 **0xA — DeepXTrace observability system-flow** (`../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png`)
 
-![System flow: Node 0 / Node 1 expert boxes → Rank 0 metrics collection → anomaly detection → root cause analysis → Web UI slow-rank visualization](../../raw/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png)
+![System flow: Node 0 / Node 1 expert boxes → Rank 0 metrics collection → anomaly detection → root cause analysis → Web UI slow-rank visualization](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-05-06-蚂蚁开源-x-sglang-meetup技术回放解读系列之面向deepseek系/weixin-img-014.png)
 
 Per-node metrics → slow-rank pipeline architecture. Remaining ~28 slides (H20-vs-H800 table at weixin-img-004, launch-flag listings, PR diff hunks, Simple Eagle config, decode-eval tables, V3.2 DSA diagrams) are text-in-layout and already paraphrased in Key claims.
 

@@ -26,7 +26,7 @@ NeuralTalk (WeChat) post by "hello 王先生" documenting a weekend experiment: 
 
 ## Visual observations
 
-![Benchmark result table comparing the CUDA kernel (25.17 TFLOPS) against PyTorch naive, cuDNN, FlashInfer, and Triton on RTX 3080 — load-bearing quantitative evidence of performance claim](../../raw/raindrop/mp.weixin.qq.com/2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自/weixin-img-007.jpg)
+![Benchmark result table comparing the CUDA kernel (25.17 TFLOPS) against PyTorch naive, cuDNN, FlashInfer, and Triton on RTX 3080 — load-bearing quantitative evidence of performance claim](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-03-23-mfu达42-opus-4-6-autoresearch-8小时实现25轮迭代自/weixin-img-007.jpg)
 
 *Other images decorative or supplementary — screenshots of model working (chat logs, terminal output, code snippets) that paraphrase points made in prose.*
 

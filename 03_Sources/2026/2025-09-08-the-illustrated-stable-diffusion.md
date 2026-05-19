@@ -23,10 +23,10 @@ A visual explainer of the Stable Diffusion architecture by Jay Alammar, covering
 
 ## Visual observations
 
-![](../../raw/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-007.png)
-![](../../raw/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-031.png)
-![](../../raw/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-033.png)
-![](../../raw/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-019.png)
+![](https://hirono-wiki.litenext.digital/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-007.png)
+![](https://hirono-wiki.litenext.digital/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-031.png)
+![](https://hirono-wiki.litenext.digital/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-033.png)
+![](https://hirono-wiki.litenext.digital/raindrop/jalammar.github.io/2025-09-08-the-illustrated-stable-diffusion/default-img-019.png)
 
 *Other images decorative (intermediate diffusion step visualizations, dataset illustration, CLIP training diagram).*
 

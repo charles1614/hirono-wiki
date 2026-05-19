@@ -185,10 +185,12 @@ async function cmdPrune(f: Flags): Promise<void> {
         Bucket: bucket, Key: r2KeyFor(host, f.slug, name),
       }));
     } catch (err: unknown) {
-      const msg = (err as Error).message ?? String(err);
-      if (!/NoSuchKey|NotFound|404/i.test(msg)) {
+      const e = err as { name?: string; message?: string; $response?: { statusCode?: number } };
+      const status = e?.$response?.statusCode;
+      const isMissing = status === 404 || /NoSuchKey|NotFound/i.test(e?.name ?? "") || /NoSuchKey|NotFound|404/i.test(e?.message ?? "");
+      if (!isMissing) {
         errors++;
-        console.error(`  [error] R2 delete ${name}: ${msg}`);
+        console.error(`  [error] R2 delete ${name}: ${e?.message ?? String(err)}`);
         continue;
       }
     }

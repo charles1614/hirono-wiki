@@ -22,9 +22,9 @@ A technical deep-dive (MLSys2024 account) on how Microsoft redesigned [[Azure Bl
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪/weixin-img-005.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪/weixin-img-007.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪/weixin-img-010.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪/weixin-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪/weixin-img-007.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-12-重塑ai训练数据底座-azure-blob-存储如何点燃-openai-的训练洪/weixin-img-010.png)
 
 *Other images decorative — architectural diagrams described fully in body.*
 

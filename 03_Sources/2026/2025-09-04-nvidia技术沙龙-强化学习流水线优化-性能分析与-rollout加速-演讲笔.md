@@ -24,9 +24,9 @@ Detailed notes from an NVIDIA technical salon on profiling and optimizing RL tra
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔/weixin-img-004.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔/weixin-img-019.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔/weixin-img-020.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔/weixin-img-019.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-nvidia技术沙龙-强化学习流水线优化-性能分析与-rollout加速-演讲笔/weixin-img-020.png)
 
 *Other images decorative (slides header/QR codes, additional timeline crops described in body).*
 

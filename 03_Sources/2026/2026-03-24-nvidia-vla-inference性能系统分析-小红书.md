@@ -21,8 +21,8 @@ Researcher at NVIDIA Research and NUS introduces VLA-Perf, an analytical perform
 
 ## Visual observations
 
-![69c20c55000000001f000789_04.jpg](../../raw/raindrop/xhslink.com/2026-03-24-nvidia-vla-inference性能系统分析-小红书/69c20c55000000001f000789_04.jpg)
-![69c20c55000000001f000789_05.jpg](../../raw/raindrop/xhslink.com/2026-03-24-nvidia-vla-inference性能系统分析-小红书/69c20c55000000001f000789_05.jpg)
+![69c20c55000000001f000789_04.jpg](https://hirono-wiki.litenext.digital/raindrop/xhslink.com/2026-03-24-nvidia-vla-inference性能系统分析-小红书/69c20c55000000001f000789_04.jpg)
+![69c20c55000000001f000789_05.jpg](https://hirono-wiki.litenext.digital/raindrop/xhslink.com/2026-03-24-nvidia-vla-inference性能系统分析-小红书/69c20c55000000001f000789_05.jpg)
 
 ## Entities touched
 

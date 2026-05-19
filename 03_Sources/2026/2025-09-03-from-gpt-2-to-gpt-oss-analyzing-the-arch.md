@@ -25,10 +25,10 @@ Sebastian Raschka's deep-dive comparing gpt-oss-20B and gpt-oss-120B to GPT-2 an
 
 ## Visual observations
 
-![](../../raw/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-002.png)
-![](../../raw/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-004.png)
-![](../../raw/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-016.png)
-![](../../raw/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-022.png)
+![](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-016.png)
+![](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2025-09-03-from-gpt-2-to-gpt-oss-analyzing-the-arch/sebastianraschka-img-022.png)
 
 *Other images decorative (activation plots, code snippets inline-described in body, benchmark tables paraphrased above).*
 

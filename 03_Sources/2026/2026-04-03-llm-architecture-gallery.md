@@ -39,25 +39,25 @@ tags: [survey]
 
 **DeepSeek V3 / R1 (shared, 671B)** (`../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/deepseek-v3-r1-671-billion.webp`)
 
-![DeepSeek V3/R1 671B architecture block diagram: MLA (Multi-Head Latent Attention) + DeepSeek-MoE with 256 routed experts + 1 shared expert; RoPE; 61 layers; R1 inherits the V3 architecture (R1 is post-training, not a separate model)](../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/deepseek-v3-r1-671-billion.webp)
+![DeepSeek V3/R1 671B architecture block diagram: MLA (Multi-Head Latent Attention) + DeepSeek-MoE with 256 routed experts + 1 shared expert; RoPE; 61 layers; R1 inherits the V3 architecture (R1 is post-training, not a separate model)](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/deepseek-v3-r1-671-billion.webp)
 
 The architecture behind the V3/R1 era — MLA + fine-grained 256-expert MoE with one shared expert.
 
 **DeepSeek V4-Pro** (`../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/deepseek-v4-pro.webp`)
 
-![DeepSeek V4-Pro architecture: hybrid attention (Compression Sparse Attention CSA + Highly Compressed Attention HCA) replacing MLA; on-disk KV cache; MTP head; expanded shared-expert + routed-expert MoE; 1.6T total params](../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/deepseek-v4-pro.webp)
+![DeepSeek V4-Pro architecture: hybrid attention (Compression Sparse Attention CSA + Highly Compressed Attention HCA) replacing MLA; on-disk KV cache; MTP head; expanded shared-expert + routed-expert MoE; 1.6T total params](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/deepseek-v4-pro.webp)
 
 V4-Pro removes MLA in favor of CSA+HCA. Confirms the xhs interpretation Source ([[2026-04-27-deepseek-v4砍掉mla-一个月前有人预言了-小红书]]) at the architecture-diagram level.
 
 **Kimi K2 (1T)** (`../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/kimi-k2-1-trillion.webp`)
 
-![Kimi K2 1T architecture: MoE with extreme expert count (~384 routed + shared); MLA-style attention; long-context positional encoding; the first 1T-param open-weights model](../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/kimi-k2-1-trillion.webp)
+![Kimi K2 1T architecture: MoE with extreme expert count (~384 routed + shared); MLA-style attention; long-context positional encoding; the first 1T-param open-weights model](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/kimi-k2-1-trillion.webp)
 
 First 1T-param open-weights model. The gallery traces K2 → K2.5 → K2.6 as a coherent architecture lineage.
 
 **GPT-OSS 120B** (`../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/gpt-oss-120b.webp`)
 
-![GPT-OSS 120B architecture: OpenAI's open-weights MoE entry; layer / expert / attention-variant configuration as catalogued by Raschka](../../raw/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/gpt-oss-120b.webp)
+![GPT-OSS 120B architecture: OpenAI's open-weights MoE entry; layer / expert / attention-variant configuration as catalogued by Raschka](https://hirono-wiki.litenext.digital/raindrop/sebastianraschka.com/2026-04-03-llm-architecture-gallery/images/gpt-oss-120b.webp)
 
 OpenAI's open-weights MoE design point. Visual reference for the production-serving recipe in [[2025-08-23-tensorrt-llm-docs-source-blogs-tech_blog]].
 

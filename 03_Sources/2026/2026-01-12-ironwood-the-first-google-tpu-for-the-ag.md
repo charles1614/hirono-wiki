@@ -35,19 +35,19 @@ Google Cloud Next '25 announcement (Apr 9 2025, updated Apr 23) of **Ironwood**,
 
 **Figure 1 — FP8 peak flops vs TPU v2** (load-bearing — visualizes the generational compute-density trajectory)
 
-![Green bar chart showing progressive improvement in FP8 peak performance from TPU v2 (baseline) through v4, v5p, v6 (Trillium), to v7 (Ironwood) — the per-chip throughput curve underlying the 30× perf/W claim](../../raw/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-002.webp)
+![Green bar chart showing progressive improvement in FP8 peak performance from TPU v2 (baseline) through v4, v5p, v6 (Trillium), to v7 (Ironwood) — the per-chip throughput curve underlying the 30× perf/W claim](https://hirono-wiki.litenext.digital/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-002.webp)
 
 The numbers in the abstract become concrete here. The progressive bars show Ironwood's per-chip FP8 leap is not an incremental refresh — it's a structural step.
 
 **Figure 2 — Side-by-side TPU spec comparison (v4 / v5p / Trillium / Ironwood)** (load-bearing reference)
 
-![Side-by-side illustration of recent 3D-torus Cloud TPUs (v4, v5p, v6 Trillium, v7 Ironwood) with details like peak flops per chip, HBM capacity, interconnect bandwidth. Note: FP8 is emulated on v4 and v5p but natively supported on Ironwood](../../raw/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-003.webp)
+![Side-by-side illustration of recent 3D-torus Cloud TPUs (v4, v5p, v6 Trillium, v7 Ironwood) with details like peak flops per chip, HBM capacity, interconnect bandwidth. Note: FP8 is emulated on v4 and v5p but natively supported on Ironwood](https://hirono-wiki.litenext.digital/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-003.webp)
 
 The canonical cross-gen specs as Google publishes them. Mirror of the cross-gen table in [[2026-01-09-google-tpus-explained-architecture-perfo]] but from the primary source.
 
 **Figure 3 — TPU power efficiency vs v2** (load-bearing — the 30× perf/W trajectory)
 
-![Green bar chart showing TPU power efficiency improvement from v2 baseline through each generation to Ironwood, measured as peak FP8 flops delivered per watt of TDP per chip package](../../raw/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-004.webp)
+![Green bar chart showing TPU power efficiency improvement from v2 baseline through each generation to Ironwood, measured as peak FP8 flops delivered per watt of TDP per chip package](https://hirono-wiki.litenext.digital/raindrop/blog.google/2026-01-12-ironwood-the-first-google-tpu-for-the-ag/blog-google-img-004.webp)
 
 The "30× more efficient than v2" claim visualized. This is the chart that anchors Google's positioning that perf/W is widening the gap vs merchant-silicon GPUs.
 

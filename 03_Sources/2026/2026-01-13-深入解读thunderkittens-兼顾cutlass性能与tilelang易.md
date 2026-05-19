@@ -22,8 +22,8 @@ tags: [attention-kernels, gpu, tooling]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易/weixin-img-003.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-13-深入解读thunderkittens-兼顾cutlass性能与tilelang易/weixin-img-004.png)
 
 *Other images decorative — API screenshot redundant with body text.*
 

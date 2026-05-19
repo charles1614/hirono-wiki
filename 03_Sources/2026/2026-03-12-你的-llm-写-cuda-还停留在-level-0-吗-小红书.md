@@ -18,8 +18,8 @@ Summary of CUDA-L2 (arXiv:2512.02551), a paper proposing a leveled optimization 
 - The authors release code at `github.com/deepreinforce-ai/CUDA-L2`. — raw source
 
 ## Visual observations
-![69547a32000000001e013d94_01.jpg](../../raw/raindrop/xhslink.com/2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书/69547a32000000001e013d94_01.jpg)
-![69547a32000000001e013d94_02.jpg](../../raw/raindrop/xhslink.com/2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书/69547a32000000001e013d94_02.jpg)
+![69547a32000000001e013d94_01.jpg](https://hirono-wiki.litenext.digital/raindrop/xhslink.com/2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书/69547a32000000001e013d94_01.jpg)
+![69547a32000000001e013d94_02.jpg](https://hirono-wiki.litenext.digital/raindrop/xhslink.com/2026-03-12-你的-llm-写-cuda-还停留在-level-0-吗-小红书/69547a32000000001e013d94_02.jpg)
 
 ## What this changes
 Establishes that staged/leveled prompting for GPU kernel generation outperforms single-shot attempts — relevant to [[Kernel Authoring]] topic on LLM-assisted kernel writing.

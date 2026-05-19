@@ -24,10 +24,10 @@ tags: [gpu, accelerator-design, low-precision, training, inference]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-20-tensor-core-从-volta-到-blackwell-的进化/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-20-tensor-core-从-volta-到-blackwell-的进化/weixin-img-003.png)
 *Hopper CGA 分布式共享内存架构，展示线程块集群内 SM 间 DSMEM 直接访问。*
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-20-tensor-core-从-volta-到-blackwell-的进化/weixin-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-20-tensor-core-从-volta-到-blackwell-的进化/weixin-img-002.png)
 *Ampere 16×8×16 混合精度浮点 MMA 的线程与数据布局示意。*
 
 *Other images decorative — energy comparison diagrams, code flow charts.*

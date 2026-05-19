@@ -20,7 +20,7 @@ Elon Musk announced that Colossus 2, the xAI supercomputer powering Grok, went o
 
 ## Visual observations
 
-*![](../../raw/raindrop/x.com/2026-01-19-x-上的-elon-musk-the-colossus-2-supercompu/x-twitter-img-001.jpg)*
+*![](https://hirono-wiki.litenext.digital/raindrop/x.com/2026-01-19-x-上的-elon-musk-the-colossus-2-supercompu/x-twitter-img-001.jpg)*
 
 ## Entities touched
 

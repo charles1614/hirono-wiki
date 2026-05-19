@@ -24,10 +24,10 @@ DriveSplat (arxiv 2508.15376) from the Chinese Academy of Sciences achieves SOTA
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-005.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-006.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-009.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-010.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-006.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-009.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-超越omnire-中科院drivesplat-几何增强的神经高斯驾驶场景重建新s/weixin-img-010.png)
 
 *Other images decorative (promotional banners, community QR codes) or inline-described ablation tables.*
 

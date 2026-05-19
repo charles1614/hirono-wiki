@@ -25,9 +25,9 @@ Practical guide to PyTorch 2.1's enhanced CUDA memory snapshot API and the PyTor
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-11-12-pytorch显存可视化与snapshot数据分析/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-11-12-pytorch显存可视化与snapshot数据分析/weixin-img-003.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-11-12-pytorch显存可视化与snapshot数据分析/weixin-img-006.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-11-12-pytorch显存可视化与snapshot数据分析/weixin-img-006.png)
 
 *Other images decorative — API call screenshots, block/segment diagrams, stack trace examples.*
 

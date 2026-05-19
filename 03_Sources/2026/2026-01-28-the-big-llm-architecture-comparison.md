@@ -41,13 +41,13 @@ tags: [pretraining, survey]
 
 **Fig 2 — MHA vs GQA** (load-bearing schematic)
 
-![GQA groups 2 query heads per shared K/V pair; comparison to MHA where each head has its own K/V](../../raw/raindrop/magazine.sebastianraschka.com/2026-01-28-the-big-llm-architecture-comparison/substack-img-003.png)
+![GQA groups 2 query heads per shared K/V pair; comparison to MHA where each head has its own K/V](https://hirono-wiki.litenext.digital/raindrop/magazine.sebastianraschka.com/2026-01-28-the-big-llm-architecture-comparison/substack-img-003.png)
 
 Core reference diagram explaining GQA's group-sharing mechanism; GQA reduces K/V parameter count and KV-cache bandwidth, at modest quality cost relative to MHA.
 
 **Fig 3 — MLA vs MHA** (load-bearing schematic)
 
-![MLA compresses K/V into a low-dimensional latent before storing in the KV cache; MHA stores full K/V](../../raw/raindrop/magazine.sebastianraschka.com/2026-01-28-the-big-llm-architecture-comparison/substack-img-004.png)
+![MLA compresses K/V into a low-dimensional latent before storing in the KV cache; MHA stores full K/V](https://hirono-wiki.litenext.digital/raindrop/magazine.sebastianraschka.com/2026-01-28-the-big-llm-architecture-comparison/substack-img-004.png)
 
 Shows how MLA's low-rank compression differs structurally from both MHA and GQA; the extra matmul at decode is the cost of smaller cache footprint.
 

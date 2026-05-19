@@ -23,7 +23,7 @@ tags: [attention-kernels, gpu, inference, low-precision]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-09-从deepseek-v3-2-dsa算子看tilelang编译器的细节/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-09-从deepseek-v3-2-dsa算子看tilelang编译器的细节/weixin-img-001.png)
 *DeepSeek V3.2 DSA 架构图，展示 Lightning Indexer → Top-k Selector → Sparse MLA 三级流水线结构。*
 
 *Other images decorative — code screenshots.*

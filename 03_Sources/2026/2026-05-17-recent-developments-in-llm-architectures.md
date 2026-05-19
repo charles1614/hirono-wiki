@@ -25,23 +25,23 @@ Recent April–May 2026 open-weight releases ([[Gemma 4]], [[Laguna XS.2]], [[ZA
 
 ## Visual observations
 
-![](../../raw/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-001.png)
 
 *Figure 1 — side-by-side architecture diagrams of Gemma 4, Laguna XS.2, ZAYA1-8B, Qwen3.6, and DeepSeek V4-Pro, used as the article's map of which transformer-block components changed in each release.*
 
-![](../../raw/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-009.png)
+![](https://hirono-wiki.litenext.digital/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-009.png)
 
 *Figure 5 — KV cache memory savings from GQA + cross-layer KV sharing in a Gemma 4 E2B-like setup, showing the ~2.7 GB saving at 128K context.*
 
-![](../../raw/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-017.png)
+![](https://hirono-wiki.litenext.digital/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-017.png)
 
 *Figure 13 — MLA vs CCA side-by-side: MLA decompresses latent K/V before attention; CCA performs attention directly in the compressed latent space, then up-projects the output.*
 
-![](../../raw/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-024.png)
+![](https://hirono-wiki.litenext.digital/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-024.png)
 
 *Figure 20 — transformer block with hyper-connections (HC) vs manifold-constrained hyper-connections (mHC), showing the constrained Res/Pre/Post mappings between n=4 parallel residual streams.*
 
-![](../../raw/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-026.png)
+![](https://hirono-wiki.litenext.digital/raindrop/open.substack.com/2026-05-17-recent-developments-in-llm-architectures/substack-img-026.png)
 
 *Figure 21 — conceptual comparison of MLA per-token latent caching vs CSA (m=4, sparse top-k) vs HCA (m'=128, dense attention over heavily compressed entries).*
 

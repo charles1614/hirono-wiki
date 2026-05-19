@@ -25,9 +25,9 @@ David Patterson（Google DeepMind）与Xiaoyu Ma合著arXiv论文(2601.05047)的
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向/weixin-img-002.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向/weixin-img-010.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向/weixin-img-011.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向/weixin-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向/weixin-img-010.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-10-david-patterson-大语言模型推理硬件的挑战与研究方向/weixin-img-011.png)
 
 *Other images decorative — figures referenced inline with full captions in body text.*
 

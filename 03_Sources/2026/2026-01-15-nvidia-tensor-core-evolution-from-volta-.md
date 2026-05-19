@@ -24,9 +24,9 @@ SemiAnalysis（Dylan Patel）深度技术文章，系统梳理从 Volta 到 Blac
 
 ## Visual observations
 
-![](../../raw/raindrop/newsletter.semianalysis.com/2026-01-15-nvidia-tensor-core-evolution-from-volta-/substack-img-022.png)
-![](../../raw/raindrop/newsletter.semianalysis.com/2026-01-15-nvidia-tensor-core-evolution-from-volta-/substack-img-023.png)
-![](../../raw/raindrop/newsletter.semianalysis.com/2026-01-15-nvidia-tensor-core-evolution-from-volta-/substack-img-026.png)
+![](https://hirono-wiki.litenext.digital/raindrop/newsletter.semianalysis.com/2026-01-15-nvidia-tensor-core-evolution-from-volta-/substack-img-022.png)
+![](https://hirono-wiki.litenext.digital/raindrop/newsletter.semianalysis.com/2026-01-15-nvidia-tensor-core-evolution-from-volta-/substack-img-023.png)
+![](https://hirono-wiki.litenext.digital/raindrop/newsletter.semianalysis.com/2026-01-15-nvidia-tensor-core-evolution-from-volta-/substack-img-026.png)
 
 *Other images decorative — Amdahl's law diagrams, PTX machine model, per-generation data layout visualizations (content inline-described in body).*
 

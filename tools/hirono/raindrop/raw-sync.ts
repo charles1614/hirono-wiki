@@ -327,8 +327,10 @@ async function cmdVerifySourceRefs(): Promise<void> {
         await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
         ok++;
       } catch (err: unknown) {
-        const msg = (err as Error).message ?? String(err);
-        if (/NoSuchKey|NotFound|404/i.test(msg)) {
+        const e = err as { name?: string; message?: string; $response?: { statusCode?: number } };
+        const status = e?.$response?.statusCode;
+        const isMissing = status === 404 || /NoSuchKey|NotFound/i.test(e?.name ?? "") || /NoSuchKey|NotFound|404/i.test(e?.message ?? "");
+        if (isMissing) {
           missing++;
           console.error(`  [missing] ${file} → ${key}`);
         } else throw err;

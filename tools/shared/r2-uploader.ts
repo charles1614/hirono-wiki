@@ -56,6 +56,27 @@ function shouldSkipName(name: string): boolean {
   return false;
 }
 
+/**
+ * List files inside slugDir recursively. Returns slug-relative posix paths
+ * (forward slashes), suitable for use both as a local lookup key (with
+ * `join(slugDir, name)`) and as the R2 key suffix.
+ *
+ * Skips entries whose path component matches `shouldSkipName` at any depth.
+ */
+function listSlugFiles(slugDir: string, prefix = ""): string[] {
+  const out: string[] = [];
+  for (const n of readdirSync(slugDir)) {
+    if (shouldSkipName(n)) continue;
+    const full = join(slugDir, n);
+    let st;
+    try { st = statSync(full); } catch { continue; }
+    const rel = prefix ? `${prefix}/${n}` : n;
+    if (st.isDirectory()) out.push(...listSlugFiles(full, rel));
+    else if (st.isFile()) out.push(rel);
+  }
+  return out;
+}
+
 function sha256Hex(buf: Buffer): string {
   return createHash("sha256").update(buf).digest("hex");
 }
@@ -111,12 +132,11 @@ export async function uploadSlug(
     (prior?.files ?? []).map(f => [f.name, f]),
   );
 
-  const localNames = existsSync(slugDir)
-    ? readdirSync(slugDir).filter(n => !shouldSkipName(n)).filter(n => {
-        const st = statSync(join(slugDir, n));
-        return st.isFile();
-      })
-    : [];
+  // Walk slug dir recursively. Names are slug-relative posix paths (use /
+  // separators so the same string serves as both the file lookup and the
+  // R2 key suffix). Subdirs matter — Marker emits per-paper figures under
+  // <slug>-figures/, and ingest-side caches sit alongside.
+  const localNames = existsSync(slugDir) ? listSlugFiles(slugDir) : [];
 
   // Set of files we need to consider for delete: prior-uploaded files
   // + disposition entries for this slug.
@@ -156,9 +176,11 @@ export async function uploadSlug(
             Key: r2KeyFor(host, slug, name),
           }));
         } catch (err: unknown) {
-          const msg = (err as Error).message ?? String(err);
-          if (!/NoSuchKey|NotFound|404/i.test(msg)) {
-            result.errors.push({ file: name, message: msg });
+          const e = err as { name?: string; message?: string; $response?: { statusCode?: number } };
+          const status = e?.$response?.statusCode;
+          const isMissing = status === 404 || /NoSuchKey|NotFound/i.test(e?.name ?? "") || /NoSuchKey|NotFound|404/i.test(e?.message ?? "");
+          if (!isMissing) {
+            result.errors.push({ file: name, message: e?.message ?? String(err) });
             continue;
           }
         }

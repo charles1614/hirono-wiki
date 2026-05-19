@@ -41,13 +41,13 @@ HKUST + HIT paper (Wenlin Luo et al., arXiv:2402.13499, Feb 2024) — **instruct
 
 **Figure 1 — Hopper architecture overview** (load-bearing context)
 
-![Hopper SM-level architecture diagram showing the L1/Shared Memory hierarchy, the Tensor Memory Accelerator (TMA), distributed shared memory paths, and the L2/HBM tier — the visual context for everything the paper benchmarks](../../raw/raindrop/arxiv.org/2026-01-15-benchmarking-and-dissecting-the-nvidia-h/2026-01-15-benchmarking-and-dissecting-the-nvidia-h-figures/figure-001.png)
+![Hopper SM-level architecture diagram showing the L1/Shared Memory hierarchy, the Tensor Memory Accelerator (TMA), distributed shared memory paths, and the L2/HBM tier — the visual context for everything the paper benchmarks](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2026-01-15-benchmarking-and-dissecting-the-nvidia-h/2026-01-15-benchmarking-and-dissecting-the-nvidia-h-figures/figure-001.png)
 
 The schematic for the SM-level features the paper microbenchmarks — without it, claims like "TMA enables block-level async copy" and "DSM enables SM-to-SM atomics" stay abstract.
 
 **Figure 3 — Where FP8 te.Linear's time actually goes** (load-bearing for the TE-limitation findings)
 
-![Stacked bar chart showing proportion of execution time spent in different operators during FP8 matrix multiplication via te.Linear — exposes that data-format conversion + non-quantized auxiliary ops eat a non-trivial fraction of nominal FP8 speedup](../../raw/raindrop/arxiv.org/2026-01-15-benchmarking-and-dissecting-the-nvidia-h/2026-01-15-benchmarking-and-dissecting-the-nvidia-h-figures/figure-003.png)
+![Stacked bar chart showing proportion of execution time spent in different operators during FP8 matrix multiplication via te.Linear — exposes that data-format conversion + non-quantized auxiliary ops eat a non-trivial fraction of nominal FP8 speedup](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2026-01-15-benchmarking-and-dissecting-the-nvidia-h/2026-01-15-benchmarking-and-dissecting-the-nvidia-h-figures/figure-003.png)
 
 Concrete proof of the "FP8 LLM speedups are not the 2× peak rates suggest" claim. The Softmax/GeLU non-quantization + DotProductAttention-uses-FlashAttention finding has visible cost here.
 

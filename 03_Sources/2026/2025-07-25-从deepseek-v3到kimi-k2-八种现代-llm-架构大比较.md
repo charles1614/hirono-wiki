@@ -24,11 +24,11 @@ Sebastian Raschka 撰文，Datawhale 编译，系统对比 DeepSeek V3/R1、OLMo
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较/weixin-img-001.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较/weixin-img-003.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较/weixin-img-013.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-07-25-从deepseek-v3到kimi-k2-八种现代-llm-架构大比较/weixin-img-013.png)
 
 *Other images decorative — per-model architecture diagrams inline-captioned in raw body text.*
 

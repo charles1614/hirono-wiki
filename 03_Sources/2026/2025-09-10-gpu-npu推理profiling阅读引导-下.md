@@ -23,11 +23,11 @@ InfraTech系列文章下篇：介绍华为昇腾NPU配合Insight工具（类Nsig
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-10-gpu-npu推理profiling阅读引导-下/weixin-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-10-gpu-npu推理profiling阅读引导-下/weixin-img-005.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-10-gpu-npu推理profiling阅读引导-下/weixin-img-012.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-10-gpu-npu推理profiling阅读引导-下/weixin-img-012.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-10-gpu-npu推理profiling阅读引导-下/weixin-img-013.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-10-gpu-npu推理profiling阅读引导-下/weixin-img-013.png)
 
 *Other images decorative — logos, WeChat follow widgets.*
 

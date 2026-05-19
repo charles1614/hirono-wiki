@@ -25,7 +25,7 @@ tags: [inference, kv-cache, disaggregation, long-context]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-12-14-阿里云-tair-联手-sglang-共建-hicache-构建面向-智能体式推/weixin-img-008.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-12-14-阿里云-tair-联手-sglang-共建-hicache-构建面向-智能体式推/weixin-img-008.png)
 
 *Other images decorative or system architecture diagrams captured in body text above.*
 

@@ -24,9 +24,9 @@ ModelScope/SWIFT team explains the theory and implementation of combining [[Ulys
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-11-10-超长序列并行之ulysses-ring-attention技术原理与实现/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-11-10-超长序列并行之ulysses-ring-attention技术原理与实现/weixin-img-004.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-11-10-超长序列并行之ulysses-ring-attention技术原理与实现/weixin-img-008.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-11-10-超长序列并行之ulysses-ring-attention技术原理与实现/weixin-img-008.png)
 
 *Other images decorative — SVG math formulas rendered as diagrams, sequence diagrams, memory benchmark tables.*
 

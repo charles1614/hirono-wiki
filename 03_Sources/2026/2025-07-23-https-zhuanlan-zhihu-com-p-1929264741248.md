@@ -24,7 +24,7 @@ NVIDIA 加速计算专家马立伟撰文，详述如何将 Nsight Systems 集成
 
 ## Visual observations
 
-![](../../raw/raindrop/zhuanlan.zhihu.com/2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248/zhihu-img-001.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-07-23-https-zhuanlan-zhihu-com-p-1929264741248/zhihu-img-001.jpg)
 
 *Other images decorative — author avatar photo.*
 

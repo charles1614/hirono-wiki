@@ -24,9 +24,9 @@ A systematic TCO and architectural analysis (海外独角兽, author NCL) re-exa
 
 ## Visual observations
 
-*![](../../raw/raindrop/mp.weixin.qq.com/2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解/weixin-img-005.png)*
-*![](../../raw/raindrop/mp.weixin.qq.com/2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解/weixin-img-011.png)*
-*![](../../raw/raindrop/mp.weixin.qq.com/2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解/weixin-img-012.png)*
+*![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解/weixin-img-005.png)*
+*![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解/weixin-img-011.png)*
+*![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-15-tpu-vs-gpu-全面技术对比-谁拥有-ai-算力最优解/weixin-img-012.png)*
 *Other images decorative — article banner, source attribution screenshots, illustrative diagrams.*
 
 ## What this changes

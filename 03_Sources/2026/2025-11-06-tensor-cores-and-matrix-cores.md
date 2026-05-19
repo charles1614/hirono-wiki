@@ -25,7 +25,7 @@ Concise reference page by Glenn Klockwood comparing NVIDIA Tensor Cores and AMD 
 
 ## Visual observations
 
-![](../../raw/raindrop/www.glennklockwood.com/2025-11-06-tensor-cores-and-matrix-cores/default-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.glennklockwood.com/2025-11-06-tensor-cores-and-matrix-cores/default-img-001.png)
 
 *Shows NVIDIA Tensor Core geometry diagrams across generations.*
 

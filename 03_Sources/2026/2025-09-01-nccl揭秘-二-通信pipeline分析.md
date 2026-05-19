@@ -24,11 +24,11 @@ Deep technical walkthrough of NCCL's internal communication pipeline: algorithm/
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-001.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-002.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-005.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-013.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-016.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-013.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-01-nccl揭秘-二-通信pipeline分析/weixin-img-016.png)
 
 *Other images decorative — code screenshots already quoted inline in body text.*
 

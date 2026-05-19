@@ -25,9 +25,9 @@ DriveLaW (HUST & Xiaomi) proposes chaining a video generation model (DriveLaW-Vi
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-04-超越drivevla-w0-drivelaw-世界模型表征一统生成与规划-华科-/weixin-img-001.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-04-超越drivevla-w0-drivelaw-世界模型表征一统生成与规划-华科-/weixin-img-004.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-04-超越drivevla-w0-drivelaw-世界模型表征一统生成与规划-华科-/weixin-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-04-超越drivevla-w0-drivelaw-世界模型表征一统生成与规划-华科-/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-04-超越drivevla-w0-drivelaw-世界模型表征一统生成与规划-华科-/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-04-超越drivevla-w0-drivelaw-世界模型表征一统生成与规划-华科-/weixin-img-005.png)
 
 *Other images decorative — architecture diagrams and noise re-injection visualization (weixin-img-002, 003, 006–011) that are inline-described in body text.*
 

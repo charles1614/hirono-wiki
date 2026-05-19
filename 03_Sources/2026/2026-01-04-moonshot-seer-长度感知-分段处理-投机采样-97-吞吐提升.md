@@ -26,9 +26,9 @@ Seer (Moonshot AI + Tsinghua, arXiv:2511.14617) is a synchronous RL training sys
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升/weixin-img-001.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升/weixin-img-008.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升/weixin-img-009.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升/weixin-img-008.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-04-moonshot-seer-长度感知-分段处理-投机采样-97-吞吐提升/weixin-img-009.png)
 
 *Other images decorative — architecture block diagrams and scheduling flow charts (weixin-img-002–007, 010–011) fully described in body text.*
 

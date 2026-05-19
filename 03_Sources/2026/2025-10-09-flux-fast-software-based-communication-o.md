@@ -40,19 +40,19 @@ ByteDance + PKU paper (Li-Wen Chang et al., arXiv:2406.06858 v5 Oct 2024) on **h
 
 **Figure 1 — Non-overlapped communication portion in TP workloads** (load-bearing)
 
-![Bar chart showing % of total runtime spent on non-overlapped communication across multiple 128-GPU training and 8-GPU inference clusters — substantial fractions across A100/H800, PCIe/NVLink](../../raw/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-figures/marker-page-001-000.jpeg)
+![Bar chart showing % of total runtime spent on non-overlapped communication across multiple 128-GPU training and 8-GPU inference clusters — substantial fractions across A100/H800, PCIe/NVLink](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-figures/marker-page-001-000.jpeg)
 
 This is the "why bother" chart. Without it, the motivation is hand-wavy; with it, the size of the prize is concrete.
 
 **Figure 2 — MLP forward partitioning (AllGather + ReduceScatter)** (load-bearing)
 
-![Diagram of MLP forward across N devices: W1 sharded by rows + AllGather inputs; W2 sharded by columns + ReduceScatter outputs. Standard Megatron-LM partitioning with sharded activations](../../raw/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-figures/marker-page-002-000.jpeg)
+![Diagram of MLP forward across N devices: W1 sharded by rows + AllGather inputs; W2 sharded by columns + ReduceScatter outputs. Standard Megatron-LM partitioning with sharded activations](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-figures/marker-page-002-000.jpeg)
 
 Sets up the comm pattern Flux targets. Anyone implementing Flux needs to understand this shape.
 
 **Figure 4 — TransformerEngine sometimes slower than non-overlap PyTorch** (load-bearing)
 
-![Performance comparison from m=1024 to m=8192: TransformerEngine (prior overlap method) is faster at large m but slower than PyTorch non-overlap baseline at small m on 8-H800 NVLink](../../raw/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-figures/marker-page-004-000.jpeg)
+![Performance comparison from m=1024 to m=8192: TransformerEngine (prior overlap method) is faster at large m but slower than PyTorch non-overlap baseline at small m on 8-H800 NVLink](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-flux-fast-software-based-communication-o/2025-10-09-flux-fast-software-based-communication-o-figures/marker-page-004-000.jpeg)
 
 The "prior overlap can be negative" empirical proof — directly motivates the SM-underutilization argument and the need for kernel fusion vs kernel splitting.
 

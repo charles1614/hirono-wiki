@@ -25,9 +25,9 @@ NVIDIA、UCLA、Stanford合著CF-VLA（arXiv:2512.24426）：在[[NVIDIA Alpamay
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观/weixin-img-002.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观/weixin-img-003.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观/weixin-img-006.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观/weixin-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-07-英伟达alpamayo再进化-反事实推理vla-安全性能提升很可观/weixin-img-006.png)
 
 *Other images decorative — promotional materials, community QR codes, course ads.*
 

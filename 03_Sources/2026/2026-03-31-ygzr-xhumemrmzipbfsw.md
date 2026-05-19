@@ -36,7 +36,7 @@ The **August 2025 inflection** is the load-bearing observation — both projects
 
 **Daily-new-PR count chart, sglang + vLLM + combined** (`../../raw/raindrop/mp.weixin.qq.com/2026-03-31-ygzr-xhumemrmzipbfsw/weixin-img-002.png`)
 
-![Three-panel time-series chart: sglang (blue, 14-day MA + daily bars, Y range ~0-80, peak 91 on 2026-01-05), vLLM (orange, MA + bars, Y range ~0-120, peak 116 on 2026-03-10), and combined (green, MA + bars, Y range ~0-200, peak 193 on 2026-03-04) from 2025-04 to 2026-04 — Asia/Shanghai timezone, full days only](../../raw/raindrop/mp.weixin.qq.com/2026-03-31-ygzr-xhumemrmzipbfsw/weixin-img-002.png)
+![Three-panel time-series chart: sglang (blue, 14-day MA + daily bars, Y range ~0-80, peak 91 on 2026-01-05), vLLM (orange, MA + bars, Y range ~0-120, peak 116 on 2026-03-10), and combined (green, MA + bars, Y range ~0-200, peak 193 on 2026-03-04) from 2025-04 to 2026-04 — Asia/Shanghai timezone, full days only](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-03-31-ygzr-xhumemrmzipbfsw/weixin-img-002.png)
 
 The chart is the load-bearing artifact — the August 2025 inflection point and the peak-day annotations carry citation-grade information not easily reproduced from prose. Three-panel layout makes the per-project vs combined trends individually visible. *Other images decorative — Codex-prompt screenshot + 4 AI-coding meme illustrations.*
 

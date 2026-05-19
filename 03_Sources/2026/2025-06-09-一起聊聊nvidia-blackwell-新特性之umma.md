@@ -26,9 +26,9 @@ tags: [training, gpu, low-precision]
 
 ## Visual observations
 
-![TMEM二维地址布局（PTX文档）](../../raw/raindrop/mp.weixin.qq.com/2025-06-09-一起聊聊nvidia-blackwell-新特性之umma/weixin-img-002.png)
+![TMEM二维地址布局（PTX文档）](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-06-09-一起聊聊nvidia-blackwell-新特性之umma/weixin-img-002.png)
 
-![tcgen05.ld 32x32b数据加载模式图](../../raw/raindrop/mp.weixin.qq.com/2025-06-09-一起聊聊nvidia-blackwell-新特性之umma/weixin-img-003.png)
+![tcgen05.ld 32x32b数据加载模式图](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-06-09-一起聊聊nvidia-blackwell-新特性之umma/weixin-img-003.png)
 
 *Other images decorative — decorative banner and TMEM warp access pattern diagrams redundant with text description.*
 

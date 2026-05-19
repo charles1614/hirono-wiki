@@ -37,19 +37,19 @@ EAGLE-3 paper (Yuhui Li et al., PKU + MSR + Waterloo + Vector, arXiv:2503.01840 
 
 **Figure 1 — Scaling law on MT-bench (LLaMA-Instruct 3.1 8B target)** (load-bearing)
 
-![EAGLE-3 acceptance rate / speedup as a function of training data scale relative to ShareGPT — increasing curve for EAGLE-3, flat for EAGLE-2 and EAGLE. This is the scaling-law discovery in a single chart](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/marker-page-000-010.jpeg)
+![EAGLE-3 acceptance rate / speedup as a function of training data scale relative to ShareGPT — increasing curve for EAGLE-3, flat for EAGLE-2 and EAGLE. This is the scaling-law discovery in a single chart](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/marker-page-000-010.jpeg)
 
 The headline plot. Without this curve, "EAGLE-3 scales" is hand-waving; with it, the claim is concrete.
 
 **Figure 3 — Training-time test vs prior draft architectures** (load-bearing)
 
-![Three-panel diagram comparing EAGLE (feature prediction), feature-prediction-removed-but-no-train-time-test (middle), and EAGLE-3's training-time test (bottom). Feature flow with `f`, `t`, `a` symbols clearly distinguishing](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/marker-page-002-000.jpeg)
+![Three-panel diagram comparing EAGLE (feature prediction), feature-prediction-removed-but-no-train-time-test (middle), and EAGLE-3's training-time test (bottom). Feature flow with `f`, `t`, `a` symbols clearly distinguishing](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/marker-page-002-000.jpeg)
 
 The architectural diff vs EAGLE/EAGLE-2 — three panels showing why training-time test is necessary (without it, Step-2 acceptance rate tanks because draft input deviates from training distribution).
 
 **Figure 5 — EAGLE-3 inference pipeline (3 steps)** (load-bearing)
 
-![Three-step diagram of EAGLE-3 draft model: Step 1 uses target-model `g_how, g_can` + sampled `e_I`; Step 2 substitutes draft's own `a_I` for the unavailable `g_I`, paired with `e_do`; Step 3 does the same with `a_do, e_it`](../../raw/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/marker-page-003-004.jpeg)
+![Three-step diagram of EAGLE-3 draft model: Step 1 uses target-model `g_how, g_can` + sampled `e_I`; Step 2 substitutes draft's own `a_I` for the unavailable `g_I`, paired with `e_do`; Step 3 does the same with `a_do, e_it`](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-eagle-3-scalingupinference-acceleration-/2025-10-09-eagle-3-scalingupinference-acceleration--figures/marker-page-003-004.jpeg)
 
 The inference recipe in one picture. Anyone implementing EAGLE-3 reads this.
 

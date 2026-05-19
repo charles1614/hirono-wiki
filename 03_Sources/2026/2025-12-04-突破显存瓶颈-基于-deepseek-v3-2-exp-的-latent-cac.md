@@ -25,9 +25,9 @@ Baidu AIAK team proposes Expanded Sparse Server (ESS): a Latent Cache offload-pr
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac/weixin-img-007.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac/weixin-img-007.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac/weixin-img-014.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-12-04-突破显存瓶颈-基于-deepseek-v3-2-exp-的-latent-cac/weixin-img-014.png)
 
 *Other images decorative — throughput curves, Cache Miss statistics, overlap timeline comparisons.*
 

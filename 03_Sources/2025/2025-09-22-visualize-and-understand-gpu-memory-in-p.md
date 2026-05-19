@@ -35,13 +35,13 @@ HuggingFace tutorial (Quentin Gallouédec) on profiling and estimating GPU memor
 
 **Fig — Simple profiler output, annotated** (load-bearing)
 
-![Annotated memory profile for a single nn.Linear model showing 12 labeled events across 3 training loop iterations](../../raw/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-002.png)
+![Annotated memory profile for a single nn.Linear model showing 12 labeled events across 3 training loop iterations](https://hirono-wiki.litenext.digital/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-002.png)
 
 Step-by-step breakdown: model allocation at start, then per-iteration twin spikes (input + output tensors), demonstrating that prior-loop activations persist until overwritten in the next forward pass.
 
 **Fig — Colorized training profile for Qwen2.5-1.5B** (load-bearing)
 
-![Color-coded GPU memory profile for a real LLM training loop: blue parameters flat across all iterations, orange activations growing during forward, yellow gradients appearing during backward, green optimizer state initialized once, red optimizer intermediates during update step](../../raw/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-004.png)
+![Color-coded GPU memory profile for a real LLM training loop: blue parameters flat across all iterations, orange activations growing during forward, yellow gradients appearing during backward, green optimizer state initialized once, red optimizer intermediates during update step](https://hirono-wiki.litenext.digital/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-004.png)
 
 Five-zone colorization maps directly to the estimation formula components; three identical spikes confirm the per-iteration pattern.
 

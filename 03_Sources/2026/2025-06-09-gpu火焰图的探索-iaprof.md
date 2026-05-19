@@ -22,11 +22,11 @@ tags: [observability, gpu]
 
 ## Visual observations
 
-![AI Flame Graph分层示意](../../raw/raindrop/mp.weixin.qq.com/2025-06-09-gpu火焰图的探索-iaprof/weixin-img-001.png)
+![AI Flame Graph分层示意](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-06-09-gpu火焰图的探索-iaprof/weixin-img-001.png)
 
-![Flamescope热力图界面](../../raw/raindrop/mp.weixin.qq.com/2025-06-09-gpu火焰图的探索-iaprof/weixin-img-004.png)
+![Flamescope热力图界面](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-06-09-gpu火焰图的探索-iaprof/weixin-img-004.png)
 
-![CPU+GPU并列热力图（Doom GPU Flame Graph）](../../raw/raindrop/mp.weixin.qq.com/2025-06-09-gpu火焰图的探索-iaprof/weixin-img-008.png)
+![CPU+GPU并列热力图（Doom GPU Flame Graph）](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-06-09-gpu火焰图的探索-iaprof/weixin-img-008.png)
 
 *Other images decorative — duplicate diagrams, brand/tool screenshots with no additional data.*
 

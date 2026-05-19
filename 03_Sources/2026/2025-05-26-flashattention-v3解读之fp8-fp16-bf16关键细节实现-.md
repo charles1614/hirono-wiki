@@ -23,8 +23,8 @@ A detailed implementation walkthrough of [[FlashAttention-3]]'s FP8 vs FP16/BF16
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-05-26-flashattention-v3解读之fp8-fp16-bf16关键细节实现-/weixin-img-001.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-05-26-flashattention-v3解读之fp8-fp16-bf16关键细节实现-/weixin-img-007.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-05-26-flashattention-v3解读之fp8-fp16-bf16关键细节实现-/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-05-26-flashattention-v3解读之fp8-fp16-bf16关键细节实现-/weixin-img-007.png)
 
 ## Entities touched
 

@@ -23,9 +23,9 @@ An empirical study using strace (syscall trace) and blktrace (block-device trace
 
 ## Visual observations
 
-![](../../raw/raindrop/zhuanlan.zhihu.com/2025-09-08-llm-推理-训练-i-o-pattern初探/zhihu-img-001.jpg)
-![](../../raw/raindrop/zhuanlan.zhihu.com/2025-09-08-llm-推理-训练-i-o-pattern初探/zhihu-img-002.jpg)
-![](../../raw/raindrop/zhuanlan.zhihu.com/2025-09-08-llm-推理-训练-i-o-pattern初探/zhihu-img-004.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-09-08-llm-推理-训练-i-o-pattern初探/zhihu-img-001.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-09-08-llm-推理-训练-i-o-pattern初探/zhihu-img-002.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-09-08-llm-推理-训练-i-o-pattern初探/zhihu-img-004.jpg)
 
 *Other images: write and training I/O histograms — patterns described verbatim in body text above.*
 

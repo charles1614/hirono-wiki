@@ -25,13 +25,13 @@ Novita AI blog post (LMSYS Org, January 2026) describing four production-grade [
 
 **lmsys-img-003.png — Async Transfer schedule diagram** (load-bearing)
 
-![Async Transfer scheduling: stock implementation delays data transfer after kernel launch for the next batch; the fix advances transfer to immediately after its corresponding GPU ops, in a separate thread](../../raw/raindrop/lmsys.org/2026-01-26-optimizing-glm4-moe-for-production-65-fa/lmsys-img-003.png)
+![Async Transfer scheduling: stock implementation delays data transfer after kernel launch for the next batch; the fix advances transfer to immediately after its corresponding GPU ops, in a separate thread](https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2026-01-26-optimizing-glm4-moe-for-production-65-fa/lmsys-img-003.png)
 
 Spatial diagram showing the timing shift: the transferred step moves earlier in the timeline, freeing the main thread from blocking. Key to understanding why the 92-layer model incurred seconds of TTFT overhead without this fix.
 
 **lmsys-img-004.png — Async Transfer TTFT gains** (load-bearing)
 
-![Bar chart showing TTFT savings from Async Transfer at heavy workloads: up to ~1 second saved versus baseline](../../raw/raindrop/lmsys.org/2026-01-26-optimizing-glm4-moe-for-production-65-fa/lmsys-img-004.png)
+![Bar chart showing TTFT savings from Async Transfer at heavy workloads: up to ~1 second saved versus baseline](https://hirono-wiki.litenext.digital/raindrop/lmsys.org/2026-01-26-optimizing-glm4-moe-for-production-65-fa/lmsys-img-004.png)
 
 Quantifies the magnitude of the transfer scheduling fix — headline numbers in the benchmark section.
 

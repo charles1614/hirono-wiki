@@ -25,9 +25,9 @@ tags: [inference, post-training, production-deployment, announcement]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布/weixin-img-002.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布/weixin-img-004.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布/weixin-img-017.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布/weixin-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-14-理想同学mindgpt-4o-audio实时语音对话大模型发布/weixin-img-017.png)
 
 *Other images decorative — architecture diagrams partially duplicated with body text, benchmark bar charts inline-captioned in raw.*
 

@@ -22,7 +22,7 @@ Practical reference for the host/container responsibility split in GPU container
 
 ## Visual observations
 
-![flowchart-v2](../../raw/raindrop/mp.weixin.qq.com/2026-01-20-nvidia-gpu-容器环境-原理与构建指南/weixin-svg-001.svg)
+![flowchart-v2](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-20-nvidia-gpu-容器环境-原理与构建指南/weixin-svg-001.svg)
 
 *SVG flowchart showing the full runtime call chain from container startup through nvidia-container-runtime → nvidia-container-cli → device mount + library inject → libcuda.so → kernel driver → physical GPU.*
 

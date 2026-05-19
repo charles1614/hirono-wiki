@@ -22,10 +22,10 @@ A practical walkthrough for reading GPU profiling traces from LLM inference, usi
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-004.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-006.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-011.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-012.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-006.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-011.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-09-gpu-npu推理profiling阅读引导-上/weixin-img-012.png)
 
 *Other images decorative (header/footer, additional timeline crops inline-described in body).*
 

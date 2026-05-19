@@ -25,9 +25,9 @@ Google JAX team's chapter-length deep dive into NVIDIA GPU microarchitecture, me
 
 ## Visual observations
 
-![](../../raw/raindrop/jax-ml.github.io/2025-12-11-how-to-think-about-gpus-how-to-scale-you/default-img-001.png)
-![](../../raw/raindrop/jax-ml.github.io/2025-12-11-how-to-think-about-gpus-how-to-scale-you/default-img-006.png)
-![](../../raw/raindrop/jax-ml.github.io/2025-12-11-how-to-think-about-gpus-how-to-scale-you/default-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/jax-ml.github.io/2025-12-11-how-to-think-about-gpus-how-to-scale-you/default-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/jax-ml.github.io/2025-12-11-how-to-think-about-gpus-how-to-scale-you/default-img-006.png)
+![](https://hirono-wiki.litenext.digital/raindrop/jax-ml.github.io/2025-12-11-how-to-think-about-gpus-how-to-scale-you/default-img-004.png)
 
 *Other images redundant with tables and body text.*
 

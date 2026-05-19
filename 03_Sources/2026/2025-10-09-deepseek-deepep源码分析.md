@@ -23,8 +23,8 @@ A Chinese-language source-code walkthrough of [[DeepEP]] from DeepPrompting. Exp
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-deepep源码分析/weixin-img-001.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-deepep源码分析/weixin-img-009.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-deepep源码分析/weixin-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-deepep源码分析/weixin-img-009.png)
 
 *Other images decorative — buffer diagrams and Nsight traces described in body.*
 

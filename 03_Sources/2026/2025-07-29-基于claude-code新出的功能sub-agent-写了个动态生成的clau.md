@@ -23,7 +23,7 @@ Linux.do 社区帖子，作者 anyme 分享了一套基于 Claude Code sub-agent
 
 ## Visual observations
 
-![](../../raw/raindrop/linux.do/2025-07-29-基于claude-code新出的功能sub-agent-写了个动态生成的clau/linuxdo-img-001.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/linux.do/2025-07-29-基于claude-code新出的功能sub-agent-写了个动态生成的clau/linuxdo-img-001.jpg)
 
 *Other images decorative — screenshot of agent not appearing in /agents list.*
 

@@ -24,9 +24,9 @@ The fourth installment in Li Auto's autonomous driving series describes their st
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-理想汽车智驾方案介绍-4-world-model-强化学习重建自动驾驶交互环境/weixin-img-003.jpg)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-理想汽车智驾方案介绍-4-world-model-强化学习重建自动驾驶交互环境/weixin-img-005.jpg)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-04-理想汽车智驾方案介绍-4-world-model-强化学习重建自动驾驶交互环境/weixin-img-006.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-理想汽车智驾方案介绍-4-world-model-强化学习重建自动驾驶交互环境/weixin-img-003.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-理想汽车智驾方案介绍-4-world-model-强化学习重建自动驾驶交互环境/weixin-img-005.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-04-理想汽车智驾方案介绍-4-world-model-强化学习重建自动驾驶交互环境/weixin-img-006.jpg)
 
 *Other images decorative (series header, human-driving comparison chart inline-described in body).*
 

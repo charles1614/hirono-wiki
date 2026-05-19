@@ -34,19 +34,19 @@ NVIDIA paper (Tiyasa Mitra et al., arXiv:2506.05508, June 2025) — the **first 
 
 **Figure 1 — Throughput-interactivity Pareto frontier (DeepSeek-R1, left: prefill-heavy, right: gen-heavy)** (load-bearing)
 
-![Pareto frontier comparing disaggregated vs co-located serving for DeepSeek-R1 under two traffic patterns: prefill-heavy (left) shows disaggregation clearly wins; generation-heavy (right) shows piggybacked co-located is competitive](../../raw/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-figures/marker-page-001-000.jpeg)
+![Pareto frontier comparing disaggregated vs co-located serving for DeepSeek-R1 under two traffic patterns: prefill-heavy (left) shows disaggregation clearly wins; generation-heavy (right) shows piggybacked co-located is competitive](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-figures/marker-page-001-000.jpeg)
 
 This is the paper's headline visualization — disaggregation isn't a universal speedup; its value depends on where you are on the traffic and interactivity axes. Most other figures are slices/conditions of this surface.
 
 **Figure 6 — Disagg vs co-located across model architectures (DeepSeek-R1 vs Llama-3.1-70B, context-heavy)** (load-bearing)
 
-![Two side-by-side Pareto curves: DeepSeek-R1 and Llama-3.1-70B, each showing disaggregated (blue) vs co-located piggybacked (red dotted) vs non-piggybacked (red solid). Disagg wins are different across the two architectures at different interactivity targets](../../raw/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-figures/marker-page-004-007.jpeg)
+![Two side-by-side Pareto curves: DeepSeek-R1 and Llama-3.1-70B, each showing disaggregated (blue) vs co-located piggybacked (red dotted) vs non-piggybacked (red solid). Disagg wins are different across the two architectures at different interactivity targets](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-figures/marker-page-004-007.jpeg)
 
 Architecture sensitivity is non-trivial — the "where does disagg win" boundary moves with attention mechanism (MLA vs GQA) and model shape. Crystallizes the "no one-size-fits-all" claim.
 
 **Figure 10 — Performance degradation under fixed Ctx:Gen ratios** (load-bearing)
 
-![Pareto curves showing how a fixed 3.5 ratio is performant at relaxed latency but degrades as TTL tightens, conversely a fixed 0.5 ratio is performant at tight latency but tanks at relaxed targets. Dynamic rate matching dominates both](../../raw/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-figures/marker-page-006-005.jpeg)
+![Pareto curves showing how a fixed 3.5 ratio is performant at relaxed latency but degrades as TTL tightens, conversely a fixed 0.5 ratio is performant at tight latency but tanks at relaxed targets. Dynamic rate matching dominates both](https://hirono-wiki.litenext.digital/raindrop/arxiv.org/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe/2025-10-09-beyond-the-buzz-a-pragmatic-take-on-infe-figures/marker-page-006-005.jpeg)
 
 This is the system-design crystallization: a disaggregated deployment that *can't* dynamically adapt its Ctx:Gen GPU split is leaving substantial performance on the table. Direct implication: rate-matching must be a first-class control plane in production serving.
 

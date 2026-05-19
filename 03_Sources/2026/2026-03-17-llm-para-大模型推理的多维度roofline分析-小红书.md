@@ -23,7 +23,7 @@ Announcement post for LLM-Para, an open-source first-principles analytical model
 
 ## Visual observations
 
-![69b95b36000000002202af00_01.jpg](../../raw/raindrop/xhslink.com/2026-03-17-llm-para-大模型推理的多维度roofline分析-小红书/69b95b36000000002202af00_01.jpg)
+![69b95b36000000002202af00_01.jpg](https://hirono-wiki.litenext.digital/raindrop/xhslink.com/2026-03-17-llm-para-大模型推理的多维度roofline分析-小红书/69b95b36000000002202af00_01.jpg)
 
 ## Entities touched
 

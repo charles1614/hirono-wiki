@@ -22,9 +22,9 @@ tags: [training, inference, low-precision, quantization, gpu]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-08-28-深度解析-deepseek为什么要推ue8m0-fp8/weixin-img-009.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-08-28-深度解析-deepseek为什么要推ue8m0-fp8/weixin-img-009.png)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-08-28-深度解析-deepseek为什么要推ue8m0-fp8/weixin-img-015.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-08-28-深度解析-deepseek为什么要推ue8m0-fp8/weixin-img-015.png)
 
 *Other images decorative — FP format bit-layout diagrams, quantization flow charts captured in body text.*
 

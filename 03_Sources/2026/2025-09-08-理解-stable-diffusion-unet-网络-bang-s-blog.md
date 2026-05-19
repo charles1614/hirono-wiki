@@ -22,11 +22,11 @@ tags: [training, attention-kernels, minimal-impl]
 
 ## Visual observations
 
-![](../../raw/raindrop/blog.cnbang.net/2025-09-08-理解-stable-diffusion-unet-网络-bang-s-blog/default-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/blog.cnbang.net/2025-09-08-理解-stable-diffusion-unet-网络-bang-s-blog/default-img-002.png)
 
-![](../../raw/raindrop/blog.cnbang.net/2025-09-08-理解-stable-diffusion-unet-网络-bang-s-blog/default-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/blog.cnbang.net/2025-09-08-理解-stable-diffusion-unet-网络-bang-s-blog/default-img-003.png)
 
-![](../../raw/raindrop/blog.cnbang.net/2025-09-08-理解-stable-diffusion-unet-网络-bang-s-blog/default-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/blog.cnbang.net/2025-09-08-理解-stable-diffusion-unet-网络-bang-s-blog/default-img-005.png)
 
 *Other images decorative — original UNet architecture overview and full model schematic already captured above.*
 

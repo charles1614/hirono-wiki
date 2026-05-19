@@ -23,9 +23,9 @@ Tutorial by Quentin Gallouédec (HuggingFace) on using PyTorch's built-in GPU me
 
 ## Visual observations
 
-![Simple GPU memory profile annotated](../../raw/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-002.png)
+![Simple GPU memory profile annotated](https://hirono-wiki.litenext.digital/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-002.png)
 
-![Full LLM training loop memory profile colorized](../../raw/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-004.png)
+![Full LLM training loop memory profile colorized](https://hirono-wiki.litenext.digital/raindrop/huggingface.co/2025-09-22-visualize-and-understand-gpu-memory-in-p/huggingface-004.png)
 
 *Other images decorative — screenshots of the profiler UI and batch-size comparison plots.*
 

@@ -23,11 +23,11 @@ tags: [inference, observability, tooling, gpu]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针/weixin-img-008.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针/weixin-img-008.jpg)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针/weixin-img-020.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针/weixin-img-020.jpg)
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针/weixin-img-021.jpg)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-09-10-迈向可编程观测-在gpu-kernel中构建类ebpf风格的性能探针/weixin-img-021.jpg)
 
 *Other images decorative — promo banners, WeChat follow widgets.*
 

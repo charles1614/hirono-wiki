@@ -23,9 +23,9 @@ tags: [inference, training, gpu]
 
 ## Visual observations
 
-![](../../raw/raindrop/www.aleksagordic.com/2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo/aleksagordic-img-001.png)
-![](../../raw/raindrop/www.aleksagordic.com/2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo/aleksagordic-img-002.png)
-![](../../raw/raindrop/www.aleksagordic.com/2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo/aleksagordic-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.aleksagordic.com/2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo/aleksagordic-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.aleksagordic.com/2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo/aleksagordic-img-002.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.aleksagordic.com/2025-10-12-inside-nvidia-gpus-anatomy-of-high-perfo/aleksagordic-img-005.png)
 
 *Other images decorative — diagrams and derivations summarized in claims.*
 

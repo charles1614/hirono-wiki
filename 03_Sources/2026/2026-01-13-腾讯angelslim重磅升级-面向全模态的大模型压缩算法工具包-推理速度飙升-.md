@@ -23,8 +23,8 @@ tags: [inference, speculative-decoding, tooling, announcement]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-/weixin-img-003.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-/weixin-img-007.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2026-01-13-腾讯angelslim重磅升级-面向全模态的大模型压缩算法工具包-推理速度飙升-/weixin-img-007.png)
 
 *Other images decorative — GIFs and component diagrams redundant with body text.*
 

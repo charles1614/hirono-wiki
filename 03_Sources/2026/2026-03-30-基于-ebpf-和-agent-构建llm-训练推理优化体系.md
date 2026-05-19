@@ -20,11 +20,11 @@ Slide deck (43 slides) from a 2024 AiDD AI+研发数字峰会 presentation outli
 
 ## Visual observations
 
-![](../../raw/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-001.png)
-![](../../raw/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-005.png)
-![](../../raw/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-010.png)
-![](../../raw/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-020.png)
-![](../../raw/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-035.png)
+![](https://hirono-wiki.litenext.digital/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-010.png)
+![](https://hirono-wiki.litenext.digital/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-020.png)
+![](https://hirono-wiki.litenext.digital/raindrop/pdf.dfcfw.com/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系/2026-03-30-基于-ebpf-和-agent-构建llm-训练推理优化体系-slides/slide-035.png)
 
 *Other images decorative — remaining 38 slides are supporting diagrams for the same eBPF+Agent architecture presented in these key slides.*
 

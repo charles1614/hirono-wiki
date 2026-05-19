@@ -22,9 +22,9 @@ Meta researchers spent 400K GPU-hours on NVIDIA GB200s to derive a predictive fr
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law/weixin-img-003.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law/weixin-img-005.png)
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law/weixin-img-015.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law/weixin-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law/weixin-img-005.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-19-meta用40万个gpu小时做了一个实验-只为弄清强化学习scaling-law/weixin-img-015.png)
 
 *Other images decorative — experimental curves already described in body text.*
 

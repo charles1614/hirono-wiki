@@ -24,10 +24,10 @@ tags: [moe, parallelism, comm-overlap, gpu, training, inference]
 
 ## Visual observations
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-开源系列之-deepep-介绍/weixin-img-025.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-开源系列之-deepep-介绍/weixin-img-025.png)
 *图25：两个 Micro-Batch Overlap 方案——低时延 Kernel 借助 Receiving Hook 将 RDMA 传输异步执行在另一 Micro-Batch 计算期间，不占用 SM。*
 
-![](../../raw/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-开源系列之-deepep-介绍/weixin-img-020.png)
+![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-09-deepseek-开源系列之-deepep-介绍/weixin-img-020.png)
 *图20：H800 环境下高吞吐 Kernel 实测带宽，节点内外均接近物理极限。*
 
 *Other images decorative — bandwidth comparison charts, code screenshots, all-to-all diagrams.*

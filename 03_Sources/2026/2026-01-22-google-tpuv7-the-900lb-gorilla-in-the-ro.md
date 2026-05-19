@@ -32,19 +32,19 @@ SemiAnalysis (Dylan Patel et al.) — comprehensive analysis of Google's TPUv7 [
 
 **Fig — TPU FLOPs trajectory vs Nvidia flagships** (`../../raw/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-012.png`)
 
-![Bar chart showing TPU v4/v5 well below Nvidia flagships on peak FLOP/s, with TPUv6 Trillium nearly closing the gap to H100, and TPUv7 Ironwood nearly matching GB200 — gap narrows each generation](../../raw/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-012.png)
+![Bar chart showing TPU v4/v5 well below Nvidia flagships on peak FLOP/s, with TPUv6 Trillium nearly closing the gap to H100, and TPUv7 Ironwood nearly matching GB200 — gap narrows each generation](https://hirono-wiki.litenext.digital/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-012.png)
 
 Crystallizes the generational catch-up: TPU silicon conservatism through v5, then a clear design-philosophy shift at v6/v7 co-designed for LLM workloads. Direct evidence for the "microarchitecture gap nearly closed" claim.
 
 **Fig — Ironwood vs GB200/GB300 TCO comparison** (`../../raw/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-016.png`)
 
-![TCO waterfall chart showing all-in Ironwood cost ~44% lower than GB200 from Google's procurement perspective, with callouts for Broadcom margin, system BOM components](../../raw/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-016.png)
+![TCO waterfall chart showing all-in Ironwood cost ~44% lower than GB200 from Google's procurement perspective, with callouts for Broadcom margin, system BOM components](https://hirono-wiki.litenext.digital/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-016.png)
 
 Load-bearing: this is the economic thesis of the entire piece. The ~44% figure anchors every downstream Anthropic pricing and MFU breakeven calculation.
 
 **Fig — Anthropic GCP-rented TCO vs GB300** (`../../raw/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-020.png`)
 
-![MFU breakeven chart for Anthropic GCP rental; shows 19% extracted MFU as the breakeven point against GB300 at 30% MFU, with 40% MFU scenario yielding ~52% lower cost per effective PFLOP](../../raw/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-020.png)
+![MFU breakeven chart for Anthropic GCP rental; shows 19% extracted MFU as the breakeven point against GB300 at 30% MFU, with 40% MFU scenario yielding ~52% lower cost per effective PFLOP](https://hirono-wiki.litenext.digital/raindrop/newsletter.semianalysis.com/2026-01-22-google-tpuv7-the-900lb-gorilla-in-the-ro/substack-img-020.png)
 
 The key operator decision chart — quantifies how much MFU headroom Anthropic has before TPU economics invert.
 

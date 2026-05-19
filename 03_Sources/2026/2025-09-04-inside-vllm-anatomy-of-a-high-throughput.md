@@ -23,11 +23,11 @@ Aleksa Gordić提供 vLLM V1 引擎的深度逐层解剖，覆盖从 LLM Engine 
 
 ## Visual observations
 
-![](../../raw/raindrop/www.aleksagordic.com/2025-09-04-inside-vllm-anatomy-of-a-high-throughput/aleksagordic-img-001.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.aleksagordic.com/2025-09-04-inside-vllm-anatomy-of-a-high-throughput/aleksagordic-img-001.png)
 
-![](../../raw/raindrop/www.aleksagordic.com/2025-09-04-inside-vllm-anatomy-of-a-high-throughput/aleksagordic-img-004.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.aleksagordic.com/2025-09-04-inside-vllm-anatomy-of-a-high-throughput/aleksagordic-img-004.png)
 
-![](../../raw/raindrop/www.aleksagordic.com/2025-09-04-inside-vllm-anatomy-of-a-high-throughput/aleksagordic-img-003.png)
+![](https://hirono-wiki.litenext.digital/raindrop/www.aleksagordic.com/2025-09-04-inside-vllm-anatomy-of-a-high-throughput/aleksagordic-img-003.png)
 
 *Other images decorative — engine loop diagrams and additional feature schematics redundant with body text above.*
 

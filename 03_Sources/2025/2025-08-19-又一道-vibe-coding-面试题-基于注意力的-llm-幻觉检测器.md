@@ -25,21 +25,21 @@ tags: [evaluation, attention-kernels, minimal-impl]
 
 **Fig: 非幻觉场景 1 — system-prompt attention heatmap (left portion)**
 
-![非幻觉场景 1: 热力图左侧部分，system prompt 部分有明显的注意力峰值](../../raw/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-002.png)
+![非幻觉场景 1: 热力图左侧部分，system prompt 部分有明显的注意力峰值](https://hirono-wiki.litenext.digital/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-002.png)
 
 In the non-hallucination case, bright patches cluster in the system-prompt column when the model generates identity-card-style tokens — the spatial signature of grounded retrieval.
 
 **Fig: 幻觉场景 1 — system-prompt attention heatmap (left portion)**
 
-![幻觉场景 1: 热力图左侧部分，除了 system prompt 开头，注意力都很低](../../raw/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-004.png)
+![幻觉场景 1: 热力图左侧部分，除了 system prompt 开头，注意力都很低](https://hirono-wiki.litenext.digital/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-004.png)
 
 In the hallucination case, the system-prompt column is nearly dark throughout; attention instead concentrates on the user-query region.
 
 **Fig: 非幻觉 vs 幻觉 — per-token max-system-attention curves**
 
-![非幻觉场景 1: 每个生成 token 在 system prompt 区域的注意力曲线](../../raw/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-008.png)
+![非幻觉场景 1: 每个生成 token 在 system prompt 区域的注意力曲线](https://hirono-wiki.litenext.digital/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-008.png)
 
-![幻觉场景 1: 每个生成 token 在 system prompt 区域的注意力曲线](../../raw/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-009.png)
+![幻觉场景 1: 每个生成 token 在 system prompt 区域的注意力曲线](https://hirono-wiki.litenext.digital/raindrop/01.me/2025-08-19-又一道-vibe-coding-面试题-基于注意力的-llm-幻觉检测器/01-me-img-009.png)
 
 Line charts plotting per-generated-token max system-prompt attention with the 10% threshold (red dashed line). Non-hallucination tokens consistently clear the threshold; hallucination tokens stay below it. These two charts are the direct empirical validation of the decision rule.
 
