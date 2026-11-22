@@ -6,13 +6,14 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   DEEPWIKI_HOST as NEW,
-  DEEPWIKI_LEGACY_HOST as OLD,
+  DEEPWIKI_LEGACY_HOSTS,
   currentDeepwikiUrl,
   isDeepwikiLitenextUrl,
 } from "../shared/deepwiki-hosts.ts";
@@ -34,6 +35,7 @@ import { buildStatusRows } from "../hirono/raindrop/status.ts";
 import { routeSite } from "../sites/index.ts";
 import { testHooks } from "../sites/deepwiki-litenext/test-hooks.ts";
 
+const OLD = DEEPWIKI_LEGACY_HOSTS[0];
 const SLUG = "2026-01-20-deepwiki-jax";
 const PATH = "/wiki/jax?file=01-overview";
 const oldUrl = `https://${OLD}${PATH}`;
@@ -189,4 +191,32 @@ test("deepwiki host: no fetch path sends a request to the legacy host", () => {
       assert.ok(call.includes(newUrl), call);
     }
   });
+});
+
+test("deepwiki host: every legacy domain still resolves, not only the newest", () => {
+  for (const host of DEEPWIKI_LEGACY_HOSTS) {
+    assert.equal(currentDeepwikiUrl(`https://${host}${PATH}`), newUrl, host);
+    withTemp((dir) => {
+      const slugDir = join(dir, "raindrop", host, SLUG);
+      mkdirSync(slugDir, { recursive: true });
+      assert.equal(rawDirFor(SLUG, newUrl, dir), slugDir);
+    });
+  }
+});
+
+test("deepwiki host: the domain is written only in site.json", () => {
+  const tools = fileURLToPath(new URL("..", import.meta.url));
+  const site = JSON.parse(readFileSync(join(tools, "shared", "site.json"), "utf8"));
+  const domains: string[] = [site.baseDomain, ...site.legacyBaseDomains];
+  const offenders: string[] = [];
+  const walk = (dir: string): void => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === "node_modules" || e.name === "__tests__") continue;
+      const path = join(dir, e.name);
+      if (e.isDirectory()) walk(path);
+      else if (e.name.endsWith(".ts") && domains.some((d) => readFileSync(path, "utf8").includes(d))) offenders.push(path);
+    }
+  };
+  walk(tools);
+  assert.deepEqual(offenders, []);
 });

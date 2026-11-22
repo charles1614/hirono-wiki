@@ -229,6 +229,7 @@ just incidental similarity.
 **When a site changes host** (example: `tools/shared/deepwiki-hosts.ts`),
 changing `match` is not enough:
 
+- for DeepWiki, edit only `tools/shared/site.json` (never write the domain in code);
 - keep matching the legacy host, and rewrite it before every network call;
 - map it in `normalizeUrl`, and in readers of already-built index keys;
 - leave `raw/raindrop/<old-host>/` in place, because it is also the R2 key;

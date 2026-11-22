@@ -6,7 +6,7 @@
 import type { SiteTestHooks, InputDoc, CaptureResult } from "../_shared/test-hooks-types.ts";
 import { convertDeepwikiLitenextHtml } from "./converter.ts";
 import { extractDeepwikiLitenextContent } from "./fetcher.ts";
-import { currentDeepwikiUrl, DEEPWIKI_HOST, DEEPWIKI_LEGACY_HOST } from "../../shared/deepwiki-hosts.ts";
+import { currentDeepwikiUrl, DEEPWIKI_HOST, DEEPWIKI_LEGACY_HOSTS } from "../../shared/deepwiki-hosts.ts";
 
 function runFromFixture(input: InputDoc): { markdown: string; rest: Record<string, unknown> } {
   if (input.fn !== "convertDeepwikiLitenextHtml") {
@@ -44,7 +44,7 @@ function capture(inputUrl: string): CaptureResult {
 export const testHooks: SiteTestHooks = {
   name: "deepwiki-litenext",
   converterName: "convertDeepwikiLitenextHtml",
-  snapshotHosts: [DEEPWIKI_HOST, DEEPWIKI_LEGACY_HOST],
+  snapshotHosts: [DEEPWIKI_HOST, ...DEEPWIKI_LEGACY_HOSTS],
   runFromFixture,
   capture,
 };

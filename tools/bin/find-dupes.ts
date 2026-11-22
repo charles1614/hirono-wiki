@@ -3,7 +3,7 @@
 // Heuristics:
 //   1. Same normalized title (case-insensitive, trimmed) across different URLs
 //   2. xhslink + xiaohongshu pairs that share a normalized title
-//   3. Same wiki path on deepwiki.com + wiki.litenext.space (or its legacy host)
+//   3. Same wiki path on deepwiki.com + the self-hosted DeepWiki (or a legacy host of it)
 //   4. Same path on multiple feishu host mirrors
 //
 // Usage: npx tsx tools/find-dupes.ts

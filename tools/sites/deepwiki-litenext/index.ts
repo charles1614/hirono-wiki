@@ -1,5 +1,5 @@
 /**
- * wiki.litenext.space — a self-hosted deployment of DeepWiki software.
+ * wiki.<baseDomain> — a self-hosted deployment of DeepWiki software.
  * URLs on its legacy host are still claimed, and fetched from the current
  * host; see `tools/shared/deepwiki-hosts.ts`.
  *

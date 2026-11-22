@@ -45,7 +45,7 @@ import { applyPostCleanups } from "./sites/_shared/post-cleanup.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
 import { unwrapShareUrl } from "./sites/_shared/url-unwrap.ts";
 import { normalizeUrl } from "./bin/build-sources-index.ts";
-import { currentDeepwikiUrl, DEEPWIKI_LEGACY_HOST, isDeepwikiLitenextUrl } from "./shared/deepwiki-hosts.ts";
+import { currentDeepwikiUrl, DEEPWIKI_LEGACY_HOSTS, isDeepwikiLitenextUrl } from "./shared/deepwiki-hosts.ts";
 import { classifyFromInput } from "./hirono/raindrop/failure-kind.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -498,14 +498,12 @@ export function rawDirFor(slug: string, originUrl: string, rawRoot: string = RAW
 
 /**
  * The `<hostname>` component of `rawDirFor`. A DeepWiki slug archived under
- * the legacy host keeps that directory, which is also its R2 key prefix.
+ * a legacy host keeps that directory, which is also its R2 key prefix.
  */
 export function rawHostFor(slug: string, originUrl: string, rawRoot: string = RAW_DIR): string {
-  if (
-    isDeepwikiLitenextUrl(originUrl) &&
-    existsSync(join(rawRoot, "raindrop", DEEPWIKI_LEGACY_HOST, slug))
-  ) {
-    return DEEPWIKI_LEGACY_HOST;
+  if (isDeepwikiLitenextUrl(originUrl)) {
+    const archived = DEEPWIKI_LEGACY_HOSTS.find((h) => existsSync(join(rawRoot, "raindrop", h, slug)));
+    if (archived) return archived;
   }
   return hostnameOf(currentDeepwikiUrl(originUrl)) || "_unknown";
 }
