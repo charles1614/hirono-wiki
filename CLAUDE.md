@@ -207,7 +207,7 @@ Before committing post-processor/adapter changes, re-export and check.
 | `github.com/pytorch/torchtitan` | README raw fetch, ≥18 fences, 8 local badge images | good ~11KB |
 | `github.com/pytorch/pytorch/releases/tag/v2.5.0` | Release API, ≥18 fences, ≥10 table rows | good ~91KB |
 | `github.com/ggml-org/llama.cpp/discussions/5138` | 24 speakers (7 top + 17 replied) | good ~9KB |
-| `wiki.litenext.space/wiki/slime?file=02-distributed-orchestration` | 9 mermaid blocks, 0 orphan labels | good ~29KB |
+| `wiki.litenext.space/wiki/slime?file=02-distributed-orchestration` | 10 mermaid blocks, 0 orphan labels | good ~29KB |
 | `mp.weixin.qq.com/s/PcyKi5q8zT-tJ_9rzgKSqg` (Anthropic Skills) | 30 fences, 0 doubled markers, YAML intact | good ~6KB |
 | `mp.weixin.qq.com/s/FcK3QmzudPZzqsz85odFlQ` (GPU container) | 14 fences, 21 table rows, 1 SVG preserved | good ~6KB + 20KB SVG |
 | `mp.weixin.qq.com/s/44_UrbaQu2U1EAB9OrGNxQ` (Xiaomi interview) | 15 images, `**作者丨何煦阳**` merged | good ~12KB |

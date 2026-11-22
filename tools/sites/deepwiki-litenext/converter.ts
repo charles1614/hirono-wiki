@@ -9,7 +9,8 @@
  *   1. Parse with jsdom.
  *   2. Walk decorative SVGs (heading-anchor copy buttons, etc.) and remove
  *      them. Mermaid SVGs are removed too — we substitute mermaid sources
- *      from the fetcher.
+ *      from the fetcher. Drop `#` heading permalinks and put back the colon
+ *      the site's renderer takes out of `path:lines` code references.
  *   3. Replace `.mermaid` divs and `<svg id="mermaid-*">` placeholders with
  *      sentinel `<pre data-mermaid-idx="N">…</pre>` blocks, in document
  *      order. Turndown emits these as ` ```mermaid …``` ` via a custom rule.
@@ -92,6 +93,20 @@ export function convertDeepwikiLitenextHtml(
   // header — they include an inline SVG and would noise up the output).
   for (const btn of Array.from(root.querySelectorAll("button"))) {
     btn.remove();
+  }
+
+  // H2–H4 end in `<a class="heading-anchor" href="#slug">#</a>`.
+  for (const anchor of Array.from(root.querySelectorAll("a.heading-anchor"))) {
+    anchor.remove();
+  }
+
+  // The renderer splits a code span like `dir/file.py:20-38` at the colon and
+  // drops it: `dir/<wbr>file.py<span class="code-path-lines">20-38</span>`.
+  // References without a `/` (`README.md:70-71`) are left whole by the site,
+  // so only the span form needs the colon back.
+  for (const lines of Array.from(root.querySelectorAll("code.code-path .code-path-lines"))) {
+    const path = lines.previousSibling?.textContent ?? "";
+    if (!path.endsWith(":") && !lines.textContent?.startsWith(":")) lines.before(":");
   }
 
   // 1. Replace `.mermaid` (litenext) divs and `<svg id="mermaid-*">` placeholders
