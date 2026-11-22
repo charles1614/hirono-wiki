@@ -54,7 +54,7 @@ export function extractDeepwikiLitenextContent(url: string): DeepwikiLitenextCon
       const h1 = prose ? prose.querySelector("h1") : null;
       const title = (h1 ? (h1.textContent || "").trim() : "") || rawTitle;
 
-      // Strategy 1: data-original-text attribute (wiki.litenext.space)
+      // Strategy 1: data-original-text attribute (self-hosted DeepWiki)
       const fromAttr = Array.from(document.querySelectorAll(".mermaid[data-original-text]"))
         .map(el => el.getAttribute("data-original-text"))
         .filter(s => typeof s === "string" && s.length > 0);
