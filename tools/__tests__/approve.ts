@@ -36,6 +36,7 @@ import { stdin, stdout } from "node:process";
 
 import { findHooksByName } from "../sites/test-hooks-registry.ts";
 import { validateStructure, formatViolations } from "./structural-rules.ts";
+import { currentDeepwikiUrl } from "../shared/deepwiki-hosts.ts";
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const FIXTURES_ROOT = join(REPO_ROOT, "tools", "__tests__", "fixtures", "converters");
@@ -74,7 +75,7 @@ function parseArgs(): Args {
   return {
     site,
     name,
-    url,
+    url: currentDeepwikiUrl(url),
     slug: get("--slug") ?? `${site}-${name}`,
     noSnapshot: has("--no-snapshot"),
     noFixture: has("--no-fixture"),

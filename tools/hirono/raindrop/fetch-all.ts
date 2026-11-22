@@ -26,6 +26,7 @@ import { readFileSync, existsSync, appendFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fetchUrlAndStore, listRawSlugs, cleanRawResidue } from "../../fetch-raw.ts";
+import { currentDeepwikiUrl } from "../../shared/deepwiki-hosts.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
 import type { Cache, CachedBookmark } from "./check.ts";
@@ -137,8 +138,8 @@ export function buildPlan(cache: Cache, opts: FetchAllOpts = {}): PlanItem[] {
   const plan: PlanItem[] = [];
 
   for (const [normUrl, b] of byUrl) {
-    const host = hostOf(b.link);
-    if (opts.onlyHost && host !== opts.onlyHost.replace(/^www\./, "").toLowerCase()) {
+    const host = hostOf(currentDeepwikiUrl(b.link));
+    if (opts.onlyHost && host !== hostOf(currentDeepwikiUrl(`https://${opts.onlyHost}`))) {
       continue;
     }
 

@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/jax?file=01-overview
+source_url: https://wiki.litenext.space/wiki/jax?file=01-overview
 tags: [training, tooling]
 ---
 
@@ -34,4 +34,4 @@ A DeepWiki survey of the JAX Python library for accelerator-oriented array compu
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/jax?file=01-overview](https://wiki.litenext.digital/wiki/jax?file=01-overview) — DeepWiki auto-generated reference doc for JAX; captured 2026-01-20. Read 2026-05-15.
+[wiki.litenext.space/wiki/jax?file=01-overview](https://wiki.litenext.space/wiki/jax?file=01-overview) — DeepWiki auto-generated reference doc for JAX; captured 2026-01-20. Read 2026-05-15.

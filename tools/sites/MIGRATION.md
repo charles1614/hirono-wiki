@@ -21,7 +21,7 @@ Driven by `hirono raindrop check` — the bookmark count for the host is the pay
 - **3–10 bookmarks** — case-by-case. Migrate if the legacy output has known defects; otherwise leave on `web-read` fallback.
 - **≤2 bookmarks** — long-tail. Don't migrate; let `web-read` handle it.
 
-If the host shares a content engine with an already-migrated host (e.g. `wiki.litenext.digital` and `deepwiki.com` are the same DeepWiki page generator), migrate them together as one module.
+If the host shares a content engine with an already-migrated host (e.g. `wiki.litenext.space` and `deepwiki.com` are the same DeepWiki page generator), migrate them together as one module.
 
 ## 1. Pick the source-of-truth (this decision sets the ceiling on quality)
 
@@ -46,7 +46,7 @@ The module name is the **most-recognizable identifier for the engine**, not nece
   - `tools/sites/weixin/` covers `mp.weixin.qq.com` only — one engine, one host, but named after the engine because the hostname is awkward.
 
 - **Same software, INDEPENDENT operators → SEPARATE modules**, even if the converter logic looks similar. The two modules may diverge as the operators customize the engine.
-  - `tools/sites/deepwiki-com/` (operator: deepwiki.com) and `tools/sites/deepwiki-litenext/` (operator: wiki.litenext.digital) — both run DeepWiki the software, but the operators are independent and ship their own forks.
+  - `tools/sites/deepwiki-com/` (operator: deepwiki.com) and `tools/sites/deepwiki-litenext/` (operator: wiki.litenext.space) — both run DeepWiki the software, but the operators are independent and ship their own forks.
 
 When in doubt: if you'd put `host === "X"` and `host === "Y"` in one `match()` predicate AND the converter doesn't branch on the host, it's one module. If the converter branches on host or the operators are unrelated entities, it's two modules.
 
@@ -197,14 +197,14 @@ different uptime, different failure modes, possibly diverging markup
 over time, possibly the same software / engine but no operational
 relationship), register them as **fully separate sites with their own
 copies of `converter.ts` + `fetcher.ts`**. No shared code. Example:
-`wiki.litenext.digital` (a self-hosted deployment) and `deepwiki.com`
+`wiki.litenext.space` (a self-hosted deployment) and `deepwiki.com`
 (Devin's hosted service) both happen to run DeepWiki software, but
 they have no operational relationship — so the layout is:
 
 ```
 tools/sites/
 ├── deepwiki-litenext/
-│   ├── index.ts            ← name: "deepwiki-litenext", match: wiki.litenext.digital only
+│   ├── index.ts            ← name: "deepwiki-litenext", match: wiki.litenext.space + its legacy host
 │   ├── fetcher.ts          ← extractDeepwikiLitenextContent
 │   └── converter.ts        ← convertDeepwikiLitenextHtml
 └── deepwiki-com/
@@ -225,6 +225,17 @@ divergence painful. Treat any temptation to extract a `_shared/` engine
 as a yellow flag — only do it when you know the two callers have a
 contractual relationship (same vendor, documented compatibility), not
 just incidental similarity.
+
+**When a site changes host** (example: `tools/shared/deepwiki-hosts.ts`),
+changing `match` is not enough:
+
+- keep matching the legacy host, and rewrite it before every network call;
+- map it in `normalizeUrl`, and in readers of already-built index keys;
+- leave `raw/raindrop/<old-host>/` in place, because it is also the R2 key;
+- leave captured fixtures and snapshots as captured, and list both hosts in
+  `snapshotHosts`;
+- rename the `opencli/host-counts.json` key, so the watchdog does not report
+  the site as a brand-new host.
 
 If your site isn't in the test-hooks registry yet, write `tools/sites/<X>/test-hooks.ts` (see existing examples like `tools/sites/substack/test-hooks.ts`) and import it from `tools/sites/test-hooks-registry.ts`. The coverage-gate test will then enforce that `<X>` has ≥1 fixture + ≥1 snapshot. Use `approve.ts` to capture both atomically.
 

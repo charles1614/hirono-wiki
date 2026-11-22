@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/megatron-lm?file=08-context-parallelism
+source_url: https://wiki.litenext.space/wiki/megatron-lm?file=08-context-parallelism
 tags: [training, parallelism, long-context, gpu]
 ---
 
@@ -34,4 +34,4 @@ DeepWiki reference for Context Parallelism (CP) in [[Megatron-LM]], which splits
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/megatron-lm](https://wiki.litenext.digital/wiki/megatron-lm?file=08-context-parallelism) — DeepWiki auto-generated Megatron-LM doc; source commit dd7c9f4f6; generated December 29, 2025. Read 2026-05-15.
+[wiki.litenext.space/wiki/megatron-lm](https://wiki.litenext.space/wiki/megatron-lm?file=08-context-parallelism) — DeepWiki auto-generated Megatron-LM doc; source commit dd7c9f4f6; generated December 29, 2025. Read 2026-05-15.

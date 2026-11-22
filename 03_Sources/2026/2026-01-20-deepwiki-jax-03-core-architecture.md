@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/jax?file=03-core-architecture
+source_url: https://wiki.litenext.space/wiki/jax?file=03-core-architecture
 tags: [training, tooling]
 ---
 
@@ -34,4 +34,4 @@ Deep-dive into JAX's six-layer architecture: User API → Transformation → Tra
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/jax?file=03-core-architecture](https://wiki.litenext.digital/wiki/jax?file=03-core-architecture) — DeepWiki auto-generated architecture reference for JAX; captured 2026-01-20. Read 2026-05-15.
+[wiki.litenext.space/wiki/jax?file=03-core-architecture](https://wiki.litenext.space/wiki/jax?file=03-core-architecture) — DeepWiki auto-generated architecture reference for JAX; captured 2026-01-20. Read 2026-05-15.

@@ -26,6 +26,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { appendLogEntry } from "../../curation.ts";
 import { deleteSource } from "../delete-source.ts";
+import { currentDeepwikiUrl } from "../../shared/deepwiki-hosts.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT_DEFAULT = resolve(dirname(THIS_FILE), "..", "..", "..");
@@ -172,7 +173,8 @@ export function forget(
 
   if (isUrl(target)) {
     url = target;
-    const match = rawSlugs.find(r => r.url?.toLowerCase() === target.toLowerCase());
+    const key = (u: string) => currentDeepwikiUrl(u).toLowerCase();
+    const match = rawSlugs.find(r => r.url && key(r.url) === key(target));
     if (match) slug = match.slug;
   } else {
     slug = target;

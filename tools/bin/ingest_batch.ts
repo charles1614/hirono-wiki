@@ -54,6 +54,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { currentDeepwikiUrl } from "../shared/deepwiki-hosts.ts";
 import { normalizeUrl, readSourceIndexStrict, type SourceIndex } from "./build-sources-index.ts";
 import { writeFileAtomic } from "../shared/atomic-write.ts";
 import { unwrapShareUrl } from "../sites/_shared/url-unwrap.ts";
@@ -240,7 +241,7 @@ export function cmdPlan(
 
   const state = loadState(paths.state);
   const sourcesIndex = loadSourcesIndex(paths.sourcesIndex);
-  const existingUrls = new Set(Object.keys(sourcesIndex));
+  const existingUrls = new Set(Object.keys(sourcesIndex).map(currentDeepwikiUrl));
   const existingIds = new Set(Object.keys(state.entries));
 
   // Quality gate: load `raw/raindrop/_index.json` once. When the

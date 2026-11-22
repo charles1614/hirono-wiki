@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/simai
+source_url: https://wiki.litenext.space/wiki/simai
 tags: [training, inference, observability, tooling]
 ---
 
@@ -41,4 +41,4 @@ Provides a structured index into SimAI's architecture for researchers studying L
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/simai](https://wiki.litenext.digital/wiki/simai) — DeepWiki auto-generated documentation for aliyun/SimAI, indexed 2026-01-04. Read 2026-05-15.
+[wiki.litenext.space/wiki/simai](https://wiki.litenext.space/wiki/simai) — DeepWiki auto-generated documentation for aliyun/SimAI, indexed 2026-01-04. Read 2026-05-15.

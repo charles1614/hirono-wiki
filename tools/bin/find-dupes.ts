@@ -3,7 +3,7 @@
 // Heuristics:
 //   1. Same normalized title (case-insensitive, trimmed) across different URLs
 //   2. xhslink + xiaohongshu pairs that share a normalized title
-//   3. Same wiki path on deepwiki.com + wiki.litenext.digital
+//   3. Same wiki path on deepwiki.com + wiki.litenext.space (or its legacy host)
 //   4. Same path on multiple feishu host mirrors
 //
 // Usage: npx tsx tools/find-dupes.ts
@@ -11,6 +11,7 @@
 // pick which to delete.
 
 import { readFileSync } from "node:fs";
+import { DEEPWIKI_HOST, isDeepwikiLitenextUrl } from "../shared/deepwiki-hosts.ts";
 
 interface Bookmark { bookmark_id: number; title: string; link: string; created?: string }
 interface Cache { bookmarks: Bookmark[] }
@@ -60,12 +61,12 @@ if (titleDupes.length === 0) {
   if (titleDupes.length > 50) console.log(`_(+${titleDupes.length - 50} more groups)_\n`);
 }
 
-// 2. deepwiki.com + wiki.litenext.digital path overlap
+// 2. deepwiki.com + self-hosted DeepWiki path overlap
 const byDeepwikiPath = new Map<string, Bookmark[]>();
 for (const b of cache.bookmarks) {
   const h = host(b.link);
   const p = path(b.link).replace(/^\/wiki\//, "/").toLowerCase();
-  if (h === "deepwiki.com" || h === "wiki.litenext.digital") {
+  if (h === "deepwiki.com" || isDeepwikiLitenextUrl(b.link)) {
     const key = p.split("?")[0].split("#")[0];
     if (!key || key === "/") continue;
     const list = byDeepwikiPath.get(key) ?? [];
@@ -74,7 +75,7 @@ for (const b of cache.bookmarks) {
   }
 }
 const deepwikiDupes = [...byDeepwikiPath.entries()].filter(([_, arr]) => arr.length > 1);
-console.log(`## 2. Same path on deepwiki.com vs wiki.litenext.digital (${deepwikiDupes.length} groups)\n`);
+console.log(`## 2. Same path on deepwiki.com vs ${DEEPWIKI_HOST} (${deepwikiDupes.length} groups)\n`);
 if (deepwikiDupes.length === 0) console.log(`_None — different paths or only one host has each._\n`);
 else {
   for (const [p, arr] of deepwikiDupes) {

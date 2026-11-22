@@ -35,7 +35,7 @@ import {
   findRawDir,
   reclassifyRawSlug,
   writeRawArchive,
-  hostnameOf,
+  rawHostFor,
 } from "./fetch-raw.ts";
 import { normalizeUrl } from "./bin/build-sources-index.ts";
 
@@ -114,7 +114,7 @@ export function cmdStore(positional: string[], args: string[]): void {
     downloadImages,
     force,
   });
-  console.log(`[store] raw/raindrop/${hostnameOf(src.origin_url)}/${slug}/ (${src.content_length} chars, ${src.images.length} images, flags=${src.quality_flags.join(",") || "none"})`);
+  console.log(`[store] raw/raindrop/${rawHostFor(slug, src.origin_url)}/${slug}/ (${src.content_length} chars, ${src.images.length} images, flags=${src.quality_flags.join(",") || "none"})`);
 }
 
 export function cmdFetchLark(positional: string[], args: string[]): void {
@@ -137,7 +137,7 @@ export function cmdFetchLark(positional: string[], args: string[]): void {
     downloadImages,
     force,
   });
-  console.log(`[fetch-lark] raw/raindrop/${hostnameOf(src.origin_url)}/${slug}/ (${src.content_length} chars, ${src.images.length} images)`);
+  console.log(`[fetch-lark] raw/raindrop/${rawHostFor(slug, src.origin_url)}/${slug}/ (${src.content_length} chars, ${src.images.length} images)`);
 }
 
 export function cmdFetchUrl(positional: string[], args: string[]): void {
@@ -151,7 +151,7 @@ export function cmdFetchUrl(positional: string[], args: string[]): void {
 
   const src = fetchUrlAndStore({ slug, url, viaBrowser, downloadImages, force });
   console.log(
-    `[fetch-url] raw/raindrop/${hostnameOf(src.origin_url)}/${slug}/ ` +
+    `[fetch-url] raw/raindrop/${rawHostFor(slug, src.origin_url)}/${slug}/ ` +
     `(fetcher=${src.fetcher} reason=${src.fetcher_reason} ${src.content_length} chars, ${src.images.length} images, flags=${src.quality_flags.join(",") || "none"})`,
   );
 }
@@ -338,7 +338,7 @@ export function cmdRefetch(positional: string[], args: string[]): void {
     process.exit(1);
   }
   console.log(
-    `[refetch] raw/raindrop/${hostnameOf(out.origin_url)}/${slug}/ ` +
+    `[refetch] raw/raindrop/${rawHostFor(slug, out.origin_url)}/${slug}/ ` +
     `(status=${out.quality_status}, ${out.content_length} chars, ${out.images.length} images, flags=${out.quality_flags.join(",") || "none"})`,
   );
 }

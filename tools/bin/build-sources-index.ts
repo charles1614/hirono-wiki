@@ -26,6 +26,7 @@ import { writeFileAtomic } from "../shared/atomic-write.ts";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import matter from "gray-matter";
+import { currentDeepwikiUrl } from "../shared/deepwiki-hosts.ts";
 import { walkWikiDocs, slugOf, bucketOf } from "../link-map.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -99,6 +100,7 @@ export function readSourceIndexStrict(path: string): SourceIndex {
  *  - strip trailing slash
  *  - strip common tracking query params
  *  - drop fragment (#...) for HTTP URLs (keep for in-doc anchors? for v0.5: drop)
+ *  - map the legacy DeepWiki host to the current one
  *  - leave non-HTTP URLs (lark://, raindrop://) alone
  */
 export function normalizeUrl(raw: string): string {
@@ -110,7 +112,7 @@ export function normalizeUrl(raw: string): string {
   }
   let u: URL;
   try {
-    u = new URL(trimmed);
+    u = new URL(currentDeepwikiUrl(trimmed));
   } catch {
     return trimmed;
   }

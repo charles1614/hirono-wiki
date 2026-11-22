@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/spdl?file=03-core-architecture
+source_url: https://wiki.litenext.space/wiki/spdl?file=03-core-architecture
 tags: [training, data-loading, tooling]
 ---
 
@@ -35,4 +35,4 @@ Deep-dive into SPDL's dual thread-pool + async event-loop architecture for high-
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/spdl?file=03-core-architecture](https://wiki.litenext.digital/wiki/spdl?file=03-core-architecture) — DeepWiki auto-generated architecture reference for SPDL; captured 2026-01-20. Read 2026-05-15.
+[wiki.litenext.space/wiki/spdl?file=03-core-architecture](https://wiki.litenext.space/wiki/spdl?file=03-core-architecture) — DeepWiki auto-generated architecture reference for SPDL; captured 2026-01-20. Read 2026-05-15.

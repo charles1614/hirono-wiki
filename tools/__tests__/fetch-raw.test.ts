@@ -1313,7 +1313,7 @@ test("remediationFor: xhs-silent-fail → wait-and-retry hint", () => {
 });
 
 test("remediationFor: loading-skeleton → SPA hint", () => {
-  const r = remediationFor(["loading-skeleton"], "https://wiki.litenext.digital/x");
+  const r = remediationFor(["loading-skeleton"], "https://wiki.litenext.space/x");
   assert.match(r, /SPA/);
 });
 

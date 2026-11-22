@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/megatron-lm?file=05-tensor-parallelism
+source_url: https://wiki.litenext.space/wiki/megatron-lm?file=05-tensor-parallelism
 tags: [training, parallelism, gpu, tooling]
 ---
 
@@ -35,4 +35,4 @@ DeepWiki-generated reference for [[Megatron-LM]]'s tensor parallelism implementa
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/megatron-lm?file=05-tensor-parallelism](https://wiki.litenext.digital/wiki/megatron-lm?file=05-tensor-parallelism) — DeepWiki-generated architecture doc, Megatron-LM commit dd7c9f4f6, generated 2025-12-29. Read 2026-05-15.
+[wiki.litenext.space/wiki/megatron-lm?file=05-tensor-parallelism](https://wiki.litenext.space/wiki/megatron-lm?file=05-tensor-parallelism) — DeepWiki-generated architecture doc, Megatron-LM commit dd7c9f4f6, generated 2025-12-29. Read 2026-05-15.

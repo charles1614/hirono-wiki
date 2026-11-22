@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/flashmla?file=03-kernel-implementations
+source_url: https://wiki.litenext.space/wiki/flashmla?file=03-kernel-implementations
 tags: [inference, attention-kernels, gpu, tooling, long-context]
 ---
 
@@ -35,4 +35,4 @@ DeepWiki-generated reference for FlashMLA's four CUDA kernel types: dense decode
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/flashmla?file=03-kernel-implementations](https://wiki.litenext.digital/wiki/flashmla?file=03-kernel-implementations) — DeepWiki-generated architecture doc, FlashMLA commit 48c6dc4, generated 2026-01-27. Read 2026-05-15.
+[wiki.litenext.space/wiki/flashmla?file=03-kernel-implementations](https://wiki.litenext.space/wiki/flashmla?file=03-kernel-implementations) — DeepWiki-generated architecture doc, FlashMLA commit 48c6dc4, generated 2026-01-27. Read 2026-05-15.

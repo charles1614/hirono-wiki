@@ -27,6 +27,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync
 import { join } from "node:path";
 import { applyPostCleanups } from "../sites/_shared/post-cleanup.ts";
 import { countFeatures, writeInvariants } from "./snapshot-helpers.ts";
+import { currentDeepwikiUrl } from "../shared/deepwiki-hosts.ts";
 
 const args = process.argv.slice(2);
 const slugIdx = args.indexOf("--slug");
@@ -34,7 +35,7 @@ if (slugIdx < 0 || args.length < 3) {
   console.error("usage: snapshot-create.ts <url> --slug <slug>");
   process.exit(2);
 }
-const url = args[0];
+const url = currentDeepwikiUrl(args[0]);
 const slug = args[slugIdx + 1];
 if (!url || !slug) {
   console.error("usage: snapshot-create.ts <url> --slug <slug>");

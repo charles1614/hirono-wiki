@@ -48,6 +48,7 @@ breakdown of each file.
   - `atomic-write.ts` — atomic file writes
   - `browser-lock.ts` — machine-wide opencli concurrency lock
   - `revisions.ts` — `revisions.jsonl` append-only audit-trail helpers
+  - `deepwiki-hosts.ts` — self-hosted DeepWiki host + legacy alias (matched, never fetched)
   - `url-helpers.ts` — URL normalization + share-aggregator unwrap (`share.google?link=`, etc.)
 - **`tools/hirono/`** — `hirono` CLI for raindrop-driven bulk fetching + wiki authoring helpers:
   - `doctor.ts` — environment health check

@@ -26,6 +26,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { hostnameOf, listRawSlugs, type RawSlugInfo } from "../../fetch-raw.ts";
+import { currentDeepwikiUrl } from "../../shared/deepwiki-hosts.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { routeSite } from "../../sites/index.ts";
 import { unwrapShareUrl } from "../../sites/_shared/url-unwrap.ts";
@@ -219,7 +220,10 @@ export function buildStatusRows(opts: BuildOpts = {}): StatusRow[] {
   // Sources index
   let sourcesIndex: Record<string, SourcesIndexEntry> = {};
   if (existsSync(sourcesIndexPath)) {
-    try { sourcesIndex = JSON.parse(readFileSync(sourcesIndexPath, "utf8")); }
+    try {
+      const parsed: Record<string, SourcesIndexEntry> = JSON.parse(readFileSync(sourcesIndexPath, "utf8"));
+      sourcesIndex = Object.fromEntries(Object.entries(parsed).map(([k, v]) => [currentDeepwikiUrl(k), v]));
+    }
     catch { /* leave empty */ }
   }
 

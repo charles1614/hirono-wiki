@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/flashmla?file=01-overview
+source_url: https://wiki.litenext.space/wiki/flashmla?file=01-overview
 tags: [inference, attention-kernels, gpu, tooling]
 ---
 
@@ -36,4 +36,4 @@ FlashMLA is DeepSeek's production-grade CUDA kernel library for Multi-head Laten
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/flashmla](https://wiki.litenext.digital/wiki/flashmla?file=01-overview) — DeepWiki auto-generated architecture doc, source commit `48c6dc4`, 2026-01-27. Read 2026-05-15.
+[wiki.litenext.space/wiki/flashmla](https://wiki.litenext.space/wiki/flashmla?file=01-overview) — DeepWiki auto-generated architecture doc, source commit `48c6dc4`, 2026-01-27. Read 2026-05-15.

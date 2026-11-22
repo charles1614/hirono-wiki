@@ -18,6 +18,7 @@ import { execSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { currentDeepwikiUrl } from "../../shared/deepwiki-hosts.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -91,7 +92,7 @@ export function findNewBookmarks(opts: { raindropCachePath?: string; sourcesInde
   if (existsSync(indexPath)) {
     try {
       const raw: Record<string, unknown> = JSON.parse(readFileSync(indexPath, "utf8"));
-      for (const k of Object.keys(raw)) indexed.add(k);
+      for (const k of Object.keys(raw)) indexed.add(currentDeepwikiUrl(k));
     } catch { /* leave empty */ }
   }
 

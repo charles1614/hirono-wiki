@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/flashmla?file=04-memory-management
+source_url: https://wiki.litenext.space/wiki/flashmla?file=04-memory-management
 tags: [inference, kv-cache, quantization, gpu, long-context]
 ---
 
@@ -35,4 +35,4 @@ DeepWiki-generated reference for FlashMLA's memory management layer: FP8 KVCache
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/flashmla?file=04-memory-management](https://wiki.litenext.digital/wiki/flashmla?file=04-memory-management) — DeepWiki-generated architecture doc, FlashMLA commit 48c6dc4, generated 2026-01-27. Read 2026-05-15.
+[wiki.litenext.space/wiki/flashmla?file=04-memory-management](https://wiki.litenext.space/wiki/flashmla?file=04-memory-management) — DeepWiki-generated architecture doc, FlashMLA commit 48c6dc4, generated 2026-01-27. Read 2026-05-15.

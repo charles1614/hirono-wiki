@@ -45,6 +45,7 @@ import { applyPostCleanups } from "./sites/_shared/post-cleanup.ts";
 import { convertGenericHtml } from "./sites/_shared/generic-converter.ts";
 import { unwrapShareUrl } from "./sites/_shared/url-unwrap.ts";
 import { normalizeUrl } from "./bin/build-sources-index.ts";
+import { currentDeepwikiUrl, DEEPWIKI_LEGACY_HOST, isDeepwikiLitenextUrl } from "./shared/deepwiki-hosts.ts";
 import { classifyFromInput } from "./hirono/raindrop/failure-kind.ts";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
@@ -314,7 +315,7 @@ const HOST_MIN_BODY_SIZES: Array<{ match: (u: string, h: string) => boolean; min
   { match: (_u, h) => h === "github.com", minChars: 1000 },
   { match: (_u, h) => h === "docs.nvidia.com" || h === "developer.nvidia.com", minChars: 1500 },
   { match: (_u, h) => h === "magazine.sebastianraschka.com" || h === "newsletter.semianalysis.com" || h === "sebastianraschka.com", minChars: 3000 },
-  { match: (_u, h) => h === "wiki.litenext.digital" || h === "deepwiki.com", minChars: 1500 },
+  { match: (u, h) => isDeepwikiLitenextUrl(u) || h === "deepwiki.com", minChars: 1500 },
   { match: (_u, h) => h === "aleksagordic.com" || h === "www.aleksagordic.com", minChars: 3000 },
   { match: (_u, h) => h === "blog.google", minChars: 1500 },
   { match: (_u, h) => h === "intuitionlabs.ai", minChars: 2000 },
@@ -492,8 +493,21 @@ export function yearForSlug(slug: string): string {
  * `findRawDir(slug)` which scans the disk for an existing slug directory.
  */
 export function rawDirFor(slug: string, originUrl: string, rawRoot: string = RAW_DIR): string {
-  const host = hostnameOf(originUrl) || "_unknown";
-  return join(rawRoot, "raindrop", host, slug);
+  return join(rawRoot, "raindrop", rawHostFor(slug, originUrl, rawRoot), slug);
+}
+
+/**
+ * The `<hostname>` component of `rawDirFor`. A DeepWiki slug archived under
+ * the legacy host keeps that directory, which is also its R2 key prefix.
+ */
+export function rawHostFor(slug: string, originUrl: string, rawRoot: string = RAW_DIR): string {
+  if (
+    isDeepwikiLitenextUrl(originUrl) &&
+    existsSync(join(rawRoot, "raindrop", DEEPWIKI_LEGACY_HOST, slug))
+  ) {
+    return DEEPWIKI_LEGACY_HOST;
+  }
+  return hostnameOf(currentDeepwikiUrl(originUrl)) || "_unknown";
 }
 
 /**
@@ -630,7 +644,7 @@ export function downloadImage(url: string, destPath: string, maxBytes = 15 * 102
     "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
   ];
   if (referer) args.push("-e", referer);
-  args.push("-o", tmpPath, url);
+  args.push("-o", tmpPath, currentDeepwikiUrl(url));
   const res = spawnSync("curl", args, { encoding: "utf8", timeout: 40_000 });
   // Cleanup helper: remove both .part and any stale destination file.
   // The stale-destination cleanup is critical — without it, a prior fetch
@@ -1200,6 +1214,7 @@ export function fetchUrlAndStore(opts: FetchUrlOpts): SourceJson {
     console.error(`[unwrap] ${unwrap.wrapperHost} → ${unwrap.unwrapped}`);
     opts = { ...opts, url: unwrap.unwrapped };
   }
+  opts = { ...opts, url: currentDeepwikiUrl(opts.url) };
 
   for (const rule of AUTO_SKIP_RULES) {
     if (rule.match(opts.url)) {
@@ -1634,9 +1649,9 @@ export function rebuildRawIndex(
           created: b.created,
           title: b.title,
         };
-        byUrl.set(b.link, meta);
+        byUrl.set(currentDeepwikiUrl(b.link), meta);
         const unwrap = unwrapShareUrl(b.link);
-        if (unwrap) byUrl.set(unwrap.unwrapped, meta);
+        if (unwrap) byUrl.set(currentDeepwikiUrl(unwrap.unwrapped), meta);
       }
     } catch { /* leave map empty */ }
   }
@@ -1650,7 +1665,7 @@ export function rebuildRawIndex(
   const out: Record<string, RawIndexEntry> = {};
   for (const info of slugs) {
     const link = info.source?.origin_url;
-    const bm = link ? byUrl.get(link) : undefined;
+    const bm = link ? byUrl.get(currentDeepwikiUrl(link)) : undefined;
     // Derive the 3-state field. See `SlugState` JSDoc + Meta/
     // corpus-pipeline.md for the state machine.
     //
@@ -1992,6 +2007,7 @@ export function loadIngestedUrlSet(path?: string): Set<string> {
   const out = new Set<string>();
   for (const k of Object.keys(parsed)) {
     out.add(k);
+    out.add(currentDeepwikiUrl(k)); // index built before the host move
     const u = unwrapShareUrl(k);
     if (u) {
       try { out.add(normalizeUrl(u.unwrapped)); } catch { /* malformed */ }
@@ -2023,7 +2039,7 @@ export function headCheck(url: string): { ok: boolean; etag?: string; lastModifi
         "--max-time", "20",
         "-A", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         "-H", "Accept: text/html,application/xhtml+xml,application/xml;q=0.9",
-        url,
+        currentDeepwikiUrl(url),
       ],
       { encoding: "utf8", timeout: 25_000, maxBuffer: 1024 * 1024 },
     );
