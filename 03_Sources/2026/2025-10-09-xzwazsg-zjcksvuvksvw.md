@@ -23,8 +23,8 @@ First-person technical walkthrough of [[DeepEP]]'s low-latency CUDA kernel for M
 
 ## Visual observations
 
-![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-09-xzwazsg-zjcksvuvksvw/weixin-img-002.png)
-![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-10-09-xzwazsg-zjcksvuvksvw/weixin-img-007.png)
+![](https://hirono-wiki.litenext.space/raindrop/mp.weixin.qq.com/2025-10-09-xzwazsg-zjcksvuvksvw/weixin-img-002.png)
+![](https://hirono-wiki.litenext.space/raindrop/mp.weixin.qq.com/2025-10-09-xzwazsg-zjcksvuvksvw/weixin-img-007.png)
 
 *Other images decorative — data format diagrams and buffer layouts described in body.*
 

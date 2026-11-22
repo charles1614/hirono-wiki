@@ -21,10 +21,10 @@ Qwen研究主页快照（2026年4月/5月），涵盖4项最新研究：可解�
 
 ## Visual observations
 
-![](https://hirono-wiki.litenext.digital/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-01.png)
-![](https://hirono-wiki.litenext.digital/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-02.png)
-![](https://hirono-wiki.litenext.digital/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-03.png)
-![](https://hirono-wiki.litenext.digital/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-04.png)
+![](https://hirono-wiki.litenext.space/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-01.png)
+![](https://hirono-wiki.litenext.space/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-02.png)
+![](https://hirono-wiki.litenext.space/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-03.png)
+![](https://hirono-wiki.litenext.space/raindrop/qwen.ai/2026-01-14-qwen-research/qwen-ai-research-04.png)
 
 ## Entities touched
 
