@@ -24,9 +24,9 @@ Analysis showing that Nsight Compute (ncu) incorrectly reports Tensor Pipe Utili
 
 ## Visual observations
 
-![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-12-03-关于nsight-compute中compute-workload-analys/zhihu-img-001.jpg)
+![](https://hirono-wiki.litenext.space/raindrop/zhuanlan.zhihu.com/2025-12-03-关于nsight-compute中compute-workload-analys/zhihu-img-001.jpg)
 
-![](https://hirono-wiki.litenext.digital/raindrop/zhuanlan.zhihu.com/2025-12-03-关于nsight-compute中compute-workload-analys/zhihu-img-002.jpg)
+![](https://hirono-wiki.litenext.space/raindrop/zhuanlan.zhihu.com/2025-12-03-关于nsight-compute中compute-workload-analys/zhihu-img-002.jpg)
 
 *Other images decorative — workload distribution chart, peak flops derivation table.*
 

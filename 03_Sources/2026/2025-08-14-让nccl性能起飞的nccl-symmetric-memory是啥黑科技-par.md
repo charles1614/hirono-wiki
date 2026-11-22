@@ -25,9 +25,9 @@ Deep technical dive into NCCL 2.27's symmetric memory feature, which enables low
 
 ## Visual observations
 
-![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par/weixin-img-001.png)
-![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par/weixin-img-002.png)
-![](https://hirono-wiki.litenext.digital/raindrop/mp.weixin.qq.com/2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par/weixin-img-013.png)
+![](https://hirono-wiki.litenext.space/raindrop/mp.weixin.qq.com/2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par/weixin-img-001.png)
+![](https://hirono-wiki.litenext.space/raindrop/mp.weixin.qq.com/2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par/weixin-img-002.png)
+![](https://hirono-wiki.litenext.space/raindrop/mp.weixin.qq.com/2025-08-14-让nccl性能起飞的nccl-symmetric-memory是啥黑科技-par/weixin-img-013.png)
 
 ## What this changes
 
