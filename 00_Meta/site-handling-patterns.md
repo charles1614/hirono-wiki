@@ -67,7 +67,7 @@ this file. Each iteration grows the institutional memory.
 | Cloudflare 403 / "Just a moment..." / mod_security blocks | UA gating; default `curl` UA looks bot-like | P-27 chrome-ua-headers |
 | Body is right but quad-asterisk runs and emoji `:shortcodes:` got escaped | Markdown serializer over-escaped | P-28 cross-cutting-cleanups |
 | Body is right but two `# H1`s present | Page title block + body title; turndown emitted both | P-29 enforceSingleH1 |
-| `wiki.litenext.digital` mermaid diagrams render as orphan node-label paragraphs outside ` ```mermaid ` fences | Adapter flattened SVG-rendered diagram; source lives in DOM `data-original-text` attr or hydration script | P-30 deepwiki-mermaid-splice |
+| `wiki.litenext.space` mermaid diagrams render as orphan node-label paragraphs outside ` ```mermaid ` fences | Adapter flattened SVG-rendered diagram; source lives in DOM `data-original-text` attr or hydration script | P-30 deepwiki-mermaid-splice |
 | Hexo / WordPress / Sphinx site looks like one of the article-shape sites | Article-site factory pattern; <30 LOC config | P-31 article-site-factory |
 | Bookmark URL is on a `share.*` / `out.*` / `redirect.*` host with `?link=…` / `?url=…` query param holding the real target | Share-aggregator wrapper that doesn't redirect (interstitial only) | P-32 share-aggregator-unwrap |
 | Body title is `Just a moment...` / `Attention Required! Cloudflare` / `52N: <error>`; body says "Performing security verification" / "Checking your browser" | Cloudflare / Akamai / DataDome / PerimeterX challenge or CF origin-error interstitial extracted as if it were content | P-33 anti-bot-challenge-detect |
@@ -526,7 +526,7 @@ The universal cleanups in `tools/sites/_shared/post-cleanup.ts` already run afte
 
 **Symptom.** Body contains paragraphs like `Cluster GPU Resources` / `Total GPUs requested` floating outside any ` ```mermaid ` fence.
 
-**Root cause.** DeepWiki renders mermaid diagrams as SVG; the source text gets flattened to label-per-paragraph by the converter. The diagram source lives in (a) a `data-original-text` DOM attribute (wiki.litenext.digital) or (b) inside hydration `<script>` tags `self.__next_f.push(...)` (deepwiki.com).
+**Root cause.** DeepWiki renders mermaid diagrams as SVG; the source text gets flattened to label-per-paragraph by the converter. The diagram source lives in (a) a `data-original-text` DOM attribute (wiki.litenext.space) or (b) inside hydration `<script>` tags `self.__next_f.push(...)` (deepwiki.com).
 
 **Remediation.** Two-stage:
 1. Extract mermaid sources (DOM attr OR script-scan, capped to `document.querySelectorAll('svg[id^=mermaid]').length` to match SVGs actually rendered on this page).
@@ -1059,7 +1059,7 @@ After reading 2–3 sample URLs from a new host, classify into one of these. Eac
 | **PR / issue / discussion** | OP + activity timeline + threaded comments + reactions | Split-speaker: `## username` heading + `> opened/commented/replied on … · Role` blockquote + body. Strip activity events, reactions, avatars per CLAUDE.md §3 | github.com PR/issue/discussion |
 | **Catalog / table page** | Page is mostly a structured table/note with metadata fields | Title + author/metadata callout + flattened table. Image-only variants get explicit "Text content unavailable" marker | xhs, github releases |
 | **Data / interactive viz** | Interactive chart/dashboard; real data lives in JS state or a CSV download | Intro prose + `## Dataset (top N of M rows)` markdown table built from the CSV | epoch.ai |
-| **Wiki / docs** | Multi-page hierarchy, mermaid diagrams, rich tables, code refs | Body + spliced mermaid fences + spliced table contents (see DeepWiki recipe in `00_Meta/fix-recipes.md`) | deepwiki.com, wiki.litenext.digital |
+| **Wiki / docs** | Multi-page hierarchy, mermaid diagrams, rich tables, code refs | Body + spliced mermaid fences + spliced table contents (see DeepWiki recipe in `00_Meta/fix-recipes.md`) | deepwiki.com, wiki.litenext.space |
 | **Gallery / SPA** | React-rendered grid with dropdown filters; "content" lives in JS state | Best-achievable: capture visible prose, flag interactive UI as known-limit, do NOT lock fixtures around partial output | sebastianraschka.com |
 
 If a host matches none of these, *say so explicitly to the user before guessing*. Adding a new shape is a deliberate design decision, not a fallback.
@@ -1114,7 +1114,7 @@ For a new host, check these alternatives in order before settling for plain rend
 1. **REST / GraphQL API** of the host returning structured JSON we can convert ourselves. *Used by:* github (issue/PR/discussion/release APIs).
 2. **Raw markdown mirror** in a public repo or CDN. *Used by:* huggingface blog (mirrored at `github.com/huggingface/blog`); github file/repo content via `raw.githubusercontent.com`.
 3. **Inline hydration JSON** in `<script>` tags. Next.js / React SPAs often ship the page state as `self.__next_f.push([...])` or `__NEXT_DATA__`. *Used by:* deepwiki.com (mermaid sources live in hydration).
-4. **DOM attribute data** for embedded widgets. *Used by:* wiki.litenext.digital deepwiki (`.mermaid[data-original-text]`).
+4. **DOM attribute data** for embedded widgets. *Used by:* wiki.litenext.space deepwiki (`.mermaid[data-original-text]`).
 5. **Linked downloads** (CSV, JSON, PDF). *Used by:* epoch.ai (`<a href="*.csv">` for the actual dataset).
 6. **`<meta>` tags** for shape and metadata hints — `og:type`, `og:url`, `article:author`, `article:published_time`. Always cheap to read; useful for shape classification (5e.i).
 7. **`<head>` `<title>`** as last-resort title fallback when body extraction misses the title.

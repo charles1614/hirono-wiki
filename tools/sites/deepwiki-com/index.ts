@@ -1,7 +1,7 @@
 /**
  * deepwiki.com — the official hosted DeepWiki service.
  *
- * Independent of `wiki.litenext.digital` — different operator, separate
+ * Independent of `wiki.litenext.space` — different operator, separate
  * uptime, separate failure modes, no shared code. The
  * `hirono raindrop check` dispatch report labels them separately so
  * per-operator issues stay visible.

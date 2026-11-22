@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/megatron-lm?file=13-feedforward-networks
+source_url: https://wiki.litenext.space/wiki/megatron-lm?file=13-feedforward-networks
 tags: [training, parallelism, gpu]
 ---
 
@@ -35,4 +35,4 @@ DeepWiki reference for the MLP block in [[Megatron-LM]], covering standard FC1�
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/megatron-lm](https://wiki.litenext.digital/wiki/megatron-lm?file=13-feedforward-networks) — DeepWiki auto-generated Megatron-LM doc; source commit dd7c9f4f6; generated December 29, 2025. Read 2026-05-15.
+[wiki.litenext.space/wiki/megatron-lm](https://wiki.litenext.space/wiki/megatron-lm?file=13-feedforward-networks) — DeepWiki auto-generated Megatron-LM doc; source commit dd7c9f4f6; generated December 29, 2025. Read 2026-05-15.

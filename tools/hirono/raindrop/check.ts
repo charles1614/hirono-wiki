@@ -22,6 +22,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { currentDeepwikiUrl } from "../../shared/deepwiki-hosts.ts";
 import { normalizeUrl } from "../../bin/build-sources-index.ts";
 import { hostnameOf } from "../../fetch-raw.ts";
 import { routeSite } from "../../sites/index.ts";
@@ -227,7 +228,7 @@ export function buildReport(cache: Cache): CheckReport {
     arr.push(b);
     byNormUrl.set(norm, arr);
 
-    const host = hostOf(b.link);
+    const host = hostOf(currentDeepwikiUrl(b.link));
     if (!host) continue;
     const c = classifyCoverage(b.link);
     // Non-default modules collapse to one row per module identity.

@@ -12,6 +12,7 @@
 import { spawnSync } from "node:child_process";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../_shared/browser-helpers.ts";
 import { extractJsonFromEvalStdout } from "../_shared/browser-eval-json.ts";
+import { currentDeepwikiUrl } from "../../shared/deepwiki-hosts.ts";
 
 export interface DeepwikiLitenextContent {
   /** outerHTML of `.prose` — empty on failure (and `error` will be set). */
@@ -31,7 +32,7 @@ export function extractDeepwikiLitenextContent(url: string): DeepwikiLitenextCon
   try {
     const openRes = spawnSync(
       "opencli",
-      ["browser", "open", url],
+      ["browser", "open", currentDeepwikiUrl(url)],
       { encoding: "utf8", timeout: browserTimeoutMs("open") },
     );
     if (openRes.status !== 0) {
@@ -53,7 +54,7 @@ export function extractDeepwikiLitenextContent(url: string): DeepwikiLitenextCon
       const h1 = prose ? prose.querySelector("h1") : null;
       const title = (h1 ? (h1.textContent || "").trim() : "") || rawTitle;
 
-      // Strategy 1: data-original-text attribute (wiki.litenext.digital)
+      // Strategy 1: data-original-text attribute (wiki.litenext.space)
       const fromAttr = Array.from(document.querySelectorAll(".mermaid[data-original-text]"))
         .map(el => el.getAttribute("data-original-text"))
         .filter(s => typeof s === "string" && s.length > 0);

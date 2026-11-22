@@ -124,7 +124,7 @@ When §1 flags a bug matching a recipe below, **apply — don't ask**. Full rege
 |---|---|
 | Missing body / comments / tables / fences | "Missing body…" — HF blog/github API/raw-mirror fallback. Set `GITHUB_TOKEN` for 5000/hr. |
 | Activity timeline leak | "Activity timeline leaking…" — 4 avatar-residual prefix variants. |
-| DeepWiki mermaid as orphan labels | "DeepWiki mermaid…" — wiki.litenext.digital + deepwiki.com paths; `isDiagramNode` thresholds; `splice-incomplete` guard. |
+| DeepWiki mermaid as orphan labels | "DeepWiki mermaid…" — wiki.litenext.space + deepwiki.com paths; `isDiagramNode` thresholds; `splice-incomplete` guard. |
 | WeChat/mdnice malformed bold/lists/code | "WeChat / mdnice…" — 11-row table: unbalanced `*`, nested `<strong>`, mis-tagged `data-lang`, jsdom crash, SVG-as-image. |
 | x.com / Twitter | "x.com / Twitter" — deterministic stub only (auth-walled). |
 | KaTeX triple-rendered (HF blog) | "KaTeX triple-rendered" — V1/V3 collapse + `\\cmd → \cmd`. |
@@ -207,7 +207,7 @@ Before committing post-processor/adapter changes, re-export and check.
 | `github.com/pytorch/torchtitan` | README raw fetch, ≥18 fences, 8 local badge images | good ~11KB |
 | `github.com/pytorch/pytorch/releases/tag/v2.5.0` | Release API, ≥18 fences, ≥10 table rows | good ~91KB |
 | `github.com/ggml-org/llama.cpp/discussions/5138` | 24 speakers (7 top + 17 replied) | good ~9KB |
-| `wiki.litenext.digital/wiki/slime?file=02-distributed-orchestration` | 9 mermaid blocks, 0 orphan labels | good ~29KB |
+| `wiki.litenext.space/wiki/slime?file=02-distributed-orchestration` | 9 mermaid blocks, 0 orphan labels | good ~29KB |
 | `mp.weixin.qq.com/s/PcyKi5q8zT-tJ_9rzgKSqg` (Anthropic Skills) | 30 fences, 0 doubled markers, YAML intact | good ~6KB |
 | `mp.weixin.qq.com/s/FcK3QmzudPZzqsz85odFlQ` (GPU container) | 14 fences, 21 table rows, 1 SVG preserved | good ~6KB + 20KB SVG |
 | `mp.weixin.qq.com/s/44_UrbaQu2U1EAB9OrGNxQ` (Xiaomi interview) | 15 images, `**作者丨何煦阳**` merged | good ~12KB |
@@ -304,6 +304,8 @@ Sources are summaries. For detail not carried (algorithm steps, table rows, code
 If `raw/<slug>` is missing locally (fresh machine or accidental `rm`), restore from R2: `hirono raindrop raw-sync --restore --slug <slug>`. R2 is a durable backup; local can always be rebuilt from it (backup semantics, not mirror — see §12).
 
 **Trust the snapshot — don't refetch.** `content.md` is curated; URL refetch bypasses cleanup. Stale → `hirono raindrop refetch <slug>`. Cite as `[[03_Sources/<slug>]]`. Path mapping lives only here + 00_Meta/schema.md (never in Source body).
+
+**Host-move exception:** DeepWiki slugs archived before the move to `wiki.litenext.space` stay under `raw/raindrop/wiki.litenext.digital/`, and their `source.json` keeps that host while the Source's `source_url` has the new one. Resolve them by slug (`hirono raindrop raw-show <slug>`). Never fetch the legacy host (`tools/shared/deepwiki-hosts.ts`).
 
 **Image-heavy workflow**: when `shouldExtractImages` triggers, Sonnet subagent extracts verbatim → `<slug>-images-extract.md`. Opus inline-verifies any number/§-ref/parameter before citing. **Never Haiku** for dense Chinese (1568px cap drops specifics + hallucinates). Details: memory `feedback_image_extraction_hybrid.md` + `feedback_haiku_image_resolution.md`.
 

@@ -34,6 +34,7 @@ import { findHooksByName } from "../sites/test-hooks-registry.ts";
 import { convertGenericHtml } from "../sites/_shared/generic-converter.ts";
 import { extractJsonFromEvalStdout } from "../sites/_shared/browser-eval-json.ts";
 import { sleepMs, closeBrowser, browserTimeoutMs } from "../sites/_shared/browser-helpers.ts";
+import { currentDeepwikiUrl } from "../shared/deepwiki-hosts.ts";
 
 const FIXTURES_ROOT = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "converters");
 
@@ -129,7 +130,8 @@ function captureWebFetch(hostKey: string, name: string, url: string): void {
   }
 }
 
-const [host, name, url] = process.argv.slice(2);
+const [host, name, inputUrl] = process.argv.slice(2);
+const url = inputUrl && currentDeepwikiUrl(inputUrl);
 if (!host || !name || !url) {
   console.error("usage: capture-fixtures.ts <host> <name> <url>");
   console.error("  host = <site-module-name> | web-fetch:<hostkey>");

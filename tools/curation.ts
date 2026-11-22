@@ -20,6 +20,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { walkWikiDocs } from "./link-map.ts";
+import { currentDeepwikiUrl } from "./shared/deepwiki-hosts.ts";
 
 // ---------------------------------------------------------------------------
 // types
@@ -361,9 +362,9 @@ export function loadIngestSkips(repoRoot: string): SkipEntry[] {
 
 /** Return true if the URL or slug matches any skip-list entry. */
 export function isInSkipList(urlOrSlug: string, entries: SkipEntry[]): SkipEntry | null {
-  const normalized = urlOrSlug.toLowerCase().trim();
+  const normalized = currentDeepwikiUrl(urlOrSlug).toLowerCase().trim();
   for (const e of entries) {
-    const k = e.key.toLowerCase().trim();
+    const k = currentDeepwikiUrl(e.key).toLowerCase().trim();
     if (k === normalized) return e;
     // Trailing-slash insensitive
     if (k.replace(/\/$/, "") === normalized.replace(/\/$/, "")) return e;

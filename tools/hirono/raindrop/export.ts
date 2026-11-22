@@ -26,7 +26,7 @@ import { fileURLToPath } from "node:url";
 import {
   fetchUrlAndStore,
   type SourceJson,
-  hostnameOf,
+  rawHostFor,
   findRawDir,
 } from "../../fetch-raw.ts";
 import { applyPostCleanups } from "../../sites/_shared/post-cleanup.ts";
@@ -189,7 +189,7 @@ export function main(argv: string[]): void {
     });
     const flags = source.quality_flags.length > 0 ? source.quality_flags.join(",") : "none";
     console.log(
-      `[export] raw/raindrop/${hostnameOf(source.origin_url)}/${finalSlug}/ ` +
+      `[export] raw/raindrop/${rawHostFor(finalSlug, source.origin_url)}/${finalSlug}/ ` +
       `status=${source.quality_status} (${source.content_length} chars, ${source.images.length} images, flags=${flags})`
     );
     if (source.notes.length > 0) {

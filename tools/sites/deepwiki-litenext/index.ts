@@ -1,5 +1,7 @@
 /**
- * wiki.litenext.digital — a self-hosted deployment of DeepWiki software.
+ * wiki.litenext.space — a self-hosted deployment of DeepWiki software.
+ * URLs on its legacy host are still claimed, and fetched from the current
+ * host; see `tools/shared/deepwiki-hosts.ts`.
  *
  * Independent of `deepwiki.com` — different operator, separate uptime,
  * separate failure modes, no shared code. The `hirono raindrop check`
@@ -16,11 +18,12 @@ import { convertDeepwikiLitenextHtml } from "./converter.ts";
 import { downloadImage } from "../../fetch-raw.ts";
 import { makeStub } from "../_shared/stub.ts";
 import { hostOf } from "../../shared/url-helpers.ts";
+import { currentDeepwikiUrl, isDeepwikiLitenextUrl } from "../../shared/deepwiki-hosts.ts";
 
 export const site: Site = {
   name: "deepwiki-litenext",
-  match: (url) => hostOf(url) === "wiki.litenext.digital",
-  fetch: (url, opts) => fetchDeepwiki(url, opts),
+  match: isDeepwikiLitenextUrl,
+  fetch: (url, opts) => fetchDeepwiki(currentDeepwikiUrl(url), opts),
 };
 
 function fetchDeepwiki(url: string, opts: { slugDir: string; titleHint?: string }) {

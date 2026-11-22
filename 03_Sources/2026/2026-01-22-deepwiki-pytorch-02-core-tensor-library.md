@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/pytorch?file=02-core-tensor-library
+source_url: https://wiki.litenext.space/wiki/pytorch?file=02-core-tensor-library
 tags: [training, inference, tooling, parallelism]
 ---
 
@@ -33,4 +33,4 @@ Auto-generated architectural documentation for PyTorch internals, covering the f
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/pytorch](https://wiki.litenext.digital/wiki/pytorch?file=02-core-tensor-library) — DeepWiki auto-generated PyTorch architecture doc; commit ac1325580a6, branch main; generated 2026-01-25. Read 2026-05-15.
+[wiki.litenext.space/wiki/pytorch](https://wiki.litenext.space/wiki/pytorch?file=02-core-tensor-library) — DeepWiki auto-generated PyTorch architecture doc; commit ac1325580a6, branch main; generated 2026-01-25. Read 2026-05-15.

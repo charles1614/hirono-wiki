@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/flashmla?file=05-attention-algorithms
+source_url: https://wiki.litenext.space/wiki/flashmla?file=05-attention-algorithms
 tags: [inference, attention-kernels, gpu, tooling, long-context]
 ---
 
@@ -35,4 +35,4 @@ DeepWiki-generated reference for FlashMLA's attention algorithm layer: MLA (128-
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/flashmla?file=05-attention-algorithms](https://wiki.litenext.digital/wiki/flashmla?file=05-attention-algorithms) — DeepWiki-generated architecture doc, FlashMLA commit 48c6dc4, generated 2026-01-27. Read 2026-05-15.
+[wiki.litenext.space/wiki/flashmla?file=05-attention-algorithms](https://wiki.litenext.space/wiki/flashmla?file=05-attention-algorithms) — DeepWiki-generated architecture doc, FlashMLA commit 48c6dc4, generated 2026-01-27. Read 2026-05-15.

@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/jax?file=04-transformation-system
+source_url: https://wiki.litenext.space/wiki/jax?file=04-transformation-system
 tags: [training, tooling]
 ---
 
@@ -34,4 +34,4 @@ Mechanistic walkthrough of JAX's four primary transformations — `jit`, `grad`,
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/jax?file=04-transformation-system](https://wiki.litenext.digital/wiki/jax?file=04-transformation-system) — DeepWiki auto-generated transformation-system reference for JAX; captured 2026-01-20. Read 2026-05-15.
+[wiki.litenext.space/wiki/jax?file=04-transformation-system](https://wiki.litenext.space/wiki/jax?file=04-transformation-system) — DeepWiki auto-generated transformation-system reference for JAX; captured 2026-01-20. Read 2026-05-15.

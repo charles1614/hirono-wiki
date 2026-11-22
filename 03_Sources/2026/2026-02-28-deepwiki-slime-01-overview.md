@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/slime?file=01-overview
+source_url: https://wiki.litenext.space/wiki/slime?file=01-overview
 tags: [post-training, training, parallelism, tooling]
 ---
 
@@ -56,4 +56,4 @@ Architecture overview of **slime**, [[THUDM]]'s production RL post-training fram
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/slime?file=01-overview](https://wiki.litenext.digital/wiki/slime?file=01-overview) — DeepWiki page (generated 2026-02-25, source commit 7014942c) · 29 KB markdown · 9 mermaid diagrams, 23 tables, 17 code fences · fetched 2026-05-10.
+[wiki.litenext.space/wiki/slime?file=01-overview](https://wiki.litenext.space/wiki/slime?file=01-overview) — DeepWiki page (generated 2026-02-25, source commit 7014942c) · 29 KB markdown · 9 mermaid diagrams, 23 tables, 17 code fences · fetched 2026-05-10.

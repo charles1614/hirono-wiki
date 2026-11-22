@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/megatron-lm?file=12-attention-mechanisms
+source_url: https://wiki.litenext.space/wiki/megatron-lm?file=12-attention-mechanisms
 tags: [training, attention-kernels, parallelism, gpu]
 ---
 
@@ -35,4 +35,4 @@ DeepWiki reference for [[Megatron-LM]]'s attention implementation, covering MHA,
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/megatron-lm](https://wiki.litenext.digital/wiki/megatron-lm?file=12-attention-mechanisms) — DeepWiki auto-generated Megatron-LM doc; source commit dd7c9f4f6; generated December 29, 2025. Read 2026-05-15.
+[wiki.litenext.space/wiki/megatron-lm](https://wiki.litenext.space/wiki/megatron-lm?file=12-attention-mechanisms) — DeepWiki auto-generated Megatron-LM doc; source commit dd7c9f4f6; generated December 29, 2025. Read 2026-05-15.

@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/spdl?file=01-overview
+source_url: https://wiki.litenext.space/wiki/spdl?file=01-overview
 tags: [training, data-loading, tooling]
 ---
 
@@ -39,4 +39,4 @@ SPDL (Scalable and Performant Data Loading) is Meta's open-source high-performan
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/spdl?file=01-overview](https://wiki.litenext.digital/wiki/spdl?file=01-overview) — DeepWiki documentation page, authors Moto Hira et al., captured 2026-01-20. Read 2026-05-15.
+[wiki.litenext.space/wiki/spdl?file=01-overview](https://wiki.litenext.space/wiki/spdl?file=01-overview) — DeepWiki documentation page, authors Moto Hira et al., captured 2026-01-20. Read 2026-05-15.

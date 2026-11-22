@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/daft?file=06-ray-runner
+source_url: https://wiki.litenext.space/wiki/daft?file=06-ray-runner
 tags: [inference, tooling, parallelism]
 ---
 
@@ -36,4 +36,4 @@ Deep architecture documentation for Daft's distributed execution engine, the Ray
 
 ## Raw source
 
-[wiki.litenext.digital/2026-02-02-deepwiki-daft-06-ray-runner](https://wiki.litenext.digital/wiki/daft?file=06-ray-runner) — DeepWiki auto-generated architecture doc, source commit `0fdb7eac`, generated 2026-01-30. Read 2026-05-15.
+[wiki.litenext.space/2026-02-02-deepwiki-daft-06-ray-runner](https://wiki.litenext.space/wiki/daft?file=06-ray-runner) — DeepWiki auto-generated architecture doc, source commit `0fdb7eac`, generated 2026-01-30. Read 2026-05-15.

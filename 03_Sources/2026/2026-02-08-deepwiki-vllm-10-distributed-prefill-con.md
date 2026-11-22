@@ -2,7 +2,7 @@
 created: 2026-05-15
 updated: 2026-05-15
 type: source
-source_url: https://wiki.litenext.digital/wiki/vllm?file=10-distributed#prefill-context-parallelism-pcp
+source_url: https://wiki.litenext.space/wiki/vllm?file=10-distributed#prefill-context-parallelism-pcp
 tags: [inference, parallelism, long-context]
 ---
 
@@ -46,4 +46,4 @@ DeepWiki code-derived documentation of [[vLLM]]'s distributed architecture chapt
 
 ## Raw source
 
-[wiki.litenext.digital/wiki/vllm?file=10-distributed](https://wiki.litenext.digital/wiki/vllm?file=10-distributed#prefill-context-parallelism-pcp) — DeepWiki code-derived doc · vLLM source commit 4061dcf4c · 57 KB · 13 mermaid diagrams spliced · 57 code fences · 111 tables. Captured 2026-05-10.
+[wiki.litenext.space/wiki/vllm?file=10-distributed](https://wiki.litenext.space/wiki/vllm?file=10-distributed#prefill-context-parallelism-pcp) — DeepWiki code-derived doc · vLLM source commit 4061dcf4c · 57 KB · 13 mermaid diagrams spliced · 57 code fences · 111 tables. Captured 2026-05-10.

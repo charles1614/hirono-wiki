@@ -165,8 +165,8 @@ test("stripColorTags: no-op on clean markdown", () => {
 
 test("applyPostCleanups: relative-image resolver fires for any host", () => {
   const md = "# Article\n\nBody with ![diag](/assets/d.png).";
-  const r = applyPostCleanups(md, "https://wiki.litenext.digital/wiki/repo?file=01");
-  assert.ok(r.md.includes("https://wiki.litenext.digital/assets/d.png"));
+  const r = applyPostCleanups(md, "https://wiki.litenext.space/wiki/repo?file=01");
+  assert.ok(r.md.includes("https://wiki.litenext.space/assets/d.png"));
   assert.ok(r.appliedNames.includes("resolve-relative-image-urls"));
   assert.equal(r.newAbsoluteImageUrls.length, 1);
 });
